@@ -216,15 +216,18 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 {
 	int rc = 0;
 
+	if (gpio_is_valid(ctrl_pdata->disp_resx_gpio))
+		gpio_request(ctrl_pdata->disp_resx_gpio, "disp_resx");
+
 	if (gpio_is_valid(ctrl_pdata->disp_en_gpio)) {
-		rc = gpio_request(ctrl_pdata->disp_en_gpio,
-						"disp_enable");
+		rc = gpio_request(ctrl_pdata->disp_en_gpio, "disp_enable");
 		if (rc) {
 			pr_err("request disp_en gpio failed, rc=%d\n",
 				       rc);
 			goto disp_en_gpio_err;
 		}
 	}
+
 	rc = gpio_request(ctrl_pdata->rst_gpio, "disp_rst_n");
 	if (rc) {
 		pr_err("request reset gpio failed, rc=%d\n",
@@ -317,7 +320,12 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			pr_err("gpio request failed\n");
 			return rc;
 		}
-		if (!pinfo->cont_splash_enabled) {
+
+		if (gpio_is_valid(ctrl_pdata->disp_resx_gpio))
+			gpio_direction_input(ctrl_pdata->disp_resx_gpio);
+
+		if (pdata->panel_info.panel_power_state == MDSS_PANEL_POWER_OFF) {
+			pr_debug("%s: Panel was off, doing reset.\n", __func__);
 			if (gpio_is_valid(ctrl_pdata->disp_en_gpio))
 				gpio_set_value((ctrl_pdata->disp_en_gpio), 1);
 
@@ -330,7 +338,8 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 
 			if (gpio_is_valid(ctrl_pdata->bklt_en_gpio))
 				gpio_set_value((ctrl_pdata->bklt_en_gpio), 1);
-		}
+		} else
+			pr_debug("%s: Panel already on, skipping reset.\n", __func__);
 
 		if (gpio_is_valid(ctrl_pdata->mode_gpio)) {
 			if (pinfo->mode_gpio_state == MODE_GPIO_HIGH)
@@ -364,12 +373,17 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+
+		if (gpio_is_valid(ctrl_pdata->disp_resx_gpio))
+			gpio_free(ctrl_pdata->disp_resx_gpio);
+
 		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->mode_gpio))
 			gpio_free(ctrl_pdata->mode_gpio);
 		if (gpio_is_valid(ctrl_pdata->lcd_mode_sel_gpio))
 			gpio_free(ctrl_pdata->lcd_mode_sel_gpio);
 	}
+
 	return rc;
 }
 
@@ -677,6 +691,8 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
 	struct mdss_panel_info *pinfo;
 	struct dsi_panel_cmds *on_cmds;
+	uint8_t panel_id[6];
+	const char *stage;
 	int ret = 0;
 
 	if (pdata == NULL) {
@@ -694,6 +710,28 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		if (ctrl->ndx != DSI_CTRL_LEFT)
 			goto end;
 	}
+
+	if (mdss_dsi_panel_cmd_read(ctrl, 0xA1, 0, NULL, panel_id, sizeof(panel_id)))
+	{
+		pr_err("%s: Failed to read panel id\n", __func__);
+		return -EIO;
+	}
+
+	pr_info("%s: panel manufacturing date: %4d/%02d/%02d\n", __func__, 2010 + (panel_id[0] >> 4), panel_id[0] & 0xF, panel_id[1] >> 3);
+	pr_info("%s: panel vendor id: %d\n", __func__, panel_id[1] & 7); // 1 = JDI
+	pr_info("%s: panel MDL: %d\n", __func__, panel_id[2] >> 6);
+	pr_info("%s: panel inspection equipment: %d\n", __func__, panel_id[4] >> 4);
+	pr_info("%s: panel glass manufacturing site: %d\n", __func__, panel_id[4] & 0xF);
+	pr_info("%s: panel manufacturer rev : %d\n", __func__, panel_id[5] >> 4);
+	switch ((panel_id[5] >> 2) & 0x3)
+	{
+		case 0: stage = "TS"; break;
+		case 1: stage = "ES"; break;
+		case 2: stage = "CS"; break;
+		case 3: stage = "MP"; break;
+	}
+	pr_info("%s: panel rim status: %s%d\n", __func__, stage, (panel_id[5] & 0x3) + 1);
+	pr_info("%s: panel serial: %d\n", __func__, panel_id[3] | ((panel_id[2] & 0x3F) << 8));
 
 	on_cmds = &ctrl->on_cmds;
 
@@ -742,7 +780,7 @@ static int mdss_dsi_post_panel_on(struct mdss_panel_data *pdata)
 
 	if (on_cmds->cmd_cnt) {
 		msleep(50);	/* wait for 3 vsync passed */
-		mdss_dsi_panel_cmds_send(ctrl, on_cmds);
+		mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
 	}
 
 	if (pinfo->is_dba_panel) {
@@ -1226,7 +1264,6 @@ static int mdss_dsi_parse_dsc_params(struct device_node *np,
 {
 	struct dsc_desc *dsc;
 	u32 data;
-	const char *cp;
 	int rc;
 
 	dsc = &pinfo->dsc;
@@ -1272,12 +1309,15 @@ static int mdss_dsi_parse_dsc_params(struct device_node *np,
 		return rc;
 	dsc->ich_reset_override = data;
 
-	dsc->data_path_model = DSC_PATH_1P1D;	/* default */
+	/* DSC data path model not available in Linux 3.10 */
+	/*
+	dsc->data_path_model = DSC_PATH_1P1D;	// default
 	cp = of_get_property(np, "qcom,mdss-dsc-data-path-mode", NULL);
 	if (cp && !strcmp(cp, "merge_1p1d"))
 		dsc->data_path_model = DSC_PATH_MERGE_1P1D;
 	else if (cp && !strcmp(cp, "split_1p2d"))
 		dsc->data_path_model = DSC_PATH_SPLIT_1P2D;
+	*/
 
 	dsc->block_pred_enable = of_property_read_bool(np,
 			"qcom,mdss-dsc-block-prediction-enable");
@@ -1866,13 +1906,52 @@ void mdss_dsi_unregister_bl_settings(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 		led_trigger_unregister_simple(bl_led_trigger);
 }
 
-static int mdss_panel_parse_dt(struct device_node *np,
-			struct mdss_dsi_ctrl_pdata *ctrl_pdata)
+int mdss_dsi_panel_timing_switch(struct mdss_dsi_ctrl_pdata *ctrl,
+			struct mdss_panel_timing *timing)
+{
+	struct dsi_panel_timing *pt;
+	struct mdss_panel_info *pinfo = &ctrl->panel_data.panel_info;
+	int i;
+
+	if (!timing)
+		return -EINVAL;
+
+	if (timing == ctrl->panel_data.current_timing) {
+		pr_warn("%s: panel timing \"%s\" already set\n", __func__,
+				timing->name);
+		return 0; /* nothing to do */
+	}
+
+	pr_debug("%s: ndx=%d switching to panel timing \"%s\"\n", __func__,
+			ctrl->ndx, timing->name);
+
+	mdss_panel_info_from_timing(timing, pinfo);
+
+	pt = container_of(timing, struct dsi_panel_timing, timing);
+	pinfo->mipi.t_clk_pre = pt->t_clk_pre;
+	pinfo->mipi.t_clk_post = pt->t_clk_post;
+
+	for (i = 0; i < ARRAY_SIZE(pt->phy_timing); i++)
+		pinfo->mipi.dsi_phy_db.timing[i] = pt->phy_timing[i];
+
+	ctrl->on_cmds = pt->on_cmds;
+	// ctrl->post_panel_on_cmds = pt->post_panel_on_cmds;
+
+	ctrl->panel_data.current_timing = timing;
+	if (!timing->clk_rate)
+		ctrl->refresh_clk_rate = true;
+	mdss_dsi_clk_refresh(&ctrl->panel_data);
+
+	return 0;
+}
+
+static int mdss_dsi_panel_timing_from_dt(struct device_node *np,
+		struct dsi_panel_timing *pt,
+		struct mdss_panel_data *panel_data)
 {
 	u32 tmp;
 	int rc, i, len;
 	const char *data;
-	struct mdss_panel_info *pinfo = &(ctrl_pdata->panel_data.panel_info);
 
 	rc = of_property_read_u32(np, "qcom,mdss-dsi-panel-width", &tmp);
 	if (rc) {
@@ -1940,7 +2019,8 @@ static int mdss_panel_parse_dt(struct device_node *np,
 		"qcom,mdss-dsi-timing-switch-command",
 		"qcom,mdss-dsi-timing-switch-command-state");
 
-	mdss_dsi_parse_fbc_params(np, &pt->timing.fbc);
+	// mdss_dsi_parse_fbc_params(np, &panel_data->panel_info);
+
 	if (np->name) {
 		pt->timing.name = kstrdup(np->name, GFP_KERNEL);
 		pr_info("%s: found new timing \"%s\" (%p)\n", __func__,
@@ -1973,7 +2053,7 @@ static int __mdss_panel_parse_display_timings(struct device_node *np,
 		 * timings directly from root node instead
 		 */
 		pr_debug("reading display-timings from panel node\n");
-		rc = __mdss_dsi_timing_from_dt(np, &pt);
+		rc = mdss_dsi_panel_timing_from_dt(np, &pt, panel_data);
 		if (!rc)
 			rc = mdss_dsi_panel_timing_switch(ctrl, &pt.timing);
 
@@ -1995,7 +2075,7 @@ static int __mdss_panel_parse_display_timings(struct device_node *np,
 	}
 
 	for_each_child_of_node(timings_np, entry) {
-		rc = __mdss_dsi_timing_from_dt(entry, modedb + i);
+		rc = mdss_dsi_panel_timing_from_dt(entry, modedb + i, panel_data);
 		if (rc) {
 			kfree(modedb);
 			goto exit;
@@ -2025,9 +2105,8 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 {
 	u32 tmp;
-	int rc;
+	int rc, i, len;
 	const char *data;
-	static const char *pdest;
 	struct mdss_panel_info *pinfo = &(ctrl_pdata->panel_data.panel_info);
 
 	rc = __mdss_panel_parse_display_timings(np, &ctrl_pdata->panel_data);

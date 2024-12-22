@@ -84,9 +84,10 @@ endif
 
 obj-$(CONFIG_MACH_SONY_SHINANO) += board-sony_shinano-gpiomux-ref.o board-sony_shinano-nfc.o
 obj-$(CONFIG_MACH_SONY_RHINE) += board-sony_rhine-gpiomux-ref.o
-obj-$(CONFIG_ARCH_MSM8974) += sony_gpiomux.o bms-batterydata-oem.o
+obj-$(CONFIG_ARCH_MSM8974) += bms-batterydata-oem.o
 
 CFLAGS_msm_vibrator.o += -Idrivers/staging/android
+CFLAGS_board-8974.o += -Idrivers/staging/android
 
 obj-$(CONFIG_MSM_LPM_TEST) += test-lpm.o
 

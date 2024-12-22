@@ -26,13 +26,6 @@
 #include <asm/page.h>
 #include "persistent_ram.h"
 
-struct persistent_ram_buffer {
-	uint32_t    sig;
-	atomic_t    start;
-	atomic_t    size;
-	uint8_t     data[0];
-};
-
 #define PERSISTENT_RAM_SIG (0x43474244) /* DBGC */
 
 static __initdata LIST_HEAD(persistent_ram_list);
@@ -105,7 +98,7 @@ static int persistent_ram_decode_rs8(struct persistent_ram_zone *prz,
 				NULL, 0, NULL, 0, NULL);
 }
 
-static void notrace persistent_ram_update_ecc(struct persistent_ram_zone *prz,
+void notrace persistent_ram_update_ecc(struct persistent_ram_zone *prz,
 	unsigned int start, unsigned int count)
 {
 	struct persistent_ram_buffer *buffer = prz->buffer;
@@ -131,7 +124,7 @@ static void notrace persistent_ram_update_ecc(struct persistent_ram_zone *prz,
 	} while (block < buffer->data + start + count);
 }
 
-static void persistent_ram_update_header_ecc(struct persistent_ram_zone *prz)
+void persistent_ram_update_header_ecc(struct persistent_ram_zone *prz)
 {
 	struct persistent_ram_buffer *buffer = prz->buffer;
 

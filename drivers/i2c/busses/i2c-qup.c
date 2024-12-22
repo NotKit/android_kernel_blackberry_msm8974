@@ -940,42 +940,88 @@ static int qup_i2c_reset(struct qup_i2c_dev *dev)
 
 static int qup_i2c_try_recover_bus_busy(struct qup_i2c_dev *dev)
 {
-	int ret;
-	u32 status;
-	ulong min_sleep_usec;
+	int i2c_scl = -1, i2c_sda = -1, retry;
+
+	struct gpiomux_setting old_scl_setting, old_sda_setting, recovery_setting = {
+		.func = GPIOMUX_FUNC_GPIO,
+		.drv = GPIOMUX_DRV_8MA,
+		.pull = GPIOMUX_PULL_NONE,
+		.dir = GPIOMUX_IN
+	};
+
+	int status = readl_relaxed(dev->base + QUP_I2C_STATUS);
+
+	if (dev->pdata->msm_i2c_config_gpio) {
+		dev_err(dev->dev, "Recovery failed: msm_i2c_config_gpio is set.");
+		return -EINVAL;
+	}
+
+	if ((status & I2C_STATUS_BUS_MASTER) != 0) {
+		dev_err(dev->dev, "Recovery failed: bus master");
+		return -EINVAL;
+	}
+
+	if ((status & I2C_STATUS_BUS_ACTIVE) == 0) {
+		dev_err(dev->dev, "Recovery failed: bus inactive");
+		return 0;
+	}
+
+	i2c_scl = dev->i2c_gpios[0];
+	i2c_sda = dev->i2c_gpios[1];
+
+	if (i2c_scl == -1 || i2c_sda == -1) {
+		dev_err(dev->dev, "Recovery failed: undefined GPIOs");
+		return -EINVAL;
+	}
 
 	disable_irq(dev->err_irq);
 
-	qup_i2c_reset(dev);
-
-	ret = qup_update_state(dev, QUP_RUN_STATE);
-	if (ret < 0) {
-		dev_err(dev->dev, "error: bus clear fail to set run state\n");
-		goto recovery_end;
+	if (msm_gpiomux_write(i2c_scl, GPIOMUX_ACTIVE, &recovery_setting, &old_scl_setting) ||
+	    msm_gpiomux_write(i2c_sda, GPIOMUX_ACTIVE, &recovery_setting, &old_sda_setting))
+	{
+		dev_err(dev->dev, "GPIO pins have no active setting");
+		enable_irq(dev->err_irq);
+		return -EINVAL;
 	}
 
-	writel_relaxed(dev->clk_ctl, dev->base + QUP_I2C_CLK_CTL);
+	dev_warn(dev->dev, "i2c_scl: %d, i2c_sda: %d\n", gpio_get_value(i2c_scl), gpio_get_value(i2c_sda));
 
-	/* Make sure QUP I2C core reset registers are written */
-	wmb();
+	for (retry = 9; retry; --retry)
+	{
+		int scl_value;
 
-	writel_relaxed(0x1, dev->base + QUP_I2C_MASTER_BUS_CLR);
+		gpio_direction_output(i2c_scl, 0);
+		udelay(5);
+		gpio_direction_output(i2c_sda, 0);
+		udelay(5);
+		gpio_direction_input(i2c_scl);
+		udelay(5);
 
-	/*
-	 * wait for bus clear (9 clock pulse cycles) to complete.
-	 * min_time = 9 clock *10  (1000% margin)
-	 * max_time = 10* min_time
-	 */
-	min_sleep_usec =
-		max_t(ulong, (9 * 10 * USEC_PER_SEC) / dev->pdata->clk_freq,
-			100);
-	usleep_range(min_sleep_usec, min_sleep_usec * 10);
+		if (gpio_get_value(i2c_scl))
+			udelay(20);
+
+		if (gpio_get_value(i2c_scl))
+			usleep_range(10000, 10000);
+
+		scl_value = gpio_get_value(i2c_scl);
+		gpio_direction_input(i2c_sda);
+		udelay(5);
+
+		if (gpio_get_value(i2c_sda) && scl_value != 0)
+			break;
+	}
+
+	msm_gpiomux_write(i2c_scl, GPIOMUX_ACTIVE, &old_scl_setting, NULL);
+	msm_gpiomux_write(i2c_sda, GPIOMUX_ACTIVE, &old_sda_setting, NULL);
+
+	udelay(10);
 
 	status = readl_relaxed(dev->base + QUP_I2C_STATUS);
+	dev_info(dev->dev, "Bus recovery %s\n",
+		(status & I2C_STATUS_BUS_ACTIVE) ? "fail" : "success");
 
-recovery_end:
 	enable_irq(dev->err_irq);
-	return ret;
+	return 0;
 }
 
 static void qup_i2c_recover_bus_busy(struct qup_i2c_dev *dev)
@@ -1426,7 +1472,7 @@ static const struct i2c_algorithm qup_i2c_algo = {
 	.functionality	= qup_i2c_func,
 };
 
-static int 
+static int
 qup_i2c_probe(struct platform_device *pdev)
 {
 	struct qup_i2c_dev	*dev;
@@ -1513,14 +1559,14 @@ qup_i2c_probe(struct platform_device *pdev)
 	}
 
 blsp_core_init:
-	clk = clk_get(&pdev->dev, "core_clk");
+	clk = devm_clk_get(&pdev->dev, "core_clk");
 	if (IS_ERR(clk)) {
 		dev_err(&pdev->dev, "Could not get core_clk\n");
 		ret = PTR_ERR(clk);
 		goto err_clk_get_failed;
 	}
 
-	pclk = clk_get(&pdev->dev, "iface_clk");
+	pclk = devm_clk_get(&pdev->dev, "iface_clk");
 	if (IS_ERR(pclk)) {
 		dev_err(&pdev->dev, "Could not get iface_clk\n");
 		ret = PTR_ERR(pclk);
@@ -1744,7 +1790,7 @@ static void qup_i2c_mem_release(struct platform_device *pdev, const char *name)
 			"platform_get_resource_byname(%s) failed\n", name);
 }
 
-static int 
+static int
 qup_i2c_remove(struct platform_device *pdev)
 {
 	struct qup_i2c_dev *dev = platform_get_drvdata(pdev);
@@ -1877,4 +1923,3 @@ static void __exit qup_i2c_exit_driver(void)
 	platform_driver_unregister(&qup_i2c_driver);
 }
 module_exit(qup_i2c_exit_driver);
-

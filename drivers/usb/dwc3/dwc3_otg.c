@@ -19,6 +19,7 @@
 #include <linux/of_gpio.h>
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
+#include <linux/slimport.h>
 
 #include "core.h"
 #include "dwc3_otg.h"
@@ -596,7 +597,8 @@ static int dwc3_otg_set_power(struct usb_phy *phy, unsigned mA)
 	else if (dotg->charger->chg_type == DWC3_CDP_CHARGER)
 		power_supply_type = POWER_SUPPLY_TYPE_USB_CDP;
 	else if (dotg->charger->chg_type == DWC3_DCP_CHARGER ||
-			dotg->charger->chg_type == DWC3_PROPRIETARY_CHARGER)
+			dotg->charger->chg_type == DWC3_PROPRIETARY_CHARGER ||
+			dotg->charger->chg_type == DWC3_FLOATED_CHARGER)
 		power_supply_type = POWER_SUPPLY_TYPE_USB_DCP;
 	else
 		power_supply_type = POWER_SUPPLY_TYPE_UNKNOWN;
@@ -614,6 +616,12 @@ skip_psy_type:
 
 	if (dotg->charger->chg_type == DWC3_CDP_CHARGER)
 		mA = DWC3_IDEV_CHG_MAX;
+
+	if (slimport_is_connected() && mA) {
+		mA = slimport_get_chg_current();
+		if (mA > DWC3_IDEV_CHG_MIN)
+			dotg->charger->chg_type = DWC3_DCP_CHARGER;
+	}
 
 	if (dotg->charger->max_power == mA)
 		return 0;
@@ -738,6 +746,10 @@ static void dwc3_otg_sm_work(struct work_struct *w)
 	case OTG_STATE_B_IDLE:
 		if (!test_bit(ID, &dotg->inputs)) {
 			dev_dbg(phy->dev, "!id\n");
+			if (slimport_is_connected()) {
+				work = 1;
+				break;
+			}
 			phy->state = OTG_STATE_A_IDLE;
 			work = 1;
 			dotg->charger_retry_count = 0;
@@ -760,69 +772,42 @@ static void dwc3_otg_sm_work(struct work_struct *w)
 				case DWC3_DCP_CHARGER:
 				case DWC3_PROPRIETARY_CHARGER:
 					dev_dbg(phy->dev, "lpm, DCP charger\n");
-					dwc3_otg_set_power(phy,
-						dcp_max_current);
+					dwc3_otg_set_power(phy, dcp_max_current);
 					break;
 #ifdef CONFIG_SONY_USB_EXTENSIONS
 				case DWC3_PROPRIETARY_1000MA:
 					dev_dbg(phy->dev, "lpm, DCP charger\n");
-					dwc3_otg_set_power(phy,
-							DWC3_1000MA_CHG_MAX);
+					dwc3_otg_set_power(phy, DWC3_1000MA_CHG_MAX);
 					pm_runtime_put_sync(phy->dev);
 					break;
 				case DWC3_PROPRIETARY_500MA:
 					dev_dbg(phy->dev, "lpm, DCP charger\n");
-					dwc3_otg_set_power(phy,
-							DWC3_500MA_CHG_MAX);
+					dwc3_otg_set_power(phy, DWC3_500MA_CHG_MAX);
 					pm_runtime_put_sync(phy->dev);
 					break;
 #endif
 				case DWC3_CDP_CHARGER:
-					dwc3_otg_set_power(phy,
-							DWC3_IDEV_CHG_MAX);
+					dwc3_otg_set_power(phy, DWC3_IDEV_CHG_MAX);
 					/* fall through */
 				case DWC3_SDP_CHARGER:
-					/*
-					 * Increment pm usage count upon cable
-					 * connect. Count is decremented in
-					 * OTG_STATE_B_PERIPHERAL state on cable
-					 * disconnect or in bus suspend.
-					 */
-					pm_runtime_get_sync(phy->dev);
-					dbg_event(0xFF, "CHG gsync",
-					atomic_read(
-						&phy->dev->power.usage_count));
-					dwc3_otg_start_peripheral(&dotg->otg,
-									1);
-					phy->state = OTG_STATE_B_PERIPHERAL;
-					work = 1;
+					dwc3_otg_set_power(phy, DWC3_IDEV_CHG_MIN);
+					if (!slimport_is_connected()) {
+						dwc3_otg_start_peripheral(&dotg->otg, 1);
+						phy->state = OTG_STATE_B_PERIPHERAL;
+						work = 1;
+					}
 					break;
 				case DWC3_FLOATED_CHARGER:
-					if (dotg->charger_retry_count <
-							max_chgr_retry_count)
+					if (dotg->charger_retry_count < max_chgr_retry_count)
 						dotg->charger_retry_count++;
-					/*
-					 * In case of floating charger, if
-					 * retry count equal to max retry count
-					 * notify PMIC about floating charger
-					 * and put Hw in low power mode. Else
-					 * perform charger detection again by
-					 * calling start_detection() with false
-					 * and then with true argument.
-					 */
-					if (dotg->charger_retry_count ==
-						max_chgr_retry_count) {
-						dwc3_otg_set_power(phy, 0);
-#ifdef CONFIG_SONY_USB_EXTENSIONS
-						dwc3_otg_set_invalid_charger(phy);
-#endif
+					if (dotg->charger_retry_count == max_chgr_retry_count) {
+						dwc3_otg_set_power(phy, DWC3_IDEV_CHG_MAX);
+						pm_runtime_put_sync(phy->dev);
 						break;
 					}
-					charger->start_detection(dotg->charger,
-									false);
+					charger->start_detection(dotg->charger, false);
 #ifdef CONFIG_SONY_USB_EXTENSIONS
-					delay = msecs_to_jiffies(100 *
-						dotg->charger_retry_count);
+					delay = msecs_to_jiffies(100 * dotg->charger_retry_count);
 					work = 1;
 					break;
 #endif

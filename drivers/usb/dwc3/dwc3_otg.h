@@ -31,7 +31,6 @@
 #define DWC3_500MA_CHG_MAX 500
 #endif
 
-#define DWC3_IDEV_CHG_MAX 1500
 #define DWC3_HVDCP_CHG_MAX 1800
 
 /*
@@ -39,6 +38,9 @@
  * Declared in dwc3-msm module
  */
 extern int dcp_max_current;
+
+#define DWC3_IDEV_CHG_MIN 500
+#define DWC3_IDEV_CHG_MAX 2000
 
 struct dwc3_charger;
 

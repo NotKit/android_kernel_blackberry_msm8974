@@ -1728,7 +1728,10 @@ struct sdhci_msm_pltfm_data *sdhci_msm_populate_pdata(struct device *dev,
 		goto out;
 	}
 
-	if (sdhci_msm_dt_parse_vreg_info(dev, &pdata->vreg_data->vdd_data,
+	if (of_get_property(np, "qcom,wifi-control-func", NULL))
+		pdata->use_for_wifi = true;
+
+	if (!pdata->use_for_wifi && sdhci_msm_dt_parse_vreg_info(dev, &pdata->vreg_data->vdd_data,
 					 "vdd")) {
 		dev_err(dev, "failed parsing vdd data\n");
 		goto out;
@@ -3509,7 +3512,7 @@ static void sdhci_msm_cmdq_init(struct sdhci_host *host,
 }
 #endif
 
-extern void somc_wifi_mmc_host_register(struct mmc_host *host);
+extern int bcm_wifi_mmc_host_register(struct mmc_host *host);
 
 static int sdhci_msm_probe(struct platform_device *pdev)
 {
@@ -3843,8 +3846,7 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	msm_host->mmc->caps2 |= MMC_CAP2_CORE_RUNTIME_PM;
 	msm_host->mmc->caps2 |= MMC_CAP2_PACKED_WR;
 	msm_host->mmc->caps2 |= MMC_CAP2_PACKED_WR_CONTROL;
-	msm_host->mmc->caps2 |= (MMC_CAP2_BOOTPART_NOACC |
-				MMC_CAP2_DETECT_ON_ERR);
+	msm_host->mmc->caps2 |= MMC_CAP2_DETECT_ON_ERR;
 	msm_host->mmc->caps2 |= MMC_CAP2_CACHE_CTRL;
 	msm_host->mmc->caps2 |= MMC_CAP2_STOP_REQUEST;
 	msm_host->mmc->caps2 |= MMC_CAP2_ASYNC_SDIO_IRQ_4BIT_MODE;
@@ -3882,6 +3884,13 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	}
 
 	init_completion(&msm_host->pwr_irq_completion);
+
+	pr_info("%s: id %d, nonremovable %d\n", mmc_hostname(host->mmc),
+			pdev->id, msm_host->pdata->nonremovable);
+	if (msm_host->pdata->use_for_wifi) {
+		// bcm_wifi_mmc_host_register(host->mmc);
+		msm_host->mmc->pm_flags |= MMC_PM_IGNORE_PM_NOTIFY;
+	}
 
 	if (gpio_is_valid(msm_host->pdata->status_gpio)) {
 		/*
@@ -3950,10 +3959,14 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 		goto free_cd_gpio;
 	}
 
+	if (msm_host->pdata->use_for_wifi) {
+		host->mmc->ocr_avail_sdio = MMC_VDD_165_195 | MMC_VDD_29_30;
+	}
+
 #ifdef CONFIG_WIFI_CONTROL_FUNC
 	if (msm_host->pdata->use_for_wifi) {
 		msm_host->mmc->caps &= ~MMC_CAP_NEEDS_POLL;
-		somc_wifi_mmc_host_register(msm_host->mmc);
+		// bcm_wifi_mmc_host_register(msm_host->mmc);
 	}
 #endif
 
@@ -3967,7 +3980,7 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	if (ret)
 		goto remove_host;
 
-	if (!gpio_is_valid(msm_host->pdata->status_gpio)) {
+	if (!msm_host->pdata->use_for_wifi && !gpio_is_valid(msm_host->pdata->status_gpio)) {
 		msm_host->polling.show = show_polling;
 		msm_host->polling.store = store_polling;
 		sysfs_attr_init(&msm_host->polling.attr);

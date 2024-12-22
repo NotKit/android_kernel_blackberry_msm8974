@@ -77,3 +77,4 @@ obj-$(CONFIG_USB_EXT_TYPE_C_TI)		+= type-c-ti.o
 obj-$(CONFIG_UID_CPUTIME) 	+= uid_cputime.o
 obj-$(CONFIG_SENSORS_TCS3490_KUGO) += tcs3490.o
 obj-$(CONFIG_TOF_SENSOR) += tof_sensor.o
+obj-$(CONFIG_MODEM_RFKILL) 	+= modem_rfkill.o

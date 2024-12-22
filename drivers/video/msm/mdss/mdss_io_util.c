@@ -208,10 +208,12 @@ vreg_get_fail:
 } /* msm_dss_config_vreg */
 EXPORT_SYMBOL(msm_dss_config_vreg);
 
-int msm_dss_enable_vreg(struct dss_vreg *in_vreg, int num_vreg, int enable)
+int msm_dss_enable_vreg(struct dss_vreg *in_vreg, int num_vreg, int enable, int *vdd_was_on)
 {
 	int i = 0, rc = 0;
 	bool need_sleep;
+	if (vdd_was_on)
+		*vdd_was_on = 0;
 	if (enable) {
 		for (i = 0; i < num_vreg; i++) {
 			rc = PTR_RET(in_vreg[i].vreg);
@@ -220,6 +222,12 @@ int msm_dss_enable_vreg(struct dss_vreg *in_vreg, int num_vreg, int enable)
 					__builtin_return_address(0), __func__,
 					in_vreg[i].vreg_name, rc);
 				goto vreg_set_opt_mode_fail;
+			}
+			if (strncmp(in_vreg[i].vreg_name, "vdd", 4) == 0) {
+				if (regulator_is_enabled(in_vreg[i].vreg)) {
+					if (vdd_was_on)
+						*vdd_was_on = 1;
+				}
 			}
 			need_sleep = !regulator_is_enabled(in_vreg[i].vreg);
 			if (in_vreg[i].pre_on_sleep && need_sleep)

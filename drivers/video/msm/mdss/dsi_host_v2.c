@@ -1110,7 +1110,7 @@ static int msm_dsi_on(struct mdss_panel_data *pdata)
 		for (i = 0; !ret && (i < DSI_MAX_PM); i++) {
 			ret = msm_dss_enable_vreg(
 				ctrl_pdata->power_data[i].vreg_config,
-				ctrl_pdata->power_data[i].num_vreg, 1);
+				ctrl_pdata->power_data[i].num_vreg, 1, 0);
 			if (ret) {
 				pr_err("%s: failed to enable vregs for %s\n",
 					__func__, __mdss_dsi_pm_name(i));
@@ -1211,7 +1211,7 @@ error_vreg:
 		for (; i >= 0; i--)
 			msm_dss_enable_vreg(
 				ctrl_pdata->power_data[i].vreg_config,
-				ctrl_pdata->power_data[i].num_vreg, 0);
+				ctrl_pdata->power_data[i].num_vreg, 0, 0);
 	}
 
 	mutex_unlock(&ctrl_pdata->mutex);
@@ -1246,7 +1246,7 @@ static int msm_dsi_off(struct mdss_panel_data *pdata)
 		for (i = DSI_MAX_PM - 1; i >= 0; i--) {
 			ret = msm_dss_enable_vreg(
 				ctrl_pdata->power_data[i].vreg_config,
-				ctrl_pdata->power_data[i].num_vreg, 0);
+				ctrl_pdata->power_data[i].num_vreg, 0, 0);
 			if (ret)
 				pr_err("%s: failed to disable vregs for %s\n",
 					__func__, __mdss_dsi_pm_name(i));
@@ -1283,7 +1283,7 @@ static int msm_dsi_cont_on(struct mdss_panel_data *pdata)
 	for (i = 0; !ret && (i < DSI_MAX_PM); i++) {
 		ret = msm_dss_enable_vreg(
 			ctrl_pdata->power_data[i].vreg_config,
-			ctrl_pdata->power_data[i].num_vreg, 1);
+			ctrl_pdata->power_data[i].num_vreg, 1, 0);
 		if (ret) {
 			pr_err("%s: failed to enable vregs for %s\n",
 				__func__, __mdss_dsi_pm_name(i));
@@ -1310,7 +1310,7 @@ error_vreg:
 		for (; i >= 0; i--)
 			msm_dss_enable_vreg(
 				ctrl_pdata->power_data[i].vreg_config,
-				ctrl_pdata->power_data[i].num_vreg, 0);
+				ctrl_pdata->power_data[i].num_vreg, 0, 0);
 	}
 
 	mutex_unlock(&ctrl_pdata->mutex);

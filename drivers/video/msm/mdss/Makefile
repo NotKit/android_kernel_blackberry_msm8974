@@ -58,6 +58,8 @@ else ifeq ($(CONFIG_FB_MSM_MDSS_HDMI_MHL_SII8334),y)
 obj-$(CONFIG_FB_MSM_MDSS_HDMI_MHL_SII8334) += mhl_sii8334.o mhl_msc.o
 endif
 
+obj-$(CONFIG_FB_MSM_MDSS_HDMI_PANEL) += mdss_hdmi_slimport.o
+
 obj-$(CONFIG_FB_MSM_MDSS_WRITEBACK) += mdss_wb.o
 
 mdss-qpic-objs := mdss_qpic.o mdss_fb.o mdss_qpic_panel.o

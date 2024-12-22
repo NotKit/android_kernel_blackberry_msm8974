@@ -23,7 +23,13 @@
 #include <linux/types.h>
 #include <linux/init.h>
 
-struct persistent_ram_buffer;
+struct persistent_ram_buffer {
+	uint32_t    sig;
+	atomic_t    start;
+	atomic_t    size;
+	uint8_t     data[0];
+};
+
 struct rs_control;
 
 struct persistent_ram_ecc_info {
@@ -58,6 +64,9 @@ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
 void persistent_ram_free(struct persistent_ram_zone *prz);
 void persistent_ram_zap(struct persistent_ram_zone *prz);
 
+void notrace persistent_ram_update_ecc(struct persistent_ram_zone *prz,
+	unsigned int start, unsigned int count);
+void notrace persistent_ram_update_header_ecc(struct persistent_ram_zone *prz);
 int persistent_ram_write(struct persistent_ram_zone *prz, const void *s,
 	unsigned int count);
 

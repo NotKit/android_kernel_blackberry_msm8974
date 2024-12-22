@@ -15,6 +15,7 @@
 #include <linux/io.h>
 #include <linux/module.h>
 #include "msm_camera_i2c_mux.h"
+#include <linux/ratelimit.h>
 
 /* TODO move this somewhere else */
 #define MSM_I2C_MUX_DRV_NAME "msm_cam_i2c_mux"
@@ -95,6 +96,7 @@ static long msm_i2c_mux_subdev_ioctl(struct v4l2_subdev *sd,
 		rc = msm_i2c_mux_release(mux_device);
 		break;
 	default:
+		pr_err_ratelimited("%s: Invalid command 0x%x\n", __func__, cmd);
 		rc = -ENOIOCTLCMD;
 	}
 	mutex_unlock(&mux_device->mutex);

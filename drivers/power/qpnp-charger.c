@@ -530,7 +530,6 @@ struct qpnp_chg_chip {
 	struct power_supply		dc_psy;
 	struct power_supply		*usb_psy;
 	struct power_supply		*bms_psy;
-	struct power_supply		*ext_vbus_psy;
 	struct power_supply		batt_psy;
 	uint32_t			flags;
 	struct qpnp_adc_tm_btm_param	adc_param;
@@ -2643,7 +2642,6 @@ qpnp_batt_external_power_changed(struct power_supply *psy)
 				"current %d uA > 0\n", current_ua);
 		if (qpnp_chg_is_usb_chg_plugged_in(chip)) {
 			power_supply_set_online(chip->usb_psy, 0);
-			power_supply_set_present(chip->ext_vbus_psy, 0);
 		}
 		if (qpnp_chg_is_dc_chg_plugged_in(chip))
 			chip->somc_params.dcin_online = false;
@@ -6642,16 +6640,6 @@ qpnp_charger_probe(struct spmi_device *spmi)
 		pr_err("usb supply not found deferring probe\n");
 		rc = -EPROBE_DEFER;
 		goto fail_chg_enable;
-	}
-
-	if (!of_machine_is_compatible("qcom,msm8926") &&
-		!of_machine_is_compatible("qcom,msm8226")) {
-			chip->ext_vbus_psy = power_supply_get_by_name("ext-vbus");
-			if (!chip->ext_vbus_psy) {
-				pr_err("ext-vbus supply not found deferring probe\n");
-				rc = -EPROBE_DEFER;
-				goto fail_chg_enable;
-			}
 	}
 
 	mutex_init(&chip->jeita_configure_lock);

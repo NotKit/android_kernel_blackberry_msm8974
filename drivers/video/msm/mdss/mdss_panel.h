@@ -348,7 +348,7 @@ enum dynamic_switch_modes {
 	SWITCH_TO_VIDEO_MODE,
 	SWITCH_RESOLUTION,
 };
- 
+
 struct mipi_panel_info {
 	char boot_mode;	/* identify if mode switched from starting mode */
 	char mode;		/* video/cmd */

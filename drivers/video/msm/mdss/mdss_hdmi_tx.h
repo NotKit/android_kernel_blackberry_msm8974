@@ -120,6 +120,7 @@ struct hdmi_tx_ctrl {
 	void *downstream_data;
 
 	void *feature_data[HDMI_TX_FEAT_MAX];
+	int (*ds_read_edid_block) (int block, uint8_t *edid_buf);
 	u32 s3d_mode;
 	atomic_t audio_ack_pending;
 

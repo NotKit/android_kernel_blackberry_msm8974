@@ -6187,8 +6187,8 @@ msmsdcc_probe(struct platform_device *pdev)
 	pr_info("%s: id %d, nonremovable %d\n", mmc_hostname(mmc),
 			host->pdev->id, plat->nonremovable);
 	if (plat->wifi_control_func) {
-		plat->register_status_notify = wcf_status_register;
-		plat->status = wcf_status;
+		// plat->register_status_notify = wcf_status_register;
+		// plat->status = wcf_status;
 		mmc->pm_flags |= MMC_PM_IGNORE_PM_NOTIFY | MMC_PM_KEEP_POWER;
 	}
 #endif

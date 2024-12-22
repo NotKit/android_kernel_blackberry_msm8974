@@ -37,7 +37,6 @@ enum rfkill_user_states {
 #include <linux/err.h>
 
 struct device;
-/* this is opaque */
 struct rfkill;
 
 /**

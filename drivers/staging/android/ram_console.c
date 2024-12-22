@@ -20,9 +20,11 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/proc_fs.h>
+#include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/io.h>
+#include <linux/kmsg_dump.h>
 #include "persistent_ram.h"
 #include "ram_console.h"
 
@@ -42,6 +44,35 @@ static struct console ram_console = {
 	.write	= ram_console_write,
 	.flags	= CON_PRINTBUFFER | CON_ENABLED | CON_ANYTIME,
 	.index	= -1,
+};
+
+static void oops_to_ram_console(struct kmsg_dumper *dumper,
+			  enum kmsg_dump_reason reason)
+{
+	static DEFINE_SPINLOCK(lock);
+	unsigned long flags;
+	size_t text_len;
+	struct persistent_ram_zone *prz = ram_console_zone;
+	
+	unregister_console(&ram_console);
+
+	if (!spin_trylock_irqsave(&lock, flags))
+		return;
+
+	kmsg_dump_get_buffer(dumper, false, prz->buffer->data, prz->buffer_size, &text_len);
+
+	atomic_set(&prz->buffer->start, 0);
+	atomic_set(&prz->buffer->size, text_len);
+
+	persistent_ram_update_ecc(prz, 0, text_len);
+
+	persistent_ram_update_header_ecc(prz);
+
+	spin_unlock_irqrestore(&lock, flags);
+}
+
+static struct kmsg_dumper ram_console_kmsg_dumper = {
+	.dump = oops_to_ram_console
 };
 
 void ram_console_enable_console(int enabled)
@@ -72,6 +103,8 @@ static int __init ram_console_probe(struct platform_device *pdev)
 	ram_console.data = prz;
 
 	register_console(&ram_console);
+
+	kmsg_dump_register(&ram_console_kmsg_dumper);
 
 	return 0;
 }
@@ -162,17 +195,16 @@ static int __init ram_console_late_init(void)
 	if (persistent_ram_old_size(prz) == 0)
 		return 0;
 
-	entry = create_proc_entry("last_kmsg", S_IFREG | S_IRUGO, NULL);
+	entry = proc_create("last_kmsg", S_IRUGO, NULL, &ram_console_file_ops);
 	if (!entry) {
 		pr_err("failed to create proc entry\n");
 		persistent_ram_free_old(prz);
 		return 0;
 	}
 
-	entry->proc_fops = &ram_console_file_ops;
-	entry->size = persistent_ram_old_size(prz) +
+	proc_set_size(entry, persistent_ram_old_size(prz) +
 		persistent_ram_ecc_string(prz, NULL, 0) +
-		bootinfo_size;
+		bootinfo_size);
 
 	return 0;
 }

@@ -21,7 +21,12 @@
 #include <linux/types.h>
 #include <linux/init.h>
 
-struct persistent_ram_buffer;
+struct persistent_ram_buffer {
+	uint32_t    sig;
+	atomic_t    start;
+	atomic_t    size;
+	uint8_t     data[0];
+};
 
 struct persistent_ram_descriptor {
 	const char	*name;
@@ -70,6 +75,9 @@ void persistent_ram_free(struct persistent_ram_zone *prz);
 struct persistent_ram_zone *persistent_ram_init_ringbuffer(struct device *dev,
 		bool ecc);
 
+void notrace persistent_ram_update_ecc(struct persistent_ram_zone *prz,
+	unsigned int start, unsigned int count);
+void notrace persistent_ram_update_header_ecc(struct persistent_ram_zone *prz);
 int persistent_ram_write(struct persistent_ram_zone *prz, const void *s,
 	unsigned int count);
 

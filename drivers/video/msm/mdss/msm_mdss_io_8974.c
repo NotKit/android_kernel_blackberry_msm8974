@@ -1453,7 +1453,7 @@ static int mdss_dsi_core_power_ctrl(struct mdss_dsi_ctrl_pdata *ctrl,
 					continue;
 				rc = msm_dss_enable_vreg(
 					sdata->power_data[i].vreg_config,
-					sdata->power_data[i].num_vreg, 1);
+					sdata->power_data[i].num_vreg, 1, 0);
 				if (rc) {
 					pr_err("%s: failed to enable vregs for %s\n",
 						__func__,
@@ -1550,7 +1550,7 @@ static int mdss_dsi_core_power_ctrl(struct mdss_dsi_ctrl_pdata *ctrl,
 					continue;
 				rc = msm_dss_enable_vreg(
 					sdata->power_data[i].vreg_config,
-					sdata->power_data[i].num_vreg, 0);
+					sdata->power_data[i].num_vreg, 0, 0);
 				if (rc) {
 					pr_warn("%s: failed to disable vregs for %s\n",
 						__func__,
@@ -1572,7 +1572,7 @@ error_core_clk_start:
 			CTRL_STATE_DSI_ACTIVE))
 			continue;
 		rc = msm_dss_enable_vreg(sdata->power_data[i].vreg_config,
-			sdata->power_data[i].num_vreg, 0);
+			sdata->power_data[i].num_vreg, 0, 0);
 		if (rc) {
 			pr_warn("%s: failed to disable vregs for %s\n",
 				__func__, __mdss_dsi_pm_name(i));

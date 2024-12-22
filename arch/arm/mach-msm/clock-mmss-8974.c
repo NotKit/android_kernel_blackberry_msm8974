@@ -2884,4 +2884,3 @@ int __init msm_mmsscc_8974_init(void)
 	return platform_driver_register(&msm_clock_mmsscc_driver);
 }
 arch_initcall(msm_mmsscc_8974_init);
-

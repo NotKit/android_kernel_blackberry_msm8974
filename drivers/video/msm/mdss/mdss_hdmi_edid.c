@@ -59,6 +59,8 @@ enum edid_sink_mode {
 	SINK_MODE_HDMI
 };
 
+#define MAX_EDID_READ_RETRY	5
+
 enum data_block_types {
 	RESERVED,
 	AUDIO_DATA_BLOCK,
