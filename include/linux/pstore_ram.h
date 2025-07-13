@@ -39,6 +39,21 @@ struct persistent_ram_ecc_info {
 	int poly;
 };
 
+struct persistent_ram_descriptor {
+	const char	*name;
+	phys_addr_t	size;
+};
+
+struct persistent_ram {
+	phys_addr_t	start;
+	phys_addr_t	size;
+
+	int					num_descs;
+	struct persistent_ram_descriptor	*descs;
+
+	struct list_head node;
+};
+
 struct persistent_ram_zone {
 	phys_addr_t paddr;
 	size_t size;
@@ -61,8 +76,13 @@ struct persistent_ram_zone {
 struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
 			u32 sig, struct persistent_ram_ecc_info *ecc_info,
 			unsigned int memtype);
+
+int persistent_ram_early_init(struct persistent_ram *ram);
+
 void persistent_ram_free(struct persistent_ram_zone *prz);
 void persistent_ram_zap(struct persistent_ram_zone *prz);
+struct persistent_ram_zone *persistent_ram_init_ringbuffer(struct device *dev,
+		bool ecc);
 
 void notrace persistent_ram_update_ecc(struct persistent_ram_zone *prz,
 	unsigned int start, unsigned int count);
