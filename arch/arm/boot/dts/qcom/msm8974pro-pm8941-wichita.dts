@@ -12,8 +12,8 @@
 
 /dts-v1/;
 
-/include/ "msm8974pro-pm8941.dtsi"
-/include/ "msm8974-wolverine.dtsi"
+#include "msm8974pro-ab-pm8941.dtsi"
+#include "msm8974-wolverine.dtsi"
 
 / {
 	model = "MSM 8974 WICHITA";
@@ -60,7 +60,7 @@
 	i2c@f9967000 {
 		/delete-node/ bcm_nfc_i2c@76;
 	};
-	
+
 	/*
 	i2c@f9928000 {
 		/delete-node/ anx7808_i2c@70;

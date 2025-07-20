@@ -12,13 +12,13 @@
 
 /dts-v1/;
 
-/include/ "msm8974pro-pm8941.dtsi"
-/include/ "msm8974-wolverine.dtsi"
+#include "msm8974pro-ab-pm8941.dtsi"
+#include "msm8974-wolverine.dtsi"
 
 / {
 	model = "MSM 8974 WOLVERINE V5+";
 	compatible = "qcom,msm8974-wolverine", "qcom,msm8974";
-	qcom,msm-id = <217 0x10000>;
+	qcom,msm-id = <217 5 0x10000>;
 	qcom,board-id = <
 		0x84002c0a 0x00005 /* windermere na */
 		0x85002c0a 0x00005 /* windermere vzw */

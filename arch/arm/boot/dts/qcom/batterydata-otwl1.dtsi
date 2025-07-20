@@ -6,6 +6,7 @@ qcom,otwl1 {
 	qcom,v-cutoff-uv = <3000000>;
 	qcom,chg-term-ua = <170000>;
 	qcom,batt-id-kohm = <10 14 56>;
+	qcom,battery-type = "otwl1";
 
 	qcom,fcc-temp-lut {
 		qcom,lut-col-legend = <(-20) 0 25 40 60>;

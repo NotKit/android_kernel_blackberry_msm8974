@@ -12,8 +12,8 @@
 
 /dts-v1/;
 
-/include/ "msm8974pro-pm8941.dtsi"
-/include/ "msm8974-oslo.dtsi"
+#include "msm8974pro-ab-pm8941.dtsi"
+#include "msm8974-oslo.dtsi"
 
 / {
 	model = "MSM 8974 OSLO 6.1";

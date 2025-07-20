@@ -70,7 +70,7 @@
 		qcom,platform-resx-gpio = <&msmgpio 46 0>;
 
 		vdd-supply = <&panorama_ldo>;
-		
+
 		qcom,platform-lane-config = [05 c2 00 00 00 00 00 01 75
 			05 c2 00 00 00 00 00 01 75
 			05 c2 00 00 00 00 00 01 75
@@ -153,7 +153,7 @@
 			interrupt-names = "nfc_irq";
 		};
 	};
-	
+
 	i2c@f9923000 { // i2c 1 - camera
 		status = "ok";
 	};
@@ -289,12 +289,12 @@
 		interrupts = <18 0>;
 		interrupt-names = "host_wake";
 	};
-	
+
 	bt_rfkill {
 		compatible = "bt_rfkill";
 		gpio_bt_reset = <&msmgpio 89 0>;
 	};
-	
+
 	modem_rfkill {
 		compatible = "modem_rfkill";
 		gpio_1 = <&msmgpio 47 0>;
@@ -788,12 +788,13 @@
 	qcom,fcc-resolution = <10>;
 	status = "ok";
 	qcom,battery-data = <&otwl1_batterydata>;
+	qcom,clamp-soc-max-count = <2>;
 };
 
 &pm8941_chg {
 	status = "ok";
 	qcom,battery-data = <&otwl1_batterydata>;
-	
+
 	qcom,ibatmax-ma = <1700>;
 	qcom,ibatsafe-ma = <1700>;
 	qcom,cool-bat-decidegc = <130>;
@@ -1141,21 +1142,7 @@
 	};
 };
 
-&master0 {
-	qcom,hw-thigh = <20>;
-	qcom,hw-tlow = <28>;
-	qcom,hw-tsu-sto = <21>;
-	qcom,hw-tsu-sta = <21>;
-	qcom,hw-thd-dat = <13>;
-	qcom,hw-thd-sta = <18>;
-	qcom,hw-tbuf = <25>;
-	qcom,hw-scl-stretch-en = <1>;
-	qcom,hw-trdhld = <6>;
-	qcom,hw-tsp = <3>;
-	status = "ok";
-};
-
-&master1 {
+&i2c_freq_custom {
 	qcom,hw-thigh = <20>;
 	qcom,hw-tlow = <28>;
 	qcom,hw-tsu-sto = <21>;
