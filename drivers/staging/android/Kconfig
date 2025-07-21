@@ -20,6 +20,11 @@ config ASHMEM
 	  It is, in theory, a good memory allocator for low-memory devices,
 	  because it can discard shared memory units when under memory pressure.
 
+config ANDROID_RAM_CONSOLE
+	bool "Android RAM buffer console"
+	depends on !S390 && !UML && HAVE_MEMBLOCK && PSTORE_RAM=y
+	default n
+
 config ANDROID_TIMED_OUTPUT
 	bool "Timed output class driver"
 	default y
