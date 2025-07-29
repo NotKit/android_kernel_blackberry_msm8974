@@ -3095,6 +3095,8 @@ dhd_open(struct net_device *net)
 		atomic_set(&dhd->pend_8021x_cnt, 0);
 #if defined(WL_CFG80211)
 		DHD_ERROR(("\n%s\n", dhd_version));
+#if 0 /* wseries: WLAN power off during early boot was disabled,
+	* no need to turn it on here */
 		if (!dhd_download_fw_on_driverload) {
 			ret = wl_android_wifi_on(net);
 			if (ret != 0) {
@@ -3104,6 +3106,7 @@ dhd_open(struct net_device *net)
 				goto exit;
 			}
 		}
+#endif /* wl_android_wifi_on disabled */
 #endif
 
 		if (dhd->pub.busstate != DHD_BUS_DATA) {
