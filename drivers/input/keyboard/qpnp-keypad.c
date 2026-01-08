@@ -81,6 +81,8 @@
 
 #define KEYP_CLOCK_FREQ			32768
 
+extern void synaptics_disable_pointer_mode(void);
+
 struct qpnp_kp {
 	const struct matrix_keymap_data *keymap_data;
 	struct input_dev *input;
@@ -287,6 +289,9 @@ static void __qpnp_kp_scan_matrix(struct qpnp_kp *kp, u16 *new_state,
 					!(new_state[row] & (1 << col)) ?
 					"pressed" : "released");
 			code = MATRIX_SCAN_CODE(row, col, QPNP_ROW_SHIFT);
+
+			synaptics_disable_pointer_mode();
+
 			input_event(kp->input, EV_MSC, MSC_SCAN, code);
 			input_report_key(kp->input,
 					kp->keycodes[code],

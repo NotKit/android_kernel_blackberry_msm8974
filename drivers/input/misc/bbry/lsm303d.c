@@ -67,7 +67,6 @@ Revision 1-0-5 2013/10/23
 #include "lsm303d.h"
 #include <linux/regulator/consumer.h>
 
-
 #define	I2C_AUTO_INCREMENT	(0x80)
 #define MS_TO_NS(x)		(x*1000000L)
 
@@ -1343,6 +1342,13 @@ static int lsm303d_acc_enable(struct lsm303d_status *stat)
 	int err;
 
 	if (!atomic_cmpxchg(&stat->enabled_acc, 0, 1)) {
+
+		dev_info(&stat->client->dev, "lsm303d_acc_enable : enabled_acc: %d, enabled_mag: %d, gpio_int1, %d, gpio_int2, %d\n",
+		atomic_read(&stat->enabled_acc), 
+		atomic_read(&stat->enabled_mag),
+		stat->pdata_acc->gpio_int1,
+		stat->pdata_acc->gpio_int2);
+
 		err = lsm303d_acc_device_power_on(stat);
 		if (err < 0) {
 			atomic_set(&stat->enabled_acc, 0);
@@ -1363,6 +1369,13 @@ static int lsm303d_acc_enable(struct lsm303d_status *stat)
 static int lsm303d_acc_disable(struct lsm303d_status *stat)
 {
 	if (atomic_cmpxchg(&stat->enabled_acc, 1, 0)) {
+
+		dev_info(&stat->client->dev, "lsm303d_acc_disable : enabled_acc: %d, enabled_mag: %d, gpio_int1, %d, gpio_int2, %d\n",
+		atomic_read(&stat->enabled_acc), 
+		atomic_read(&stat->enabled_mag),
+		stat->pdata_acc->gpio_int1,
+		stat->pdata_acc->gpio_int2);
+		
 		cancel_work_sync(&stat->input_work_acc);
 		hrtimer_cancel(&stat->hr_timer_acc);
 		lsm303d_acc_device_power_off(stat);
@@ -1383,6 +1396,13 @@ static int lsm303d_mag_enable(struct lsm303d_status *stat)
 	int err;
 
 	if (!atomic_cmpxchg(&stat->enabled_mag, 0, 1)) {
+
+		dev_info(&stat->client->dev, "lsm303d_mag_enable : enabled_acc: %d, enabled_mag: %d, gpio_int1, %d, gpio_int2, %d\n",
+		atomic_read(&stat->enabled_acc), 
+		atomic_read(&stat->enabled_mag),
+		stat->pdata_acc->gpio_int1,
+		stat->pdata_acc->gpio_int2);
+
 		err = lsm303d_mag_device_power_on(stat);
 		if (err < 0) {
 			atomic_set(&stat->enabled_mag, 0);
@@ -1405,6 +1425,13 @@ static int lsm303d_mag_enable(struct lsm303d_status *stat)
 static int lsm303d_mag_disable(struct lsm303d_status *stat)
 {
 	if (atomic_cmpxchg(&stat->enabled_mag, 1, 0)) {
+
+		dev_info(&stat->client->dev, "lsm303d_mag_disable : enabled_acc: %d, enabled_mag: %d, gpio_int1, %d, gpio_int2, %d\n",
+		atomic_read(&stat->enabled_acc), 
+		atomic_read(&stat->enabled_mag),
+		stat->pdata_acc->gpio_int1,
+		stat->pdata_acc->gpio_int2);
+
 		if(!atomic_read(&stat->enabled_temp)) {
 			cancel_work_sync(&stat->input_work_mag);
 			hrtimer_cancel(&stat->hr_timer_mag);
@@ -2582,6 +2609,17 @@ static ssize_t attr_get_interrupt_polarity(struct device *dev,
 	return sprintf(buf, "%d\n", val);
 }
 
+static int lsm303d_force_reinit(struct lsm303d_status *stat);
+
+static ssize_t reinit_store(struct device *dev,
+			    struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct lsm303d_status *stat = dev_get_drvdata(dev);
+	lsm303d_force_reinit(stat);
+	return count;
+}
+
 static struct kobj_attribute gen1_interrupt_pin1_enable =
 __ATTR(pin1_enable, 0664, attr_get_gen1_status, attr_set_gen1_status);
 static struct kobj_attribute gen1_interrupt_pin2_enable =
@@ -2737,6 +2775,7 @@ static struct device_attribute attributes_com[] = {
 	__ATTR(enable_temperature, 0664, attr_get_temp_enable, 
 							attr_set_temp_enable),
 	__ATTR(read_temperature, 0444, attr_get_temp, NULL),
+	__ATTR(reinit, 0200, NULL, reinit_store),
 };
 
 static struct device_attribute attributes_interrupt_com[] = {
@@ -3113,7 +3152,6 @@ static void poll_function_work_mag(struct work_struct *input_work_mag)
 enum hrtimer_restart poll_function_read_acc(struct hrtimer *timer)
 {
 	struct lsm303d_status *stat;
-
 
 	stat = container_of((struct hrtimer *)timer,
 				struct lsm303d_status, hr_timer_acc);
@@ -3558,14 +3596,12 @@ static int lsm303d_suspend(struct device *dev)
 		atomic_read(&stat->enabled_acc),
 		atomic_read(&stat->enabled_mag));
 
-	if (atomic_read(&stat->enabled_acc)) {
-		lsm303d_acc_disable(stat);
-		atomic_set(&stat->enable_acc_on_resume, 1);
-	}
-	if (atomic_read(&stat->enabled_mag)) {
-		lsm303d_mag_disable(stat);
-		atomic_set(&stat->enable_mag_on_resume, 1);
-	}
+	lsm303d_acc_disable(stat);
+	atomic_set(&stat->enable_acc_on_resume, 1);
+
+	lsm303d_mag_disable(stat);
+	atomic_set(&stat->enable_mag_on_resume, 1);
+
 	return err;
 }
 
@@ -3585,6 +3621,7 @@ static int lsm303d_resume(struct device *dev)
 	if (atomic_cmpxchg(&stat->enable_mag_on_resume, 1, 0)) {
 		lsm303d_mag_enable(stat);
 	}
+
 	return err;
 }
 #endif /* CONFIG_PM */
@@ -3624,6 +3661,51 @@ static void __exit lsm303d_exit(void)
 {
 	pr_info("%s driver exit\n", LSM303D_DEV_NAME);
 	i2c_del_driver(&lsm303d_driver);
+}
+
+static int lsm303d_force_reinit(struct lsm303d_status *stat)
+{
+	int err = 0;
+
+	dev_info(&stat->client->dev, "FORCING reinit of lsm303d (accel=%d, mag=%d)\n",
+		atomic_read(&stat->enabled_acc),
+		atomic_read(&stat->enabled_mag));
+
+	// Empêcher la réinit si input device est utilisé
+	if (stat->input_dev_acc && stat->input_dev_acc->users > 0) {
+		dev_warn(&stat->client->dev, "Reinit skipped: accel device is busy (users=%d)\n",
+			stat->input_dev_acc->users);
+		return -EBUSY;
+	}
+
+	if (stat->input_dev_acc) {
+		dev_info(&stat->client->dev, "Unregistering accel input device\n");
+		input_unregister_device(stat->input_dev_acc);
+		stat->input_dev_acc = NULL;
+	}
+
+	// Réinitialisation complète
+	err = lsm303d_acc_input_init(stat);
+	if (err < 0) {
+		dev_err(&stat->client->dev, "failed to re-register input device\n");
+		return err;
+	}
+
+	if (atomic_read(&stat->enabled_acc)) {
+		dev_info(&stat->client->dev, "Re-enabling accelerometer\n");
+		err = lsm303d_acc_enable(stat);
+		if (err)
+			dev_err(&stat->client->dev, "Failed to re-enable accel\n");
+	}
+
+	if (atomic_read(&stat->enabled_mag)) {
+		dev_info(&stat->client->dev, "Re-enabling magnetometer\n");
+		err = lsm303d_mag_enable(stat);
+		if (err)
+			dev_err(&stat->client->dev, "Failed to re-enable mag\n");
+	}
+
+	return err;
 }
 
 /********HUB HACK begins. This cannot ship*********/

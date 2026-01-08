@@ -207,6 +207,9 @@ static int msm_hdmi_audio_codec_rx_probe(struct snd_soc_codec *codec)
 	struct msm_hdmi_audio_codec_rx_data *codec_data;
 	struct device_node *of_node_parent = NULL;
 
+#ifndef CONFIG_FB_MSM_MDSS_HDMI_PANEL //bochenek : Once again, this is not wired by our SoC. Strip it out.
+	return -ENODEV;
+#else
 	codec_data = kzalloc(sizeof(struct msm_hdmi_audio_codec_rx_data),
 		GFP_KERNEL);
 
@@ -245,6 +248,7 @@ static int msm_hdmi_audio_codec_rx_probe(struct snd_soc_codec *codec)
 		__func__, codec->name);
 
 	return 0;
+#endif
 }
 
 static int msm_hdmi_audio_codec_rx_remove(struct snd_soc_codec *codec)

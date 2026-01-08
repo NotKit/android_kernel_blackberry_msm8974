@@ -24,6 +24,7 @@
 #include <linux/input.h>
 #include <linux/firmware.h>
 #include <linux/platform_device.h>
+#include <linux/input/synaptics_dsx.h>
 #include "synaptics_dsx_core.h"
 
 #define FW_IMAGE_FOLDER "synaptics/"
@@ -662,12 +663,7 @@ static enum flash_area fwu_go_nogo(struct synaptics_rmi4_fwu_handle *fwu)
 	flash_area = NONE;
 
 exit:
-	if (rmi4_data->hw_if->board_data->flash_only_bricked) {
-		dev_info(rmi4_data->pdev->dev.parent,
-				"%s: Not bricked, skip reflash\n",
-				__func__);
-		flash_area = NONE;
-	} else if (flash_area == NONE) {
+	if (flash_area == NONE) {
 		dev_info(rmi4_data->pdev->dev.parent,
 				"%s: No need to do reflash\n",
 				__func__);
@@ -1104,10 +1100,7 @@ static int fwu_start_reflash(struct synaptics_rmi4_fwu_handle *fwu)
 	pr_notice("%s: Start of reflash process\n", __func__);
 
 	if (fwu->img.image == NULL) {
-		if (rmi4_data->hw_if->board_data->firmware_name == NULL)
-			snprintf(fwu->img.image_name, MAX_IMAGE_NAME_LEN, FW_IMAGE_FOLDER FW_IMAGE_NAME, rmi4_data->rmi4_mod_info.product_id_string);
-		else
-			strncpy(fwu->img.image_name, rmi4_data->hw_if->board_data->firmware_name, MAX_IMAGE_NAME_LEN);
+		snprintf(fwu->img.image_name, MAX_IMAGE_NAME_LEN, FW_IMAGE_FOLDER FW_IMAGE_NAME, rmi4_data->rmi4_mod_info.product_id_string);
 		dev_dbg(rmi4_data->pdev->dev.parent,
 				"%s: Requesting firmware image %s\n",
 				__func__, fwu->img.image_name);

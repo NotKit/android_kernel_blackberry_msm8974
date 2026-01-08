@@ -26,6 +26,9 @@
 #include <linux/delay.h>
 #include <linux/regulator/consumer.h>
 #include <linux/delay.h>
+#include <linux/ledtrig-kbd.h>
+#include <linux/suspend.h>
+#include <linux/wakelock.h>
 
 #define WLED_MOD_EN_REG(base, n)	(base + 0x60 + n*0x10)
 #define WLED_IDAC_DLY_REG(base, n)	(WLED_MOD_EN_REG(base, n) + 0x01)
@@ -457,6 +460,33 @@ struct rgb_config_data {
 	u8	enable;
 };
 
+
+/*
+ * soft emulation of broken blinking feature
+ */
+struct led_blink_ctx {
+	struct qpnp_led_data *led;
+	struct pwm_config_data *pwm_cfg;
+
+	struct hrtimer timer;
+
+	int ramp_steps;
+	int step;
+	int brightness;
+	int slept_ms;
+
+	enum {
+		RAMP_UP,
+		ON,
+		RAMP_DOWN,
+		OFF,
+	} state;
+
+	ktime_t period;
+};
+
+static struct wake_lock led_wakelock;
+
 /**
  * struct qpnp_led_data - internal led data structure
  * @led_classdev - led class device
@@ -492,6 +522,10 @@ struct qpnp_led_data {
 	bool			default_on;
 	bool                    in_order_command_processing;
 	int			turn_off_delay_ms;
+	struct led_blink_ctx *blink_ctx;
+	int blink_brightness; 
+	bool busy;
+	bool soft_blink;
 };
 
 static DEFINE_MUTEX(flash_lock);
@@ -1533,6 +1567,13 @@ static void __qpnp_led_work(struct qpnp_led_data *led,
 
 	switch (led->id) {
 	case QPNP_ID_WLED:
+		/* bochenek HACK for passport pano display
+		 * If we are "waking up" the display wait a bit
+		 * to avoid garbled display flash
+		 */
+		if (led->cdev.brightness == 0 && value > 0)
+			msleep(100);
+
 		rc = qpnp_wled_set(led);
 		if (rc < 0)
 			dev_err(&led->spmi_dev->dev,
@@ -2316,6 +2357,105 @@ restore:
 	return ret;
 }
 
+static enum hrtimer_restart led_blink_hrtimer(struct hrtimer *t)
+{
+	struct led_blink_ctx *ctx =
+		container_of(t, struct led_blink_ctx, timer);
+	struct qpnp_led_data *led = ctx->led;
+	int step_ms = ctx->pwm_cfg->lut_params.ramp_step_ms;
+
+	if (ctx->state != OFF && !wake_lock_active(&led_wakelock)) {
+        wake_lock(&led_wakelock);
+    }
+
+	switch (ctx->state) {
+
+	case RAMP_UP:
+		qpnp_led_set(led, ctx->step * ctx->brightness / ctx->ramp_steps);
+
+		if (++ctx->step >= ctx->ramp_steps) {
+			ctx->step = 0;
+			ctx->state = ON;
+			ctx->slept_ms = 0;
+		}
+		break;
+
+	case ON:
+		if ((ctx->slept_ms += step_ms) >=
+		    ctx->pwm_cfg->lut_params.lut_pause_hi)
+			ctx->state = RAMP_DOWN;
+		break;
+
+	case RAMP_DOWN:	
+		qpnp_led_set(led, ctx->brightness - (ctx->step * ctx->brightness / ctx->ramp_steps));
+
+		if (++ctx->step >= ctx->ramp_steps) {
+			led->cdev.brightness = 0;
+			qpnp_led_set(led, 0);
+			ctx->step = 0;
+			ctx->state = OFF;
+			ctx->slept_ms = 0;
+		}
+		break;
+
+	case OFF:
+		if (wake_lock_active(&led_wakelock)) {
+			wake_unlock(&led_wakelock);
+		}
+		if ((ctx->slept_ms += step_ms) >= ctx->pwm_cfg->lut_params.lut_pause_lo) {
+			ctx->state = RAMP_UP;
+		}		
+		break;
+	}
+
+	hrtimer_forward_now(t, ctx->period);
+	return HRTIMER_RESTART;
+}
+
+static void led_blink_soft_stop(struct qpnp_led_data *led)
+{
+	if (!led->blink_ctx)
+		return;
+
+	hrtimer_cancel(&led->blink_ctx->timer);
+	//led->cdev.brightness = 0;
+	qpnp_led_set(led, 0);
+
+	kfree(led->blink_ctx);
+	led->blink_ctx = NULL;
+}
+
+static void led_blink_soft(struct qpnp_led_data *led,
+                      struct pwm_config_data *pwm_cfg)
+{
+	struct led_blink_ctx *ctx;
+	int step_ms;
+
+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+	if (!ctx)
+		return;
+
+	if (!pwm_cfg->lut_params.ramp_step_ms)
+		pwm_cfg->lut_params.ramp_step_ms = 10;
+
+	ctx->led        = led;
+	ctx->pwm_cfg    = pwm_cfg;
+	ctx->brightness = led->blink_brightness;
+	ctx->ramp_steps = 30;
+	ctx->step       = 0;
+	ctx->state      = RAMP_UP;
+	ctx->slept_ms   = 0;
+
+	step_ms = pwm_cfg->lut_params.ramp_step_ms;
+	ctx->period = ktime_set(0, step_ms * 1000000);
+
+	hrtimer_init(&ctx->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	ctx->timer.function = led_blink_hrtimer;
+
+	led->blink_ctx = ctx;
+	hrtimer_start(&ctx->timer, ctx->period, HRTIMER_MODE_REL);
+}
+
 static void led_blink(struct qpnp_led_data *led,
 			struct pwm_config_data *pwm_cfg)
 {
@@ -2363,6 +2503,43 @@ static void led_blink(struct qpnp_led_data *led,
 	mutex_unlock(&led->lock);
 }
 
+static ssize_t blink_alt_store(struct device *dev,
+	struct device_attribute *attr,
+	const char *buf, size_t count)
+{
+	struct qpnp_led_data *led;
+	unsigned long value;
+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+	ssize_t ret = -EINVAL;
+
+	ret = kstrtoul(buf, 10, &value);
+	if (ret)
+		return ret;
+	led = container_of(led_cdev, struct qpnp_led_data, cdev);
+
+	led->soft_blink = (value > 0);
+
+	if (led->blink_ctx) {
+		led_blink_soft_stop(led);
+	} else {
+		led->cdev.brightness = 0;
+	}
+
+	return count;
+}
+
+static ssize_t blink_alt_show(struct device *dev,
+                         struct device_attribute *attr,
+                         char *buf)
+{
+    struct qpnp_led_data *led = dev_get_drvdata(dev);
+    bool val;
+
+    val = led->soft_blink;
+
+    return scnprintf(buf, PAGE_SIZE, "%d\n", val ? 1 : 0);
+}
+
 static ssize_t blink_store(struct device *dev,
 	struct device_attribute *attr,
 	const char *buf, size_t count)
@@ -2376,25 +2553,90 @@ static ssize_t blink_store(struct device *dev,
 	if (ret)
 		return ret;
 	led = container_of(led_cdev, struct qpnp_led_data, cdev);
-	led->cdev.brightness = blinking ? led->cdev.max_brightness : 0;
+	
+	if (led->soft_blink) {
+		if (led->blink_ctx)
+			led_blink_soft_stop(led);
 
-	switch (led->id) {
-	case QPNP_ID_LED_MPP:
-		led_blink(led, led->mpp_cfg->pwm_cfg);
-		break;
-	case QPNP_ID_RGB_RED:
-	case QPNP_ID_RGB_GREEN:
-	case QPNP_ID_RGB_BLUE:
-		led_blink(led, led->rgb_cfg->pwm_cfg);
-		break;
-	case QPNP_ID_KPDBL:
-		led_blink(led, led->kpdbl_cfg->pwm_cfg);
-		break;
-	default:
-		dev_err(&led->spmi_dev->dev, "Invalid LED id type for blink\n");
-		return -EINVAL;
+		led->blink_brightness = blinking;
+
+		if (led->busy) {
+			return count;
+		}
+
+		if (blinking == 0) {
+			return count;
+		}
+
+		switch (led->id) {
+		case QPNP_ID_LED_MPP:
+			led_blink_soft(led, led->mpp_cfg->pwm_cfg);
+			break;
+		case QPNP_ID_RGB_RED:
+		case QPNP_ID_RGB_GREEN:
+		case QPNP_ID_RGB_BLUE:
+			led_blink_soft(led, led->rgb_cfg->pwm_cfg);
+			break;
+		case QPNP_ID_KPDBL:
+			led_blink_soft(led, led->kpdbl_cfg->pwm_cfg);
+			break;
+		default:
+			dev_err(&led->spmi_dev->dev,
+					"Invalid LED id type for blink\n");
+			return -EINVAL;
+		}
+	} else {
+		led->cdev.brightness = blinking ? led->cdev.max_brightness : 0;
+
+		switch (led->id) {
+		case QPNP_ID_LED_MPP:
+			led_blink(led, led->mpp_cfg->pwm_cfg);
+			break;
+		case QPNP_ID_RGB_RED:
+		case QPNP_ID_RGB_GREEN:
+		case QPNP_ID_RGB_BLUE:
+			led_blink(led, led->rgb_cfg->pwm_cfg);
+			break;
+		case QPNP_ID_KPDBL:
+			led_blink(led, led->kpdbl_cfg->pwm_cfg);
+			break;
+		default:
+			dev_err(&led->spmi_dev->dev, "Invalid LED id type for blink\n");
+			return -EINVAL;
+		}
+		return count;
 	}
+
 	return count;
+}
+
+static ssize_t busy_store(struct device *dev,
+                          struct device_attribute *attr,
+                          const char *buf, size_t count)
+{
+    struct qpnp_led_data *led = dev_get_drvdata(dev);
+    unsigned long val;
+    ssize_t ret = -EINVAL;
+
+    ret = kstrtoul(buf, 10, &val);
+    if (ret)
+        return ret;
+
+    led->busy = !!val;
+
+    return count;
+}
+
+static ssize_t busy_show(struct device *dev,
+                         struct device_attribute *attr,
+                         char *buf)
+{
+    struct qpnp_led_data *led = dev_get_drvdata(dev);
+    bool val;
+
+    val = led->busy;
+
+    return scnprintf(buf, PAGE_SIZE, "%d\n", val ? 1 : 0);
 }
 
 static DEVICE_ATTR(led_mode, 0664, NULL, led_mode_store);
@@ -2407,6 +2649,8 @@ static DEVICE_ATTR(ramp_step_ms, 0664, NULL, ramp_step_ms_store);
 static DEVICE_ATTR(lut_flags, 0664, NULL, lut_flags_store);
 static DEVICE_ATTR(duty_pcts, 0664, NULL, duty_pcts_store);
 static DEVICE_ATTR(blink, 0664, NULL, blink_store);
+static DEVICE_ATTR(blink_alt, 0664, blink_alt_show, blink_alt_store);
+static DEVICE_ATTR(busy, 0664, busy_show, busy_store);
 
 static struct attribute *led_attrs[] = {
 	&dev_attr_led_mode.attr,
@@ -2435,6 +2679,8 @@ static struct attribute *lpg_attrs[] = {
 
 static struct attribute *blink_attrs[] = {
 	&dev_attr_blink.attr,
+	&dev_attr_blink_alt.attr,
+	&dev_attr_busy.attr,
 	NULL
 };
 
@@ -2706,6 +2952,37 @@ static int __devinit qpnp_mpp_init(struct qpnp_led_data *led)
 	return 0;
 }
 
+static int led_pm_notifier(struct notifier_block *nb,
+                           unsigned long action, void *data)
+{
+    switch (action) {
+
+    case PM_SUSPEND_PREPARE:
+        /* stop blink thread */
+        /* switch to LPG */
+        break;
+
+#if defined(PM_POST_SUSPEND)
+    case PM_POST_SUSPEND:
+        /* stop LPG */
+        /* restart thread */
+        break;
+#endif
+
+#if defined(PM_POST_HIBERNATION)
+    case PM_POST_HIBERNATION:
+#endif
+#if defined(PM_POST_RESTORE)
+    case PM_POST_RESTORE:
+#endif
+        /* stop LPG */
+        /* restart thread */
+        break;
+    }
+
+    return NOTIFY_OK;
+}
+
 static int __devinit qpnp_led_initialize(struct qpnp_led_data *led)
 {
 	int rc = 0;
@@ -2749,6 +3026,8 @@ static int __devinit qpnp_led_initialize(struct qpnp_led_data *led)
 		return -EINVAL;
 	}
 
+	//register_pm_notifier(&led_pm_notifier);
+	
 	return rc;
 }
 
@@ -3661,6 +3940,7 @@ static int __devinit qpnp_leds_probe(struct spmi_device *spmi)
 
 		parsed_leds++;
 	}
+
 	dev_set_drvdata(&spmi->dev, led_array);
 	return 0;
 

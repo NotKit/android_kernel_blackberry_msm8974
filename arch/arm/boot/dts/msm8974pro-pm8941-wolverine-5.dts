@@ -37,6 +37,6 @@
 	};
 
 	qcom,camera@1 {
-		qcom,mount-angle = <180>;
+		qcom,mount-angle = <0>;
 	};
 };

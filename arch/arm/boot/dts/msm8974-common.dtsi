@@ -48,6 +48,7 @@
 		gpio = <&msmgpio 8 0>;
 		enable-active-high;
 		regulator-boot-on;
+		regulator-always-on; /* to avoid synaptics controller to reconfigure (looses its config.) after each LPM session */
 	};
 
 	serial@f991e000 {
@@ -172,8 +173,10 @@
 			synaptics,irq-flags = <0x2008>; //IRQF_TRIGGER_LOW | IRQF_ONESHOT
 			synaptics,reset-gpio = <&msmgpio 49 0>;
 			synaptics,reset-on-state = <0>;
-			synaptics,reset-delay-ms = <60>;
-			synaptics,reset-active-ms = <200>;
+			synaptics,reset-active-ms = <150>;
+			synaptics,reset-delay-ms = <50>;
+			synaptics,power-delay-ms = <50>;
+			synaptics,irq-on-state = <0>;
 			synaptics,firmware = "synaptics/passport_display.bin";
 		};
 	};
@@ -279,7 +282,6 @@
 
 		qcom,ext-spk-amp-supply = <&_5v_boost_ext>;
 		qcom,ext-spk-amp-gpio = <&msmgpio 96 0>;
-		qcom,hdmi-audio-rx;
 	};
 
 	bluesleep {
@@ -364,9 +366,9 @@
 		interrupt-parent = <&spmi_bus>;
 		keypad,num-rows = <6>;
 		keypad,num-cols = <5>;
-		qcom,scan-delay-ms = <32>;
-		qcom,row-hold-ns = <31250>;
-		qcom,debounce-ms = <5>;
+		qcom,scan-delay-ms = <64>;
+		qcom,row-hold-ns = <128000>;
+		qcom,debounce-ms = <20>;
 		linux,keypad-no-autorepeat;
 		linux,keymap = <0x02000010 /* row: 2 column: 0 keycode: KEY_Q */
 				0x02010011 /* row: 2 column: 1 keycode: KEY_W */
@@ -619,7 +621,7 @@
 			qcom,duty-pcts = [00 00 00 00 64
 					64 00 00 00 00];
 			qcom,in-order-command-processing;
-			linux,default-trigger = "bkl-trigger";
+			linux,default-trigger = "kbd-trigger";
 		};
 
 		qcom,kpdbl2 {
@@ -637,7 +639,7 @@
                         qcom,duty-pcts = [00 00 00 00 64
                                         64 00 00 00 00];
                         qcom,in-order-command-processing;
-			linux,default-trigger = "bkl-trigger";
+			linux,default-trigger = "kbd-trigger";
 		};
 
 		qcom,kpdbl3 {
@@ -655,7 +657,7 @@
                         qcom,duty-pcts = [00 00 00 00 64
                                         64 00 00 00 00];
                         qcom,in-order-command-processing;
-			linux,default-trigger = "bkl-trigger";
+			linux,default-trigger = "kbd-trigger";
 		};
 
 		qcom,kpdbl4 {
@@ -673,7 +675,7 @@
                         qcom,duty-pcts = [00 00 00 00 64
                                         64 00 00 00 00];
                         qcom,in-order-command-processing;
-			linux,default-trigger = "bkl-trigger";
+			linux,default-trigger = "kbd-trigger";
 		};
 	};
 };
@@ -729,15 +731,20 @@
 };
 
 &sdhc_3 {
-	interrupt-map = <0 &intc 0 127 0
-			1 &intc 0 224 0
-			2 &msmgpio 77 0x8>;
-	interrupt-names = "hc_irq", "pwr_irq", "wlan_oob_irq";
-	vdd-io-supply = <&pm8941_s3>;
-	qcom,vdd-io-voltage-level = <1800000 1800000>;
-	qcom,vdd-io-current-level = <6 22000>;
-	qcom,wifi-control-func;
-	status = "ok";
+    interrupt-map = <0 &intc 0 127 0
+                     1 &intc 0 224 0
+                     2 &msmgpio 77 0x8>;
+    interrupt-names = "hc_irq", "pwr_irq", "wlan_oob_irq";
+    vdd-supply = <&pm8941_l17>;
+    vdd-io-supply = <&pm8941_s3>;
+    qcom,vdd-voltage-level = <2950000 2950000>;
+    qcom,vdd-current-level = <8000 400000>;
+    qcom,vdd-io-voltage-level = <1800000 1800000>;
+    qcom,vdd-io-current-level = <6 22000>;
+    qcom,init-wait-ms = <500>;
+    qcom,nonremovable;
+    qcom,wifi-control-func;
+    status = "ok";
 };
 
 &usb_otg {

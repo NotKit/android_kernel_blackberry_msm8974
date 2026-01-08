@@ -964,6 +964,7 @@ static int anx7808_i2c_probe(struct i2c_client *client,
 		goto err0;
 	}
 
+#ifdef CONFIG_FB_MSM_MDSS_HDMI_PANEL //bochenek : Once again, this is not wired by our SoC. Strip it out.
 	if(anx7808->pdata->hdmi_pdev) {
 		struct msm_hdmi_slimport_ops *ops = &anx7808->hdmi_ops;
 		ops->in_read_edid_block = slimport_read_edid_block;
@@ -986,6 +987,7 @@ static int anx7808_i2c_probe(struct i2c_client *client,
 					anx7808->pdata->hdmi_pdev, 180000);
 		}
 	}
+#endif
 
 	anx7808->pdata->hdcp_cap_sdev.name = "hdmi_bridge_secure";
 	ret = switch_dev_register(&anx7808->pdata->hdcp_cap_sdev);

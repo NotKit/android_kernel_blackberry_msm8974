@@ -58,6 +58,9 @@ enum {
 	HW_PLATFORM_QRD	= 11,
 	HW_PLATFORM_HRD	= 13,
 	HW_PLATFORM_DTV	= 14,
+	HW_PLATFORM_WOLVERINE = 15,
+    HW_PLATFORM_OSLO = 16,
+	HW_PLATFORM_WICHITA = 17,
 	HW_PLATFORM_INVALID
 };
 
@@ -74,6 +77,9 @@ const char *hw_platform[] = {
 	[HW_PLATFORM_QRD] = "QRD",
 	[HW_PLATFORM_HRD] = "HRD",
 	[HW_PLATFORM_DTV] = "DTV",
+	[HW_PLATFORM_WOLVERINE] = "Wolverine",
+    [HW_PLATFORM_OSLO]      = "Oslo",
+	[HW_PLATFORM_WICHITA]      = "Wichita",
 };
 
 enum {
@@ -1470,8 +1476,23 @@ static void socinfo_print(void)
 	}
 }
 
+static int get_hw_type(void)
+{
+	if (of_find_compatible_node(NULL, NULL, "qcom,msm8974-wichita"))
+		return HW_PLATFORM_WICHITA;
+	if (of_find_compatible_node(NULL, NULL, "qcom,msm8974-wolverine"))
+		return HW_PLATFORM_WOLVERINE;
+	if (of_find_compatible_node(NULL, NULL, "qcom,msm8974-oslo"))
+		return HW_PLATFORM_OSLO;
+
+	return HW_PLATFORM_UNKNOWN;
+}
+
 int __init socinfo_init(void)
 {
+	int hw_type;
+	struct socinfo_v1 *socinfo_v1_ptr;
+
 	socinfo = smem_alloc(SMEM_HW_SW_BUILD_ID, sizeof(struct socinfo_v9));
 	if (!socinfo)
 		socinfo = smem_alloc(SMEM_HW_SW_BUILD_ID,
@@ -1515,11 +1536,34 @@ int __init socinfo_init(void)
 
 	if (socinfo_get_id() >= ARRAY_SIZE(cpu_of_id))
 		BUG_ON("New IDs added! ID => CPU mapping might need an update.\n");
-
-	else
-		cur_cpu = cpu_of_id[socinfo->v1.id].generic_soc_type;
+	else {
+		socinfo_v1_ptr = (struct socinfo_v1 *)socinfo;
+		cur_cpu = cpu_of_id[socinfo_v1_ptr->id].generic_soc_type;
+	}
 
 	boot_stats_init();
+
+	hw_type = get_hw_type();
+
+	if (socinfo->v3.hw_platform == HW_PLATFORM_UNKNOWN) {
+		switch (hw_type) {
+		case HW_PLATFORM_WICHITA:
+			pr_info("socinfo: overriding UNKNOWN hw_platform to WICHITA (from DT)\n");
+			socinfo->v3.hw_platform = HW_PLATFORM_WICHITA;
+			break;
+		case HW_PLATFORM_WOLVERINE:
+			pr_info("socinfo: overriding UNKNOWN hw_platform to WOLVERINE (from DT)\n");
+			socinfo->v3.hw_platform = HW_PLATFORM_WOLVERINE;
+			break;
+		case HW_PLATFORM_OSLO:
+			pr_info("socinfo: overriding UNKNOWN hw_platform to OSLO (from DT)\n");
+			socinfo->v3.hw_platform = HW_PLATFORM_OSLO;
+			break;
+		default:
+			break;
+		}
+	}
+	
 	socinfo_print();
 	arch_read_hardware_id = msm_read_hardware_id;
 

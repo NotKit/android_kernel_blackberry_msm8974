@@ -26,8 +26,10 @@
 #include <linux/platform_device.h>
 #include <linux/reboot.h>
 #include <linux/regulator/consumer.h>
+#include <synaptics_dsx.h>
 #include "synaptics_dsx_core.h"
 #include <linux/input/mt.h>
+#include <linux/display_state.h>
 
 #include "synaptics_dsx_core.h"
 #include "synaptics_dsx_fw_update.h"
@@ -45,6 +47,11 @@
 #define RPT_WX (1 << 6)
 #define RPT_WY (1 << 7)
 #define RPT_DEFAULT (RPT_TYPE | RPT_X_LSB | RPT_X_MSB | RPT_Y_LSB | RPT_Y_MSB)
+
+#define PM_DBL_TAP_MS      230   /* time between first and second tap */
+#define PM_TRIPLE_TAP_MS   180   /* time between second and third tap */
+#define PM_CLICK_DELAY_MS  (PM_TRIPLE_TAP_MS + 20) /* trigger pointer mode after the third tap */
+#define PM_KB_DELAY        1500
 
 #define EXP_FN_WORK_DELAY_MS 1000 /* ms */
 #define MAX_F11_TOUCH_WIDTH 15
@@ -69,6 +76,15 @@
 #define NO_SLEEP_ON (1 << 2)
 #define CONFIGURED (1 << 7)
 
+static struct synaptics_rmi4_data *g_rmi4_data;
+
+static int synaptics_rmi4_irq_enable(struct synaptics_rmi4_data *rmi4_data,
+		bool enable, bool attn_only);
+
+static int synaptics_rmi4_sensor_sleep(struct synaptics_rmi4_data *rmi4_data);
+
+static int synaptics_rmi4_sensor_wake(struct synaptics_rmi4_data *rmi4_data);
+
 static int synaptics_rmi4_f12_set_enables(struct synaptics_rmi4_data *rmi4_data,
 		unsigned short ctrl28);
 
@@ -79,6 +95,146 @@ static int synaptics_rmi4_reset_device(struct synaptics_rmi4_data *rmi4_data);
 static int synaptics_rmi4_suspend(struct device *dev);
 
 static int synaptics_rmi4_resume(struct device *dev);
+
+void synaptics_disable_pointer_mode()
+{
+	if (g_rmi4_data->pointer_mode_enable == 1)
+	{
+		g_rmi4_data->last_kbd_input_time = jiffies; //save actual timestamp - used to prevent pointer mode to activate during keyboard typing
+
+		if (g_rmi4_data && g_rmi4_data->pointer_mode) {
+			g_rmi4_data->lock_active = true;
+			g_rmi4_data->pointer_mode = 0;
+			g_rmi4_data->pm_tap_count = 0;
+			g_rmi4_data->kp_tap_count = 0;
+			g_rmi4_data->pm_touching = false;
+			g_rmi4_data->kp_touching = false;
+			g_rmi4_data->pm_down = false;
+			g_rmi4_data->pm_tap_time = 0;
+			g_rmi4_data->kp_tap_time = 0;
+
+			cancel_delayed_work_sync(&g_rmi4_data->exp_data.work);
+		}
+	}
+}
+EXPORT_SYMBOL_GPL(synaptics_disable_pointer_mode);
+
+static ssize_t pointer_mode_enable_show(struct device *dev,
+                                 struct device_attribute *attr, char *buf)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    return scnprintf(buf, PAGE_SIZE, "%d\n", rmi4_data->pointer_mode_enable);
+}
+
+static ssize_t pointer_mode_enable_store(struct device *dev,
+                                  struct device_attribute *attr,
+                                  const char *buf, size_t count)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    int val;
+
+    if (kstrtoint(buf, 0, &val))
+        return -EINVAL;
+
+    val = !!val;
+
+    rmi4_data->pointer_mode_enable = val;
+
+    if (val == 0) {
+        synaptics_disable_pointer_mode();
+        rmi4_data->pointer_mode = 0;
+        dev_info(dev, "pointer_mode enabled\n");
+    } else {
+        dev_info(dev, "pointer_mode enabled cleared\n");
+    }
+
+    return count;
+}
+
+static ssize_t pointer_mode_invert_show(struct device *dev,
+                                 struct device_attribute *attr, char *buf)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    return scnprintf(buf, PAGE_SIZE, "%d\n",
+                     rmi4_data->pointer_mode_invert);
+}
+
+static ssize_t pointer_mode_invert_store(struct device *dev,
+                                  struct device_attribute *attr,
+                                  const char *buf, size_t count)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    int val;
+
+    if (kstrtoint(buf, 0, &val))
+        return -EINVAL;
+
+    rmi4_data->pointer_mode_invert = !!val;
+
+    dev_info(dev, "pointer_mode_invert => %d\n",
+             rmi4_data->pointer_mode_invert);
+
+    return count;
+}
+
+static DEVICE_ATTR_RW(pointer_mode_invert);
+
+static ssize_t pointer_mode_show(struct device *dev,
+                                 struct device_attribute *attr, char *buf)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    return scnprintf(buf, PAGE_SIZE, "%d\n", rmi4_data->pointer_mode);
+}
+
+static ssize_t pointer_mode_store(struct device *dev,
+                                  struct device_attribute *attr,
+                                  const char *buf, size_t count)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    int val;
+
+    if (kstrtoint(buf, 0, &val))
+        return -EINVAL;
+
+    if (!rmi4_data->pointer_mode_enable) {
+        dev_info(dev, "pointer_mode ignored (disabled)\n");
+        return -EPERM;
+    }
+
+    rmi4_data->pointer_mode = !!val;
+    dev_info(dev, "pointer_mode = %d\n", rmi4_data->pointer_mode);
+
+    return count;
+}
+
+static DEVICE_ATTR_RW(pointer_mode);
+
+static ssize_t pointer_mode_speed_show(struct device *dev,
+                                       struct device_attribute *attr, char *buf)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    return scnprintf(buf, PAGE_SIZE, "%d\n",
+                     rmi4_data->pointer_mode_speed);
+}
+
+static ssize_t pointer_mode_speed_store(struct device *dev,
+                                        struct device_attribute *attr,
+                                        const char *buf, size_t count)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    int val;
+
+    if (kstrtoint(buf, 0, &val))
+        return -EINVAL;
+
+    if (val < 1 || val > 10)
+        return -EINVAL;
+
+    rmi4_data->pointer_mode_speed = val;
+    return count;
+}
+
+static DEVICE_ATTR_RW(pointer_mode_speed);
 
 static ssize_t synaptics_rmi4_f01_reset_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count);
@@ -94,6 +250,69 @@ static ssize_t synaptics_rmi4_f01_flashprog_show(struct device *dev,
 
 static ssize_t synaptics_rmi4_suspend_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count);
+
+static ssize_t synaptics_rmi4_enable_device_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+	return scnprintf(buf, PAGE_SIZE, "%d\n", rmi4_data->device_enabled ? 1 : 0);
+}
+
+static ssize_t synaptics_rmi4_enable_device_store(struct device *dev,
+        struct device_attribute *attr, const char *buf, size_t count)
+{
+    struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+    int enable;
+    int retval = 0;
+
+	if (sscanf(buf, "%d", &enable) != 1)
+        return -EINVAL;
+
+	ktime_t now = ktime_get();
+	s64 diff_ms;
+
+	if (ktime_to_ns(rmi4_data->last_enable_toggle) != 0) {
+		diff_ms = ktime_to_ms(ktime_sub(now, rmi4_data->last_enable_toggle));
+		if (diff_ms < 3000) {
+			dev_warn(dev, "%s: ignored touch enabler (spam protection: %lldms)\n",
+					__func__, diff_ms);
+			return -EBUSY;
+		}
+	}
+
+	rmi4_data->last_enable_toggle = now;
+
+    if (enable == 0 && rmi4_data->device_enabled == true) {
+
+        dev_info(dev, "%s: disabling touch device\n", __func__);
+
+        cancel_delayed_work_sync(&rmi4_data->exp_data.work);
+
+        synaptics_rmi4_irq_enable(rmi4_data, false, false);
+        rmi4_data->device_enabled = false;
+
+    } else if (enable == 1) {
+
+        if (rmi4_data->pwr_reg && rmi4_data->device_enabled == false) {
+
+            dev_info(dev, "%s: enabling touch device\n", __func__);
+
+            retval = synaptics_rmi4_irq_enable(rmi4_data, true, false);
+            rmi4_data->device_enabled = true;
+
+            if (retval < 0) {
+                dev_err(dev, "%s: Failed to enable irq (%d)\n",
+                        __func__, retval);
+                rmi4_data->device_enabled = false;
+            }
+        }
+
+    } else {
+        return -EINVAL;
+    }
+
+    return count;
+}
 
 struct synaptics_rmi4_f01_device_status {
 	union {
@@ -404,7 +623,22 @@ static struct device_attribute attrs[] = {
 			synaptics_rmi4_store_error),
 	__ATTR(suspend, S_IWUGO,
 			synaptics_rmi4_show_error,
-			synaptics_rmi4_suspend_store),
+			synaptics_rmi4_suspend),
+	__ATTR(enable_device, S_IRUGO | S_IWUGO,
+			synaptics_rmi4_enable_device_show,
+			synaptics_rmi4_enable_device_store),
+	__ATTR(pointer_mode, S_IRUGO | S_IWUGO,
+			pointer_mode_show,
+			pointer_mode_store),
+	__ATTR(pointer_mode_enable, S_IRUGO | S_IWUGO,
+			pointer_mode_enable_show,
+			pointer_mode_enable_store),
+	__ATTR(pointer_mode_speed, S_IRUGO | S_IWUGO,
+			pointer_mode_speed_show,
+			pointer_mode_speed_store),		
+	__ATTR(pointer_mode_invert, S_IRUGO | S_IWUGO,
+			pointer_mode_invert_show,
+			pointer_mode_invert_store),		
 };
 
 static ssize_t synaptics_rmi4_f01_reset_store(struct device *dev,
@@ -494,7 +728,7 @@ static int synaptics_rmi4_f11_abs_report(struct synaptics_rmi4_data *rmi4_data,
 		struct synaptics_rmi4_fn *fhandler)
 {
 	int retval;
-	unsigned char touch_count = 0; /* number of touch points */
+	unsigned char touch_count = 0; /* taps count*/
 	unsigned char reg_index;
 	unsigned char finger;
 	unsigned char fingers_supported;
@@ -646,6 +880,26 @@ static int synaptics_rmi4_cancel_touch(
 	return 0;
 }
 
+static void synaptics_pm_click_work(struct work_struct *work)
+{
+    struct synaptics_rmi4_data *rmi4_data =
+        container_of(to_delayed_work(work),
+                     struct synaptics_rmi4_data,
+                     pm_click_work);
+
+    unsigned long now = jiffies;
+    if (rmi4_data->pm_tap_count == 2 &&
+        time_before(now, rmi4_data->pm_tap_time + msecs_to_jiffies(PM_DBL_TAP_MS)) &&
+        rmi4_data->pointer_mode) {
+
+        input_report_key(rmi4_data->input_dev, BTN_LEFT, 1);
+        input_sync(rmi4_data->input_dev);
+        input_report_key(rmi4_data->input_dev, BTN_LEFT, 0);
+        input_sync(rmi4_data->input_dev);
+    }
+    rmi4_data->pm_tap_count = 0;
+}
+
 static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 		struct synaptics_rmi4_fn *fhandler)
 {
@@ -706,12 +960,34 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 	}
 
 	if (!fingers_to_process) {
+
+		if (rmi4_data->pointer_mode && rmi4_data->pm_down) {
+			/* mouse mode -> no ABS */
+			rmi4_data->pm_down = false;
+			rmi4_data->kp_touching = false;
+			rmi4_data->pm_touching = false;
+			return 0;
+		}
+
 		if (false != rmi4_data->ignore_touch) {
 			dev_info(rmi4_data->pdev->dev.parent,
 				"%s: clear ignore_touch\n", __func__);
 			rmi4_data->ignore_touch = false;
 		}
+	
+		/* release MT to prevent swipe ghosting */
+		for (finger = 0; finger < fhandler->num_of_data_points; finger++) {
+			input_mt_slot(rmi4_data->input_dev, finger);
+			input_mt_report_slot_state(rmi4_data->input_dev,
+									MT_TOOL_FINGER, 0);
+		}
+
 		synaptics_rmi4_free_fingers(rmi4_data);
+			
+		input_report_key(rmi4_data->input_dev, BTN_TOUCH, 0);
+		input_report_key(rmi4_data->input_dev, BTN_TOOL_FINGER, 0);
+		input_sync(rmi4_data->input_dev);
+
 		return 0;
 	}
 
@@ -733,7 +1009,7 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 	for (finger = 0; finger < fingers_to_process; finger++) {
 		struct synaptics_rmi4_f12_finger_data *finger_data = data + finger;
 		finger_status = finger_data->object_type_and_status;
-		
+
 		if (finger_status != F12_NO_OBJECT_STATUS)
 			touch_count++;
 	}
@@ -741,7 +1017,8 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 	if (rmi4_data->ignore_touch) {
 		if (touch_count > 0) {
 			/* simply ignore the touches while ignore_touch is set */
-			dev_dbg(rmi4_data->pdev->dev.parent, "%s: ignore_touch=%d, ignoring touches\n",	__func__, rmi4_data->ignore_touch);
+			dev_dbg(rmi4_data->pdev->dev.parent, "%s: ignore_touch=%d, ignoring touches\n",
+				__func__, rmi4_data->ignore_touch);
 			return 0;
 		}
 
@@ -762,29 +1039,13 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 		switch (finger_status) {
 		case F12_FINGER_STATUS:
 		case F12_GLOVED_FINGER_STATUS:
-			input_mt_slot(rmi4_data->input_dev, finger);
-			input_mt_report_slot_state(rmi4_data->input_dev,
-					MT_TOOL_FINGER, 1);
-
-			x = (finger_data->x_msb << 8) | (finger_data->x_lsb);
-			y = (finger_data->y_msb << 8) | (finger_data->y_lsb);
-#ifdef REPORT_2D_Z
-			z = finger_data->z;
-#endif
-#ifdef REPORT_2D_W
-			wx = finger_data->wx;
-			wy = finger_data->wy;
-#endif
+			x = (finger_data->x_msb << 8) | finger_data->x_lsb;
+			y = (finger_data->y_msb << 8) | finger_data->y_lsb;
 
 			if (rmi4_data->hw_if->board_data->swap_axes) {
 				temp = x;
 				x = y;
 				y = temp;
-#ifdef REPORT_2D_W
-				temp = wx;
-				wx = wy;
-				wy = temp;
-#endif
 			}
 
 			if (rmi4_data->hw_if->board_data->x_flip)
@@ -792,30 +1053,130 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 			if (rmi4_data->hw_if->board_data->y_flip)
 				y = rmi4_data->sensor_max_y - y;
 
-			dev_dbg(rmi4_data->pdev->dev.parent, "%s: finger=%d x=%d y=%d ma=%d mi=%d\n",
-					__func__, finger, x, y, max(wx, wy), min(wx, wy));
-			input_report_abs(rmi4_data->input_dev,
-					ABS_MT_POSITION_X, x);
-			input_report_abs(rmi4_data->input_dev,
-					ABS_MT_POSITION_Y, y);
-#ifdef REPORT_2D_W
+			int split_x = rmi4_data->sensor_max_x / 2;
+			bool want_mouse;
+
+			if (!rmi4_data->pointer_mode_invert) {
+				/* normal: right side = mouse */
+				want_mouse = (x > split_x);
+			} else {
+				/* inverted: left side = mouse */
+				want_mouse = (x < split_x);
+			}
+
+			if (!want_mouse) { /* do not trigger pointer mode specific counter for double+trip tap if we're in the wrong zone */
+				rmi4_data->kp_tap_count = 0;
+				rmi4_data->pm_tap_count = 0;
+				rmi4_data->kp_touching  = false;
+				rmi4_data->pm_touching  = false;
+			}
+
+			if (want_mouse && strstr(rmi4_data->input_dev->name, "touch_keypad") && is_display_on()) {
+				unsigned long now = jiffies;
+				bool *touching = rmi4_data->pointer_mode ? &rmi4_data->pm_touching : &rmi4_data->kp_touching;
+				int  *tap_cnt  = rmi4_data->pointer_mode ? &rmi4_data->pm_tap_count : &rmi4_data->kp_tap_count;
+				unsigned long *tap_ts = rmi4_data->pointer_mode ? &rmi4_data->pm_tap_time : &rmi4_data->kp_tap_time;
+
+				if (!*touching) {
+					*touching = true;
+
+					/* keep previous timestamp to check 2->3 tap */
+					unsigned long prev_ts = *tap_ts;
+
+					if (time_before(now, *tap_ts + msecs_to_jiffies(PM_DBL_TAP_MS)))
+						(*tap_cnt)++;
+					else
+						*tap_cnt = 1;
+
+					*tap_ts = now;
+
+					if (g_rmi4_data && g_rmi4_data->lock_active &&
+						time_before(jiffies, g_rmi4_data->last_kbd_input_time + msecs_to_jiffies(PM_KB_DELAY))) {
+						// prevent triggering pointer mode if typing on the keyboard - gives a 3sec window delay
+						dev_info(rmi4_data->pdev->dev.parent, "pointer_mode change blocked by 3s lock\n");
+					} else {
+						if (*tap_cnt == 3 && time_before(now, prev_ts + msecs_to_jiffies(PM_TRIPLE_TAP_MS))) {
+
+							if (rmi4_data->pointer_mode_enable == 1) {
+								rmi4_data->pointer_mode = !rmi4_data->pointer_mode;
+							}
+							else
+							{
+								synaptics_disable_pointer_mode();
+								rmi4_data->pointer_mode = 0;
+							}
+
+							cancel_delayed_work_sync(&rmi4_data->exp_data.work);
+
+							dev_info(rmi4_data->pdev->dev.parent, "pointer_mode => %d\n", rmi4_data->pointer_mode);
+
+							rmi4_data->kp_tap_count = rmi4_data->pm_tap_count = 0;
+							rmi4_data->kp_touching  = rmi4_data->pm_touching  = false;
+							rmi4_data->pm_down      = false;
+							*tap_cnt = 0;
+						} else if (*tap_cnt == 2 && rmi4_data->pointer_mode) {
+							/* pointer click if you are > triple tap expected delay */
+							schedule_delayed_work(&rmi4_data->pm_click_work,
+												msecs_to_jiffies(PM_CLICK_DELAY_MS));
+						}
+					}
+				}
+			}
+			{
+				if (rmi4_data->pointer_mode && want_mouse) {
+					/* during pointer mode we need to be able to click (double-tap) - we're just preparing for the next tap */
+					if (!rmi4_data->pm_down) {
+						rmi4_data->pm_down = true;
+						rmi4_data->last_x = x;
+						rmi4_data->last_y = y;
+						/* do not report anything as we don't want it on pointer mode */
+						break;
+					}
+
+					/* pointer position */
+					/* speed: 1..10 */
+					int speed = rmi4_data->pointer_mode_speed;
+
+					int dx = (x - rmi4_data->last_x) * (7 * speed + 2) / 36;
+					int dy = (y - rmi4_data->last_y) * (7 * speed + 2) / 36;
+
+					rmi4_data->last_x = x;
+					rmi4_data->last_y = y;
+
+					if (dx || dy) {
+						input_report_rel(rmi4_data->input_dev, REL_X, dx);
+						input_report_rel(rmi4_data->input_dev, REL_Y, dy);
+						input_sync(rmi4_data->input_dev);
+					}
+					break; /* nothing to do in pointer mode */
+				}
+			}
+
+			/* normal behavior (not in pointer mode) */
+			if (rmi4_data->pointer_mode && !want_mouse) {
+				rmi4_data->pm_down = false;
+			}
+
+			input_mt_slot(rmi4_data->input_dev, finger);
+			input_mt_report_slot_state(rmi4_data->input_dev, MT_TOOL_FINGER, 1);
+			input_report_abs(rmi4_data->input_dev, ABS_MT_POSITION_X, x);
+			input_report_abs(rmi4_data->input_dev, ABS_MT_POSITION_Y, y);
+		#ifdef REPORT_2D_W
 			input_report_abs(rmi4_data->input_dev,
 					ABS_MT_TOUCH_MAJOR, max(wx, wy));
 			input_report_abs(rmi4_data->input_dev,
 					ABS_MT_TOUCH_MINOR, min(wx, wy));
-#endif
-#ifdef REPORT_2D_Z
-			input_report_abs(rmi4_data->input_dev,
-					ABS_MT_PRESSURE, z);
-#endif
+		#endif
+		#ifdef REPORT_2D_Z
+			input_report_abs(rmi4_data->input_dev, ABS_MT_PRESSURE, z);
+		#endif
 
-			input_report_key(rmi4_data->input_dev,
-					BTN_TOUCH, 1);
-
+			input_report_key(rmi4_data->input_dev, BTN_TOUCH, 1);
 			input_sync(rmi4_data->input_dev);
 
 			touch_count++;
 			break;
+
 		case F12_PALM_STATUS:
 			synaptics_rmi4_cancel_touch(rmi4_data, finger);
 			touch_count++;
@@ -823,7 +1184,12 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 			dev_info(rmi4_data->pdev->dev.parent,
 				"Large object detected\n");
 			break;
+
 		default:
+
+			rmi4_data->kp_touching = false;
+			rmi4_data->pm_touching = false;
+
 			input_mt_slot(rmi4_data->input_dev, finger);
 			input_report_key(rmi4_data->input_dev,
 					BTN_TOUCH, 0);
@@ -837,15 +1203,14 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 	}
 
 	if (touch_count == 0) {
-		input_report_key(rmi4_data->input_dev,
-				BTN_TOUCH, 0);
-		input_report_key(rmi4_data->input_dev,
-				BTN_TOOL_FINGER, 0);
-
-		dev_dbg(rmi4_data->pdev->dev.parent, "%s: Touch UP\n", __func__);
-		input_sync(rmi4_data->input_dev);
+		if (rmi4_data->pointer_mode) {
+			// nothing needs to be triggered
+		} else {
+			input_report_key(rmi4_data->input_dev, BTN_TOUCH, 0);
+			input_report_key(rmi4_data->input_dev, BTN_TOOL_FINGER, 0);
+			input_sync(rmi4_data->input_dev);
+		}
 	}
-
 
 	mutex_unlock(&(rmi4_data->rmi4_report_mutex));
 
@@ -2120,6 +2485,7 @@ static int synaptics_rmi4_set_input_dev(struct synaptics_rmi4_data *rmi4_data)
 				rmi4_data->hw_if->board_data;
 
 	rmi4_data->input_dev = input_allocate_device();
+	
 	if (rmi4_data->input_dev == NULL) {
 		dev_err(rmi4_data->pdev->dev.parent,
 				"%s: Failed to allocate input device\n",
@@ -2136,7 +2502,7 @@ static int synaptics_rmi4_set_input_dev(struct synaptics_rmi4_data *rmi4_data)
 		goto err_query_device;
 	}
 
-	rmi4_data->input_dev->name = bdata->input_dev_name;
+	rmi4_data->input_dev->name = rmi4_data->hw_if->board_data->input_dev_name;
 	rmi4_data->input_dev->phys = INPUT_PHYS_NAME;
 	rmi4_data->input_dev->id.product = SYNAPTICS_DSX_DRIVER_PRODUCT;
 	rmi4_data->input_dev->id.version = SYNAPTICS_DSX_DRIVER_VERSION;
@@ -2147,6 +2513,11 @@ static int synaptics_rmi4_set_input_dev(struct synaptics_rmi4_data *rmi4_data)
 	set_bit(EV_KEY, rmi4_data->input_dev->evbit);
 	set_bit(EV_ABS, rmi4_data->input_dev->evbit);
 	set_bit(BTN_TOUCH, rmi4_data->input_dev->keybit);
+
+	input_set_capability(rmi4_data->input_dev, EV_REL, REL_X);
+	input_set_capability(rmi4_data->input_dev, EV_REL, REL_Y);
+	input_set_capability(rmi4_data->input_dev, EV_KEY, BTN_LEFT);
+
 	set_bit(BTN_TOOL_FINGER, rmi4_data->input_dev->keybit);
 	if (bdata->touchpad)
 		set_bit(INPUT_PROP_POINTER, rmi4_data->input_dev->propbit);
@@ -2167,6 +2538,13 @@ static int synaptics_rmi4_set_input_dev(struct synaptics_rmi4_data *rmi4_data)
 				"%s: Failed to register input device\n",
 				__func__);
 		goto err_register_input;
+	}
+
+	if (strstr(rmi4_data->input_dev->name, "touch_keypad")) {
+    	g_rmi4_data = rmi4_data;
+		g_rmi4_data->last_kbd_input_time = jiffies;
+		g_rmi4_data->lock_active = true;
+    	pr_info("synaptics_dsx: touch_keypad registered for pointer control\n");
 	}
 
 	return 0;
@@ -2346,27 +2724,32 @@ exit:
 
 static int synaptics_rmi4_free_fingers(struct synaptics_rmi4_data *rmi4_data)
 {
-	unsigned char ii;
+    /* reset all tap flags (used on pointer mode) */
+    rmi4_data->pm_down = false;
+    rmi4_data->kp_touching = false;
+    rmi4_data->pm_touching = false;
 
-	mutex_lock(&(rmi4_data->rmi4_report_mutex));
+    if (rmi4_data->pointer_mode)
+        return 0;
 
-	for (ii = 0; ii < rmi4_data->num_of_fingers; ii++) {
-		input_mt_slot(rmi4_data->input_dev, ii);
-		input_mt_report_slot_state(rmi4_data->input_dev,
-				MT_TOOL_FINGER, 0);
-	}
+    unsigned char ii;
 
-	input_report_key(rmi4_data->input_dev,
-			BTN_TOUCH, 0);
-	input_report_key(rmi4_data->input_dev,
-			BTN_TOOL_FINGER, 0);
-	input_sync(rmi4_data->input_dev);
+    mutex_lock(&(rmi4_data->rmi4_report_mutex));
 
-	mutex_unlock(&(rmi4_data->rmi4_report_mutex));
+    for (ii = 0; ii < rmi4_data->num_of_fingers; ii++) {
+        input_mt_slot(rmi4_data->input_dev, ii);
+        input_mt_report_slot_state(rmi4_data->input_dev, MT_TOOL_FINGER, 0);
+    }
 
-	rmi4_data->fingers_on_2d = false;
+    input_report_key(rmi4_data->input_dev, BTN_TOUCH, 0);
+    input_report_key(rmi4_data->input_dev, BTN_TOOL_FINGER, 0);
+    input_sync(rmi4_data->input_dev);
 
-	return 0;
+    mutex_unlock(&(rmi4_data->rmi4_report_mutex));
+
+    rmi4_data->fingers_on_2d = false;
+
+    return 0;
 }
 
 static int synaptics_rmi4_sw_reset(struct synaptics_rmi4_data *rmi4_data)
@@ -2621,7 +3004,23 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 	rmi4_data->suspend = false;
 	rmi4_data->irq_enabled = false;
 	rmi4_data->fingers_on_2d = false;
+	rmi4_data->last_x = 0;
+	rmi4_data->last_y = 0;
+	rmi4_data->pm_down = false;
+	rmi4_data->kp_tap_count = 0;
+	rmi4_data->kp_tap_time  = 0;
+	rmi4_data->kp_touching  = false;
+	rmi4_data->pm_tap_count = 0;
+	rmi4_data->pm_tap_time  = 0;
+	rmi4_data->pm_touching  = false;
+	rmi4_data->pointer_mode = 0;
+	rmi4_data->pointer_mode_speed = 5;
+	rmi4_data->pointer_mode_enable = 1;	
+	rmi4_data->pointer_mode_invert = 0;
+	rmi4_data->lock_active = false;
 
+	INIT_DELAYED_WORK(&rmi4_data->pm_click_work, synaptics_pm_click_work);
+	
 	rmi4_data->reset_device = synaptics_rmi4_reset_device;
 	rmi4_data->irq_enable = synaptics_rmi4_irq_enable;
 
@@ -2706,6 +3105,8 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 				__func__);
 		goto err_enable_irq;
 	}
+	rmi4_data->device_enabled = true;
+
 
 	/* register a handler to listen about interested input events */
 	rmi4_data->ignore_touch = false;
@@ -2725,8 +3126,9 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&rmi4_data->exp_data.work, synaptics_rmi4_exp_fn_work);
 	rmi4_data->exp_data.rmi4_data = rmi4_data;
 	rmi4_data->exp_data.queue_work = true;
-	queue_delayed_work(rmi4_data->exp_data.workqueue, &rmi4_data->exp_data.work, 0);
-
+	queue_delayed_work(rmi4_data->exp_data.workqueue,
+			&rmi4_data->exp_data.work,
+			0);
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE
 	synaptics_rmi4_fw_update_module_init(rmi4_data);
 #endif

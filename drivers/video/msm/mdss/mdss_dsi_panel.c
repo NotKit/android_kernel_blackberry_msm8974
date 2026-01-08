@@ -21,6 +21,9 @@
 #include <linux/leds.h>
 #include <linux/qpnp/pwm.h>
 #include <linux/err.h>
+#include <linux/display_state.h>
+#include <linux/cpufreq.h>
+#include <linux/ledtrig-kbd.h>
 
 #include "mdss_dsi.h"
 #include "mdss_livedisplay.h"
@@ -30,6 +33,13 @@
 #define MIN_REFRESH_RATE 30
 
 DEFINE_LED_TRIGGER(bl_led_trigger);
+
+bool display_on = true;
+
+bool is_display_on()
+{
+	return display_on;
+}
 
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
@@ -438,6 +448,13 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		return -EINVAL;
 	}
 
+	display_on = true;
+	cpufreq_update_policy(0);
+	cpufreq_update_policy(1);
+	cpufreq_update_policy(2);
+	cpufreq_update_policy(3);
+	kbd_trigger_display_on();
+	
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -471,6 +488,7 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 
 	pinfo->blank_state = MDSS_PANEL_BLANK_UNBLANK;
 	pr_debug("%s:-\n", __func__);
+
 	return 0;
 }
 
@@ -495,6 +513,14 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	pinfo->blank_state = MDSS_PANEL_BLANK_BLANK;
 	pr_debug("%s:-\n", __func__);
+
+	display_on = false;
+	cpufreq_update_policy(0);
+	cpufreq_update_policy(1);
+	cpufreq_update_policy(2);
+	cpufreq_update_policy(3);
+	kbd_trigger_display_off();
+
 	return 0;
 }
 

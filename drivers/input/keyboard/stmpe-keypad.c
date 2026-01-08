@@ -60,6 +60,9 @@
  * @col_gpios: bitmask of gpios which can be used for columns
  * @row_gpios: bitmask of gpios which can be used for rows
  */
+
+extern void synaptics_disable_pointer_mode(void);
+
 struct stmpe_keypad_variant {
 	bool		auto_increment;
 	int		num_data;
@@ -157,6 +160,8 @@ static irqreturn_t stmpe_keypad_irq(int irq, void *dev)
 		if ((data & STMPE_KPC_DATA_NOKEY_MASK)
 			== STMPE_KPC_DATA_NOKEY_MASK)
 			continue;
+
+		synaptics_disable_pointer_mode();
 
 		input_event(input, EV_MSC, MSC_SCAN, code);
 		input_report_key(input, keypad->keymap[code], !up);

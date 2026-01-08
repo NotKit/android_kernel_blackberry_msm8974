@@ -134,7 +134,10 @@ static int mdss_mdp_writeback_format_setup(struct mdss_mdp_writeback_ctx *ctx,
 	pr_debug("wb_num=%d format=%d\n", ctx->wb_num, format);
 
 	if (ctx->rot90)
+	{
+		pr_err("DBG_08x");
 		rotation = true;
+	}
 
 	mdss_mdp_get_plane_sizes(format, ctx->width, ctx->height,
 				 &ctx->dst_planes,

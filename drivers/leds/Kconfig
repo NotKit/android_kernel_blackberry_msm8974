@@ -557,6 +557,12 @@ config LEDS_TRIGGER_BACKLIGHT
 
 	  If unsure, say N.
 
+config LEDS_TRIGGER_KBD
+	tristate "Keyboard activity LED trigger"
+	depends on INPUT
+	help
+	  This adds a LED trigger that lights up on keyboard presses.
+
 config LEDS_TRIGGER_GPIO
 	tristate "LED GPIO Trigger"
 	depends on LEDS_TRIGGERS

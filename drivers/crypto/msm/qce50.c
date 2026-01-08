@@ -222,6 +222,7 @@ static int _probe_ce_engine(struct qce_device *pce_dev)
 
 	pce_dev->ce_sps.ce_burst_size = MAX_CE_BAM_BURST_SIZE;
 
+	/* bochenek : This log is terribly misformatted, and just clogs up logs. Disable.
 	dev_info(pce_dev->pdev,
 			"CE device = 0x%x\n, "
 			"IO base, CE = 0x%x\n, "
@@ -237,6 +238,8 @@ static int _probe_ce_engine(struct qce_device *pce_dev)
 			(uint32_t)pce_dev->ce_sps.bam_iobase,
 			pce_dev->ce_sps.bam_irq,
 			pce_dev->engines_avail);
+	*/
+
 	return 0;
 };
 

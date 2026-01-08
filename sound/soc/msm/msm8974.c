@@ -773,6 +773,8 @@ static int hdmi_rx_sample_rate_put(struct snd_kcontrol *kcontrol,
 static int msm_btsco_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 					struct snd_pcm_hw_params *params)
 {
+	pr_info("BT SCO TX fixup called: rate=%d, ch=%d\n", params_rate(params), params_channels(params));
+
 	struct snd_interval *rate = hw_param_interval(params,
 					SNDRV_PCM_HW_PARAM_RATE);
 

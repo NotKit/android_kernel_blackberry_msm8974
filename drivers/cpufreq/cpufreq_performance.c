@@ -15,17 +15,18 @@
 #include <linux/cpufreq.h>
 #include <linux/init.h>
 
-
 static int cpufreq_governor_performance(struct cpufreq_policy *policy,
 					unsigned int event)
 {
+	unsigned int target_freq;
+
 	switch (event) {
 	case CPUFREQ_GOV_START:
 	case CPUFREQ_GOV_LIMITS:
-		pr_debug("setting to %u kHz because of event %u\n",
-						policy->max, event);
-		__cpufreq_driver_target(policy, policy->max,
-						CPUFREQ_RELATION_H);
+		target_freq = policy->max;
+
+		__cpufreq_driver_target(policy, target_freq,
+					CPUFREQ_RELATION_H);
 		break;
 	default:
 		break;

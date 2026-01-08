@@ -32,6 +32,8 @@
 #include <linux/completion.h>
 #include <linux/mutex.h>
 #include <linux/syscore_ops.h>
+#include <linux/display_state.h>
+#include <linux/power_supply.h> 
 
 #include <trace/events/power.h>
 
@@ -73,6 +75,9 @@ static DEFINE_SPINLOCK(cpufreq_driver_lock);
  */
 static DEFINE_PER_CPU(int, cpufreq_policy_cpu);
 static DEFINE_PER_CPU(struct rw_semaphore, cpu_policy_rwsem);
+
+static unsigned int powersave_screen_off_val = 1;
+static unsigned int charge_faster_val = 0;
 
 #define lock_policy_rwsem(mode, cpu)					\
 int lock_policy_rwsem_##mode						\
@@ -664,6 +669,64 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
 }
 
+static ssize_t show_powersave_screen_off(struct cpufreq_policy *policy, char *buf)
+{
+    return sprintf(buf, "%d\n", powersave_screen_off_val);
+}
+
+static ssize_t store_powersave_screen_off(struct cpufreq_policy *policy, const char *buf, size_t count)
+{
+    int val;
+    int ret = kstrtouint(buf, 0, &val); 
+
+    if (ret) {
+        pr_warn("cpufreq: Invalid value for powersave_screen_off\n");
+        return ret;
+    }
+
+    if (val != 0 && val != 1) {
+        pr_warn("cpufreq: Invalid value for powersave_screen_off. Must be 0 or 1\n");
+        return -EINVAL; 
+    }
+
+    powersave_screen_off_val = val; 
+    pr_info("cpufreq: powersave_screen_off set to %d\n", powersave_screen_off_val);
+
+    return count;
+}
+
+
+static ssize_t show_charge_faster(struct cpufreq_policy *policy, char *buf)
+{
+    return sprintf(buf, "%d\n", charge_faster_val);
+}
+
+static ssize_t store_charge_faster(struct cpufreq_policy *policy, const char *buf, size_t count)
+{
+    int val;
+    int ret = kstrtouint(buf, 0, &val); 
+
+    if (ret) {
+        pr_warn("cpufreq: Invalid value for charge_faster\n");
+        return ret;
+    }
+
+    if (val != 0 && val != 1) {
+        pr_warn("cpufreq: Invalid value for charge_faster. Must be 0 or 1\n");
+        return -EINVAL; 
+    }
+
+    charge_faster_val = val; 
+
+    pr_info("cpufreq: charge_faster set to %d\n", charge_faster_val);
+
+    return count;
+}
+
+
+cpufreq_freq_attr_rw(powersave_screen_off);
+cpufreq_freq_attr_rw(charge_faster);
+
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
 cpufreq_freq_attr_ro(cpuinfo_max_freq);
@@ -693,6 +756,8 @@ static struct attribute *default_attrs[] = {
 	&scaling_driver.attr,
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
+	&powersave_screen_off.attr,
+	&charge_faster.attr,
 	NULL
 };
 
@@ -1861,6 +1926,32 @@ int cpufreq_update_policy(unsigned int cpu)
 	policy.max = data->user_policy.max;
 	policy.policy = data->user_policy.policy;
 	policy.governor = data->user_policy.governor;
+
+	/* guizmox attempt to charge the battery faster */
+	if (charge_faster_val == 1 && !is_display_on() && power_supply_is_system_supplied())
+	{
+		struct cpufreq_governor *pgov = __find_governor("powersave");
+				if (pgov && policy.governor != pgov) {
+				pr_info("cpufreq: screen off and fast charging mode > switching CPU%u to powersave\n", cpu);
+				policy.governor = pgov;
+			}
+	}
+	 /* guizmox fix: prevent battery drain on perf mode */
+	else if (powersave_screen_off_val == 1 && cpu == 0)
+	{
+		int ps = power_supply_is_system_supplied();	
+		if (ps == 0)
+		{
+			bool display_on = is_display_on();
+			if (!display_on) {
+				struct cpufreq_governor *pgov = __find_governor("powersave_plus");
+				if (pgov && policy.governor != pgov) {
+					pr_info("cpufreq: screen off > switching CPU%u to powersave plus\n", cpu);
+					policy.governor = pgov;
+				}
+			}
+		}
+	}
 
 	/* BIOS might change freq behind our back
 	  -> ask driver for current freq and notify governors about a change */

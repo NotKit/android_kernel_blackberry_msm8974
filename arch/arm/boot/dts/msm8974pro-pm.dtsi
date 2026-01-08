@@ -361,7 +361,7 @@
 		qcom,rpm-addr-phys = <0xfc000000>;
 		qcom,offset-version = <4>;
 		qcom,offset-page-buffer-addr = <36>;
-		qcom,offset-log-len = <40>;
+		qcom,offset-log-len = <80>; /* we need more log buffer */
 		qcom,offset-log-len-mask = <44>;
 		qcom,offset-page-indices = <56>;
 	};

@@ -67,6 +67,12 @@ config CPU_FREQ_DEFAULT_GOV_POWERSAVE
 	  the frequency statically to the lowest frequency supported by
 	  the CPU.
 
+config CPU_FREQ_DEFAULT_GOV_POWERSAVE_PLUS
+    bool "powersave_plus"
+    select CPU_FREQ_GOV_POWERSAVE_PLUS
+    help
+      Use the powersave_plus governor as default.
+
 config CPU_FREQ_DEFAULT_GOV_USERSPACE
 	bool "userspace"
 	select CPU_FREQ_GOV_USERSPACE
@@ -132,6 +138,11 @@ config CPU_FREQ_GOV_POWERSAVE
 	  module will be called cpufreq_powersave.
 
 	  If in doubt, say Y.
+
+config CPU_FREQ_GOV_POWERSAVE_PLUS
+    tristate "'powersave_plus' governor"
+    help
+      Enhanced powersave governor that switches to max freq under load.
 
 config CPU_FREQ_GOV_USERSPACE
 	tristate "'userspace' governor for userspace frequency scaling"

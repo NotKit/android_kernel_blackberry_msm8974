@@ -38,6 +38,7 @@ uint32_t msm_mpm_get_count(void)
 }
 EXPORT_SYMBOL(msm_mpm_get_count);
 
+/* bochenek : This doesn't serve any purpose for us. Disable.
 static inline void msm_mpmctr_show_count(void)
 {
 	unsigned long long t;
@@ -52,6 +53,7 @@ static inline void msm_mpmctr_show_count(void)
 		   msm_mpm_get_count());
 
 }
+*/
 
 static struct of_device_id msm_mpmctr_of_match[] = {
 	{.compatible = "qcom,mpm2-sleep-counter"},
@@ -86,7 +88,7 @@ static int __init msm_mpmctr_probe(struct platform_device *pdev)
 	if (mpmctr_set_register(pdev->dev.of_node))
 		return -ENODEV;
 
-	msm_mpmctr_show_count();
+	//msm_mpmctr_show_count();
 
 	return 0;
 }

@@ -905,7 +905,10 @@ static int mdss_mdp_image_setup(struct mdss_mdp_pipe *pipe,
 	height = pipe->img_height;
 
 	if (pipe->flags & MDP_SOURCE_ROTATED_90)
+	{	
+		pr_err("DBG_08");
 		rotation = true;
+	}
 
 	mdss_mdp_get_plane_sizes(pipe->src_fmt->format, width, height,
 			&pipe->src_planes, pipe->bwc_mode, rotation);

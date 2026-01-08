@@ -38,7 +38,7 @@
 #define VFE_PING_FLAG 0xFFFFFFFF
 #define VFE_PONG_FLAG 0x0
 
-#define VFE_MAX_CFG_TIMEOUT 3000
+#define VFE_MAX_CFG_TIMEOUT 6000
 
 struct vfe_device;
 struct msm_vfe_axi_stream;

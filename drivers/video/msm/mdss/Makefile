@@ -47,4 +47,8 @@ obj-$(CONFIG_FB_MSM_MDSS) += mdss_fb.o
 
 obj-$(CONFIG_FB_MSM_MDSS_DSI_CTRL_STATUS) += mdss_dsi_status.o
 
+obj-$(CONFIG_COMPAT) += mdss_compat_utils.o
+
 obj-$(CONFIG_FB_MSM_MDSS) += mdss_livedisplay.o
+
+# CFLAGS_mdss_mdp.o := -DDEBUG

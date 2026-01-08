@@ -728,7 +728,8 @@ int msm_post_event(struct v4l2_event *event, int timeout)
 			pr_err("%s: Error: No timeout but list empty!",
 					__func__);
 			mutex_unlock(&session->lock);
-			return -EINVAL;
+			//return -EINVAL;
+			return rc; //GT
 		}
 	}
 

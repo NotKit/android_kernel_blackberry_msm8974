@@ -788,12 +788,12 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 				 * each third DTIM for better power savings.  Note that
 				 * one side effect is a chance to miss BC/MC packet.
 				 */
-				bcn_li_dtim = dhd_get_suspend_bcn_li_dtim(dhd);
-				bcm_mkiovar("bcn_li_dtim", (char *)&bcn_li_dtim,
-					4, iovbuf, sizeof(iovbuf));
-				if (dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf),
-					TRUE, 0) < 0)
-					DHD_ERROR(("%s: set dtim failed\n", __FUNCTION__));
+				//bcn_li_dtim = dhd_get_suspend_bcn_li_dtim(dhd);
+				//bcm_mkiovar("bcn_li_dtim", (char *)&bcn_li_dtim,
+				//	4, iovbuf, sizeof(iovbuf));
+				//if (dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf),
+				//	TRUE, 0) < 0)
+				//	DHD_ERROR(("%s: set dtim failed\n", __FUNCTION__));
 #ifndef ENABLE_FW_ROAM_SUSPEND
 				/* Disable firmware roaming during suspend */
 				bcm_mkiovar("roam_off", (char *)&roamvar, 4,
@@ -826,10 +826,10 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 #endif /* PKT_FILTER_SUPPORT */
 
 				/* restore pre-suspend setting for dtim_skip */
-				bcm_mkiovar("bcn_li_dtim", (char *)&bcn_li_dtim,
-					4, iovbuf, sizeof(iovbuf));
+				//bcm_mkiovar("bcn_li_dtim", (char *)&bcn_li_dtim,
+				//	4, iovbuf, sizeof(iovbuf));
 
-				dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf), TRUE, 0);
+				//dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf), TRUE, 0);
 #ifndef ENABLE_FW_ROAM_SUSPEND
 				roamvar = dhd_roam_disable;
 				bcm_mkiovar("roam_off", (char *)&roamvar, 4, iovbuf,
@@ -4373,7 +4373,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 
 		/* Check and adjust IOCTL response timeout for Manufactring firmware */
 		if (strstr(buf, MANUFACTRING_FW) != NULL) {
-			dhd_os_set_ioctl_resp_timeout(20000);
+			dhd_os_set_ioctl_resp_timeout(40000);
 			DHD_ERROR(("%s : adjust IOCTL response time for Manufactring Firmware\n",
 			__FUNCTION__));
 		}
