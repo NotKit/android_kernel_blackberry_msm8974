@@ -1456,8 +1456,6 @@ struct task_struct {
 	unsigned sched_reset_on_fork:1;
 	unsigned sched_contributes_to_load:1;
 
-	unsigned long atomic_flags; /* Flags needing atomic access. */
-
 	struct restart_block restart_block;
 
 	unsigned long atomic_flags; /* Flags needing atomic access. */
@@ -2041,8 +2039,6 @@ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, 
 extern int task_free_register(struct notifier_block *n);
 extern int task_free_unregister(struct notifier_block *n);
 
-extern int task_free_register(struct notifier_block *n);
-extern int task_free_unregister(struct notifier_block *n);
 
 /*
  * Per process flags
@@ -2228,13 +2224,6 @@ static inline void calc_load_enter_idle(void) { }
 static inline void calc_load_exit_idle(void) { }
 #endif /* CONFIG_NO_HZ_COMMON */
 
-TASK_PFA_TEST(SPREAD_PAGE, spread_page)
-TASK_PFA_SET(SPREAD_PAGE, spread_page)
-TASK_PFA_CLEAR(SPREAD_PAGE, spread_page)
-
-TASK_PFA_TEST(SPREAD_SLAB, spread_slab)
-TASK_PFA_SET(SPREAD_SLAB, spread_slab)
-TASK_PFA_CLEAR(SPREAD_SLAB, spread_slab)
 
 /*
  * Do not use outside of architecture code which knows its limitations.
@@ -2306,8 +2295,6 @@ extern void sched_exec(void);
 #define sched_exec()   {}
 #endif
 
-extern void sched_clock_idle_sleep_event(void);
-extern void sched_clock_idle_wakeup_event(u64 delta_ns);
 
 #ifdef CONFIG_HOTPLUG_CPU
 extern void idle_task_exit(void);
