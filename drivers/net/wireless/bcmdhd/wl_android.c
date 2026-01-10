@@ -1946,14 +1946,11 @@ void wl_android_post_init(void)
 	printk("%s: btlock released\n", __FUNCTION__);
 #endif /* ENABLE_4335BT_WAR */
 
-#if 0 /* wseries: do not turn off WLAN power during early boot
-	* to avoid initialization issues when the system is booted */
 	if (!dhd_download_fw_on_driverload) {
 		/* Call customer gpio to turn off power with WL_REG_ON signal */
 		dhd_customer_gpio_wlan_ctrl(WLAN_RESET_OFF);
 		g_wifi_on = FALSE;
 	}
-#endif
 }
 
 
