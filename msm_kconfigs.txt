@@ -1,0 +1,6 @@
+drivers/mmc/host/Kconfig
+drivers/spmi/Kconfig
+drivers/thermal/Kconfig
+drivers/usb/dwc3/Kconfig
+drivers/usb/gadget/Kconfig
+drivers/video/Kconfig

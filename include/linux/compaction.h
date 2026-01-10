@@ -99,16 +99,6 @@ static inline bool compaction_restarting(struct zone *zone, int order)
 		zone->compact_considered >= 1UL << zone->compact_defer_shift;
 }
 
-/* Returns true if restarting compaction after many failures */
-static inline bool compaction_restarting(struct zone *zone, int order)
-{
-	if (order < zone->compact_order_failed)
-		return false;
-
-	return zone->compact_defer_shift == COMPACT_MAX_DEFER_SHIFT &&
-		zone->compact_considered >= 1UL << zone->compact_defer_shift;
-}
-
 #else
 static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
@@ -119,10 +109,6 @@ static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
 }
 
 static inline void compact_pgdat(pg_data_t *pgdat, int order)
-{
-}
-
-static inline void reset_isolation_suitable(pg_data_t *pgdat)
 {
 }
 

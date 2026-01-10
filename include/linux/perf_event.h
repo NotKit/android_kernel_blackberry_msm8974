@@ -766,10 +766,7 @@ static inline bool perf_paranoid_any(void)
 	return sysctl_perf_event_paranoid > 2;
 }
 
-static inline bool perf_paranoid_any(void)
-{
-	return sysctl_perf_event_paranoid > 2;
-}
+
 
 static inline bool perf_paranoid_tracepoint_raw(void)
 {

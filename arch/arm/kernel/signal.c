@@ -632,8 +632,13 @@ struct page *get_signal_page(void)
 	addr = page_address(page);
 
 	/* Poison the entire page */
-	memset32(addr, __opcode_to_mem_arm(0xe7fddef1),
-		 PAGE_SIZE / sizeof(u32));
+	{
+		u32 *p = addr;
+		u32 val = __opcode_to_mem_arm(0xe7fddef1);
+		size_t count = PAGE_SIZE / sizeof(u32);
+		while (count--)
+			*p++ = val;
+	}
 
 	/* Give the signal return code some randomness */
 	offset = 0x200 + (get_random_int() & 0x7fc);

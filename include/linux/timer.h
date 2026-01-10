@@ -216,4 +216,26 @@ unsigned long __round_jiffies_up_relative(unsigned long j, int cpu);
 unsigned long round_jiffies_up(unsigned long j);
 unsigned long round_jiffies_up_relative(unsigned long j);
 
+#ifdef CONFIG_TIMER_STATS
+extern void timer_stats_timer_set_start_info(struct timer_list *timer);
+extern void timer_stats_timer_clear_start_info(struct timer_list *timer);
+extern void timer_stats_update_stats(struct timer_list *timer, pid_t pid,
+				     void *start_addr, char *comm,
+				     unsigned int timer_flag);
+#else
+static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
+{
+}
+
+static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
+{
+}
+
+static inline void timer_stats_update_stats(struct timer_list *timer,
+					    pid_t pid, void *start_addr,
+					    char *comm, unsigned int timer_flag)
+{
+}
+#endif
+
 #endif

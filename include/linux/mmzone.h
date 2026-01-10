@@ -71,6 +71,8 @@ enum {
 #  define is_migrate_cma_page(_page) false
 #endif
 
+#define is_cma_pageblock is_migrate_cma_page
+
 #define for_each_migratetype_order(order, type) \
 	for (order = 0; order < MAX_ORDER; order++) \
 		for (type = 0; type < MIGRATE_TYPES; type++)

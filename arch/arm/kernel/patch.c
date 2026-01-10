@@ -62,7 +62,7 @@ void __kprobes __patch_text_real(void *addr, unsigned int insn, bool remap)
 	unsigned long flags;
 	void *waddr = addr;
 	int size;
-	unsigned long flags;
+
 
 	mem_text_writeable_spinlock(&flags);
 	mem_text_address_writeable((unsigned long)addr);

@@ -25,7 +25,7 @@
 
 
 static int
-armpmu_map_cache_event(unsigned (*cache_map)
+armpmu_map_cache_event(const unsigned (*cache_map)
 				      [PERF_COUNT_HW_CACHE_MAX]
 				      [PERF_COUNT_HW_CACHE_OP_MAX]
 				      [PERF_COUNT_HW_CACHE_RESULT_MAX],
@@ -581,21 +581,9 @@ static void armpmu_enable(struct pmu *pmu)
 	struct arm_pmu *armpmu = to_arm_pmu(pmu);
 	struct pmu_hw_events *hw_events = armpmu->get_hw_events();
 	int enabled = bitmap_weight(hw_events->used_mask, armpmu->num_events);
-	int idx;
 
-	if (__get_cpu_var(from_idle)) {
-		for (idx = 0; idx <= cpu_pmu->num_events; ++idx) {
-			struct perf_event *event = hw_events->events[idx];
 
-			if (!event)
-				continue;
 
-			armpmu->enable(&event->hw, idx, event->cpu);
-		}
-
-		/* Reset bit so we don't needlessly re-enable counters.*/
-		__get_cpu_var(from_idle) = 0;
-	}
 
 	/* So we don't start the PMU before enabling counters after idle. */
 	barrier();

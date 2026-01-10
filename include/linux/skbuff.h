@@ -2168,12 +2168,7 @@ static inline int skb_orphan_frags(struct sk_buff *skb, gfp_t gfp_mask)
  *	owner) create a copy of that frag and release the original
  *	page by calling the destructor.
  */
-static inline int skb_orphan_frags(struct sk_buff *skb, gfp_t gfp_mask)
-{
-	if (likely(!(skb_shinfo(skb)->tx_flags & SKBTX_DEV_ZEROCOPY)))
-		return 0;
-	return skb_copy_ubufs(skb, gfp_mask);
-}
+
 
 /**
  *	__skb_queue_purge - empty a list

@@ -37,6 +37,8 @@
 #define EM_FRV		0x5441	/* Fujitsu FR-V */
 #define EM_AVR32	0x18ad	/* Atmel AVR32 */
 
+#define EM_ARM		40	/* ARM */
+
 /*
  * This is an interim value that we will use until the committee comes
  * up with a final number.

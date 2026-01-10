@@ -115,10 +115,7 @@ static inline int PageHuge(struct page *page)
 	return 0;
 }
 
-static inline int PageHeadHuge(struct page *page_head)
-{
-	return 0;
-}
+
 
 static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
 {

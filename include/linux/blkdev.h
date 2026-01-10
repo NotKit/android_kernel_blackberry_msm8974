@@ -413,11 +413,7 @@ struct request_queue {
 	 */
 	struct kobject mq_kobj;
 
-#ifdef CONFIG_PM_RUNTIME
-	struct device		*dev;
-	int			rpm_status;
-	unsigned int		nr_pending;
-#endif
+
 
 	/*
 	 * queue settings
