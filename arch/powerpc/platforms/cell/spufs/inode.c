@@ -187,31 +187,32 @@ static void spufs_prune_dir(struct dentry *dir)
 static int spufs_rmdir(struct inode *parent, struct dentry *dir)
 {
 	/* remove all entries */
+	int res;
 	spufs_prune_dir(dir);
 	d_drop(dir);
-
-	return simple_rmdir(parent, dir);
+	res = simple_rmdir(parent, dir);
+	/* We have to give up the mm_struct */
+	spu_forget(SPUFS_I(dir->d_inode)->i_ctx);
+	return res;
 }
 
 static int spufs_fill_dir(struct dentry *dir,
 		const struct spufs_tree_descr *files, umode_t mode,
 		struct spu_context *ctx)
 {
-	struct dentry *dentry, *tmp;
-	int ret;
-
 	while (files->name && files->name[0]) {
-		ret = -ENOMEM;
-		dentry = d_alloc_name(dir, files->name);
+		int ret;
+		struct dentry *dentry = d_alloc_name(dir, files->name);
 		if (!dentry)
-			goto out;
+			return -ENOMEM;
 		ret = spufs_new_file(dir->d_sb, dentry, files->ops,
 					files->mode & mode, files->size, ctx);
 		if (ret)
-			goto out;
+			return ret;
 		files++;
 	}
 	return 0;
+<<<<<<< HEAD
 out:
 	/*
 	 * remove all children from dir. dir->inode is not set so don't
@@ -228,6 +229,8 @@ out:
 
 	shrink_dcache_parent(dir);
 	return ret;
+=======
+>>>>>>> android-3.18
 }
 
 static int spufs_dir_close(struct inode *inode, struct file *file)
@@ -246,9 +249,6 @@ static int spufs_dir_close(struct inode *inode, struct file *file)
 	mutex_unlock(&parent->i_mutex);
 	WARN_ON(ret);
 
-	/* We have to give up the mm_struct */
-	spu_forget(ctx);
-
 	return dcache_dir_close(inode, file);
 }
 
@@ -257,7 +257,7 @@ const struct file_operations spufs_context_fops = {
 	.release	= spufs_dir_close,
 	.llseek		= dcache_dir_lseek,
 	.read		= generic_read_dir,
-	.readdir	= dcache_readdir,
+	.iterate	= dcache_readdir,
 	.fsync		= noop_fsync,
 };
 EXPORT_SYMBOL_GPL(spufs_context_fops);
@@ -270,10 +270,9 @@ spufs_mkdir(struct inode *dir, struct dentry *dentry, unsigned int flags,
 	struct inode *inode;
 	struct spu_context *ctx;
 
-	ret = -ENOSPC;
 	inode = spufs_new_inode(dir->i_sb, mode | S_IFDIR);
 	if (!inode)
-		goto out;
+		return -ENOSPC;
 
 	if (dir->i_mode & S_ISGID) {
 		inode->i_gid = dir->i_gid;
@@ -281,40 +280,38 @@ spufs_mkdir(struct inode *dir, struct dentry *dentry, unsigned int flags,
 	}
 	ctx = alloc_spu_context(SPUFS_I(dir)->i_gang); /* XXX gang */
 	SPUFS_I(inode)->i_ctx = ctx;
-	if (!ctx)
-		goto out_iput;
+	if (!ctx) {
+		iput(inode);
+		return -ENOSPC;
+	}
 
 	ctx->flags = flags;
 	inode->i_op = &simple_dir_inode_operations;
 	inode->i_fop = &simple_dir_operations;
+
+	mutex_lock(&inode->i_mutex);
+
+	dget(dentry);
+	inc_nlink(dir);
+	inc_nlink(inode);
+
+	d_instantiate(dentry, inode);
+
 	if (flags & SPU_CREATE_NOSCHED)
 		ret = spufs_fill_dir(dentry, spufs_dir_nosched_contents,
 					 mode, ctx);
 	else
 		ret = spufs_fill_dir(dentry, spufs_dir_contents, mode, ctx);
 
-	if (ret)
-		goto out_free_ctx;
-
-	if (spufs_get_sb_info(dir->i_sb)->debug)
+	if (!ret && spufs_get_sb_info(dir->i_sb)->debug)
 		ret = spufs_fill_dir(dentry, spufs_dir_debug_contents,
 				mode, ctx);
 
 	if (ret)
-		goto out_free_ctx;
+		spufs_rmdir(dir, dentry);
 
-	d_instantiate(dentry, inode);
-	dget(dentry);
-	inc_nlink(dir);
-	inc_nlink(dentry->d_inode);
-	goto out;
+	mutex_unlock(&inode->i_mutex);
 
-out_free_ctx:
-	spu_forget(ctx);
-	put_spu_context(ctx);
-out_iput:
-	iput(inode);
-out:
 	return ret;
 }
 
@@ -324,22 +321,17 @@ static int spufs_context_open(struct path *path)
 	struct file *filp;
 
 	ret = get_unused_fd();
-	if (ret < 0) {
-		dput(dentry);
-		mntput(mnt);
-		goto out;
-	}
+	if (ret < 0)
+		return ret;
 
 	filp = dentry_open(path, O_RDONLY, current_cred());
 	if (IS_ERR(filp)) {
 		put_unused_fd(ret);
-		ret = PTR_ERR(filp);
-		goto out;
+		return PTR_ERR(filp);
 	}
 
 	filp->f_op = &spufs_context_fops;
 	fd_install(ret, filp);
-out:
 	return ret;
 }
 
@@ -374,7 +366,7 @@ spufs_assert_affinity(unsigned int flags, struct spu_gang *gang,
 			return ERR_PTR(-EINVAL);
 
 		neighbor = get_spu_context(
-				SPUFS_I(filp->f_dentry->d_inode)->i_ctx);
+				SPUFS_I(file_inode(filp))->i_ctx);
 
 		if (!list_empty(&neighbor->aff_list) && !(neighbor->aff_head) &&
 		    !list_is_last(&neighbor->aff_list, &gang->aff_list_head) &&
@@ -456,28 +448,24 @@ spufs_create_context(struct inode *inode, struct dentry *dentry,
 	struct spu_context *neighbor;
 	struct path path = {.mnt = mnt, .dentry = dentry};
 
-	ret = -EPERM;
 	if ((flags & SPU_CREATE_NOSCHED) &&
 	    !capable(CAP_SYS_NICE))
-		goto out_unlock;
+		return -EPERM;
 
-	ret = -EINVAL;
 	if ((flags & (SPU_CREATE_NOSCHED | SPU_CREATE_ISOLATE))
 	    == SPU_CREATE_ISOLATE)
-		goto out_unlock;
+		return -EINVAL;
 
-	ret = -ENODEV;
 	if ((flags & SPU_CREATE_ISOLATE) && !isolated_loader)
-		goto out_unlock;
+		return -ENODEV;
 
 	gang = NULL;
 	neighbor = NULL;
 	affinity = flags & (SPU_CREATE_AFFINITY_MEM | SPU_CREATE_AFFINITY_SPU);
 	if (affinity) {
 		gang = SPUFS_I(inode)->i_gang;
-		ret = -EINVAL;
 		if (!gang)
-			goto out_unlock;
+			return -EINVAL;
 		mutex_lock(&gang->aff_mutex);
 		neighbor = spufs_assert_affinity(flags, gang, aff_filp);
 		if (IS_ERR(neighbor)) {
@@ -498,22 +486,16 @@ spufs_create_context(struct inode *inode, struct dentry *dentry,
 	}
 
 	ret = spufs_context_open(&path);
+<<<<<<< HEAD
 	if (ret < 0) {
+=======
+	if (ret < 0)
+>>>>>>> android-3.18
 		WARN_ON(spufs_rmdir(inode, dentry));
-		if (affinity)
-			mutex_unlock(&gang->aff_mutex);
-		mutex_unlock(&inode->i_mutex);
-		spu_forget(SPUFS_I(dentry->d_inode)->i_ctx);
-		goto out;
-	}
 
 out_aff_unlock:
 	if (affinity)
 		mutex_unlock(&gang->aff_mutex);
-out_unlock:
-	mutex_unlock(&inode->i_mutex);
-out:
-	dput(dentry);
 	return ret;
 }
 
@@ -560,11 +542,8 @@ static int spufs_gang_open(struct path *path)
 	struct file *filp;
 
 	ret = get_unused_fd();
-	if (ret < 0) {
-		dput(dentry);
-		mntput(mnt);
-		goto out;
-	}
+	if (ret < 0)
+		return ret;
 
 	/*
 	 * get references for dget and mntget, will be released
@@ -573,13 +552,11 @@ static int spufs_gang_open(struct path *path)
 	filp = dentry_open(path, O_RDONLY, current_cred());
 	if (IS_ERR(filp)) {
 		put_unused_fd(ret);
-		ret = PTR_ERR(filp);
-		goto out;
+		return PTR_ERR(filp);
 	}
 
 	filp->f_op = &simple_dir_operations;
 	fd_install(ret, filp);
-out:
 	return ret;
 }
 
@@ -591,6 +568,7 @@ static int spufs_create_gang(struct inode *inode,
 	int ret;
 
 	ret = spufs_mkgang(inode, dentry, mode & S_IRWXUGO);
+<<<<<<< HEAD
 	if (ret)
 		goto out;
 
@@ -598,11 +576,15 @@ static int spufs_create_gang(struct inode *inode,
 	if (ret < 0) {
 		int err = simple_rmdir(inode, dentry);
 		WARN_ON(err);
+=======
+	if (!ret) {
+		ret = spufs_gang_open(&path);
+		if (ret < 0) {
+			int err = simple_rmdir(inode, dentry);
+			WARN_ON(err);
+		}
+>>>>>>> android-3.18
 	}
-
-out:
-	mutex_unlock(&inode->i_mutex);
-	dput(dentry);
 	return ret;
 }
 
@@ -612,40 +594,32 @@ static struct file_system_type spufs_type;
 long spufs_create(struct path *path, struct dentry *dentry,
 		unsigned int flags, umode_t mode, struct file *filp)
 {
+	struct inode *dir = path->dentry->d_inode;
 	int ret;
 
-	ret = -EINVAL;
 	/* check if we are on spufs */
 	if (path->dentry->d_sb->s_type != &spufs_type)
-		goto out;
+		return -EINVAL;
 
 	/* don't accept undefined flags */
 	if (flags & (~SPU_CREATE_FLAG_ALL))
-		goto out;
+		return -EINVAL;
 
 	/* only threads can be underneath a gang */
-	if (path->dentry != path->dentry->d_sb->s_root) {
-		if ((flags & SPU_CREATE_GANG) ||
-		    !SPUFS_I(path->dentry->d_inode)->i_gang)
-			goto out;
-	}
+	if (path->dentry != path->dentry->d_sb->s_root)
+		if ((flags & SPU_CREATE_GANG) || !SPUFS_I(dir)->i_gang)
+			return -EINVAL;
 
 	mode &= ~current_umask();
 
 	if (flags & SPU_CREATE_GANG)
-		ret = spufs_create_gang(path->dentry->d_inode,
-					 dentry, path->mnt, mode);
+		ret = spufs_create_gang(dir, dentry, path->mnt, mode);
 	else
-		ret = spufs_create_context(path->dentry->d_inode,
-					    dentry, path->mnt, flags, mode,
+		ret = spufs_create_context(dir, dentry, path->mnt, flags, mode,
 					    filp);
 	if (ret >= 0)
-		fsnotify_mkdir(path->dentry->d_inode, dentry);
-	return ret;
+		fsnotify_mkdir(dir, dentry);
 
-out:
-	mutex_unlock(&path->dentry->d_inode->i_mutex);
-	dput(dentry);
 	return ret;
 }
 
@@ -679,12 +653,16 @@ spufs_parse_options(struct super_block *sb, char *options, struct inode *root)
 		case Opt_uid:
 			if (match_int(&args[0], &option))
 				return 0;
-			root->i_uid = option;
+			root->i_uid = make_kuid(current_user_ns(), option);
+			if (!uid_valid(root->i_uid))
+				return 0;
 			break;
 		case Opt_gid:
 			if (match_int(&args[0], &option))
 				return 0;
-			root->i_gid = option;
+			root->i_gid = make_kgid(current_user_ns(), option);
+			if (!gid_valid(root->i_gid))
+				return 0;
 			break;
 		case Opt_mode:
 			if (match_octal(&args[0], &option))

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*****************************************************************************
 * wanrouter.h	Definitions for the WAN Multiprotocol Router Module.
 *		This module provides API and common services for WAN Link
@@ -358,6 +359,14 @@ typedef struct wandev_stat
 	unsigned tx_retries;	/* frames re-transmitted */
 	unsigned reserved[16];	/* reserved for future use */
 } wandev_stat_t;
+=======
+/*
+ * wanrouter.h	Legacy declarations kept around until X25 is removed
+ */
+
+#ifndef _UAPI_ROUTER_H
+#define _UAPI_ROUTER_H
+>>>>>>> android-3.18
 
 /* 'state' defines */
 enum wan_states
@@ -365,6 +374,7 @@ enum wan_states
 	WAN_UNCONFIGURED,	/* link/channel is not configured */
 	WAN_DISCONNECTED,	/* link/channel is disconnected */
 	WAN_CONNECTING,		/* connection is in progress */
+<<<<<<< HEAD
 	WAN_CONNECTED,		/* link/channel is operational */
 	WAN_LIMIT,		/* for verification only */
 	WAN_DUALPORT,		/* for Dual Port cards */
@@ -449,4 +459,9 @@ typedef struct wanif_conf
 	unsigned char receive_only;	/*  no transmit buffering (Y/N) */
 } wanif_conf_t;
 
+=======
+	WAN_CONNECTED		/* link/channel is operational */
+};
+
+>>>>>>> android-3.18
 #endif /* _UAPI_ROUTER_H */

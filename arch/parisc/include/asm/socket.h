@@ -1,6 +1,7 @@
 #ifndef _ASM_SOCKET_H
 #define _ASM_SOCKET_H
 
+<<<<<<< HEAD
 #include <asm/sockios.h>
 
 /* For setsockopt(2) */
@@ -69,10 +70,13 @@
 #define SO_NOFCS		0x4024
 
 #define SO_MAX_PACING_RATE	0x4025
+=======
+#include <uapi/asm/socket.h>
+>>>>>>> android-3.18
 
 /* O_NONBLOCK clashes with the bits used for socket types.  Therefore we
  * have to define SOCK_NONBLOCK to a different value here.
  */
-#define SOCK_NONBLOCK   0x40000000
+#define SOCK_NONBLOCK	0x40000000
 
 #endif /* _ASM_SOCKET_H */

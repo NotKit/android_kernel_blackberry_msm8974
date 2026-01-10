@@ -33,7 +33,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "drmP.h"
+#include <drm/drmP.h>
+#include "drm_internal.h"
+
+struct drm_magic_entry {
+	struct list_head head;
+	struct drm_hash_item hash_item;
+	struct drm_file *priv;
+};
 
 /**
  * Find the file with the given magic number.

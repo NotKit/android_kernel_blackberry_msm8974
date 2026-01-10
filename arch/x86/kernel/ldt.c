@@ -12,6 +12,10 @@
 #include <linux/string.h>
 #include <linux/mm.h>
 #include <linux/smp.h>
+<<<<<<< HEAD
+=======
+#include <linux/syscalls.h>
+>>>>>>> android-3.18
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/uaccess.h>
@@ -58,7 +62,11 @@ static struct ldt_struct *alloc_ldt_struct(int size)
 	if (alloc_size > PAGE_SIZE)
 		new_ldt->entries = vzalloc(alloc_size);
 	else
+<<<<<<< HEAD
 		new_ldt->entries = kzalloc(PAGE_SIZE, GFP_KERNEL);
+=======
+		new_ldt->entries = (void *)get_zeroed_page(GFP_KERNEL);
+>>>>>>> android-3.18
 
 	if (!new_ldt->entries) {
 		kfree(new_ldt);
@@ -79,6 +87,7 @@ static void finalize_ldt_struct(struct ldt_struct *ldt)
 static void install_ldt(struct mm_struct *current_mm,
 			struct ldt_struct *ldt)
 {
+<<<<<<< HEAD
 	/* Synchronizes with smp_read_barrier_depends in load_mm_ldt. */
         barrier();
         ACCESS_ONCE(current_mm->context.ldt) = ldt;
@@ -89,6 +98,13 @@ static void install_ldt(struct mm_struct *current_mm,
 	local_irq_disable();
 	flush_ldt(current_mm);
 	local_irq_enable();
+=======
+	/* Synchronizes with lockless_dereference in load_mm_ldt. */
+	smp_store_release(&current_mm->context.ldt, ldt);
+
+	/* Activate the LDT for all CPUs using current_mm. */
+	on_each_cpu_mask(mm_cpumask(current_mm), flush_ldt, current_mm, true);
+>>>>>>> android-3.18
 }
 
 static void free_ldt_struct(struct ldt_struct *ldt)
@@ -100,7 +116,11 @@ static void free_ldt_struct(struct ldt_struct *ldt)
 	if (ldt->size * LDT_ENTRY_SIZE > PAGE_SIZE)
 		vfree(ldt->entries);
 	else
+<<<<<<< HEAD
 		kfree(ldt->entries);
+=======
+		free_page((unsigned long)ldt->entries);
+>>>>>>> android-3.18
 	kfree(ldt);
 }
 
@@ -276,8 +296,8 @@ out:
 	return error;
 }
 
-asmlinkage int sys_modify_ldt(int func, void __user *ptr,
-			      unsigned long bytecount)
+SYSCALL_DEFINE3(modify_ldt, int , func , void __user * , ptr ,
+		unsigned long , bytecount)
 {
 	int ret = -ENOSYS;
 
@@ -295,5 +315,14 @@ asmlinkage int sys_modify_ldt(int func, void __user *ptr,
 		ret = write_ldt(ptr, bytecount, 0);
 		break;
 	}
-	return ret;
+	/*
+	 * The SYSCALL_DEFINE() macros give us an 'unsigned long'
+	 * return type, but tht ABI for sys_modify_ldt() expects
+	 * 'int'.  This cast gives us an int-sized value in %rax
+	 * for the return code.  The 'unsigned' is necessary so
+	 * the compiler does not try to sign-extend the negative
+	 * return codes into the high half of the register when
+	 * taking the value from int->long.
+	 */
+	return (unsigned int)ret;
 }

@@ -61,6 +61,7 @@ static inline int udplite_checksum_init(struct sk_buff *skb, struct udphdr *uh)
 		UDP_SKB_CB(skb)->cscov = cscov;
 		if (skb->ip_summed == CHECKSUM_COMPLETE)
 			skb->ip_summed = CHECKSUM_NONE;
+		skb->csum_valid = 0;
         }
 
 	return 0;
@@ -126,7 +127,7 @@ static inline __wsum udplite_csum(struct sk_buff *skb)
 	return skb_checksum(skb, off, len, 0);
 }
 
-extern void	udplite4_register(void);
-extern int 	udplite_get_port(struct sock *sk, unsigned short snum,
-			int (*scmp)(const struct sock *, const struct sock *));
+void udplite4_register(void);
+int udplite_get_port(struct sock *sk, unsigned short snum,
+		     int (*scmp)(const struct sock *, const struct sock *));
 #endif	/* _UDPLITE_H */

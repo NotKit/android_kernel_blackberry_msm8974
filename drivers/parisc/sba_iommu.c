@@ -575,7 +575,7 @@ sba_io_pdir_entry(u64 *pdir_ptr, space_t sid, unsigned long vba,
 
 	mtsp(sid,1);
 	asm("lci 0(%%sr1, %1), %0" : "=r" (ci) : "r" (vba));
-	pa |= (ci >> 12) & 0xff;  /* move CI (8 bits) into lowest byte */
+	pa |= (ci >> PAGE_SHIFT) & 0xff;  /* move CI (8 bits) into lowest byte */
 
 	pa |= SBA_PDIR_VALID_BIT;	/* set "valid" bit */
 	*pdir_ptr = cpu_to_le64(pa);	/* swap and store into I/O Pdir */
@@ -691,6 +691,8 @@ static int sba_dma_supported( struct device *dev, u64 mask)
 		return 0;
 
 	ioc = GET_IOC(dev);
+	if (!ioc)
+		return 0;
 
 	/*
 	 * check if mask is >= than the current max IO Virt Address
@@ -722,6 +724,8 @@ sba_map_single(struct device *dev, void *addr, size_t size,
 	int pide;
 
 	ioc = GET_IOC(dev);
+	if (!ioc)
+		return DMA_ERROR_CODE;
 
 	/* save offset bits */
 	offset = ((dma_addr_t) (long) addr) & ~IOVP_MASK;
@@ -803,6 +807,10 @@ sba_unmap_single(struct device *dev, dma_addr_t iova, size_t size,
 	DBG_RUN("%s() iovp 0x%lx/%x\n", __func__, (long) iova, size);
 
 	ioc = GET_IOC(dev);
+	if (!ioc) {
+		WARN_ON(!ioc);
+		return;
+	}
 	offset = iova & ~IOVP_MASK;
 	iova ^= offset;        /* clear offset bits */
 	size += offset;
@@ -942,6 +950,8 @@ sba_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
 	DBG_RUN_SG("%s() START %d entries\n", __func__, nents);
 
 	ioc = GET_IOC(dev);
+	if (!ioc)
+		return 0;
 
 	/* Fast path single entry scatterlists. */
 	if (nents == 1) {
@@ -1028,6 +1038,10 @@ sba_unmap_sg(struct device *dev, struct scatterlist *sglist, int nents,
 		__func__, nents, sg_virt_addr(sglist), sglist->length);
 
 	ioc = GET_IOC(dev);
+	if (!ioc) {
+		WARN_ON(!ioc);
+		return;
+	}
 
 #ifdef SBA_COLLECT_STATS
 	ioc->usg_calls++;
@@ -1265,7 +1279,7 @@ sba_ioc_init_pluto(struct parisc_device *sba, struct ioc *ioc, int ioc_num)
 	** (one that doesn't overlap memory or LMMIO space) in the
 	** IBASE and IMASK registers.
 	*/
-	ioc->ibase = READ_REG(ioc->ioc_hpa + IOC_IBASE);
+	ioc->ibase = READ_REG(ioc->ioc_hpa + IOC_IBASE) & ~0x1fffffULL;
 	iova_space_size = ~(READ_REG(ioc->ioc_hpa + IOC_IMASK) & 0xFFFFFFFFUL) + 1;
 
 	if ((ioc->ibase < 0xfed00000UL) && ((ioc->ibase + iova_space_size) > 0xfee00000UL)) {
@@ -1376,7 +1390,7 @@ static void
 sba_ioc_init(struct parisc_device *sba, struct ioc *ioc, int ioc_num)
 {
 	u32 iova_space_size, iova_space_mask;
-	unsigned int pdir_size, iov_order;
+	unsigned int pdir_size, iov_order, tcnfg;
 
 	/*
 	** Determine IOVA Space size from memory size.
@@ -1468,8 +1482,19 @@ sba_ioc_init(struct parisc_device *sba, struct ioc *ioc, int ioc_num)
 	WRITE_REG(ioc->ibase | 1, ioc->ioc_hpa+IOC_IBASE);
 	WRITE_REG(ioc->imask, ioc->ioc_hpa+IOC_IMASK);
 
-	/* Set I/O PDIR Page size to 4K */
-	WRITE_REG(0, ioc->ioc_hpa+IOC_TCNFG);
+	/* Set I/O PDIR Page size to system page size */
+	switch (PAGE_SHIFT) {
+		case 12: tcnfg = 0; break;	/*  4K */
+		case 13: tcnfg = 1; break;	/*  8K */
+		case 14: tcnfg = 2; break;	/* 16K */
+		case 16: tcnfg = 3; break;	/* 64K */
+		default:
+			panic(__FILE__ "Unsupported system page size %d",
+				1 << PAGE_SHIFT);
+			break;
+	}
+	/* Set I/O PDIR Page size to PAGE_SIZE (4k/16k/...) */
+	WRITE_REG(tcnfg, ioc->ioc_hpa+IOC_TCNFG);
 
 	/*
 	** Clear I/O TLB of any possible entries.

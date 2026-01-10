@@ -1,6 +1,12 @@
 if X86
 source "drivers/platform/x86/Kconfig"
 endif
+<<<<<<< HEAD
 if ARCH_MSM
 source "drivers/platform/msm/Kconfig"
 endif
+=======
+source "drivers/platform/goldfish/Kconfig"
+
+source "drivers/platform/chrome/Kconfig"
+>>>>>>> android-3.18

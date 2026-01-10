@@ -24,20 +24,11 @@
 
 #define old_mmap sys_old_mmap
 
-#define ptregs_fork sys_fork
-#define ptregs_execve sys_execve
-#define ptregs_iopl sys_iopl
-#define ptregs_vm86old sys_vm86old
-#define ptregs_clone sys_clone
-#define ptregs_vm86 sys_vm86
-#define ptregs_sigaltstack sys_sigaltstack
-#define ptregs_vfork sys_vfork
-
-#define __SYSCALL_I386(nr, sym, compat) extern asmlinkage void sym(void) ;
+#define __SYSCALL_I386(nr, sym, qual) extern asmlinkage void sym(void) ;
 #include <asm/syscalls_32.h>
 
 #undef __SYSCALL_I386
-#define __SYSCALL_I386(nr, sym, compat) [ nr ] = sym,
+#define __SYSCALL_I386(nr, sym, qual) [ nr ] = sym,
 
 typedef asmlinkage void (*sys_call_ptr_t)(void);
 

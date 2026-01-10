@@ -26,948 +26,144 @@
  * Date: Jun. 5, 2002
  *
  * Functions:
- *      BBuGetFrameTime        - Calculate data frame transmitting time
- *      BBvCaculateParameter   - Caculate PhyLength, PhyService and Phy Signal parameter for baseband Tx
- *      BBbVT3184Init          - VIA VT3184 baseband chip init code
- *      BBvLoopbackOn          - Turn on BaseBand Loopback mode
- *      BBvLoopbackOff         - Turn off BaseBand Loopback mode
+ *	vnt_get_frame_time	- Calculate data frame transmitting time
+ *	vnt_get_phy_field	- Calculate PhyLength, PhyService and Phy
+ *				  Signal parameter for baseband Tx
+ *	vnt_vt3184_init		- VIA VT3184 baseband chip init code
  *
  * Revision History:
  *
  *
  */
 
-#include "tmacro.h"
-#include "tether.h"
 #include "mac.h"
 #include "baseband.h"
 #include "rf.h"
-#include "srom.h"
-#include "control.h"
-#include "datarate.h"
-#include "rndis.h"
+#include "usbpipe.h"
 
-/*---------------------  Static Definitions -------------------------*/
-static int          msglevel                =MSG_LEVEL_INFO;
-//static int          msglevel                =MSG_LEVEL_DEBUG;
-
-/*---------------------  Static Classes  ----------------------------*/
-
-/*---------------------  Static Variables  --------------------------*/
-
-/*---------------------  Static Functions  --------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
-
-/*---------------------  Static Definitions -------------------------*/
-
-/*---------------------  Static Classes  ----------------------------*/
-
-/*---------------------  Static Variables  --------------------------*/
-
-
-BYTE abyVT3184_AGC[] = {
-    0x00,   //0
-    0x00,   //1
-    0x02,   //2
-    0x02,   //3  //RobertYu:20060505, 0x04,   //3
-    0x04,   //4
-    0x04,   //5  //RobertYu:20060505, 0x06,   //5
-    0x06,   //6
-    0x06,   //7
-    0x08,   //8
-    0x08,   //9
-    0x0A,   //A
-    0x0A,   //B
-    0x0C,   //C
-    0x0C,   //D
-    0x0E,   //E
-    0x0E,   //F
-    0x10,   //10
-    0x10,   //11
-    0x12,   //12
-    0x12,   //13
-    0x14,   //14
-    0x14,   //15
-    0x16,   //16
-    0x16,   //17
-    0x18,   //18
-    0x18,   //19
-    0x1A,   //1A
-    0x1A,   //1B
-    0x1C,   //1C
-    0x1C,   //1D
-    0x1E,   //1E
-    0x1E,   //1F
-    0x20,   //20
-    0x20,   //21
-    0x22,   //22
-    0x22,   //23
-    0x24,   //24
-    0x24,   //25
-    0x26,   //26
-    0x26,   //27
-    0x28,   //28
-    0x28,   //29
-    0x2A,   //2A
-    0x2A,   //2B
-    0x2C,   //2C
-    0x2C,   //2D
-    0x2E,   //2E
-    0x2E,   //2F
-    0x30,   //30
-    0x30,   //31
-    0x32,   //32
-    0x32,   //33
-    0x34,   //34
-    0x34,   //35
-    0x36,   //36
-    0x36,   //37
-    0x38,   //38
-    0x38,   //39
-    0x3A,   //3A
-    0x3A,   //3B
-    0x3C,   //3C
-    0x3C,   //3D
-    0x3E,   //3E
-    0x3E    //3F
+static u8 vnt_vt3184_agc[] = {
+	0x00, 0x00, 0x02, 0x02, 0x04, 0x04, 0x06, 0x06,
+	0x08, 0x08, 0x0a, 0x0a, 0x0c, 0x0c, 0x0e, 0x0e, /* 0x0f */
+	0x10, 0x10, 0x12, 0x12, 0x14, 0x14, 0x16, 0x16,
+	0x18, 0x18, 0x1a, 0x1a, 0x1c, 0x1c, 0x1e, 0x1e, /* 0x1f */
+	0x20, 0x20, 0x22, 0x22, 0x24, 0x24, 0x26, 0x26,
+	0x28, 0x28, 0x2a, 0x2a, 0x2c, 0x2c, 0x2e, 0x2e, /* 0x2f */
+	0x30, 0x30, 0x32, 0x32, 0x34, 0x34, 0x36, 0x36,
+	0x38, 0x38, 0x3a, 0x3a, 0x3c, 0x3c, 0x3e, 0x3e  /* 0x3f */
 };
 
-
-BYTE abyVT3184_AL2230[] = {
-        0x31,//00
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x80,
-        0x00,
-        0x00,
-        0x70,
-        0x45,//tx   //0x64 for FPGA
-        0x2A,
-        0x76,
-        0x00,
-        0x00,
-        0x80,
-        0x00,
-        0x00,//10
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x8e,       //RobertYu:20060522, //0x8d,
-        0x0a,       //RobertYu:20060515, //0x09,
-        0x00,
-        0x00,
-        0x00,
-        0x00,//20
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x4a,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x4a,
-        0x00,
-        0x0c,       //RobertYu:20060522, //0x10,
-        0x26,//30
-        0x5b,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xaa,
-        0xaa,
-        0xff,
-        0xff,
-        0x79,
-        0x00,
-        0x00,
-        0x0b,
-        0x48,
-        0x04,
-        0x00,//40
-        0x08,
-        0x00,
-        0x08,
-        0x08,
-        0x14,
-        0x05,
-        0x09,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x09,
-        0x73,
-        0x00,
-        0xc5,
-        0x00,//50   //RobertYu:20060505, //0x15,//50
-        0x19,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xd0,       //RobertYu:20060505, //0xb0,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xe4,//60
-        0x80,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x98,
-        0x0a,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,       //0x80 for FPGA
-        0x03,
-        0x01,
-        0x00,
-        0x00,//70
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x8c,//80
-        0x01,
-        0x09,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x08,
-        0x00,
-        0x1f,       //RobertYu:20060516, //0x0f,
-        0xb7,
-        0x88,
-        0x47,
-        0xaa,
-        0x00,       //RobertYu:20060505, //0x02,
-        0x20,//90   //RobertYu:20060505, //0x22,//90
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xeb,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x01,
-        0x00,//a0
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x10,
-        0x00,
-        0x18,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x15,       //RobertYu:20060516, //0x00,
-        0x00,
-        0x18,
-        0x38,//b0
-        0x30,
-        0x00,
-        0x00,
-        0xff,
-        0x0f,
-        0xe4,
-        0xe2,
-        0x00,
-        0x00,
-        0x00,
-        0x03,
-        0x01,
-        0x00,
-        0x00,
-        0x00,
-        0x18,//c0
-        0x20,
-        0x07,
-        0x18,
-        0xff,
-        0xff,       //RobertYu:20060509, //0x2c,
-        0x0e,       //RobertYu:20060530, //0x0c,
-        0x0a,
-        0x0e,
-        0x00,       //RobertYu:20060505, //0x01,
-        0x82,       //RobertYu:20060516, //0x8f,
-        0xa7,
-        0x3c,
-        0x10,
-        0x30,       //RobertYu:20060627, //0x0b,
-        0x05,       //RobertYu:20060516, //0x25,
-        0x40,//d0
-        0x12,
-        0x00,
-        0x00,
-        0x10,
-        0x28,
-        0x80,
-        0x2A,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,//e0
-        0xf3,       //RobertYu:20060516, //0xd3,
-        0x00,
-        0x00,
-        0x00,
-        0x10,
-        0x00,
-        0x12,       //RobertYu:20060627, //0x10,
-        0x00,
-        0xf4,
-        0x00,
-        0xff,
-        0x79,
-        0x20,
-        0x30,
-        0x05,       //RobertYu:20060516, //0x0c,
-        0x00,//f0
-        0x3e,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00
+static u8 vnt_vt3184_al2230[] = {
+	0x31, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00,
+	0x70, 0x45, 0x2a, 0x76, 0x00, 0x00, 0x80, 0x00, /* 0x0f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x8e, 0x0a, 0x00, 0x00, 0x00, /* 0x1f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x4a, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x4a, 0x00, 0x0c, /* 0x2f */
+	0x26, 0x5b, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa,
+	0xff, 0xff, 0x79, 0x00, 0x00, 0x0b, 0x48, 0x04, /* 0x3f */
+	0x00, 0x08, 0x00, 0x08, 0x08, 0x14, 0x05, 0x09,
+	0x00, 0x00, 0x00, 0x00, 0x09, 0x73, 0x00, 0xc5, /* 0x4f */
+	0x00, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0xd0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 0x5f */
+	0xe4, 0x80, 0x00, 0x00, 0x00, 0x00, 0x98, 0x0a,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x01, 0x00, /* 0x6f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 0x7f */
+	0x8c, 0x01, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x08, 0x00, 0x1f, 0xb7, 0x88, 0x47, 0xaa, 0x00, /* 0x8f */
+	0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, /* 0x9f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+	0x18, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x18, /* 0xaf */
+	0x38, 0x30, 0x00, 0x00, 0xff, 0x0f, 0xe4, 0xe2,
+	0x00, 0x00, 0x00, 0x03, 0x01, 0x00, 0x00, 0x00, /* 0xbf */
+	0x18, 0x20, 0x07, 0x18, 0xff, 0xff, 0x0e, 0x0a,
+	0x0e, 0x00, 0x82, 0xa7, 0x3c, 0x10, 0x30, 0x05, /* 0xcf */
+	0x40, 0x12, 0x00, 0x00, 0x10, 0x28, 0x80, 0x2a,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 0xdf */
+	0x00, 0xf3, 0x00, 0x00, 0x00, 0x10, 0x00, 0x12,
+	0x00, 0xf4, 0x00, 0xff, 0x79, 0x20, 0x30, 0x05, /* 0xef */
+	0x00, 0x3e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  /* 0xff */
 };
 
-
-
-//{{RobertYu:20060515, new BB setting for VT3226D0
-BYTE abyVT3184_VT3226D0[] = {
-        0x31,//00
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x80,
-        0x00,
-        0x00,
-        0x70,
-        0x45,//tx   //0x64 for FPGA
-        0x2A,
-        0x76,
-        0x00,
-        0x00,
-        0x80,
-        0x00,
-        0x00,//10
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x8e,       //RobertYu:20060525, //0x8d,
-        0x0a,       //RobertYu:20060515, //0x09,
-        0x00,
-        0x00,
-        0x00,
-        0x00,//20
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x4a,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x4a,
-        0x00,
-        0x0c,       //RobertYu:20060525, //0x10,
-        0x26,//30
-        0x5b,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xaa,
-        0xaa,
-        0xff,
-        0xff,
-        0x79,
-        0x00,
-        0x00,
-        0x0b,
-        0x48,
-        0x04,
-        0x00,//40
-        0x08,
-        0x00,
-        0x08,
-        0x08,
-        0x14,
-        0x05,
-        0x09,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x09,
-        0x73,
-        0x00,
-        0xc5,
-        0x00,//50   //RobertYu:20060505, //0x15,//50
-        0x19,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xd0,       //RobertYu:20060505, //0xb0,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xe4,//60
-        0x80,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x98,
-        0x0a,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,       //0x80 for FPGA
-        0x03,
-        0x01,
-        0x00,
-        0x00,//70
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x8c,//80
-        0x01,
-        0x09,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x08,
-        0x00,
-        0x1f,       //RobertYu:20060515, //0x0f,
-        0xb7,
-        0x88,
-        0x47,
-        0xaa,
-        0x00,       //RobertYu:20060505, //0x02,
-        0x20,//90   //RobertYu:20060505, //0x22,//90
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xeb,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x01,
-        0x00,//a0
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x10,
-        0x00,
-        0x18,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x18,
-        0x38,//b0
-        0x30,
-        0x00,
-        0x00,
-        0xff,
-        0x0f,
-        0xe4,
-        0xe2,
-        0x00,
-        0x00,
-        0x00,
-        0x03,
-        0x01,
-        0x00,
-        0x00,
-        0x00,
-        0x18,//c0
-        0x20,
-        0x07,
-        0x18,
-        0xff,
-        0xff,       //RobertYu:20060509, //0x2c,
-        0x10,       //RobertYu:20060525, //0x0c,
-        0x0a,
-        0x0e,
-        0x00,       //RobertYu:20060505, //0x01,
-        0x84,       //RobertYu:20060525, //0x8f,
-        0xa7,
-        0x3c,
-        0x10,
-        0x24,       //RobertYu:20060627, //0x18,
-        0x05,       //RobertYu:20060515, //0x25,
-        0x40,//d0
-        0x12,
-        0x00,
-        0x00,
-        0x10,
-        0x28,
-        0x80,
-        0x2A,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,//e0
-        0xf3,       //RobertYu:20060515, //0xd3,
-        0x00,
-        0x00,
-        0x00,
-        0x10,
-        0x00,
-        0x10,       //RobertYu:20060627, //0x0e,
-        0x00,
-        0xf4,
-        0x00,
-        0xff,
-        0x79,
-        0x20,
-        0x30,
-        0x08,       //RobertYu:20060515, //0x0c,
-        0x00,//f0
-        0x3e,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
+/* {{RobertYu:20060515, new BB setting for VT3226D0 */
+static u8 vnt_vt3184_vt3226d0[] = {
+	0x31, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00,
+	0x70, 0x45, 0x2a, 0x76, 0x00, 0x00, 0x80, 0x00, /* 0x0f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x8e, 0x0a, 0x00, 0x00, 0x00, /* 0x1f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x4a, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x4a, 0x00, 0x0c, /* 0x2f */
+	0x26, 0x5b, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa,
+	0xff, 0xff, 0x79, 0x00, 0x00, 0x0b, 0x48, 0x04, /* 0x3f */
+	0x00, 0x08, 0x00, 0x08, 0x08, 0x14, 0x05, 0x09,
+	0x00, 0x00, 0x00, 0x00, 0x09, 0x73, 0x00, 0xc5, /* 0x4f */
+	0x00, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0xd0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 0x5f */
+	0xe4, 0x80, 0x00, 0x00, 0x00, 0x00, 0x98, 0x0a,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x01, 0x00, /* 0x6f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 0x7f */
+	0x8c, 0x01, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x08, 0x00, 0x1f, 0xb7, 0x88, 0x47, 0xaa, 0x00, /* 0x8f */
+	0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, /* 0x9f */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+	0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, /* 0xaf */
+	0x38, 0x30, 0x00, 0x00, 0xff, 0x0f, 0xe4, 0xe2,
+	0x00, 0x00, 0x00, 0x03, 0x01, 0x00, 0x00, 0x00, /* 0xbf */
+	0x18, 0x20, 0x07, 0x18, 0xff, 0xff, 0x10, 0x0a,
+	0x0e, 0x00, 0x84, 0xa7, 0x3c, 0x10, 0x24, 0x05, /* 0xcf */
+	0x40, 0x12, 0x00, 0x00, 0x10, 0x28, 0x80, 0x2a,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 0xdf */
+	0x00, 0xf3, 0x00, 0x00, 0x00, 0x10, 0x00, 0x10,
+	0x00, 0xf4, 0x00, 0xff, 0x79, 0x20, 0x30, 0x08, /* 0xef */
+	0x00, 0x3e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  /* 0xff */
 };
 
-const WORD awcFrameTime[MAX_RATE] =
-{10, 20, 55, 110, 24, 36, 48, 72, 96, 144, 192, 216};
+static const u16 vnt_frame_time[MAX_RATE] = {
+	10, 20, 55, 110, 24, 36, 48, 72, 96, 144, 192, 216
+};
 
-/*---------------------  Static Functions  --------------------------*/
-
-/*
-static
-unsigned long
-s_ulGetLowSQ3(PSDevice pDevice);
-
-static
-unsigned long
-s_ulGetRatio(PSDevice pDevice);
-
-static
-void
-s_vClearSQ3Value(PSDevice pDevice);
-*/
-
-/*---------------------  Export Variables  --------------------------*/
 /*
  * Description: Calculate data frame transmitting time
  *
  * Parameters:
  *  In:
- *      byPreambleType  - Preamble Type
- *      byPktType        - PK_TYPE_11A, PK_TYPE_11B, PK_TYPE_11GB, PK_TYPE_11GA
- *      cbFrameLength   - Baseband Type
- *      wRate           - Tx Rate
+ *	preamble_type	- Preamble Type
+ *	pkt_type	- PK_TYPE_11A, PK_TYPE_11B, PK_TYPE_11GB, PK_TYPE_11GA
+ *	frame_length	- Baseband Type
+ *	tx_rate		- Tx Rate
  *  Out:
  *
  * Return Value: FrameTime
  *
  */
-unsigned int
-BBuGetFrameTime (
-     BYTE byPreambleType,
-     BYTE byPktType,
-     unsigned int cbFrameLength,
-     WORD wRate
-    )
+unsigned int vnt_get_frame_time(u8 preamble_type, u8 pkt_type,
+	unsigned int frame_length, u16 tx_rate)
 {
-    unsigned int uFrameTime;
-    unsigned int uPreamble;
-    unsigned int uTmp;
-    unsigned int uRateIdx = (unsigned int)wRate;
-    unsigned int uRate = 0;
+	unsigned int frame_time;
+	unsigned int preamble;
+	unsigned int tmp;
+	unsigned int rate = 0;
 
+	if (tx_rate > RATE_54M)
+		return 0;
 
-    if (uRateIdx > RATE_54M) {
-        ASSERT(0);
-        return 0;
-    }
+	rate = (unsigned int)vnt_frame_time[tx_rate];
 
-    uRate = (unsigned int)awcFrameTime[uRateIdx];
+	if (tx_rate <= 3) {
+		if (preamble_type == 1)
+			preamble = 96;
+		else
+			preamble = 192;
 
-    if (uRateIdx <= 3) {          //CCK mode
+		frame_time = (frame_length * 80) / rate;
+		tmp = (frame_time * rate) / 80;
 
-        if (byPreambleType == 1) {//Short
-            uPreamble = 96;
-        } else {
-            uPreamble = 192;
-        }
-        uFrameTime = (cbFrameLength * 80) / uRate;  //?????
-        uTmp = (uFrameTime * uRate) / 80;
-        if (cbFrameLength != uTmp) {
-            uFrameTime ++;
-        }
-
-        return (uPreamble + uFrameTime);
-    }
-    else {
-        uFrameTime = (cbFrameLength * 8 + 22) / uRate;   //????????
-        uTmp = ((uFrameTime * uRate) - 22) / 8;
-        if(cbFrameLength != uTmp) {
-            uFrameTime ++;
-        }
-        uFrameTime = uFrameTime * 4;    //???????
-        if(byPktType != PK_TYPE_11A) {
-            uFrameTime += 6;
-        }
-        return (20 + uFrameTime); //??????
-    }
-}
-
-/*
- * Description: Caculate Length, Service, and Signal fields of Phy for Tx
- *
- * Parameters:
- *  In:
- *      pDevice         - Device Structure
- *      cbFrameLength   - Tx Frame Length
- *      wRate           - Tx Rate
- *  Out:
- *      pwPhyLen        - pointer to Phy Length field
- *      pbyPhySrv       - pointer to Phy Service field
- *      pbyPhySgn       - pointer to Phy Signal field
- *
- * Return Value: none
- *
- */
-void
-BBvCaculateParameter (
-      PSDevice pDevice,
-      unsigned int cbFrameLength,
-      WORD wRate,
-      BYTE byPacketType,
-     PWORD pwPhyLen,
-     PBYTE pbyPhySrv,
-     PBYTE pbyPhySgn
-    )
-{
-    unsigned int cbBitCount;
-    unsigned int cbUsCount = 0;
-    unsigned int cbTmp;
-    BOOL bExtBit;
-    BYTE byPreambleType = pDevice->byPreambleType;
-    BOOL bCCK = pDevice->bCCK;
-
-    cbBitCount = cbFrameLength * 8;
-    bExtBit = FALSE;
-
-    switch (wRate) {
-    case RATE_1M :
-        cbUsCount = cbBitCount;
-        *pbyPhySgn = 0x00;
-        break;
-
-    case RATE_2M :
-        cbUsCount = cbBitCount / 2;
-        if (byPreambleType == 1)
-            *pbyPhySgn = 0x09;
-        else // long preamble
-            *pbyPhySgn = 0x01;
-        break;
-
-    case RATE_5M :
-        if (bCCK == FALSE)
-            cbBitCount ++;
-        cbUsCount = (cbBitCount * 10) / 55;
-        cbTmp = (cbUsCount * 55) / 10;
-        if (cbTmp != cbBitCount)
-            cbUsCount ++;
-        if (byPreambleType == 1)
-            *pbyPhySgn = 0x0a;
-        else // long preamble
-            *pbyPhySgn = 0x02;
-        break;
-
-    case RATE_11M :
-
-        if (bCCK == FALSE)
-            cbBitCount ++;
-        cbUsCount = cbBitCount / 11;
-        cbTmp = cbUsCount * 11;
-        if (cbTmp != cbBitCount) {
-            cbUsCount ++;
-            if ((cbBitCount - cbTmp) <= 3)
-                bExtBit = TRUE;
-        }
-        if (byPreambleType == 1)
-            *pbyPhySgn = 0x0b;
-        else // long preamble
-            *pbyPhySgn = 0x03;
-        break;
-
-    case RATE_6M :
-        if(byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x9B; //1001 1011
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x8B; //1000 1011
-        }
-        break;
-
-    case RATE_9M :
-        if(byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x9F; //1001 1111
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x8F; //1000 1111
-        }
-        break;
-
-    case RATE_12M :
-        if(byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x9A; //1001 1010
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x8A; //1000 1010
-        }
-        break;
-
-    case RATE_18M :
-        if(byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x9E; //1001 1110
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x8E; //1000 1110
-        }
-        break;
-
-    case RATE_24M :
-        if(byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x99; //1001 1001
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x89; //1000 1001
-        }
-        break;
-
-    case RATE_36M :
-        if(byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x9D; //1001 1101
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x8D; //1000 1101
-        }
-        break;
-
-    case RATE_48M :
-        if(byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x98; //1001 1000
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x88; //1000 1000
-        }
-        break;
-
-    case RATE_54M :
-        if (byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x9C; //1001 1100
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x8C; //1000 1100
-        }
-        break;
-
-    default :
-        if (byPacketType == PK_TYPE_11A) {//11a, 5GHZ
-            *pbyPhySgn = 0x9C; //1001 1100
-        }
-        else {//11g, 2.4GHZ
-            *pbyPhySgn = 0x8C; //1000 1100
-        }
-        break;
-    }
-
-    if (byPacketType == PK_TYPE_11B) {
-        *pbyPhySrv = 0x00;
-        if (bExtBit)
-            *pbyPhySrv = *pbyPhySrv | 0x80;
-        *pwPhyLen = (WORD) cbUsCount;
-    }
-    else {
-        *pbyPhySrv = 0x00;
-        *pwPhyLen = (WORD)cbFrameLength;
-    }
-}
-
-
-/*
- * Description: Set Antenna mode
- *
- * Parameters:
- *  In:
- *      pDevice          - Device Structure
- *      byAntennaMode    - Antenna Mode
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
-void
-BBvSetAntennaMode (PSDevice pDevice, BYTE byAntennaMode)
-{
-    switch (byAntennaMode) {
-        case ANT_TXA:
-        case ANT_TXB:
-            break;
-        case ANT_RXA:
-            pDevice->byBBRxConf &= 0xFC;
-            break;
-        case ANT_RXB:
-            pDevice->byBBRxConf &= 0xFE;
-            pDevice->byBBRxConf |= 0x02;
-            break;
-    }
-
-
-    CONTROLnsRequestOut(pDevice,
-                    MESSAGE_TYPE_SET_ANTMD,
-                    (WORD) byAntennaMode,
-                    0,
-                    0,
-                    NULL);
-}
-
-/*
- * Description: Set Antenna mode
- *
- * Parameters:
- *  In:
- *      pDevice          - Device Structure
- *      byAntennaMode    - Antenna Mode
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
-
+<<<<<<< HEAD
 BOOL BBbVT3184Init(PSDevice pDevice)
 {
 	int ntStatus;
@@ -1157,472 +353,411 @@ else {
 
     return TRUE;//ntStatus;
 }
+=======
+		if (frame_length != tmp)
+			frame_time++;
 
+		return preamble + frame_time;
+	}
+	frame_time = (frame_length * 8 + 22) / rate;
+	tmp = ((frame_time * rate) - 22) / 8;
+>>>>>>> android-3.18
+
+	if (frame_length != tmp)
+		frame_time++;
+
+	frame_time = frame_time * 4;
+
+	if (pkt_type != PK_TYPE_11A)
+		frame_time += 6;
+	return 20 + frame_time;
+}
 
 /*
- * Description: Turn on BaseBand Loopback mode
+ * Description: Calculate Length, Service, and Signal fields of Phy for Tx
  *
  * Parameters:
  *  In:
- *      pDevice         - Device Structure
+ *      priv         - Device Structure
+ *      frame_length   - Tx Frame Length
+ *      tx_rate           - Tx Rate
+ *  Out:
+ *	struct vnt_phy_field *phy
+ *		- pointer to Phy Length field
+ *		- pointer to Phy Service field
+ *		- pointer to Phy Signal field
  *
+ * Return Value: none
+ *
+ */
+void vnt_get_phy_field(struct vnt_private *priv, u32 frame_length,
+	u16 tx_rate, u8 pkt_type, struct vnt_phy_field *phy)
+{
+	u32 bit_count;
+	u32 count = 0;
+	u32 tmp;
+	int ext_bit;
+	u8 preamble_type = priv->preamble_type;
+
+	bit_count = frame_length * 8;
+	ext_bit = false;
+
+	switch (tx_rate) {
+	case RATE_1M:
+		count = bit_count;
+
+		phy->signal = 0x00;
+
+		break;
+	case RATE_2M:
+		count = bit_count / 2;
+
+		if (preamble_type == 1)
+			phy->signal = 0x09;
+		else
+			phy->signal = 0x01;
+
+		break;
+	case RATE_5M:
+		count = (bit_count * 10) / 55;
+		tmp = (count * 55) / 10;
+
+		if (tmp != bit_count)
+			count++;
+
+		if (preamble_type == 1)
+			phy->signal = 0x0a;
+		else
+			phy->signal = 0x02;
+
+		break;
+	case RATE_11M:
+		count = bit_count / 11;
+		tmp = count * 11;
+
+		if (tmp != bit_count) {
+			count++;
+
+			if ((bit_count - tmp) <= 3)
+				ext_bit = true;
+		}
+
+		if (preamble_type == 1)
+			phy->signal = 0x0b;
+		else
+			phy->signal = 0x03;
+
+		break;
+	case RATE_6M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x9b;
+		else
+			phy->signal = 0x8b;
+
+		break;
+	case RATE_9M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x9f;
+		else
+			phy->signal = 0x8f;
+
+		break;
+	case RATE_12M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x9a;
+		else
+			phy->signal = 0x8a;
+
+		break;
+	case RATE_18M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x9e;
+		else
+			phy->signal = 0x8e;
+
+		break;
+	case RATE_24M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x99;
+		else
+			phy->signal = 0x89;
+
+		break;
+	case RATE_36M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x9d;
+		else
+			phy->signal = 0x8d;
+
+		break;
+	case RATE_48M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x98;
+		else
+			phy->signal = 0x88;
+
+		break;
+	case RATE_54M:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x9c;
+		else
+			phy->signal = 0x8c;
+		break;
+	default:
+		if (pkt_type == PK_TYPE_11A)
+			phy->signal = 0x9c;
+		else
+			phy->signal = 0x8c;
+		break;
+	}
+
+	if (pkt_type == PK_TYPE_11B) {
+		phy->service = 0x00;
+		if (ext_bit)
+			phy->service |= 0x80;
+		phy->len = cpu_to_le16((u16)count);
+	} else {
+		phy->service = 0x00;
+		phy->len = cpu_to_le16((u16)frame_length);
+	}
+}
+
+/*
+ * Description: Set Antenna mode
+ *
+ * Parameters:
+ *  In:
+ *	priv		- Device Structure
+ *	antenna_mode	- Antenna Mode
  *  Out:
  *      none
  *
  * Return Value: none
  *
  */
-void BBvLoopbackOn (PSDevice pDevice)
+void vnt_set_antenna_mode(struct vnt_private *priv, u8 antenna_mode)
 {
-    BYTE      byData;
+	switch (antenna_mode) {
+	case ANT_TXA:
+	case ANT_TXB:
+		break;
+	case ANT_RXA:
+		priv->bb_rx_conf &= 0xFC;
+		break;
+	case ANT_RXB:
+		priv->bb_rx_conf &= 0xFE;
+		priv->bb_rx_conf |= 0x02;
+		break;
+	}
 
-    //CR C9 = 0x00
-    ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0xC9, &pDevice->byBBCRc9);//CR201
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xC9, 0);
-    ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x4D, &pDevice->byBBCR4d);//CR77
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x4D, 0x90);
-
-    //CR 88 = 0x02(CCK), 0x03(OFDM)
-    ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x88, &pDevice->byBBCR88);//CR136
-
-    if (pDevice->wCurrentRate <= RATE_11M) { //CCK
-        // Enable internal digital loopback: CR33 |= 0000 0001
-        ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x21, &byData);//CR33
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x21, (BYTE)(byData | 0x01));//CR33
-        // CR154 = 0x00
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x9A, 0);   //CR154
-
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x88, 0x02);//CR239
-    }
-    else { //OFDM
-        // Enable internal digital loopback:CR154 |= 0000 0001
-        ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x9A, &byData);//CR154
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x9A, (BYTE)(byData | 0x01));//CR154
-        // CR33 = 0x00
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x21, 0);   //CR33
-
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x88, 0x03);//CR239
-    }
-
-    //CR14 = 0x00
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0E, 0);//CR14
-
-    // Disable TX_IQUN
-    ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x09, &pDevice->byBBCR09);
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x09, (BYTE)(pDevice->byBBCR09 & 0xDE));
+	vnt_control_out(priv, MESSAGE_TYPE_SET_ANTMD,
+		(u16)antenna_mode, 0, 0, NULL);
 }
 
 /*
- * Description: Turn off BaseBand Loopback mode
+ * Description: Set Antenna mode
  *
  * Parameters:
  *  In:
- *      pDevice         - Device Structure
- *
+ *      pDevice          - Device Structure
+ *      byAntennaMode    - Antenna Mode
  *  Out:
  *      none
  *
  * Return Value: none
  *
  */
-void BBvLoopbackOff (PSDevice pDevice)
+
+int vnt_vt3184_init(struct vnt_private *priv)
 {
-    BYTE      byData;
+	int status;
+	u16 length;
+	u8 *addr;
+	u8 *agc;
+	u16 length_agc;
+	u8 array[256];
+	u8 data;
 
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xC9, pDevice->byBBCRc9);//CR201
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x88, pDevice->byBBCR88);//CR136
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x09, pDevice->byBBCR09);//CR136
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x4D, pDevice->byBBCR4d);//CR77
+	status = vnt_control_in(priv, MESSAGE_TYPE_READ, 0,
+		MESSAGE_REQUEST_EEPROM, EEP_MAX_CONTEXT_SIZE,
+						priv->eeprom);
+	if (status != STATUS_SUCCESS)
+		return false;
 
-    if (pDevice->wCurrentRate <= RATE_11M) { // CCK
-        // Set the CR33 Bit2 to disable internal Loopback.
-        ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x21, &byData);//CR33
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x21, (BYTE)(byData & 0xFE));//CR33
-	} else { /* OFDM */
-        ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x9A, &byData);//CR154
-        ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x9A, (BYTE)(byData & 0xFE));//CR154
-    }
-    ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0x0E, &byData);//CR14
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0E, (BYTE)(byData | 0x80));//CR14
+	priv->rf_type = priv->eeprom[EEP_OFS_RFTYPE];
 
+	dev_dbg(&priv->usb->dev, "RF Type %d\n", priv->rf_type);
+
+	if ((priv->rf_type == RF_AL2230) ||
+				(priv->rf_type == RF_AL2230S)) {
+		priv->bb_rx_conf = vnt_vt3184_al2230[10];
+		length = sizeof(vnt_vt3184_al2230);
+		addr = vnt_vt3184_al2230;
+		agc = vnt_vt3184_agc;
+		length_agc = sizeof(vnt_vt3184_agc);
+
+		priv->bb_vga[0] = 0x1C;
+		priv->bb_vga[1] = 0x10;
+		priv->bb_vga[2] = 0x0;
+		priv->bb_vga[3] = 0x0;
+
+	} else if (priv->rf_type == RF_AIROHA7230) {
+		priv->bb_rx_conf = vnt_vt3184_al2230[10];
+		length = sizeof(vnt_vt3184_al2230);
+		addr = vnt_vt3184_al2230;
+		agc = vnt_vt3184_agc;
+		length_agc = sizeof(vnt_vt3184_agc);
+
+		addr[0xd7] = 0x06;
+
+		priv->bb_vga[0] = 0x1c;
+		priv->bb_vga[1] = 0x10;
+		priv->bb_vga[2] = 0x0;
+		priv->bb_vga[3] = 0x0;
+
+	} else if ((priv->rf_type == RF_VT3226) ||
+			(priv->rf_type == RF_VT3226D0)) {
+		priv->bb_rx_conf = vnt_vt3184_vt3226d0[10];
+		length = sizeof(vnt_vt3184_vt3226d0);
+		addr = vnt_vt3184_vt3226d0;
+		agc = vnt_vt3184_agc;
+		length_agc = sizeof(vnt_vt3184_agc);
+
+		priv->bb_vga[0] = 0x20;
+		priv->bb_vga[1] = 0x10;
+		priv->bb_vga[2] = 0x0;
+		priv->bb_vga[3] = 0x0;
+
+		/* Fix VT3226 DFC system timing issue */
+		vnt_mac_reg_bits_on(priv, MAC_REG_SOFTPWRCTL2,
+				    SOFTPWRCTL_RFLEOPT);
+	} else if (priv->rf_type == RF_VT3342A0) {
+		priv->bb_rx_conf = vnt_vt3184_vt3226d0[10];
+		length = sizeof(vnt_vt3184_vt3226d0);
+		addr = vnt_vt3184_vt3226d0;
+		agc = vnt_vt3184_agc;
+		length_agc = sizeof(vnt_vt3184_agc);
+
+		priv->bb_vga[0] = 0x20;
+		priv->bb_vga[1] = 0x10;
+		priv->bb_vga[2] = 0x0;
+		priv->bb_vga[3] = 0x0;
+
+		/* Fix VT3226 DFC system timing issue */
+		vnt_mac_reg_bits_on(priv, MAC_REG_SOFTPWRCTL2,
+				    SOFTPWRCTL_RFLEOPT);
+	} else {
+		return true;
+	}
+
+	memcpy(array, addr, length);
+
+	vnt_control_out(priv, MESSAGE_TYPE_WRITE, 0,
+		MESSAGE_REQUEST_BBREG, length, array);
+
+	memcpy(array, agc, length_agc);
+
+	vnt_control_out(priv, MESSAGE_TYPE_WRITE, 0,
+		MESSAGE_REQUEST_BBAGC, length_agc, array);
+
+	if ((priv->rf_type == RF_VT3226) ||
+		(priv->rf_type == RF_VT3342A0)) {
+		vnt_control_out_u8(priv, MESSAGE_REQUEST_MACREG,
+						MAC_REG_ITRTMSET, 0x23);
+		vnt_mac_reg_bits_on(priv, MAC_REG_PAPEDELAY, 0x01);
+	} else if (priv->rf_type == RF_VT3226D0) {
+		vnt_control_out_u8(priv, MESSAGE_REQUEST_MACREG,
+						MAC_REG_ITRTMSET, 0x11);
+		vnt_mac_reg_bits_on(priv, MAC_REG_PAPEDELAY, 0x01);
+	}
+
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x04, 0x7f);
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x0d, 0x01);
+
+	vnt_rf_table_download(priv);
+
+	/* Fix for TX USB resets from vendors driver */
+	vnt_control_in(priv, MESSAGE_TYPE_READ, USB_REG4,
+		MESSAGE_REQUEST_MEM, sizeof(data), &data);
+
+	data |= 0x2;
+
+	vnt_control_out(priv, MESSAGE_TYPE_WRITE, USB_REG4,
+		MESSAGE_REQUEST_MEM, sizeof(data), &data);
+
+	return true;
 }
-
 
 /*
  * Description: Set ShortSlotTime mode
  *
  * Parameters:
  *  In:
- *      pDevice     - Device Structure
+ *	priv	- Device Structure
  *  Out:
  *      none
  *
  * Return Value: none
  *
  */
-void
-BBvSetShortSlotTime (PSDevice pDevice)
+void vnt_set_short_slot_time(struct vnt_private *priv)
 {
-    BYTE byBBVGA=0;
+	u8 bb_vga = 0;
 
-	if (pDevice->bShortSlotTime)
-        pDevice->byBBRxConf &= 0xDF;//1101 1111
+	if (priv->short_slot_time)
+		priv->bb_rx_conf &= 0xdf;
 	else
-        pDevice->byBBRxConf |= 0x20;//0010 0000
+		priv->bb_rx_conf |= 0x20;
 
-    ControlvReadByte (pDevice, MESSAGE_REQUEST_BBREG, 0xE7, &byBBVGA);
-	if (byBBVGA == pDevice->abyBBVGA[0])
-        pDevice->byBBRxConf |= 0x20;//0010 0000
+	vnt_control_in_u8(priv, MESSAGE_REQUEST_BBREG, 0xe7, &bb_vga);
 
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0A, pDevice->byBBRxConf);
+	if (bb_vga == priv->bb_vga[0])
+		priv->bb_rx_conf |= 0x20;
+
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x0a, priv->bb_rx_conf);
 }
 
-
-void BBvSetVGAGainOffset(PSDevice pDevice, BYTE byData)
+void vnt_set_vga_gain_offset(struct vnt_private *priv, u8 data)
 {
 
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xE7, byData);
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0xE7, data);
 
-    // patch for 3253B0 Baseband with Cardbus module
-	if (pDevice->bShortSlotTime)
-		pDevice->byBBRxConf &= 0xDF; /* 1101 1111 */
+	/* patch for 3253B0 Baseband with Cardbus module */
+	if (priv->short_slot_time)
+		priv->bb_rx_conf &= 0xdf; /* 1101 1111 */
 	else
-		pDevice->byBBRxConf |= 0x20; /* 0010 0000 */
+		priv->bb_rx_conf |= 0x20; /* 0010 0000 */
 
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0A, pDevice->byBBRxConf);//CR10
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x0a, priv->bb_rx_conf);
 }
 
-
 /*
- * Description: Baseband SoftwareReset
+ * Description: vnt_set_deep_sleep
  *
  * Parameters:
  *  In:
- *      dwIoBase    - I/O base address
+ *	priv	- Device Structure
  *  Out:
  *      none
  *
  * Return Value: none
  *
  */
-void
-BBvSoftwareReset (PSDevice pDevice)
+void vnt_set_deep_sleep(struct vnt_private *priv)
 {
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x50, 0x40);
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x50, 0);
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x9C, 0x01);
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x9C, 0);
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x0c, 0x17);/* CR12 */
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x0d, 0xB9);/* CR13 */
 }
 
-/*
- * Description: BBvSetDeepSleep
- *
- * Parameters:
- *  In:
- *      pDevice          - Device Structure
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
-void
-BBvSetDeepSleep (PSDevice pDevice)
+void vnt_exit_deep_sleep(struct vnt_private *priv)
 {
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0c, 0x17);//CR12
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0D, 0xB9);//CR13
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x0c, 0x00);/* CR12 */
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0x0d, 0x01);/* CR13 */
 }
 
-void
-BBvExitDeepSleep (PSDevice pDevice)
+void vnt_update_pre_ed_threshold(struct vnt_private *priv, int scanning)
 {
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0C, 0x00);//CR12
-    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0x0D, 0x01);//CR13
-}
-
-
-static unsigned long s_ulGetLowSQ3(PSDevice pDevice)
-{
-	int ii;
-	unsigned long ulSQ3 = 0;
-	unsigned long ulMaxPacket;
-
-    ulMaxPacket = pDevice->aulPktNum[RATE_54M];
-	if (pDevice->aulPktNum[RATE_54M] != 0)
-        ulSQ3 = pDevice->aulSQ3Val[RATE_54M] / pDevice->aulPktNum[RATE_54M];
-
-	for (ii = RATE_48M; ii >= RATE_6M; ii--)
-		if (pDevice->aulPktNum[ii] > ulMaxPacket) {
-            ulMaxPacket = pDevice->aulPktNum[ii];
-            ulSQ3 = pDevice->aulSQ3Val[ii] / pDevice->aulPktNum[ii];
-        }
-
-    return ulSQ3;
-}
-
-static unsigned long s_ulGetRatio(PSDevice pDevice)
-{
-	int ii, jj;
-	unsigned long ulRatio = 0;
-	unsigned long ulMaxPacket;
-	unsigned long ulPacketNum;
-
-    //This is a thousand-ratio
-    ulMaxPacket = pDevice->aulPktNum[RATE_54M];
-    if ( pDevice->aulPktNum[RATE_54M] != 0 ) {
-        ulPacketNum = pDevice->aulPktNum[RATE_54M];
-        ulRatio = (ulPacketNum * 1000 / pDevice->uDiversityCnt);
-        ulRatio += TOP_RATE_54M;
-    }
-	for (ii = RATE_48M; ii >= RATE_1M; ii--)
-        if ( pDevice->aulPktNum[ii] > ulMaxPacket ) {
-            ulPacketNum = 0;
-            for ( jj=RATE_54M;jj>=ii;jj--)
-                ulPacketNum += pDevice->aulPktNum[jj];
-            ulRatio = (ulPacketNum * 1000 / pDevice->uDiversityCnt);
-            ulRatio += TOP_RATE_48M;
-            ulMaxPacket = pDevice->aulPktNum[ii];
-        }
-
-    return ulRatio;
-}
-
-
-static
-void
-s_vClearSQ3Value (PSDevice pDevice)
-{
-    int ii;
-    pDevice->uDiversityCnt = 0;
-
-    for ( ii=RATE_1M;ii<MAX_RATE;ii++) {
-        pDevice->aulPktNum[ii] = 0;
-        pDevice->aulSQ3Val[ii] = 0;
-    }
-}
-
-
-/*
- * Description: Antenna Diversity
- *
- * Parameters:
- *  In:
- *      pDevice          - Device Structure
- *      byRSR            - RSR from received packet
- *      bySQ3            - SQ3 value from received packet
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
-
-void
-BBvAntennaDiversity (PSDevice pDevice, BYTE byRxRate, BYTE bySQ3)
-{
-
-    pDevice->uDiversityCnt++;
-    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"pDevice->uDiversityCnt = %d\n", (int)pDevice->uDiversityCnt);
-
-    if (byRxRate == 2) {
-        pDevice->aulPktNum[RATE_1M]++;
-    }
-    else if (byRxRate==4) {
-        pDevice->aulPktNum[RATE_2M]++;
-    }
-    else if (byRxRate==11) {
-        pDevice->aulPktNum[RATE_5M]++;
-    }
-    else if (byRxRate==22) {
-        pDevice->aulPktNum[RATE_11M]++;
-    }
-    else if(byRxRate==12){
-        pDevice->aulPktNum[RATE_6M]++;
-        pDevice->aulSQ3Val[RATE_6M] += bySQ3;
-    }
-    else if(byRxRate==18){
-        pDevice->aulPktNum[RATE_9M]++;
-        pDevice->aulSQ3Val[RATE_9M] += bySQ3;
-    }
-    else if(byRxRate==24){
-        pDevice->aulPktNum[RATE_12M]++;
-        pDevice->aulSQ3Val[RATE_12M] += bySQ3;
-    }
-    else if(byRxRate==36){
-        pDevice->aulPktNum[RATE_18M]++;
-        pDevice->aulSQ3Val[RATE_18M] += bySQ3;
-    }
-    else if(byRxRate==48){
-        pDevice->aulPktNum[RATE_24M]++;
-        pDevice->aulSQ3Val[RATE_24M] += bySQ3;
-    }
-    else if(byRxRate==72){
-        pDevice->aulPktNum[RATE_36M]++;
-        pDevice->aulSQ3Val[RATE_36M] += bySQ3;
-    }
-    else if(byRxRate==96){
-        pDevice->aulPktNum[RATE_48M]++;
-        pDevice->aulSQ3Val[RATE_48M] += bySQ3;
-    }
-    else if(byRxRate==108){
-        pDevice->aulPktNum[RATE_54M]++;
-        pDevice->aulSQ3Val[RATE_54M] += bySQ3;
-    }
-
-    if (pDevice->byAntennaState == 0) {
-
-        if (pDevice->uDiversityCnt > pDevice->ulDiversityNValue) {
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"ulDiversityNValue=[%d],54M-[%d]\n",(int)pDevice->ulDiversityNValue, (int)pDevice->aulPktNum[RATE_54M]);
-
-            pDevice->ulSQ3_State0 = s_ulGetLowSQ3(pDevice);
-            pDevice->ulRatio_State0 = s_ulGetRatio(pDevice);
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"SQ3_State0, SQ3= [%08x] rate = [%08x]\n",(int)pDevice->ulSQ3_State0,(int)pDevice->ulRatio_State0);
-
-            if ( ((pDevice->aulPktNum[RATE_54M] < pDevice->ulDiversityNValue/2) &&
-                  (pDevice->ulSQ3_State0 > pDevice->ulSQ3TH) ) ||
-                 (pDevice->ulSQ3_State0 == 0 ) )  {
-
-                if ( pDevice->byTMax == 0 )
-                    return;
-
-		bScheduleCommand((void *) pDevice,
-				 WLAN_CMD_CHANGE_ANTENNA,
-				 NULL);
-
-                pDevice->byAntennaState = 1;
-
-                del_timer(&pDevice->TimerSQ3Tmax3);
-                del_timer(&pDevice->TimerSQ3Tmax2);
-                pDevice->TimerSQ3Tmax1.expires =  RUN_AT(pDevice->byTMax * HZ);
-                add_timer(&pDevice->TimerSQ3Tmax1);
-
-            } else {
-                pDevice->TimerSQ3Tmax3.expires =  RUN_AT(pDevice->byTMax3 * HZ);
-                add_timer(&pDevice->TimerSQ3Tmax3);
-            }
-            s_vClearSQ3Value(pDevice);
-
-        }
-    } else { //byAntennaState == 1
-
-        if (pDevice->uDiversityCnt > pDevice->ulDiversityMValue) {
-
-            del_timer(&pDevice->TimerSQ3Tmax1);
-            pDevice->ulSQ3_State1 = s_ulGetLowSQ3(pDevice);
-            pDevice->ulRatio_State1 = s_ulGetRatio(pDevice);
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"SQ3_State1, rate0 = %08x,rate1 = %08x\n",(int)pDevice->ulRatio_State0,(int)pDevice->ulRatio_State1);
-
-            if ( ((pDevice->ulSQ3_State1 == 0) && (pDevice->ulSQ3_State0 != 0)) ||
-                 ((pDevice->ulSQ3_State1 == 0) && (pDevice->ulSQ3_State0 == 0) && (pDevice->ulRatio_State1 < pDevice->ulRatio_State0)) ||
-                 ((pDevice->ulSQ3_State1 != 0) && (pDevice->ulSQ3_State0 != 0) && (pDevice->ulSQ3_State0 < pDevice->ulSQ3_State1))
-               ) {
-
-		bScheduleCommand((void *) pDevice,
-				 WLAN_CMD_CHANGE_ANTENNA,
-				 NULL);
-
-                pDevice->TimerSQ3Tmax3.expires =  RUN_AT(pDevice->byTMax3 * HZ);
-                pDevice->TimerSQ3Tmax2.expires =  RUN_AT(pDevice->byTMax2 * HZ);
-                add_timer(&pDevice->TimerSQ3Tmax3);
-                add_timer(&pDevice->TimerSQ3Tmax2);
-
-            }
-            pDevice->byAntennaState = 0;
-            s_vClearSQ3Value(pDevice);
-        }
-    } //byAntennaState
-}
-
-
-/*+
- *
- * Description:
- *  Timer for SQ3 antenna diversity
- *
- * Parameters:
- *  In:
- *      pvSysSpec1
- *      hDeviceContext - Pointer to the adapter
- *      pvSysSpec2
- *      pvSysSpec3
- *  Out:
- *      none
- *
- * Return Value: none
- *
--*/
-
-void TimerSQ3CallBack(void *hDeviceContext)
-{
-    PSDevice        pDevice = (PSDevice)hDeviceContext;
-
-    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"TimerSQ3CallBack...");
-    spin_lock_irq(&pDevice->lock);
-
-    bScheduleCommand((void *) pDevice, WLAN_CMD_CHANGE_ANTENNA, NULL);
-    pDevice->byAntennaState = 0;
-    s_vClearSQ3Value(pDevice);
-    pDevice->TimerSQ3Tmax3.expires =  RUN_AT(pDevice->byTMax3 * HZ);
-    pDevice->TimerSQ3Tmax2.expires =  RUN_AT(pDevice->byTMax2 * HZ);
-    add_timer(&pDevice->TimerSQ3Tmax3);
-    add_timer(&pDevice->TimerSQ3Tmax2);
-
-
-    spin_unlock_irq(&pDevice->lock);
-}
-
-
-/*+
- *
- * Description:
- *  Timer for SQ3 antenna diversity
- *
- * Parameters:
- *  In:
- *      pvSysSpec1
- *      hDeviceContext - Pointer to the adapter
- *      pvSysSpec2
- *      pvSysSpec3
- *  Out:
- *      none
- *
- * Return Value: none
- *
--*/
-
-void TimerSQ3Tmax3CallBack(void *hDeviceContext)
-{
-    PSDevice        pDevice = (PSDevice)hDeviceContext;
-
-    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"TimerSQ3Tmax3CallBack...");
-    spin_lock_irq(&pDevice->lock);
-
-    pDevice->ulRatio_State0 = s_ulGetRatio(pDevice);
-    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"SQ3_State0 = [%08x]\n",(int)pDevice->ulRatio_State0);
-
-    s_vClearSQ3Value(pDevice);
-    if ( pDevice->byTMax == 0 ) {
-        pDevice->TimerSQ3Tmax3.expires =  RUN_AT(pDevice->byTMax3 * HZ);
-        add_timer(&pDevice->TimerSQ3Tmax3);
-        spin_unlock_irq(&pDevice->lock);
-        return;
-    }
-
-    bScheduleCommand((void *) pDevice, WLAN_CMD_CHANGE_ANTENNA, NULL);
-    pDevice->byAntennaState = 1;
-    del_timer(&pDevice->TimerSQ3Tmax3);
-    del_timer(&pDevice->TimerSQ3Tmax2);
-    pDevice->TimerSQ3Tmax1.expires =  RUN_AT(pDevice->byTMax * HZ);
-    add_timer(&pDevice->TimerSQ3Tmax1);
-
-    spin_unlock_irq(&pDevice->lock);
-}
-
-void
-BBvUpdatePreEDThreshold(
-      PSDevice    pDevice,
-      BOOL        bScanning)
-{
+<<<<<<< HEAD
 
 
     switch(pDevice->byRFType)
@@ -2065,5 +1200,269 @@ BBvUpdatePreEDThreshold(
 
     }
 
+=======
+	u8 cr_201 = 0x0, cr_206 = 0x0;
+	u8 ed_inx = priv->bb_pre_ed_index;
+
+	switch (priv->rf_type) {
+	case RF_AL2230:
+	case RF_AL2230S:
+	case RF_AIROHA7230:
+		if (scanning) { /* Max sensitivity */
+			ed_inx = 0;
+			cr_206 = 0x30;
+			break;
+		}
+
+		if (priv->bb_pre_ed_rssi <= 45) {
+			ed_inx = 20;
+			cr_201 = 0xff;
+		} else if (priv->bb_pre_ed_rssi <= 46) {
+			ed_inx = 19;
+			cr_201 = 0x1a;
+		} else if (priv->bb_pre_ed_rssi <= 47) {
+			ed_inx = 18;
+			cr_201 = 0x15;
+		} else if (priv->bb_pre_ed_rssi <= 49) {
+			ed_inx = 17;
+			cr_201 = 0xe;
+		} else if (priv->bb_pre_ed_rssi <= 51) {
+			ed_inx = 16;
+			cr_201 = 0x9;
+		} else if (priv->bb_pre_ed_rssi <= 53) {
+			ed_inx = 15;
+			cr_201 = 0x6;
+		} else if (priv->bb_pre_ed_rssi <= 55) {
+			ed_inx = 14;
+			cr_201 = 0x3;
+		} else if (priv->bb_pre_ed_rssi <= 56) {
+			ed_inx = 13;
+			cr_201 = 0x2;
+			cr_206 = 0xa0;
+		} else if (priv->bb_pre_ed_rssi <= 57) {
+			ed_inx = 12;
+			cr_201 = 0x2;
+			cr_206 = 0x20;
+		} else if (priv->bb_pre_ed_rssi <= 58) {
+			ed_inx = 11;
+			cr_201 = 0x1;
+			cr_206 = 0xa0;
+		} else if (priv->bb_pre_ed_rssi <= 59) {
+			ed_inx = 10;
+			cr_201 = 0x1;
+			cr_206 = 0x54;
+		} else if (priv->bb_pre_ed_rssi <= 60) {
+			ed_inx = 9;
+			cr_201 = 0x1;
+			cr_206 = 0x18;
+		} else if (priv->bb_pre_ed_rssi <= 61) {
+			ed_inx = 8;
+			cr_206 = 0xe3;
+		} else if (priv->bb_pre_ed_rssi <= 62) {
+			ed_inx = 7;
+			cr_206 = 0xb9;
+		} else if (priv->bb_pre_ed_rssi <= 63) {
+			ed_inx = 6;
+			cr_206 = 0x93;
+		} else if (priv->bb_pre_ed_rssi <= 64) {
+			ed_inx = 5;
+			cr_206 = 0x79;
+		} else if (priv->bb_pre_ed_rssi <= 65) {
+			ed_inx = 4;
+			cr_206 = 0x62;
+		} else if (priv->bb_pre_ed_rssi <= 66) {
+			ed_inx = 3;
+			cr_206 = 0x51;
+		} else if (priv->bb_pre_ed_rssi <= 67) {
+			ed_inx = 2;
+			cr_206 = 0x43;
+		} else if (priv->bb_pre_ed_rssi <= 68) {
+			ed_inx = 1;
+			cr_206 = 0x36;
+		} else {
+			ed_inx = 0;
+			cr_206 = 0x30;
+		}
+		break;
+
+	case RF_VT3226:
+	case RF_VT3226D0:
+		if (scanning)	{ /* Max sensitivity */
+			ed_inx = 0;
+			cr_206 = 0x24;
+			break;
+		}
+
+		if (priv->bb_pre_ed_rssi <= 41) {
+			ed_inx = 22;
+			cr_201 = 0xff;
+		} else if (priv->bb_pre_ed_rssi <= 42) {
+			ed_inx = 21;
+			cr_201 = 0x36;
+		} else if (priv->bb_pre_ed_rssi <= 43) {
+			ed_inx = 20;
+			cr_201 = 0x26;
+		} else if (priv->bb_pre_ed_rssi <= 45) {
+			ed_inx = 19;
+			cr_201 = 0x18;
+		} else if (priv->bb_pre_ed_rssi <= 47) {
+			ed_inx = 18;
+			cr_201 = 0x11;
+		} else if (priv->bb_pre_ed_rssi <= 49) {
+			ed_inx = 17;
+			cr_201 = 0xa;
+		} else if (priv->bb_pre_ed_rssi <= 51) {
+			ed_inx = 16;
+			cr_201 = 0x7;
+		} else if (priv->bb_pre_ed_rssi <= 53) {
+			ed_inx = 15;
+			cr_201 = 0x4;
+		} else if (priv->bb_pre_ed_rssi <= 55) {
+			ed_inx = 14;
+			cr_201 = 0x2;
+			cr_206 = 0xc0;
+		} else if (priv->bb_pre_ed_rssi <= 56) {
+			ed_inx = 13;
+			cr_201 = 0x2;
+			cr_206 = 0x30;
+		} else if (priv->bb_pre_ed_rssi <= 57) {
+			ed_inx = 12;
+			cr_201 = 0x1;
+			cr_206 = 0xb0;
+		} else if (priv->bb_pre_ed_rssi <= 58) {
+			ed_inx = 11;
+			cr_201 = 0x1;
+			cr_206 = 0x70;
+		} else if (priv->bb_pre_ed_rssi <= 59) {
+			ed_inx = 10;
+			cr_201 = 0x1;
+			cr_206 = 0x30;
+		} else if (priv->bb_pre_ed_rssi <= 60) {
+			ed_inx = 9;
+			cr_206 = 0xea;
+		} else if (priv->bb_pre_ed_rssi <= 61) {
+			ed_inx = 8;
+			cr_206 = 0xc0;
+		} else if (priv->bb_pre_ed_rssi <= 62) {
+			ed_inx = 7;
+			cr_206 = 0x9c;
+		} else if (priv->bb_pre_ed_rssi <= 63) {
+			ed_inx = 6;
+			cr_206 = 0x80;
+		} else if (priv->bb_pre_ed_rssi <= 64) {
+			ed_inx = 5;
+			cr_206 = 0x68;
+		} else if (priv->bb_pre_ed_rssi <= 65) {
+			ed_inx = 4;
+			cr_206 = 0x52;
+		} else if (priv->bb_pre_ed_rssi <= 66) {
+			ed_inx = 3;
+			cr_206 = 0x43;
+		} else if (priv->bb_pre_ed_rssi <= 67) {
+			ed_inx = 2;
+			cr_206 = 0x36;
+		} else if (priv->bb_pre_ed_rssi <= 68) {
+			ed_inx = 1;
+			cr_206 = 0x2d;
+		} else {
+			ed_inx = 0;
+			cr_206 = 0x24;
+		}
+		break;
+
+	case RF_VT3342A0:
+		if (scanning) { /* need Max sensitivity */
+			ed_inx = 0;
+			cr_206 = 0x38;
+			break;
+		}
+
+		if (priv->bb_pre_ed_rssi <= 41) {
+			ed_inx = 20;
+			cr_201 = 0xff;
+		} else if (priv->bb_pre_ed_rssi <= 42) {
+			ed_inx = 19;
+			cr_201 = 0x36;
+		} else if (priv->bb_pre_ed_rssi <= 43) {
+			ed_inx = 18;
+			cr_201 = 0x26;
+		} else if (priv->bb_pre_ed_rssi <= 45) {
+			ed_inx = 17;
+			cr_201 = 0x18;
+		} else if (priv->bb_pre_ed_rssi <= 47) {
+			ed_inx = 16;
+			cr_201 = 0x11;
+		} else if (priv->bb_pre_ed_rssi <= 49) {
+			ed_inx = 15;
+			cr_201 = 0xa;
+		} else if (priv->bb_pre_ed_rssi <= 51) {
+			ed_inx = 14;
+			cr_201 = 0x7;
+		} else if (priv->bb_pre_ed_rssi <= 53) {
+			ed_inx = 13;
+			cr_201 = 0x4;
+		} else if (priv->bb_pre_ed_rssi <= 55) {
+			ed_inx = 12;
+			cr_201 = 0x2;
+			cr_206 = 0xc0;
+		} else if (priv->bb_pre_ed_rssi <= 56) {
+			ed_inx = 11;
+			cr_201 = 0x2;
+			cr_206 = 0x30;
+		} else if (priv->bb_pre_ed_rssi <= 57) {
+			ed_inx = 10;
+			cr_201 = 0x1;
+			cr_206 = 0xb0;
+		} else if (priv->bb_pre_ed_rssi <= 58) {
+			ed_inx = 9;
+			cr_201 = 0x1;
+			cr_206 = 0x70;
+		} else if (priv->bb_pre_ed_rssi <= 59) {
+			ed_inx = 8;
+			cr_201 = 0x1;
+			cr_206 = 0x30;
+		} else if (priv->bb_pre_ed_rssi <= 60) {
+			ed_inx = 7;
+			cr_206 = 0xea;
+		} else if (priv->bb_pre_ed_rssi <= 61) {
+			ed_inx = 6;
+			cr_206 = 0xc0;
+		} else if (priv->bb_pre_ed_rssi <= 62) {
+			ed_inx = 5;
+			cr_206 = 0x9c;
+		} else if (priv->bb_pre_ed_rssi <= 63) {
+			ed_inx = 4;
+			cr_206 = 0x80;
+		} else if (priv->bb_pre_ed_rssi <= 64) {
+			ed_inx = 3;
+			cr_206 = 0x68;
+		} else if (priv->bb_pre_ed_rssi <= 65) {
+			ed_inx = 2;
+			cr_206 = 0x52;
+		} else if (priv->bb_pre_ed_rssi <= 66) {
+			ed_inx = 1;
+			cr_206 = 0x43;
+		} else {
+			ed_inx = 0;
+			cr_206 = 0x38;
+		}
+		break;
+
+	}
+
+	if (ed_inx == priv->bb_pre_ed_index && !scanning)
+		return;
+
+	priv->bb_pre_ed_index = ed_inx;
+
+	dev_dbg(&priv->usb->dev, "%s bb_pre_ed_rssi %d\n",
+					__func__, priv->bb_pre_ed_rssi);
+
+	if (!cr_201 && !cr_206)
+		return;
+
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0xc9, cr_201);
+	vnt_control_out_u8(priv, MESSAGE_REQUEST_BBREG, 0xce, cr_206);
+>>>>>>> android-3.18
 }
 

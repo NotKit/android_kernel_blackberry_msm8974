@@ -26,19 +26,13 @@
  * Date: May 29, 2003
  *
  * Functions:
- *      KeyvInitTable - Init Key management table
- *      KeybGetKey - Get Key from table
- *      KeybSetKey - Set Key to table
- *      KeybRemoveKey - Remove Key from table
- *      KeybGetTransmitKey - Get Transmit Key from table
  *
  * Revision History:
  *
  */
 
-#include "tmacro.h"
-#include "key.h"
 #include "mac.h"
+<<<<<<< HEAD
 #include "rndis.h"
 #include "control.h"
 
@@ -549,42 +543,20 @@ void KeyvRemoveAllWEPKey(void *pDeviceHandler, PSKeyManagement pTable)
 	for (i = 0; i < MAX_GROUP_KEY; i++)
 		KeyvRemoveWEPKey(pDevice, pTable, i);
 }
+=======
+#include "key.h"
+#include "usbpipe.h"
+>>>>>>> android-3.18
 
-/*
- * Description: Get Transmit Key from table
- *
- * Parameters:
- *  In:
- *      pTable          - Pointer to Key table
- *      pbyBSSID        - BSSID of Key
- *  Out:
- *      pKey            - Key return
- *
- * Return Value: TRUE if found otherwise FALSE
- *
- */
-BOOL KeybGetTransmitKey(PSKeyManagement pTable, PBYTE pbyBSSID, DWORD dwKeyType,
-			PSKeyItem *pKey)
+int vnt_key_init_table(struct vnt_private *priv)
 {
-    int i, ii;
+	u8 i;
+	u8 data[MAX_KEY_TABLE];
 
-    *pKey = NULL;
-    for (i = 0; i < MAX_KEY_TABLE; i++) {
-        if ((pTable->KeyTable[i].bInUse == TRUE) &&
-	    !compare_ether_addr(pTable->KeyTable[i].abyBSSID, pbyBSSID)) {
+	for (i = 0; i < MAX_KEY_TABLE; i++)
+		data[i] = i;
 
-            if (dwKeyType == PAIRWISE_KEY) {
-
-                if (pTable->KeyTable[i].PairwiseKey.bKeyValid == TRUE) {
-                    *pKey = &(pTable->KeyTable[i].PairwiseKey);
-
-                    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"KeybGetTransmitKey:");
-                    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"PAIRWISE_KEY: KeyTable.abyBSSID: ");
-                    for (ii = 0; ii < 6; ii++) {
-                        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"%x ", pTable->KeyTable[i].abyBSSID[ii]);
-                    }
-                    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"\n");
-
+<<<<<<< HEAD
 
                     return (TRUE);
                 }
@@ -625,36 +597,84 @@ BOOL KeybGetTransmitKey(PSKeyManagement pTable, PBYTE pbyBSSID, DWORD dwKeyType,
     }
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"\n");
     return (FALSE);
+=======
+	return vnt_control_out(priv, MESSAGE_TYPE_CLRKEYENTRY,
+			0, 0, ARRAY_SIZE(data), data);
+>>>>>>> android-3.18
 }
 
-
-/*
- * Description: Check Pairewise Key
- *
- * Parameters:
- *  In:
- *      pTable          - Pointer to Key table
- *  Out:
- *      none
- *
- * Return Value: TRUE if found otherwise FALSE
- *
- */
-BOOL KeybCheckPairewiseKey(PSKeyManagement pTable, PSKeyItem *pKey)
+static int vnt_set_keymode(struct ieee80211_hw *hw, u8 *mac_addr,
+	struct ieee80211_key_conf *key, u32 key_type, u32 mode,
+	bool onfly_latch)
 {
-    int i;
+	struct vnt_private *priv = hw->priv;
+	u8 broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+	u16 key_mode = 0;
+	u32 entry = 0;
+	u8 *bssid;
+	u8 key_inx = key->keyidx;
+	u8 i;
 
-    *pKey = NULL;
-    for (i=0;i<MAX_KEY_TABLE;i++) {
-        if ((pTable->KeyTable[i].bInUse == TRUE) &&
-            (pTable->KeyTable[i].PairwiseKey.bKeyValid == TRUE)) {
-            *pKey = &(pTable->KeyTable[i].PairwiseKey);
-            return (TRUE);
-        }
-    }
-    return (FALSE);
+	if (mac_addr)
+		bssid = mac_addr;
+	else
+		bssid = &broadcast[0];
+
+	if (key_type != VNT_KEY_DEFAULTKEY) {
+		for (i = 0; i < (MAX_KEY_TABLE - 1); i++) {
+			if (!test_bit(i, &priv->key_entry_inuse)) {
+				set_bit(i, &priv->key_entry_inuse);
+
+				key->hw_key_idx = i;
+				entry = key->hw_key_idx;
+				break;
+			}
+		}
+	}
+
+	switch (key_type) {
+		/* fallthrough */
+	case VNT_KEY_DEFAULTKEY:
+		/* default key last entry */
+		entry = MAX_KEY_TABLE - 1;
+		key->hw_key_idx = entry;
+	case VNT_KEY_ALLGROUP:
+		key_mode |= VNT_KEY_ALLGROUP;
+		if (onfly_latch)
+			key_mode |= VNT_KEY_ONFLY_ALL;
+	case VNT_KEY_GROUP_ADDRESS:
+		key_mode |= mode;
+	case VNT_KEY_GROUP:
+		key_mode |= (mode << 4);
+		key_mode |= VNT_KEY_GROUP;
+		break;
+	case  VNT_KEY_PAIRWISE:
+		key_mode |= mode;
+		key_inx = 4;
+		/* Don't save entry for pairwise key for station mode */
+		if (priv->op_mode == NL80211_IFTYPE_STATION)
+			clear_bit(entry, &priv->key_entry_inuse);
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	if (onfly_latch)
+		key_mode |= VNT_KEY_ONFLY;
+
+	if (mode == KEY_CTL_WEP) {
+		if (key->keylen == WLAN_KEY_LEN_WEP40)
+			key->key[15] &= 0x7f;
+		if (key->keylen == WLAN_KEY_LEN_WEP104)
+			key->key[15] |= 0x80;
+	}
+
+	vnt_mac_set_keyentry(priv, key_mode, entry, key_inx, bssid, key->key);
+
+	return 0;
 }
 
+<<<<<<< HEAD
 /*
  * Description: Set Key to table
  *
@@ -680,28 +700,21 @@ BOOL KeybSetDefaultKey(
     PBYTE           pbyKey,
     BYTE            byKeyDecMode
     )
+=======
+int vnt_set_keys(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
+	struct ieee80211_vif *vif, struct ieee80211_key_conf *key)
+>>>>>>> android-3.18
 {
-    PSDevice    pDevice = (PSDevice) pDeviceHandler;
-    unsigned int        ii;
-    PSKeyItem   pKey;
-    unsigned int        uKeyIdx;
+	struct ieee80211_bss_conf *conf = &vif->bss_conf;
+	struct vnt_private *priv = hw->priv;
+	u8 *mac_addr = NULL;
+	u8 key_dec_mode = 0;
+	int ret = 0, u;
 
-    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "Enter KeybSetDefaultKey: %1x, %d\n",
-	    (int) dwKeyIndex, (int) uKeyLength);
+	if (sta)
+		mac_addr = &sta->addr[0];
 
-    if ((dwKeyIndex & PAIRWISE_KEY) != 0) {                  // Pairwise key
-        return (FALSE);
-    } else if ((dwKeyIndex & 0x000000FF) >= MAX_GROUP_KEY) {
-        return (FALSE);
-    }
-
-    if (uKeyLength > MAX_KEY_LEN)
-	    return false;
-
-    pTable->KeyTable[MAX_KEY_TABLE-1].bInUse = TRUE;
-    for (ii = 0; ii < ETH_ALEN; ii++)
-        pTable->KeyTable[MAX_KEY_TABLE-1].abyBSSID[ii] = 0xFF;
-
+<<<<<<< HEAD
     // Group key
     pKey = &(pTable->KeyTable[MAX_KEY_TABLE-1].GroupKey[dwKeyIndex & 0x000000FF]);
     if ((dwKeyIndex & TRANSMIT_KEY) != 0)  {
@@ -805,14 +818,25 @@ BOOL KeybSetAllGroupKey(
 
 	DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Enter KeybSetAllGroupKey: %X\n",
 		dwKeyIndex);
+=======
+	switch (key->cipher) {
+	case 0:
+		for (u = 0 ; u < MAX_KEY_TABLE; u++)
+			vnt_mac_disable_keyentry(priv, u);
+		return ret;
 
+	case WLAN_CIPHER_SUITE_WEP40:
+	case WLAN_CIPHER_SUITE_WEP104:
+		for (u = 0; u < MAX_KEY_TABLE; u++)
+			vnt_mac_disable_keyentry(priv, u);
+>>>>>>> android-3.18
 
-    if ((dwKeyIndex & PAIRWISE_KEY) != 0) {                  // Pairwise key
-        return (FALSE);
-    } else if ((dwKeyIndex & 0x000000FF) >= MAX_GROUP_KEY) {
-        return (FALSE);
-    }
+		vnt_set_keymode(hw, mac_addr, key, VNT_KEY_DEFAULTKEY,
+			KEY_CTL_WEP, true);
 
+		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+
+<<<<<<< HEAD
     for (i=0; i < MAX_KEY_TABLE-1; i++) {
         if (pTable->KeyTable[i].bInUse == TRUE) {
             // found table already exist
@@ -824,53 +848,36 @@ BOOL KeybSetAllGroupKey(
 		DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO
 			"Group transmit key(R)[%X]: %d\n",
 			pTable->KeyTable[i].dwGTKeyIndex, i);
+=======
+		return ret;
+	case WLAN_CIPHER_SUITE_TKIP:
+		key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIC;
+		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+>>>>>>> android-3.18
 
-            }
-            pTable->KeyTable[i].wKeyCtl &= 0xFF0F;          // clear group key control filed
-            pTable->KeyTable[i].wKeyCtl |= (byKeyDecMode << 4);
-            pTable->KeyTable[i].wKeyCtl |= 0x0040;          // use group key for group address
-            uKeyIdx = (dwKeyIndex & 0x000000FF);
+		key_dec_mode = KEY_CTL_TKIP;
 
-            pTable->KeyTable[i].wKeyCtl |= 0x8000;              // enable on-fly
+		break;
+	case WLAN_CIPHER_SUITE_CCMP:
+		if (priv->local_id <= MAC_REVISION_A1)
+			return -EINVAL;
 
-            pKey->bKeyValid = TRUE;
-            pKey->uKeyLength = uKeyLength;
-            pKey->dwKeyIndex = dwKeyIndex;
-            pKey->byCipherSuite = byKeyDecMode;
-            memcpy(pKey->abyKey, pbyKey, uKeyLength);
-            if (byKeyDecMode == KEY_CTL_WEP) {
-                if (uKeyLength == WLAN_WEP40_KEYLEN)
-                    pKey->abyKey[15] &= 0x7F;
-                if (uKeyLength == WLAN_WEP104_KEYLEN)
-                    pKey->abyKey[15] |= 0x80;
-            }
+		key_dec_mode = KEY_CTL_CCMP;
 
-            MACvSetKeyEntry(pDevice, pTable->KeyTable[i].wKeyCtl, i, uKeyIdx, pTable->KeyTable[i].abyBSSID, (PDWORD) pKey->abyKey);
+		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+	}
 
-            if ((dwKeyIndex & USE_KEYRSC) == 0) {
-                // RSC set by NIC
-		    memset(&(pKey->KeyRSC), 0, sizeof(QWORD));
-            }
-            else {
-                memcpy(&(pKey->KeyRSC), pKeyRSC,  sizeof(QWORD));
-            }
-            pKey->dwTSC47_16 = 0;
-            pKey->wTSC15_0 = 0;
 
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"KeybSetKey(R): \n");
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"pKey->bKeyValid: %d\n ", pKey->bKeyValid);
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"pKey->uKeyLength: %d\n ", (int)pKey->uKeyLength);
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"pKey->abyKey: ");
-            for (ii = 0; ii < pKey->uKeyLength; ii++) {
-                DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"%02x ", pKey->abyKey[ii]);
-            }
-            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"\n");
+	if (key->flags & IEEE80211_KEY_FLAG_PAIRWISE) {
+		vnt_set_keymode(hw, mac_addr, key, VNT_KEY_PAIRWISE,
+					key_dec_mode, true);
+	} else {
+		vnt_set_keymode(hw, mac_addr, key, VNT_KEY_DEFAULTKEY,
+						key_dec_mode, true);
 
-            //DBG_PRN_GRP12(("pKey->dwTSC47_16: %lX\n ", pKey->dwTSC47_16));
-            //DBG_PRN_GRP12(("pKey->wTSC15_0: %X\n ", pKey->wTSC15_0));
-            //DBG_PRN_GRP12(("pKey->dwKeyIndex: %lX\n ", pKey->dwKeyIndex));
+		vnt_set_keymode(hw, (u8 *)conf->bssid, key,
+			VNT_KEY_GROUP_ADDRESS, key_dec_mode, true);
+	}
 
-        } // (pTable->KeyTable[i].bInUse == TRUE)
-    }
-    return (TRUE);
+	return 0;
 }

@@ -18,6 +18,7 @@
 #ifndef __LINUX_IF_PPPOLAC_H
 #define __LINUX_IF_PPPOLAC_H
 
+<<<<<<< HEAD
 #include <linux/socket.h>
 #include <linux/types.h>
 
@@ -29,5 +30,8 @@ struct sockaddr_pppolac {
 		__u16	tunnel, session;
 	} local, remote;
 } __attribute__((packed));
+=======
+#include <uapi/linux/if_pppolac.h>
+>>>>>>> android-3.18
 
 #endif /* __LINUX_IF_PPPOLAC_H */

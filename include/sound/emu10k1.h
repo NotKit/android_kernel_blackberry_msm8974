@@ -32,6 +32,7 @@
 #include <sound/timer.h>
 #include <linux/interrupt.h>
 #include <linux/mutex.h>
+#include <linux/firmware.h>
 
 #include <asm/io.h>
 #include <uapi/sound/emu10k1.h>
@@ -435,8 +436,6 @@
 #define CCCA_CURRADDR_MASK	0x00ffffff	/* Current address of the selected channel		*/
 #define CCCA_CURRADDR		0x18000008
 
-/* undefine CCR to avoid conflict with the definition for SH */
-#undef CCR
 #define CCR			0x09		/* Cache control register				*/
 #define CCR_CACHEINVALIDSIZE	0x07190009
 #define CCR_CACHEINVALIDSIZE_MASK	0xfe000000	/* Number of invalid samples cache for this channel    	*/
@@ -1789,7 +1788,10 @@ struct snd_emu10k1 {
 	unsigned int efx_voices_mask[2];
 	unsigned int next_free_voice;
 
-#ifdef CONFIG_PM
+	const struct firmware *firmware;
+	const struct firmware *dock_fw;
+
+#ifdef CONFIG_PM_SLEEP
 	unsigned int *saved_ptr;
 	unsigned int *saved_gpr;
 	unsigned int *tram_val_saved;
@@ -1797,6 +1799,7 @@ struct snd_emu10k1 {
 	unsigned int *saved_icode;
 	unsigned int *p16v_saved;
 	unsigned int saved_a_iocfg, saved_hcfg;
+	bool suspend;
 #endif
 
 };
@@ -1857,7 +1860,7 @@ unsigned short snd_emu10k1_ac97_read(struct snd_ac97 *ac97, unsigned short reg);
 void snd_emu10k1_ac97_write(struct snd_ac97 *ac97, unsigned short reg, unsigned short data);
 unsigned int snd_emu10k1_rate_to_pitch(unsigned int rate);
 
-#ifdef CONFIG_PM
+#ifdef CONFIG_PM_SLEEP
 void snd_emu10k1_suspend_regs(struct snd_emu10k1 *emu);
 void snd_emu10k1_resume_init(struct snd_emu10k1 *emu);
 void snd_emu10k1_resume_regs(struct snd_emu10k1 *emu);

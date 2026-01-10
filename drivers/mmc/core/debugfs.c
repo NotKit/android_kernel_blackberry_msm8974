@@ -136,14 +136,36 @@ static int mmc_ios_show(struct seq_file *s, void *data)
 	case MMC_TIMING_UHS_DDR50:
 		str = "sd uhs DDR50";
 		break;
+	case MMC_TIMING_MMC_DDR52:
+		str = "mmc DDR52";
+		break;
 	case MMC_TIMING_MMC_HS200:
-		str = "mmc high-speed SDR200";
+		str = "mmc HS200";
+		break;
+	case MMC_TIMING_MMC_HS400:
+		str = "mmc HS400";
 		break;
 	default:
 		str = "invalid";
 		break;
 	}
 	seq_printf(s, "timing spec:\t%u (%s)\n", ios->timing, str);
+
+	switch (ios->signal_voltage) {
+	case MMC_SIGNAL_VOLTAGE_330:
+		str = "3.30 V";
+		break;
+	case MMC_SIGNAL_VOLTAGE_180:
+		str = "1.80 V";
+		break;
+	case MMC_SIGNAL_VOLTAGE_120:
+		str = "1.20 V";
+		break;
+	default:
+		str = "invalid";
+		break;
+	}
+	seq_printf(s, "signal voltage:\t%u (%s)\n", ios->signal_voltage, str);
 
 	return 0;
 }
@@ -174,7 +196,7 @@ static int mmc_clock_opt_set(void *data, u64 val)
 	struct mmc_host *host = data;
 
 	/* We need this check due to input value is u64 */
-	if (val > host->f_max)
+	if (val != 0 && (val > host->f_max || val < host->f_min))
 		return -EINVAL;
 
 	mmc_rpm_hold(host, &host->class_dev);
@@ -291,15 +313,23 @@ static int mmc_dbg_card_status_get(void *data, u64 *val)
 	u32		status;
 	int		ret;
 
+<<<<<<< HEAD
 	mmc_rpm_hold(card->host, &card->dev);
 	mmc_claim_host(card->host);
+=======
+	mmc_get_card(card);
+>>>>>>> android-3.18
 
 	ret = mmc_send_status(data, &status);
 	if (!ret)
 		*val = status;
 
+<<<<<<< HEAD
 	mmc_release_host(card->host);
 	mmc_rpm_release(card->host, &card->dev);
+=======
+	mmc_put_card(card);
+>>>>>>> android-3.18
 
 	return ret;
 }
@@ -326,15 +356,21 @@ static int mmc_ext_csd_open(struct inode *inode, struct file *filp)
 		goto out_free;
 	}
 
+<<<<<<< HEAD
 	mmc_rpm_hold(card->host, &card->dev);
 	mmc_claim_host(card->host);
 	err = mmc_send_ext_csd(card, ext_csd);
 	mmc_release_host(card->host);
 	mmc_rpm_release(card->host, &card->dev);
+=======
+	mmc_get_card(card);
+	err = mmc_send_ext_csd(card, ext_csd);
+	mmc_put_card(card);
+>>>>>>> android-3.18
 	if (err)
 		goto out_free;
 
-	for (i = 511; i >= 0; i--)
+	for (i = 0; i < 512; i++)
 		n += sprintf(buf + n, "%02x", ext_csd[i]);
 	n += sprintf(buf + n, "\n");
 	BUG_ON(n != EXT_CSD_STR_LEN);

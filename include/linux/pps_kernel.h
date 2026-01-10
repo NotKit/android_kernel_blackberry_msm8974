@@ -80,7 +80,17 @@ struct pps_device {
  * Global variables
  */
 
-extern struct device_attribute pps_attrs[];
+extern const struct attribute_group *pps_groups[];
+
+/*
+ * Internal functions.
+ *
+ * These are not actually part of the exported API, but this is a
+ * convenient header file to put them in.
+ */
+
+extern int pps_register_cdev(struct pps_device *pps);
+extern void pps_unregister_cdev(struct pps_device *pps);
 
 /*
  * Internal functions.
@@ -126,6 +136,15 @@ static inline void pps_get_ts(struct pps_event_time *ts)
 }
 
 #endif /* CONFIG_NTP_PPS */
+
+/* Subtract known time delay from PPS event time(s) */
+static inline void pps_sub_ts(struct pps_event_time *ts, struct timespec delta)
+{
+	ts->ts_real = timespec_sub(ts->ts_real, delta);
+#ifdef CONFIG_NTP_PPS
+	ts->ts_raw = timespec_sub(ts->ts_raw, delta);
+#endif
+}
 
 #endif /* LINUX_PPS_KERNEL_H */
 

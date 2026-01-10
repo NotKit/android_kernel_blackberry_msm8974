@@ -3,7 +3,7 @@
 #
 
 menu "Input device support"
-	depends on !S390 && !UML
+	depends on !UML
 
 config INPUT
 	tristate "Generic input layer (needed for keyboard, mouse, ...)" if EXPERT
@@ -24,10 +24,6 @@ config INPUT
 	  module will be called input.
 
 if INPUT
-
-config INPUT_OF_MATRIX_KEYMAP
-	depends on USE_OF
-	bool
 
 config INPUT_FF_MEMLESS
 	tristate "Support for memoryless force-feedback devices"
@@ -67,6 +63,19 @@ config INPUT_SPARSEKMAP
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called sparse-keymap.
+
+config INPUT_MATRIXKMAP
+	tristate "Matrix keymap support library"
+	help
+	  Say Y here if you are using a driver for an input
+	  device that uses matrix keymap. This option is only
+	  useful for out-of-tree drivers since in-tree drivers
+	  select it automatically.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called matrix-keymap.
 
 comment "Userland interfaces"
 
@@ -166,6 +175,7 @@ config INPUT_APMPOWER
 	  module will be called apm-power.
 
 config INPUT_KEYRESET
+<<<<<<< HEAD
 	tristate "Reset key"
 	depends on INPUT
 	---help---
@@ -173,6 +183,22 @@ config INPUT_KEYRESET
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called keyreset.
+=======
+	bool "Reset key"
+	depends on INPUT
+	select INPUT_KEYCOMBO
+	---help---
+	  Say Y here if you want to reboot when some keys are pressed;
+
+config INPUT_KEYCOMBO
+	tristate "Key combo"
+	depends on INPUT
+	---help---
+	  Say Y here if you want to take action when some keys are pressed;
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called keycombo.
+>>>>>>> android-3.18
 
 comment "Input Device Drivers"
 

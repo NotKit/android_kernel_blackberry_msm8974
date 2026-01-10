@@ -37,10 +37,14 @@
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/sched.h>
-#include <linux/init.h>
 #include <linux/miscdevice.h>
+#include <linux/kthread.h>
 #include <linux/delay.h>
 #include <linux/slab.h>
+<<<<<<< HEAD
+=======
+#include <linux/random.h>
+>>>>>>> android-3.18
 #include <asm/uaccess.h>
 
 
@@ -50,21 +54,68 @@
 
 
 static struct hwrng *current_rng;
+static struct task_struct *hwrng_fill;
 static LIST_HEAD(rng_list);
 static DEFINE_MUTEX(rng_mutex);
 static int data_avail;
+<<<<<<< HEAD
 static u8 *rng_buffer;
+=======
+static u8 *rng_buffer, *rng_fillbuf;
+static unsigned short current_quality;
+static unsigned short default_quality; /* = 0; default to "off" */
+
+module_param(current_quality, ushort, 0644);
+MODULE_PARM_DESC(current_quality,
+		 "current hwrng entropy estimation per mill");
+module_param(default_quality, ushort, 0644);
+MODULE_PARM_DESC(default_quality,
+		 "default entropy content of hwrng per mill");
+
+static void start_khwrngd(void);
+
+static inline int rng_get_data(struct hwrng *rng, u8 *buffer, size_t size,
+			       int wait);
+>>>>>>> android-3.18
 
 static size_t rng_buffer_size(void)
 {
 	return SMP_CACHE_BYTES < 32 ? 32 : SMP_CACHE_BYTES;
 }
+<<<<<<< HEAD
+=======
+
+static void add_early_randomness(struct hwrng *rng)
+{
+	int bytes_read;
+	size_t size = min_t(size_t, 16, rng_buffer_size());
+
+	bytes_read = rng_get_data(rng, rng_buffer, size, 1);
+	if (bytes_read > 0)
+		add_device_randomness(rng_buffer, bytes_read);
+}
+>>>>>>> android-3.18
 
 static inline int hwrng_init(struct hwrng *rng)
 {
-	if (!rng->init)
-		return 0;
-	return rng->init(rng);
+	if (rng->init) {
+		int ret;
+
+		ret =  rng->init(rng);
+		if (ret)
+			return ret;
+	}
+	add_early_randomness(rng);
+
+	current_quality = rng->quality ? : default_quality;
+	current_quality &= 1023;
+
+	if (current_quality == 0 && hwrng_fill)
+		kthread_stop(hwrng_fill);
+	if (current_quality > 0 && !hwrng_fill)
+		start_khwrngd();
+
+	return 0;
 }
 
 static inline void hwrng_cleanup(struct hwrng *rng)
@@ -300,9 +351,38 @@ err_misc_dereg:
 	goto out;
 }
 
+static int hwrng_fillfn(void *unused)
+{
+	long rc;
+
+	while (!kthread_should_stop()) {
+		if (!current_rng)
+			break;
+		rc = rng_get_data(current_rng, rng_fillbuf,
+				  rng_buffer_size(), 1);
+		if (rc <= 0) {
+			pr_warn("hwrng: no data available\n");
+			msleep_interruptible(10000);
+			continue;
+		}
+		add_hwgenerator_randomness((void *)rng_fillbuf, rc,
+					   rc * current_quality * 8 >> 10);
+	}
+	hwrng_fill = NULL;
+	return 0;
+}
+
+static void start_khwrngd(void)
+{
+	hwrng_fill = kthread_run(hwrng_fillfn, NULL, "hwrng");
+	if (IS_ERR(hwrng_fill)) {
+		pr_err("hwrng_fill thread creation failed");
+		hwrng_fill = NULL;
+	}
+}
+
 int hwrng_register(struct hwrng *rng)
 {
-	int must_register_misc;
 	int err = -EINVAL;
 	struct hwrng *old_rng, *tmp;
 
@@ -319,6 +399,16 @@ int hwrng_register(struct hwrng *rng)
 		if (!rng_buffer)
 			goto out_unlock;
 	}
+<<<<<<< HEAD
+=======
+	if (!rng_fillbuf) {
+		rng_fillbuf = kmalloc(rng_buffer_size(), GFP_KERNEL);
+		if (!rng_fillbuf) {
+			kfree(rng_buffer);
+			goto out_unlock;
+		}
+	}
+>>>>>>> android-3.18
 
 	/* Must not register two RNGs with the same name. */
 	err = -EEXIST;
@@ -327,7 +417,6 @@ int hwrng_register(struct hwrng *rng)
 			goto out_unlock;
 	}
 
-	must_register_misc = (current_rng == NULL);
 	old_rng = current_rng;
 	if (!old_rng) {
 		err = hwrng_init(rng);
@@ -336,18 +425,28 @@ int hwrng_register(struct hwrng *rng)
 		current_rng = rng;
 	}
 	err = 0;
-	if (must_register_misc) {
+	if (!old_rng) {
 		err = register_miscdev();
 		if (err) {
-			if (!old_rng) {
-				hwrng_cleanup(rng);
-				current_rng = NULL;
-			}
+			hwrng_cleanup(rng);
+			current_rng = NULL;
 			goto out_unlock;
 		}
 	}
 	INIT_LIST_HEAD(&rng->list);
 	list_add_tail(&rng->list, &rng_list);
+
+	if (old_rng && !rng->init) {
+		/*
+		 * Use a new device's input to add some randomness to
+		 * the system.  If this rng device isn't going to be
+		 * used right away, its init function hasn't been
+		 * called yet; so only use the randomness from devices
+		 * that don't need an init callback.
+		 */
+		add_early_randomness(rng);
+	}
+
 out_unlock:
 	mutex_unlock(&rng_mutex);
 out:
@@ -373,13 +472,26 @@ void hwrng_unregister(struct hwrng *rng)
 				current_rng = NULL;
 		}
 	}
-	if (list_empty(&rng_list))
+	if (list_empty(&rng_list)) {
 		unregister_miscdev();
+		if (hwrng_fill)
+			kthread_stop(hwrng_fill);
+	}
 
 	mutex_unlock(&rng_mutex);
 }
 EXPORT_SYMBOL_GPL(hwrng_unregister);
 
+static void __exit hwrng_exit(void)
+{
+	mutex_lock(&rng_mutex);
+	BUG_ON(current_rng);
+	kfree(rng_buffer);
+	kfree(rng_fillbuf);
+	mutex_unlock(&rng_mutex);
+}
+
+module_exit(hwrng_exit);
 
 MODULE_DESCRIPTION("H/W Random Number Generator (RNG) driver");
 MODULE_LICENSE("GPL");

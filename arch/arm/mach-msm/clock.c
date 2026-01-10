@@ -1,7 +1,11 @@
 /* arch/arm/mach-msm/clock.c
  *
  * Copyright (C) 2007 Google, Inc.
+<<<<<<< HEAD
  * Copyright (c) 2007-2013, The Linux Foundation. All rights reserved.
+=======
+ * Copyright (c) 2007-2012, The Linux Foundation. All rights reserved.
+>>>>>>> android-3.18
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -14,6 +18,7 @@
  *
  */
 
+<<<<<<< HEAD
 #include <linux/kernel.h>
 #include <linux/err.h>
 #include <linux/spinlock.h>
@@ -851,3 +856,17 @@ static int __init clock_late_init(void)
  * (excluding DLKM probes) has completed.
  */
 late_initcall_sync(clock_late_init);
+=======
+#include <linux/clk-provider.h>
+#include <linux/module.h>
+
+#include "clock.h"
+
+int clk_reset(struct clk *clk, enum clk_reset_action action)
+{
+	struct clk_hw *hw = __clk_get_hw(clk);
+	struct msm_clk *m = to_msm_clk(hw);
+	return m->reset(hw, action);
+}
+EXPORT_SYMBOL(clk_reset);
+>>>>>>> android-3.18

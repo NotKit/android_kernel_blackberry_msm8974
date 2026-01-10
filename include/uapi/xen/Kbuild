@@ -1,3 +1,8 @@
 # UAPI Header export list
 header-y += evtchn.h
+<<<<<<< HEAD
+=======
+header-y += gntalloc.h
+header-y += gntdev.h
+>>>>>>> android-3.18
 header-y += privcmd.h

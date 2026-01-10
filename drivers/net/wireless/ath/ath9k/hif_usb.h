@@ -85,12 +85,14 @@ struct cmd_buf {
 };
 
 #define HIF_USB_START BIT(0)
+#define HIF_USB_READY BIT(1)
 
 struct hif_device_usb {
 	struct usb_device *udev;
 	struct usb_interface *interface;
 	const struct usb_device_id *usb_device_id;
-	const struct firmware *firmware;
+	const void *fw_data;
+	size_t fw_size;
 	struct completion fw_done;
 	struct htc_target *htc_handle;
 	struct hif_usb_tx tx;
@@ -110,5 +112,6 @@ struct hif_device_usb {
 
 int ath9k_hif_usb_init(void);
 void ath9k_hif_usb_exit(void);
+void ath9k_hif_usb_dealloc_urbs(struct hif_device_usb *hif_dev);
 
 #endif /* HTC_USB_H */

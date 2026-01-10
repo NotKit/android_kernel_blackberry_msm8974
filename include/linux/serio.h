@@ -23,12 +23,14 @@ struct serio {
 
 	char name[32];
 	char phys[32];
+	char firmware_id[128];
 
 	bool manual_bind;
 
 	struct serio_device_id id;
 
-	spinlock_t lock;		/* protects critical sections from port's interrupt handler */
+	/* Protects critical sections from port's interrupt handler */
+	spinlock_t lock;
 
 	int (*write)(struct serio *, unsigned char);
 	int (*open)(struct serio *);
@@ -37,16 +39,29 @@ struct serio {
 	void (*stop)(struct serio *);
 
 	struct serio *parent;
-	struct list_head child_node;	/* Entry in parent->children list */
+	/* Entry in parent->children list */
+	struct list_head child_node;
 	struct list_head children;
-	unsigned int depth;		/* level of nesting in serio hierarchy */
+	/* Level of nesting in serio hierarchy */
+	unsigned int depth;
 
-	struct serio_driver *drv;	/* accessed from interrupt, must be protected by serio->lock and serio->sem */
-	struct mutex drv_mutex;		/* protects serio->drv so attributes can pin driver */
+	/*
+	 * serio->drv is accessed from interrupt handlers; when modifying
+	 * caller should acquire serio->drv_mutex and serio->lock.
+	 */
+	struct serio_driver *drv;
+	/* Protects serio->drv so attributes can pin current driver */
+	struct mutex drv_mutex;
 
 	struct device dev;
 
 	struct list_head node;
+
+	/*
+	 * For use by PS/2 layer when several ports share hardware and
+	 * may get indigestion when exposed to concurrent access (i8042).
+	 */
+	struct mutex *ps2_cmd_mutex;
 };
 #define to_serio_port(d)	container_of(d, struct serio, dev)
 
@@ -90,6 +105,19 @@ int __must_check __serio_register_driver(struct serio_driver *drv,
 	__serio_register_driver(drv, THIS_MODULE, KBUILD_MODNAME)
 
 void serio_unregister_driver(struct serio_driver *drv);
+
+/**
+ * module_serio_driver() - Helper macro for registering a serio driver
+ * @__serio_driver: serio_driver struct
+ *
+ * Helper macro for serio drivers which do not do anything special in
+ * module init/exit. This eliminates a lot of boilerplate. Each module
+ * may only use this macro once, and calling it replaces module_init()
+ * and module_exit().
+ */
+#define module_serio_driver(__serio_driver) \
+	module_driver(__serio_driver, serio_register_driver, \
+		       serio_unregister_driver)
 
 static inline int serio_write(struct serio *serio, unsigned char data)
 {

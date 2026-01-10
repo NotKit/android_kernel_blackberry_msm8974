@@ -352,7 +352,7 @@ store_spi_transport_##field(struct device *dev, 			\
 	struct spi_transport_attrs *tp					\
 		= (struct spi_transport_attrs *)&starget->starget_data;	\
 									\
-	if (i->f->set_##field)						\
+	if (!i->f->set_##field)						\
 		return -EINVAL;						\
 	val = simple_strtoul(buf, NULL, 0);				\
 	if (val > tp->max_##field)					\
@@ -1010,10 +1010,10 @@ spi_dv_device(struct scsi_device *sdev)
 	u8 *buffer;
 	const int len = SPI_MAX_ECHO_BUFFER_SIZE*2;
 
-	if (unlikely(scsi_device_get(sdev)))
+	if (unlikely(spi_dv_in_progress(starget)))
 		return;
 
-	if (unlikely(spi_dv_in_progress(starget)))
+	if (unlikely(scsi_device_get(sdev)))
 		return;
 	spi_dv_in_progress(starget) = 1;
 

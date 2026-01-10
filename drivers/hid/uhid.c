@@ -11,6 +11,11 @@
  */
 
 #include <linux/atomic.h>
+<<<<<<< HEAD
+=======
+#include <linux/compat.h>
+#include <linux/cred.h>
+>>>>>>> android-3.18
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/hid.h>
@@ -23,10 +28,20 @@
 #include <linux/spinlock.h>
 #include <linux/uhid.h>
 #include <linux/wait.h>
+<<<<<<< HEAD
+=======
+#include <linux/uaccess.h>
+#include <linux/eventpoll.h>
+>>>>>>> android-3.18
 
 #define UHID_NAME	"uhid"
 #define UHID_BUFSIZE	32
 
+<<<<<<< HEAD
+=======
+static DEFINE_MUTEX(uhid_open_mutex);
+
+>>>>>>> android-3.18
 struct uhid_device {
 	struct mutex devlock;
 	bool running;
@@ -43,15 +58,44 @@ struct uhid_device {
 	__u8 tail;
 	struct uhid_event *outq[UHID_BUFSIZE];
 
+<<<<<<< HEAD
 	struct mutex report_lock;
 	wait_queue_head_t report_wait;
 	atomic_t report_done;
 	atomic_t report_id;
 	struct uhid_event report_buf;
+=======
+	/* blocking GET_REPORT support; state changes protected by qlock */
+	struct mutex report_lock;
+	wait_queue_head_t report_wait;
+	bool report_running;
+	u32 report_id;
+	u32 report_type;
+	struct uhid_event report_buf;
+	struct work_struct worker;
+>>>>>>> android-3.18
 };
 
 static struct miscdevice uhid_misc;
 
+<<<<<<< HEAD
+=======
+static void uhid_device_add_worker(struct work_struct *work)
+{
+	struct uhid_device *uhid = container_of(work, struct uhid_device, worker);
+	int ret;
+
+	ret = hid_add_device(uhid->hid);
+	if (ret) {
+		hid_err(uhid->hid, "Cannot register HID device: error %d\n", ret);
+
+		hid_destroy_device(uhid->hid);
+		uhid->hid = NULL;
+		uhid->running = false;
+	}
+}
+
+>>>>>>> android-3.18
 static void uhid_queue(struct uhid_device *uhid, struct uhid_event *ev)
 {
 	__u8 newhead;
@@ -89,8 +133,32 @@ static int uhid_queue_event(struct uhid_device *uhid, __u32 event)
 static int uhid_hid_start(struct hid_device *hid)
 {
 	struct uhid_device *uhid = hid->driver_data;
+<<<<<<< HEAD
 
 	return uhid_queue_event(uhid, UHID_START);
+=======
+	struct uhid_event *ev;
+	unsigned long flags;
+
+	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+	if (!ev)
+		return -ENOMEM;
+
+	ev->type = UHID_START;
+
+	if (hid->report_enum[HID_FEATURE_REPORT].numbered)
+		ev->u.start.dev_flags |= UHID_DEV_NUMBERED_FEATURE_REPORTS;
+	if (hid->report_enum[HID_OUTPUT_REPORT].numbered)
+		ev->u.start.dev_flags |= UHID_DEV_NUMBERED_OUTPUT_REPORTS;
+	if (hid->report_enum[HID_INPUT_REPORT].numbered)
+		ev->u.start.dev_flags |= UHID_DEV_NUMBERED_INPUT_REPORTS;
+
+	spin_lock_irqsave(&uhid->qlock, flags);
+	uhid_queue(uhid, ev);
+	spin_unlock_irqrestore(&uhid->qlock, flags);
+
+	return 0;
+>>>>>>> android-3.18
 }
 
 static void uhid_hid_stop(struct hid_device *hid)
@@ -104,15 +172,35 @@ static void uhid_hid_stop(struct hid_device *hid)
 static int uhid_hid_open(struct hid_device *hid)
 {
 	struct uhid_device *uhid = hid->driver_data;
+<<<<<<< HEAD
 
 	return uhid_queue_event(uhid, UHID_OPEN);
+=======
+	int retval = 0;
+
+	mutex_lock(&uhid_open_mutex);
+	if (!hid->open++) {
+		retval = uhid_queue_event(uhid, UHID_OPEN);
+		if (retval)
+			hid->open--;
+	}
+	mutex_unlock(&uhid_open_mutex);
+	return retval;
+>>>>>>> android-3.18
 }
 
 static void uhid_hid_close(struct hid_device *hid)
 {
 	struct uhid_device *uhid = hid->driver_data;
 
+<<<<<<< HEAD
 	uhid_queue_event(uhid, UHID_CLOSE);
+=======
+	mutex_lock(&uhid_open_mutex);
+	if (!--hid->open)
+		uhid_queue_event(uhid, UHID_CLOSE);
+	mutex_unlock(&uhid_open_mutex);
+>>>>>>> android-3.18
 }
 
 static int uhid_hid_parse(struct hid_device *hid)
@@ -122,6 +210,7 @@ static int uhid_hid_parse(struct hid_device *hid)
 	return hid_parse_report(hid, uhid->rd_data, uhid->rd_size);
 }
 
+<<<<<<< HEAD
 static int uhid_hid_get_raw(struct hid_device *hid, unsigned char rnum,
 			    __u8 *buf, size_t count, unsigned char rtype)
 {
@@ -132,10 +221,71 @@ static int uhid_hid_get_raw(struct hid_device *hid, unsigned char rnum,
 	int ret;
 	size_t uninitialized_var(len);
 	struct uhid_feature_answer_req *req;
+=======
+/* must be called with report_lock held */
+static int __uhid_report_queue_and_wait(struct uhid_device *uhid,
+					struct uhid_event *ev,
+					__u32 *report_id)
+{
+	unsigned long flags;
+	int ret;
+
+	spin_lock_irqsave(&uhid->qlock, flags);
+	*report_id = ++uhid->report_id;
+	uhid->report_type = ev->type + 1;
+	uhid->report_running = true;
+	uhid_queue(uhid, ev);
+	spin_unlock_irqrestore(&uhid->qlock, flags);
+
+	ret = wait_event_interruptible_timeout(uhid->report_wait,
+				!uhid->report_running || !uhid->running,
+				5 * HZ);
+	if (!ret || !uhid->running || uhid->report_running)
+		ret = -EIO;
+	else if (ret < 0)
+		ret = -ERESTARTSYS;
+	else
+		ret = 0;
+
+	uhid->report_running = false;
+
+	return ret;
+}
+
+static void uhid_report_wake_up(struct uhid_device *uhid, u32 id,
+				const struct uhid_event *ev)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&uhid->qlock, flags);
+
+	/* id for old report; drop it silently */
+	if (uhid->report_type != ev->type || uhid->report_id != id)
+		goto unlock;
+	if (!uhid->report_running)
+		goto unlock;
+
+	memcpy(&uhid->report_buf, ev, sizeof(*ev));
+	uhid->report_running = false;
+	wake_up_interruptible(&uhid->report_wait);
+
+unlock:
+	spin_unlock_irqrestore(&uhid->qlock, flags);
+}
+
+static int uhid_hid_get_report(struct hid_device *hid, unsigned char rnum,
+			       u8 *buf, size_t count, u8 rtype)
+{
+	struct uhid_device *uhid = hid->driver_data;
+	struct uhid_get_report_reply_req *req;
+	struct uhid_event *ev;
+	int ret;
+>>>>>>> android-3.18
 
 	if (!uhid->running)
 		return -EIO;
 
+<<<<<<< HEAD
 	switch (rtype) {
 	case HID_FEATURE_REPORT:
 		report_type = UHID_FEATURE_REPORT;
@@ -203,6 +353,109 @@ static int uhid_hid_get_raw(struct hid_device *hid, unsigned char rnum,
 unlock:
 	mutex_unlock(&uhid->report_lock);
 	return ret ? ret : len;
+=======
+	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+	if (!ev)
+		return -ENOMEM;
+
+	ev->type = UHID_GET_REPORT;
+	ev->u.get_report.rnum = rnum;
+	ev->u.get_report.rtype = rtype;
+
+	ret = mutex_lock_interruptible(&uhid->report_lock);
+	if (ret) {
+		kfree(ev);
+		return ret;
+	}
+
+	/* this _always_ takes ownership of @ev */
+	ret = __uhid_report_queue_and_wait(uhid, ev, &ev->u.get_report.id);
+	if (ret)
+		goto unlock;
+
+	req = &uhid->report_buf.u.get_report_reply;
+	if (req->err) {
+		ret = -EIO;
+	} else {
+		ret = min3(count, (size_t)req->size, (size_t)UHID_DATA_MAX);
+		memcpy(buf, req->data, ret);
+	}
+
+unlock:
+	mutex_unlock(&uhid->report_lock);
+	return ret;
+}
+
+static int uhid_hid_set_report(struct hid_device *hid, unsigned char rnum,
+			       const u8 *buf, size_t count, u8 rtype)
+{
+	struct uhid_device *uhid = hid->driver_data;
+	struct uhid_event *ev;
+	int ret;
+
+	if (!uhid->running || count > UHID_DATA_MAX)
+		return -EIO;
+
+	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+	if (!ev)
+		return -ENOMEM;
+
+	ev->type = UHID_SET_REPORT;
+	ev->u.set_report.rnum = rnum;
+	ev->u.set_report.rtype = rtype;
+	ev->u.set_report.size = count;
+	memcpy(ev->u.set_report.data, buf, count);
+
+	ret = mutex_lock_interruptible(&uhid->report_lock);
+	if (ret) {
+		kfree(ev);
+		return ret;
+	}
+
+	/* this _always_ takes ownership of @ev */
+	ret = __uhid_report_queue_and_wait(uhid, ev, &ev->u.set_report.id);
+	if (ret)
+		goto unlock;
+
+	if (uhid->report_buf.u.set_report_reply.err)
+		ret = -EIO;
+	else
+		ret = count;
+
+unlock:
+	mutex_unlock(&uhid->report_lock);
+	return ret;
+}
+
+static int uhid_hid_raw_request(struct hid_device *hid, unsigned char reportnum,
+				__u8 *buf, size_t len, unsigned char rtype,
+				int reqtype)
+{
+	u8 u_rtype;
+
+	switch (rtype) {
+	case HID_FEATURE_REPORT:
+		u_rtype = UHID_FEATURE_REPORT;
+		break;
+	case HID_OUTPUT_REPORT:
+		u_rtype = UHID_OUTPUT_REPORT;
+		break;
+	case HID_INPUT_REPORT:
+		u_rtype = UHID_INPUT_REPORT;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	switch (reqtype) {
+	case HID_REQ_GET_REPORT:
+		return uhid_hid_get_report(hid, reportnum, buf, len, u_rtype);
+	case HID_REQ_SET_REPORT:
+		return uhid_hid_set_report(hid, reportnum, buf, len, u_rtype);
+	default:
+		return -EIO;
+	}
+>>>>>>> android-3.18
 }
 
 static int uhid_hid_output_raw(struct hid_device *hid, __u8 *buf, size_t count,
@@ -243,23 +496,134 @@ static int uhid_hid_output_raw(struct hid_device *hid, __u8 *buf, size_t count,
 	return count;
 }
 
+<<<<<<< HEAD
+=======
+static int uhid_hid_output_report(struct hid_device *hid, __u8 *buf,
+				  size_t count)
+{
+	return uhid_hid_output_raw(hid, buf, count, HID_OUTPUT_REPORT);
+}
+
+>>>>>>> android-3.18
 static struct hid_ll_driver uhid_hid_driver = {
 	.start = uhid_hid_start,
 	.stop = uhid_hid_stop,
 	.open = uhid_hid_open,
 	.close = uhid_hid_close,
 	.parse = uhid_hid_parse,
+<<<<<<< HEAD
 };
 
 static int uhid_dev_create(struct uhid_device *uhid,
 			   const struct uhid_event *ev)
 {
 	struct hid_device *hid;
+=======
+	.raw_request = uhid_hid_raw_request,
+	.output_report = uhid_hid_output_report,
+};
+
+#ifdef CONFIG_COMPAT
+
+/* Apparently we haven't stepped on these rakes enough times yet. */
+struct uhid_create_req_compat {
+	__u8 name[128];
+	__u8 phys[64];
+	__u8 uniq[64];
+
+	compat_uptr_t rd_data;
+	__u16 rd_size;
+
+	__u16 bus;
+	__u32 vendor;
+	__u32 product;
+	__u32 version;
+	__u32 country;
+} __attribute__((__packed__));
+
+static int uhid_event_from_user(const char __user *buffer, size_t len,
+				struct uhid_event *event)
+{
+	if (is_compat_task()) {
+		u32 type;
+
+		if (get_user(type, buffer))
+			return -EFAULT;
+
+		if (type == UHID_CREATE) {
+			/*
+			 * This is our messed up request with compat pointer.
+			 * It is largish (more than 256 bytes) so we better
+			 * allocate it from the heap.
+			 */
+			struct uhid_create_req_compat *compat;
+
+			compat = kzalloc(sizeof(*compat), GFP_KERNEL);
+			if (!compat)
+				return -ENOMEM;
+
+			buffer += sizeof(type);
+			len -= sizeof(type);
+			if (copy_from_user(compat, buffer,
+					   min(len, sizeof(*compat)))) {
+				kfree(compat);
+				return -EFAULT;
+			}
+
+			/* Shuffle the data over to proper structure */
+			event->type = type;
+
+			memcpy(event->u.create.name, compat->name,
+				sizeof(compat->name));
+			memcpy(event->u.create.phys, compat->phys,
+				sizeof(compat->phys));
+			memcpy(event->u.create.uniq, compat->uniq,
+				sizeof(compat->uniq));
+
+			event->u.create.rd_data = compat_ptr(compat->rd_data);
+			event->u.create.rd_size = compat->rd_size;
+
+			event->u.create.bus = compat->bus;
+			event->u.create.vendor = compat->vendor;
+			event->u.create.product = compat->product;
+			event->u.create.version = compat->version;
+			event->u.create.country = compat->country;
+
+			kfree(compat);
+			return 0;
+		}
+		/* All others can be copied directly */
+	}
+
+	if (copy_from_user(event, buffer, min(len, sizeof(*event))))
+		return -EFAULT;
+
+	return 0;
+}
+#else
+static int uhid_event_from_user(const char __user *buffer, size_t len,
+				struct uhid_event *event)
+{
+	if (copy_from_user(event, buffer, min(len, sizeof(*event))))
+		return -EFAULT;
+
+	return 0;
+}
+#endif
+
+static int uhid_dev_create2(struct uhid_device *uhid,
+			    const struct uhid_event *ev)
+{
+	struct hid_device *hid;
+	size_t rd_size, len;
+	void *rd_data;
+>>>>>>> android-3.18
 	int ret;
 
 	if (uhid->running)
 		return -EALREADY;
 
+<<<<<<< HEAD
 	uhid->rd_size = ev->u.create.rd_size;
 	if (uhid->rd_size <= 0 || uhid->rd_size > HID_MAX_DESCRIPTOR_SIZE)
 		return -EINVAL;
@@ -273,6 +637,18 @@ static int uhid_dev_create(struct uhid_device *uhid,
 		ret = -EFAULT;
 		goto err_free;
 	}
+=======
+	rd_size = ev->u.create2.rd_size;
+	if (rd_size <= 0 || rd_size > HID_MAX_DESCRIPTOR_SIZE)
+		return -EINVAL;
+
+	rd_data = kmemdup(ev->u.create2.rd_data, rd_size, GFP_KERNEL);
+	if (!rd_data)
+		return -ENOMEM;
+
+	uhid->rd_size = rd_size;
+	uhid->rd_data = rd_data;
+>>>>>>> android-3.18
 
 	hid = hid_allocate_device();
 	if (IS_ERR(hid)) {
@@ -280,6 +656,7 @@ static int uhid_dev_create(struct uhid_device *uhid,
 		goto err_free;
 	}
 
+<<<<<<< HEAD
 	strncpy(hid->name, ev->u.create.name, 127);
 	hid->name[127] = 0;
 	strncpy(hid->phys, ev->u.create.phys, 63);
@@ -295,12 +672,28 @@ static int uhid_dev_create(struct uhid_device *uhid,
 	hid->product = ev->u.create.product;
 	hid->version = ev->u.create.version;
 	hid->country = ev->u.create.country;
+=======
+	len = min(sizeof(hid->name), sizeof(ev->u.create2.name)) - 1;
+	strncpy(hid->name, ev->u.create2.name, len);
+	len = min(sizeof(hid->phys), sizeof(ev->u.create2.phys)) - 1;
+	strncpy(hid->phys, ev->u.create2.phys, len);
+	len = min(sizeof(hid->uniq), sizeof(ev->u.create2.uniq)) - 1;
+	strncpy(hid->uniq, ev->u.create2.uniq, len);
+
+	hid->ll_driver = &uhid_hid_driver;
+	hid->bus = ev->u.create2.bus;
+	hid->vendor = ev->u.create2.vendor;
+	hid->product = ev->u.create2.product;
+	hid->version = ev->u.create2.version;
+	hid->country = ev->u.create2.country;
+>>>>>>> android-3.18
 	hid->driver_data = uhid;
 	hid->dev.parent = uhid_misc.this_device;
 
 	uhid->hid = hid;
 	uhid->running = true;
 
+<<<<<<< HEAD
 	ret = hid_add_device(hid);
 	if (ret) {
 		hid_err(hid, "Cannot register HID device\n");
@@ -318,17 +711,67 @@ err_free:
 	return ret;
 }
 
+=======
+	/* Adding of a HID device is done through a worker, to allow HID drivers
+	 * which use feature requests during .probe to work, without they would
+	 * be blocked on devlock, which is held by uhid_char_write.
+	 */
+	schedule_work(&uhid->worker);
+
+	return 0;
+
+err_free:
+	kfree(uhid->rd_data);
+	uhid->rd_data = NULL;
+	uhid->rd_size = 0;
+	return ret;
+}
+
+static int uhid_dev_create(struct uhid_device *uhid,
+			   struct uhid_event *ev)
+{
+	struct uhid_create_req orig;
+
+	orig = ev->u.create;
+
+	if (orig.rd_size <= 0 || orig.rd_size > HID_MAX_DESCRIPTOR_SIZE)
+		return -EINVAL;
+	if (copy_from_user(&ev->u.create2.rd_data, orig.rd_data, orig.rd_size))
+		return -EFAULT;
+
+	memcpy(ev->u.create2.name, orig.name, sizeof(orig.name));
+	memcpy(ev->u.create2.phys, orig.phys, sizeof(orig.phys));
+	memcpy(ev->u.create2.uniq, orig.uniq, sizeof(orig.uniq));
+	ev->u.create2.rd_size = orig.rd_size;
+	ev->u.create2.bus = orig.bus;
+	ev->u.create2.vendor = orig.vendor;
+	ev->u.create2.product = orig.product;
+	ev->u.create2.version = orig.version;
+	ev->u.create2.country = orig.country;
+
+	return uhid_dev_create2(uhid, ev);
+}
+
+>>>>>>> android-3.18
 static int uhid_dev_destroy(struct uhid_device *uhid)
 {
 	if (!uhid->running)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	/* clear "running" before setting "report_done" */
 	uhid->running = false;
 	smp_wmb();
 	atomic_set(&uhid->report_done, 1);
 	wake_up_interruptible(&uhid->report_wait);
 
+=======
+	uhid->running = false;
+	wake_up_interruptible(&uhid->report_wait);
+
+	cancel_work_sync(&uhid->worker);
+
+>>>>>>> android-3.18
 	hid_destroy_device(uhid->hid);
 	kfree(uhid->rd_data);
 
@@ -346,6 +789,7 @@ static int uhid_dev_input(struct uhid_device *uhid, struct uhid_event *ev)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int uhid_dev_feature_answer(struct uhid_device *uhid,
 				   struct uhid_event *ev)
 {
@@ -368,6 +812,36 @@ static int uhid_dev_feature_answer(struct uhid_device *uhid,
 
 unlock:
 	spin_unlock_irqrestore(&uhid->qlock, flags);
+=======
+static int uhid_dev_input2(struct uhid_device *uhid, struct uhid_event *ev)
+{
+	if (!uhid->running)
+		return -EINVAL;
+
+	hid_input_report(uhid->hid, HID_INPUT_REPORT, ev->u.input2.data,
+			 min_t(size_t, ev->u.input2.size, UHID_DATA_MAX), 0);
+
+	return 0;
+}
+
+static int uhid_dev_get_report_reply(struct uhid_device *uhid,
+				     struct uhid_event *ev)
+{
+	if (!uhid->running)
+		return -EINVAL;
+
+	uhid_report_wake_up(uhid, ev->u.get_report_reply.id, ev);
+	return 0;
+}
+
+static int uhid_dev_set_report_reply(struct uhid_device *uhid,
+				     struct uhid_event *ev)
+{
+	if (!uhid->running)
+		return -EINVAL;
+
+	uhid_report_wake_up(uhid, ev->u.set_report_reply.id, ev);
+>>>>>>> android-3.18
 	return 0;
 }
 
@@ -385,7 +859,11 @@ static int uhid_char_open(struct inode *inode, struct file *file)
 	init_waitqueue_head(&uhid->waitq);
 	init_waitqueue_head(&uhid->report_wait);
 	uhid->running = false;
+<<<<<<< HEAD
 	atomic_set(&uhid->report_done, 1);
+=======
+	INIT_WORK(&uhid->worker, uhid_device_add_worker);
+>>>>>>> android-3.18
 
 	file->private_data = uhid;
 	nonseekable_open(inode, file);
@@ -473,6 +951,7 @@ static ssize_t uhid_char_write(struct file *file, const char __user *buffer,
 
 	memset(&uhid->input_buf, 0, sizeof(uhid->input_buf));
 	len = min(count, sizeof(uhid->input_buf));
+<<<<<<< HEAD
 	if (copy_from_user(&uhid->input_buf, buffer, len)) {
 		ret = -EFAULT;
 		goto unlock;
@@ -482,14 +961,50 @@ static ssize_t uhid_char_write(struct file *file, const char __user *buffer,
 	case UHID_CREATE:
 		ret = uhid_dev_create(uhid, &uhid->input_buf);
 		break;
+=======
+
+	ret = uhid_event_from_user(buffer, len, &uhid->input_buf);
+	if (ret)
+		goto unlock;
+
+	switch (uhid->input_buf.type) {
+	case UHID_CREATE:
+		/*
+		 * 'struct uhid_create_req' contains a __user pointer which is
+		 * copied from, so it's unsafe to allow this with elevated
+		 * privileges (e.g. from a setuid binary) or via kernel_write().
+		 */
+		if (file->f_cred != current_cred() || uaccess_kernel()) {
+			pr_err_once("UHID_CREATE from different security context by process %d (%s), this is not allowed.\n",
+				    task_tgid_vnr(current), current->comm);
+			ret = -EACCES;
+			goto unlock;
+		}
+		ret = uhid_dev_create(uhid, &uhid->input_buf);
+		break;
+	case UHID_CREATE2:
+		ret = uhid_dev_create2(uhid, &uhid->input_buf);
+		break;
+>>>>>>> android-3.18
 	case UHID_DESTROY:
 		ret = uhid_dev_destroy(uhid);
 		break;
 	case UHID_INPUT:
 		ret = uhid_dev_input(uhid, &uhid->input_buf);
 		break;
+<<<<<<< HEAD
 	case UHID_FEATURE_ANSWER:
 		ret = uhid_dev_feature_answer(uhid, &uhid->input_buf);
+=======
+	case UHID_INPUT2:
+		ret = uhid_dev_input2(uhid, &uhid->input_buf);
+		break;
+	case UHID_GET_REPORT_REPLY:
+		ret = uhid_dev_get_report_reply(uhid, &uhid->input_buf);
+		break;
+	case UHID_SET_REPORT_REPLY:
+		ret = uhid_dev_set_report_reply(uhid, &uhid->input_buf);
+>>>>>>> android-3.18
 		break;
 	default:
 		ret = -EOPNOTSUPP;
@@ -505,13 +1020,23 @@ unlock:
 static unsigned int uhid_char_poll(struct file *file, poll_table *wait)
 {
 	struct uhid_device *uhid = file->private_data;
+<<<<<<< HEAD
+=======
+	unsigned int mask = POLLOUT | POLLWRNORM; /* uhid is always writable */
+>>>>>>> android-3.18
 
 	poll_wait(file, &uhid->waitq, wait);
 
 	if (uhid->head != uhid->tail)
+<<<<<<< HEAD
 		return POLLIN | POLLRDNORM;
 
 	return 0;
+=======
+		mask |= POLLIN | POLLRDNORM;
+
+	return mask;
+>>>>>>> android-3.18
 }
 
 static const struct file_operations uhid_fops = {
@@ -526,7 +1051,11 @@ static const struct file_operations uhid_fops = {
 
 static struct miscdevice uhid_misc = {
 	.fops		= &uhid_fops,
+<<<<<<< HEAD
 	.minor		= MISC_DYNAMIC_MINOR,
+=======
+	.minor		= UHID_MINOR,
+>>>>>>> android-3.18
 	.name		= UHID_NAME,
 };
 
@@ -545,3 +1074,8 @@ module_exit(uhid_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("David Herrmann <dh.herrmann@gmail.com>");
 MODULE_DESCRIPTION("User-space I/O driver support for HID subsystem");
+<<<<<<< HEAD
+=======
+MODULE_ALIAS_MISCDEV(UHID_MINOR);
+MODULE_ALIAS("devname:" UHID_NAME);
+>>>>>>> android-3.18

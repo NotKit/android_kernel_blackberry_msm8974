@@ -29,7 +29,44 @@
 #include <linux/mtd/nand.h>
 #include <linux/mtd/partitions.h>
 
+<<<<<<< HEAD
 #include <mach/mmc.h>
+=======
+#include "clock.h"
+#include "clock-pcom.h"
+#include <linux/platform_data/mmc-msm_sdcc.h>
+
+static struct resource msm_gpio_resources[] = {
+	{
+		.start	= 32 + 0,
+		.end	= 32 + 0,
+		.flags	= IORESOURCE_IRQ,
+	},
+	{
+		.start	= 32 + 1,
+		.end	= 32 + 1,
+		.flags	= IORESOURCE_IRQ,
+	},
+	{
+		.start	= 0xa9200800,
+		.end	= 0xa9200800 + SZ_4K - 1,
+		.flags	= IORESOURCE_MEM,
+		.name  = "gpio1"
+	},
+	{
+		.start	= 0xa9300C00,
+		.end	= 0xa9300C00 + SZ_4K - 1,
+		.flags	= IORESOURCE_MEM,
+		.name  = "gpio2"
+	},
+};
+
+struct platform_device msm_device_gpio_7201 = {
+	.name	= "gpio-msm-7201",
+	.num_resources	= ARRAY_SIZE(msm_gpio_resources),
+	.resource	= msm_gpio_resources,
+};
+>>>>>>> android-3.18
 
 static struct resource resources_uart1[] = {
 	{
@@ -505,6 +542,7 @@ struct platform_device msm_device_mdp = {
 	.resource = resources_mdp,
 };
 
+<<<<<<< HEAD
 static struct resource resources_tssc[] = {
 	{
 		.start	= MSM_TSSC_PHYS,
@@ -531,4 +569,58 @@ struct platform_device msm_device_touchscreen = {
 	.id = 0,
 	.num_resources = ARRAY_SIZE(resources_tssc),
 	.resource = resources_tssc,
+=======
+static struct clk_pcom_desc msm_clocks_7x01a[] = {
+	CLK_PCOM("adm_clk",	ADM_CLK,	NULL, 0),
+	CLK_PCOM("adsp_clk",	ADSP_CLK,	NULL, 0),
+	CLK_PCOM("ebi1_clk",	EBI1_CLK,	NULL, 0),
+	CLK_PCOM("ebi2_clk",	EBI2_CLK,	NULL, 0),
+	CLK_PCOM("ecodec_clk",	ECODEC_CLK,	NULL, 0),
+	CLK_PCOM("emdh_clk",	EMDH_CLK,	NULL, OFF),
+	CLK_PCOM("gp_clk",		GP_CLK,		NULL, 0),
+	CLK_PCOM("grp_clk",	GRP_3D_CLK,	NULL, OFF),
+	CLK_PCOM("i2c_clk",	I2C_CLK,	"msm_i2c.0", 0),
+	CLK_PCOM("icodec_rx_clk",	ICODEC_RX_CLK,	NULL, 0),
+	CLK_PCOM("icodec_tx_clk",	ICODEC_TX_CLK,	NULL, 0),
+	CLK_PCOM("imem_clk",	IMEM_CLK,	NULL, OFF),
+	CLK_PCOM("mdc_clk",	MDC_CLK,	NULL, 0),
+	CLK_PCOM("mdp_clk",	MDP_CLK,	NULL, OFF),
+	CLK_PCOM("pbus_clk",	PBUS_CLK,	NULL, 0),
+	CLK_PCOM("pcm_clk",	PCM_CLK,	NULL, 0),
+	CLK_PCOM("mddi_clk",	PMDH_CLK,	NULL, OFF | CLK_MINMAX),
+	CLK_PCOM("sdac_clk",	SDAC_CLK,	NULL, OFF),
+	CLK_PCOM("sdc_clk",	SDC1_CLK,	"msm_sdcc.1", OFF),
+	CLK_PCOM("sdc_pclk",	SDC1_P_CLK,	"msm_sdcc.1", OFF),
+	CLK_PCOM("sdc_clk",	SDC2_CLK,	"msm_sdcc.2", OFF),
+	CLK_PCOM("sdc_pclk",	SDC2_P_CLK,	"msm_sdcc.2", OFF),
+	CLK_PCOM("sdc_clk",	SDC3_CLK,	"msm_sdcc.3", OFF),
+	CLK_PCOM("sdc_pclk",	SDC3_P_CLK,	"msm_sdcc.3", OFF),
+	CLK_PCOM("sdc_clk",	SDC4_CLK,	"msm_sdcc.4", OFF),
+	CLK_PCOM("sdc_pclk",	SDC4_P_CLK,	"msm_sdcc.4", OFF),
+	CLK_PCOM("tsif_clk",	TSIF_CLK,	NULL, 0),
+	CLK_PCOM("tsif_ref_clk",	TSIF_REF_CLK,	NULL, 0),
+	CLK_PCOM("tv_dac_clk",	TV_DAC_CLK,	NULL, 0),
+	CLK_PCOM("tv_enc_clk",	TV_ENC_CLK,	NULL, 0),
+	CLK_PCOM("core",	UART1_CLK,	"msm_serial.0", OFF),
+	CLK_PCOM("core",	UART2_CLK,	"msm_serial.1", 0),
+	CLK_PCOM("core",	UART3_CLK,	"msm_serial.2", OFF),
+	CLK_PCOM("uart1dm_clk",	UART1DM_CLK,	NULL, OFF),
+	CLK_PCOM("uart2dm_clk",	UART2DM_CLK,	NULL, 0),
+	CLK_PCOM("usb_hs_clk",	USB_HS_CLK,	"msm_hsusb", OFF),
+	CLK_PCOM("usb_hs_pclk",	USB_HS_P_CLK,	"msm_hsusb", OFF),
+	CLK_PCOM("usb_otg_clk",	USB_OTG_CLK,	NULL, 0),
+	CLK_PCOM("vdc_clk",	VDC_CLK,	NULL, OFF ),
+	CLK_PCOM("vfe_clk",	VFE_CLK,	NULL, OFF),
+	CLK_PCOM("vfe_mdc_clk",	VFE_MDC_CLK,	NULL, OFF),
+};
+
+static struct pcom_clk_pdata msm_clock_7x01a_pdata = {
+	.lookup = msm_clocks_7x01a,
+	.num_lookups = ARRAY_SIZE(msm_clocks_7x01a),
+};
+
+struct platform_device msm_clock_7x01a = {
+	.name = "msm-clock-pcom",
+	.dev.platform_data = &msm_clock_7x01a_pdata,
+>>>>>>> android-3.18
 };

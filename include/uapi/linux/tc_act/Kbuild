@@ -1,5 +1,9 @@
 # UAPI Header export list
 header-y += tc_csum.h
+<<<<<<< HEAD
+=======
+header-y += tc_defact.h
+>>>>>>> android-3.18
 header-y += tc_gact.h
 header-y += tc_ipt.h
 header-y += tc_mirred.h

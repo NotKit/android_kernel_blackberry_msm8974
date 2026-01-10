@@ -64,6 +64,7 @@ enum p9_session_flags {
 
 enum p9_cache_modes {
 	CACHE_NONE,
+	CACHE_MMAP,
 	CACHE_LOOSE,
 	CACHE_FSCACHE,
 };
@@ -109,13 +110,14 @@ struct v9fs_session_info {
 	char *uname;		/* user name to mount as */
 	char *aname;		/* name of remote hierarchy being mounted */
 	unsigned int maxdata;	/* max data for client interface */
-	unsigned int dfltuid;	/* default uid/muid for legacy support */
-	unsigned int dfltgid;	/* default gid for legacy support */
-	u32 uid;		/* if ACCESS_SINGLE, the uid that has access */
+	kuid_t dfltuid;		/* default uid/muid for legacy support */
+	kgid_t dfltgid;		/* default gid for legacy support */
+	kuid_t uid;		/* if ACCESS_SINGLE, the uid that has access */
 	struct p9_client *clnt;	/* 9p client */
 	struct list_head slist; /* list of sessions registered with v9fs */
 	struct backing_dev_info bdi;
 	struct rw_semaphore rename_sem;
+	long session_lock_timeout; /* retry interval for blocking locks */
 };
 
 /* cache_validity flags */
@@ -123,7 +125,7 @@ struct v9fs_session_info {
 
 struct v9fs_inode {
 #ifdef CONFIG_9P_FSCACHE
-	spinlock_t fscache_lock;
+	struct mutex fscache_lock;
 	struct fscache_cookie *fscache;
 #endif
 	struct p9_qid qid;
@@ -165,8 +167,8 @@ extern struct inode *v9fs_inode_from_fid_dotl(struct v9fs_session_info *v9ses,
 #define V9FS_PORT	564
 #define V9FS_DEFUSER	"nobody"
 #define V9FS_DEFANAME	""
-#define V9FS_DEFUID	(-2)
-#define V9FS_DEFGID	(-2)
+#define V9FS_DEFUID	KUIDT_INIT(-2)
+#define V9FS_DEFGID	KGIDT_INIT(-2)
 
 static inline struct v9fs_session_info *v9fs_inode2v9ses(struct inode *inode)
 {

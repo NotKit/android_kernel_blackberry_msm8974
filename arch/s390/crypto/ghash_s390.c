@@ -73,14 +73,20 @@ static int ghash_update(struct shash_desc *desc,
 		if (!dctx->bytes) {
 			ret = crypt_s390_kimd(KIMD_GHASH, dctx, buf,
 					      GHASH_BLOCK_SIZE);
-			BUG_ON(ret != GHASH_BLOCK_SIZE);
+			if (ret != GHASH_BLOCK_SIZE)
+				return -EIO;
 		}
 	}
 
 	n = srclen & ~(GHASH_BLOCK_SIZE - 1);
 	if (n) {
 		ret = crypt_s390_kimd(KIMD_GHASH, dctx, src, n);
+<<<<<<< HEAD
 		BUG_ON(ret != n);
+=======
+		if (ret != n)
+			return -EIO;
+>>>>>>> android-3.18
 		src += n;
 		srclen -= n;
 	}
@@ -104,20 +110,37 @@ static int ghash_flush(struct ghash_desc_ctx *dctx)
 		memset(pos, 0, dctx->bytes);
 
 		ret = crypt_s390_kimd(KIMD_GHASH, dctx, buf, GHASH_BLOCK_SIZE);
+<<<<<<< HEAD
 		BUG_ON(ret != GHASH_BLOCK_SIZE);
 
 		dctx->bytes = 0;
 	}
+=======
+		if (ret != GHASH_BLOCK_SIZE)
+			return -EIO;
+
+		dctx->bytes = 0;
+	}
+
+	return 0;
+>>>>>>> android-3.18
 }
 
 static int ghash_final(struct shash_desc *desc, u8 *dst)
 {
 	struct ghash_desc_ctx *dctx = shash_desc_ctx(desc);
+<<<<<<< HEAD
 
 	ghash_flush(dctx);
 	memcpy(dst, dctx->icv, GHASH_BLOCK_SIZE);
+=======
+	int ret;
+>>>>>>> android-3.18
 
-	return 0;
+	ret = ghash_flush(dctx);
+	if (!ret)
+		memcpy(dst, dctx->icv, GHASH_BLOCK_SIZE);
+	return ret;
 }
 
 static struct shash_alg ghash_alg = {
@@ -135,7 +158,6 @@ static struct shash_alg ghash_alg = {
 		.cra_blocksize		= GHASH_BLOCK_SIZE,
 		.cra_ctxsize		= sizeof(struct ghash_ctx),
 		.cra_module		= THIS_MODULE,
-		.cra_list		= LIST_HEAD_INIT(ghash_alg.base.cra_list),
 	},
 };
 
@@ -156,7 +178,7 @@ static void __exit ghash_mod_exit(void)
 module_init(ghash_mod_init);
 module_exit(ghash_mod_exit);
 
-MODULE_ALIAS("ghash");
+MODULE_ALIAS_CRYPTO("ghash");
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("GHASH Message Digest Algorithm, s390 implementation");

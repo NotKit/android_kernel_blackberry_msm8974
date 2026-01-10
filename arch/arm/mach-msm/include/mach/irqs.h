@@ -82,6 +82,7 @@
 #elif defined(CONFIG_ARCH_QSD8X50)
 #include "irqs-8x50.h"
 #include "sirc.h"
+<<<<<<< HEAD
 #elif defined(CONFIG_ARCH_MSM8X60)
 #include "irqs-8x60.h"
 #elif defined(CONFIG_ARCH_MSM7X01A) || defined(CONFIG_ARCH_MSM7X25) \
@@ -119,6 +120,12 @@
 #define NR_GPIO_IRQS 76
 #define NR_BOARD_IRQS 0
 
+=======
+#elif defined(CONFIG_ARCH_MSM_ARM11)
+#include "irqs-7x00.h"
+#else
+#error "Unknown architecture specification"
+>>>>>>> android-3.18
 #endif
 
 #define NR_IRQS (NR_MSM_IRQS + NR_GPIO_IRQS + NR_BOARD_IRQS)

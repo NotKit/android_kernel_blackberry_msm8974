@@ -79,6 +79,10 @@
 /*  Four-character-code (FOURCC) */
 #define v4l2_fourcc(a, b, c, d)\
 	((__u32)(a) | ((__u32)(b) << 8) | ((__u32)(c) << 16) | ((__u32)(d) << 24))
+<<<<<<< HEAD
+=======
+#define v4l2_fourcc_be(a, b, c, d)	(v4l2_fourcc(a, b, c, d) | (1 << 31))
+>>>>>>> android-3.18
 
 /*
  *	E N U M S
@@ -124,6 +128,13 @@ enum v4l2_field {
 	 (field) == V4L2_FIELD_INTERLACED_BT ||\
 	 (field) == V4L2_FIELD_SEQ_TB ||\
 	 (field) == V4L2_FIELD_SEQ_BT)
+<<<<<<< HEAD
+=======
+#define V4L2_FIELD_HAS_T_OR_B(field)	\
+	((field) == V4L2_FIELD_BOTTOM ||\
+	 (field) == V4L2_FIELD_TOP ||\
+	 (field) == V4L2_FIELD_ALTERNATE)
+>>>>>>> android-3.18
 
 enum v4l2_buf_type {
 	V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
@@ -139,6 +150,10 @@ enum v4l2_buf_type {
 #endif
 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
+<<<<<<< HEAD
+=======
+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+>>>>>>> android-3.18
 	/* Deprecated, do not use */
 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
 };
@@ -159,6 +174,11 @@ enum v4l2_tuner_type {
 	V4L2_TUNER_RADIO	     = 1,
 	V4L2_TUNER_ANALOG_TV	     = 2,
 	V4L2_TUNER_DIGITAL_TV	     = 3,
+<<<<<<< HEAD
+=======
+	V4L2_TUNER_ADC               = 4,
+	V4L2_TUNER_RF                = 5,
+>>>>>>> android-3.18
 };
 
 enum v4l2_memory {
@@ -207,8 +227,13 @@ enum v4l2_priority {
 struct v4l2_rect {
 	__s32   left;
 	__s32   top;
+<<<<<<< HEAD
 	__s32   width;
 	__s32   height;
+=======
+	__u32   width;
+	__u32   height;
+>>>>>>> android-3.18
 };
 
 struct v4l2_fract {
@@ -264,6 +289,12 @@ struct v4l2_capability {
 #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
 #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
 
+<<<<<<< HEAD
+=======
+#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
+#define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended pixel format */
+
+>>>>>>> android-3.18
 #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
 #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
 #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
@@ -282,6 +313,10 @@ struct v4l2_pix_format {
 	__u32          		sizeimage;
 	__u32			colorspace;	/* enum v4l2_colorspace */
 	__u32			priv;		/* private data, depends on pixelformat */
+<<<<<<< HEAD
+=======
+	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
+>>>>>>> android-3.18
 };
 
 /*      Pixel format         FOURCC                          depth  Description  */
@@ -289,15 +324,35 @@ struct v4l2_pix_format {
 /* RGB formats */
 #define V4L2_PIX_FMT_RGB332  v4l2_fourcc('R', 'G', 'B', '1') /*  8  RGB-3-3-2     */
 #define V4L2_PIX_FMT_RGB444  v4l2_fourcc('R', '4', '4', '4') /* 16  xxxxrrrr ggggbbbb */
+<<<<<<< HEAD
 #define V4L2_PIX_FMT_RGB555  v4l2_fourcc('R', 'G', 'B', 'O') /* 16  RGB-5-5-5     */
 #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16  RGB-5-6-5     */
 #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+=======
+#define V4L2_PIX_FMT_ARGB444 v4l2_fourcc('A', 'R', '1', '2') /* 16  aaaarrrr ggggbbbb */
+#define V4L2_PIX_FMT_XRGB444 v4l2_fourcc('X', 'R', '1', '2') /* 16  xxxxrrrr ggggbbbb */
+#define V4L2_PIX_FMT_RGB555  v4l2_fourcc('R', 'G', 'B', 'O') /* 16  RGB-5-5-5     */
+#define V4L2_PIX_FMT_ARGB555 v4l2_fourcc('A', 'R', '1', '5') /* 16  ARGB-1-5-5-5  */
+#define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1', '5') /* 16  XRGB-1-5-5-5  */
+#define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16  RGB-5-6-5     */
+#define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+#define V4L2_PIX_FMT_ARGB555X v4l2_fourcc_be('A', 'R', '1', '5') /* 16  ARGB-5-5-5 BE */
+#define V4L2_PIX_FMT_XRGB555X v4l2_fourcc_be('X', 'R', '1', '5') /* 16  XRGB-5-5-5 BE */
+>>>>>>> android-3.18
 #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
 #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
 #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
 #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
 #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
+<<<<<<< HEAD
 #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-8-8-8   */
+=======
+#define V4L2_PIX_FMT_ABGR32  v4l2_fourcc('A', 'R', '2', '4') /* 32  BGRA-8-8-8-8  */
+#define V4L2_PIX_FMT_XBGR32  v4l2_fourcc('X', 'R', '2', '4') /* 32  BGRX-8-8-8-8  */
+#define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-8-8-8   */
+#define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8-8-8-8  */
+#define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8-8-8-8  */
+>>>>>>> android-3.18
 
 /* Grey formats */
 #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greyscale     */
@@ -348,6 +403,11 @@ struct v4l2_pix_format {
 /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
 #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
 #define V4L2_PIX_FMT_NV21M   v4l2_fourcc('N', 'M', '2', '1') /* 21  Y/CrCb 4:2:0  */
+<<<<<<< HEAD
+=======
+#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr 4:2:2  */
+#define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
+>>>>>>> android-3.18
 #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
 #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
 
@@ -364,6 +424,14 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
 #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
 #define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
+<<<<<<< HEAD
+=======
+	/* 10bit raw bayer packed, 5 bytes for every 4 pixels */
+#define V4L2_PIX_FMT_SBGGR10P v4l2_fourcc('p', 'B', 'A', 'A')
+#define V4L2_PIX_FMT_SGBRG10P v4l2_fourcc('p', 'G', 'A', 'A')
+#define V4L2_PIX_FMT_SGRBG10P v4l2_fourcc('p', 'g', 'A', 'A')
+#define V4L2_PIX_FMT_SRGGB10P v4l2_fourcc('p', 'R', 'A', 'A')
+>>>>>>> android-3.18
 #define V4L2_PIX_FMT_SBGGR12 v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG.. GRGR.. */
 #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
 #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
@@ -395,6 +463,7 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
 #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
 #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
+<<<<<<< HEAD
 #define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     */
 #define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
 #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
@@ -404,6 +473,13 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_VP8 v4l2_fourcc('V', 'P', '8', '0') /* ON2 VP8 stream */
 #define V4L2_PIX_FMT_HEVC v4l2_fourcc('H', 'E', 'V', 'C') /* for HEVC stream */
 #define V4L2_PIX_FMT_HEVC_HYBRID v4l2_fourcc('H', 'V', 'C', 'H')
+=======
+#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 part 2 ES */
+#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
+#define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
+#define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+#define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+>>>>>>> android-3.18
 
 /*  Vendor-specific formats   */
 #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
@@ -432,6 +508,25 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
 #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
 #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+<<<<<<< HEAD
+=======
+#define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+#define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+#define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+
+/* SDR formats - used only for Software Defined Radio devices */
+#define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+#define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+#define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+#define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+#define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
+
+/* priv field value to indicates that subsequent fields are valid. */
+#define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+
+/* Flags */
+#define V4L2_PIX_FMT_FLAG_PREMUL_ALPHA	0x00000001
+>>>>>>> android-3.18
 
 /*
  *	F O R M A T   E N U M E R A T I O N
@@ -559,7 +654,11 @@ struct v4l2_jpegcompression {
 	__u32 jpeg_markers;     /* Which markers should go into the JPEG
 				 * output. Unless you exactly know what
 				 * you do, leave them untouched.
+<<<<<<< HEAD
 				 * Inluding less markers will make the
+=======
+				 * Including less markers will make the
+>>>>>>> android-3.18
 				 * resulting code smaller, but there will
 				 * be fewer applications which can read it.
 				 * The presence of the APP and COM marker
@@ -571,7 +670,11 @@ struct v4l2_jpegcompression {
 #define V4L2_JPEG_MARKER_DRI (1<<5)    /* Define Restart Interval */
 #define V4L2_JPEG_MARKER_COM (1<<6)    /* Comment segment */
 #define V4L2_JPEG_MARKER_APP (1<<7)    /* App segment, driver will
+<<<<<<< HEAD
 					* allways use APP0 */
+=======
+					* always use APP0 */
+>>>>>>> android-3.18
 };
 
 /*
@@ -642,7 +745,10 @@ struct v4l2_plane {
  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
  *		buffers (when type != *_MPLANE); number of elements in the
  *		planes array for multi-plane buffers
+<<<<<<< HEAD
  * @input:	input number from which the video data has has been captured
+=======
+>>>>>>> android-3.18
  *
  * Contains data exchanged by application and driver using one of the Streaming
  * I/O methods.
@@ -666,12 +772,16 @@ struct v4l2_buffer {
 		__s32		fd;
 	} m;
 	__u32			length;
+<<<<<<< HEAD
 	__u32			input;
+=======
+>>>>>>> android-3.18
 	__u32			reserved2;
 	__u32			reserved;
 };
 
 /*  Flags for 'flags' field */
+<<<<<<< HEAD
 #define V4L2_BUF_FLAG_MAPPED	0x0001  /* Buffer is mapped (flag) */
 #define V4L2_BUF_FLAG_QUEUED	0x0002	/* Buffer is queued for processing */
 #define V4L2_BUF_FLAG_DONE	0x0004	/* Buffer is ready */
@@ -703,6 +813,38 @@ struct v4l2_buffer {
 #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
 #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
 #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
+=======
+/* Buffer is mapped (flag) */
+#define V4L2_BUF_FLAG_MAPPED			0x00000001
+/* Buffer is queued for processing */
+#define V4L2_BUF_FLAG_QUEUED			0x00000002
+/* Buffer is ready */
+#define V4L2_BUF_FLAG_DONE			0x00000004
+/* Image is a keyframe (I-frame) */
+#define V4L2_BUF_FLAG_KEYFRAME			0x00000008
+/* Image is a P-frame */
+#define V4L2_BUF_FLAG_PFRAME			0x00000010
+/* Image is a B-frame */
+#define V4L2_BUF_FLAG_BFRAME			0x00000020
+/* Buffer is ready, but the data contained within is corrupted. */
+#define V4L2_BUF_FLAG_ERROR			0x00000040
+/* timecode field is valid */
+#define V4L2_BUF_FLAG_TIMECODE			0x00000100
+/* Buffer is prepared for queuing */
+#define V4L2_BUF_FLAG_PREPARED			0x00000400
+/* Cache handling flags */
+#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
+#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
+/* Timestamp type */
+#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
+#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+/* Timestamp sources. */
+#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
+#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
+#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>>>>>>> android-3.18
 
 /**
  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
@@ -740,7 +882,20 @@ struct v4l2_framebuffer {
 /* FIXME: in theory we should pass something like PCI device + memory
  * region + offset instead of some physical address */
 	void                    *base;
+<<<<<<< HEAD
 	struct v4l2_pix_format	fmt;
+=======
+	struct {
+		__u32		width;
+		__u32		height;
+		__u32		pixelformat;
+		__u32		field;		/* enum v4l2_field */
+		__u32		bytesperline;	/* for padding, zero if unused */
+		__u32		sizeimage;
+		__u32		colorspace;	/* enum v4l2_colorspace */
+		__u32		priv;		/* reserved field, set to 0 */
+	} fmt;
+>>>>>>> android-3.18
 };
 /*  Flags for the 'capability' field. Read only */
 #define V4L2_FBUF_CAP_EXTERNOVERLAY	0x0001
@@ -790,12 +945,15 @@ struct v4l2_captureparm {
 /*  Flags for 'capability' and 'capturemode' fields */
 #define V4L2_MODE_HIGHQUALITY	0x0001	/*  High quality imaging mode */
 #define V4L2_CAP_TIMEPERFRAME	0x1000	/*  timeperframe field is supported */
+<<<<<<< HEAD
 #define V4L2_CAP_QCOM_FRAMESKIP	0x2000	/*  frame skipping is supported */
 
 struct v4l2_qcom_frameskip {
 	__u64		   maxframeinterval;
 	__u8		   fpsvariance;
 };
+=======
+>>>>>>> android-3.18
 
 struct v4l2_outputparm {
 	__u32		   capability;	 /*  Supported modes */
@@ -924,7 +1082,11 @@ typedef __u64 v4l2_std_id;
 /*
  * "Common" PAL - This macro is there to be compatible with the old
  * V4L1 concept of "PAL": /BGDKHI.
+<<<<<<< HEAD
  * Several PAL standards are mising here: /M, /N and /Nc
+=======
+ * Several PAL standards are missing here: /M, /N and /Nc
+>>>>>>> android-3.18
  */
 #define V4L2_STD_PAL		(V4L2_STD_PAL_BG	|\
 				 V4L2_STD_PAL_DK	|\
@@ -985,6 +1147,7 @@ struct v4l2_standard {
 };
 
 /*
+<<<<<<< HEAD
  *	V I D E O	T I M I N G S	D V	P R E S E T
  */
 struct v4l2_dv_preset {
@@ -1005,6 +1168,8 @@ struct v4l2_dv_enum_preset {
 };
 
 /*
+=======
+>>>>>>> android-3.18
  *	D V 	B T	T I M I N G S
  */
 
@@ -1099,6 +1264,19 @@ struct v4l2_bt_timings {
    or used depends on the hardware. */
 #define V4L2_DV_FL_HALF_LINE			(1 << 3)
 
+<<<<<<< HEAD
+=======
+/* A few useful defines to calculate the total blanking and frame sizes */
+#define V4L2_DV_BT_BLANKING_WIDTH(bt) \
+	((bt)->hfrontporch + (bt)->hsync + (bt)->hbackporch)
+#define V4L2_DV_BT_FRAME_WIDTH(bt) \
+	((bt)->width + V4L2_DV_BT_BLANKING_WIDTH(bt))
+#define V4L2_DV_BT_BLANKING_HEIGHT(bt) \
+	((bt)->vfrontporch + (bt)->vsync + (bt)->vbackporch + \
+	 (bt)->il_vfrontporch + (bt)->il_vsync + (bt)->il_vbackporch)
+#define V4L2_DV_BT_FRAME_HEIGHT(bt) \
+	((bt)->height + V4L2_DV_BT_BLANKING_HEIGHT(bt))
+>>>>>>> android-3.18
 
 /** struct v4l2_dv_timings - DV timings
  * @type:	the type of the timings
@@ -1118,12 +1296,22 @@ struct v4l2_dv_timings {
 
 /** struct v4l2_enum_dv_timings - DV timings enumeration
  * @index:	enumeration index
+<<<<<<< HEAD
+=======
+ * @pad:	the pad number for which to enumerate timings (used with
+ *		v4l-subdev nodes only)
+>>>>>>> android-3.18
  * @reserved:	must be zeroed
  * @timings:	the timings for the given index
  */
 struct v4l2_enum_dv_timings {
 	__u32 index;
+<<<<<<< HEAD
 	__u32 reserved[3];
+=======
+	__u32 pad;
+	__u32 reserved[2];
+>>>>>>> android-3.18
 	struct v4l2_dv_timings timings;
 };
 
@@ -1161,11 +1349,21 @@ struct v4l2_bt_timings_cap {
 
 /** struct v4l2_dv_timings_cap - DV timings capabilities
  * @type:	the type of the timings (same as in struct v4l2_dv_timings)
+<<<<<<< HEAD
+=======
+ * @pad:	the pad number for which to query capabilities (used with
+ *		v4l-subdev nodes only)
+>>>>>>> android-3.18
  * @bt:		the BT656/1120 timings capabilities
  */
 struct v4l2_dv_timings_cap {
 	__u32 type;
+<<<<<<< HEAD
 	__u32 reserved[3];
+=======
+	__u32 pad;
+	__u32 reserved[2];
+>>>>>>> android-3.18
 	union {
 		struct v4l2_bt_timings_cap bt;
 		__u32 raw_data[32];
@@ -1217,7 +1415,10 @@ struct v4l2_input {
 #define V4L2_IN_ST_VTR         0x04000000  /* VTR time constant */
 
 /* capabilities flags */
+<<<<<<< HEAD
 #define V4L2_IN_CAP_PRESETS             0x00000001 /* Supports S_DV_PRESET */
+=======
+>>>>>>> android-3.18
 #define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
 #define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For compatibility */
 #define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
@@ -1241,7 +1442,10 @@ struct v4l2_output {
 #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
 
 /* capabilities flags */
+<<<<<<< HEAD
 #define V4L2_OUT_CAP_PRESETS            0x00000001 /* Supports S_DV_PRESET */
+=======
+>>>>>>> android-3.18
 #define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
 #define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
 #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
@@ -1261,7 +1465,15 @@ struct v4l2_ext_control {
 	union {
 		__s32 value;
 		__s64 value64;
+<<<<<<< HEAD
 		char *string;
+=======
+		char __user *string;
+		__u8 __user *p_u8;
+		__u16 __user *p_u16;
+		__u32 __user *p_u32;
+		void __user *ptr;
+>>>>>>> android-3.18
 	};
 } __attribute__ ((packed));
 
@@ -1276,6 +1488,10 @@ struct v4l2_ext_controls {
 #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
 #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
 #define V4L2_CTRL_DRIVER_PRIV(id) (((id) & 0xffff) >= 0x1000)
+<<<<<<< HEAD
+=======
+#define V4L2_CTRL_MAX_DIMS	  (4)
+>>>>>>> android-3.18
 
 enum v4l2_ctrl_type {
 	V4L2_CTRL_TYPE_INTEGER	     = 1,
@@ -1286,7 +1502,17 @@ enum v4l2_ctrl_type {
 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
 	V4L2_CTRL_TYPE_STRING        = 7,
 	V4L2_CTRL_TYPE_BITMASK       = 8,
+<<<<<<< HEAD
 	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
+=======
+	V4L2_CTRL_TYPE_INTEGER_MENU  = 9,
+
+	/* Compound types are >= 0x0100 */
+	V4L2_CTRL_COMPOUND_TYPES     = 0x0100,
+	V4L2_CTRL_TYPE_U8	     = 0x0100,
+	V4L2_CTRL_TYPE_U16	     = 0x0101,
+	V4L2_CTRL_TYPE_U32	     = 0x0102,
+>>>>>>> android-3.18
 };
 
 /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
@@ -1302,6 +1528,26 @@ struct v4l2_queryctrl {
 	__u32		     reserved[2];
 };
 
+<<<<<<< HEAD
+=======
+/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
+struct v4l2_query_ext_ctrl {
+	__u32		     id;
+	__u32		     type;
+	char		     name[32];
+	__s64		     minimum;
+	__s64		     maximum;
+	__u64		     step;
+	__s64		     default_value;
+	__u32                flags;
+	__u32                elem_size;
+	__u32                elems;
+	__u32                nr_of_dims;
+	__u32                dims[V4L2_CTRL_MAX_DIMS];
+	__u32		     reserved[32];
+};
+
+>>>>>>> android-3.18
 /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
 struct v4l2_querymenu {
 	__u32		id;
@@ -1322,9 +1568,17 @@ struct v4l2_querymenu {
 #define V4L2_CTRL_FLAG_SLIDER 		0x0020
 #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
 #define V4L2_CTRL_FLAG_VOLATILE		0x0080
+<<<<<<< HEAD
 
 /*  Query flag, to be ORed with the control ID */
 #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
+=======
+#define V4L2_CTRL_FLAG_HAS_PAYLOAD	0x0100
+
+/*  Query flags, to be ORed with the control ID */
+#define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
+#define V4L2_CTRL_FLAG_NEXT_COMPOUND	0x40000000
+>>>>>>> android-3.18
 
 /*  User-class control IDs defined by V4L2 */
 #define V4L2_CID_MAX_CTRLS		1024
@@ -1373,6 +1627,10 @@ struct v4l2_modulator {
 #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
 #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
 #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
+<<<<<<< HEAD
+=======
+#define V4L2_TUNER_CAP_1HZ		0x1000
+>>>>>>> android-3.18
 
 /*  Flags for the 'rxsubchans' field */
 #define V4L2_TUNER_SUB_MONO		0x0001
@@ -1502,7 +1760,10 @@ struct v4l2_enc_idx {
 #define V4L2_ENC_CMD_STOP       (1)
 #define V4L2_ENC_CMD_PAUSE      (2)
 #define V4L2_ENC_CMD_RESUME     (3)
+<<<<<<< HEAD
 #define V4L2_ENC_QCOM_CMD_FLUSH  (4)
+=======
+>>>>>>> android-3.18
 
 /* Flags for V4L2_ENC_CMD_STOP */
 #define V4L2_ENC_CMD_STOP_AT_GOP_END    (1 << 0)
@@ -1522,7 +1783,10 @@ struct v4l2_encoder_cmd {
 #define V4L2_DEC_CMD_STOP        (1)
 #define V4L2_DEC_CMD_PAUSE       (2)
 #define V4L2_DEC_CMD_RESUME      (3)
+<<<<<<< HEAD
 #define V4L2_DEC_QCOM_CMD_FLUSH  (4)
+=======
+>>>>>>> android-3.18
 
 /* Flags for V4L2_DEC_CMD_START */
 #define V4L2_DEC_CMD_START_MUTE_AUDIO	(1 << 0)
@@ -1534,6 +1798,7 @@ struct v4l2_encoder_cmd {
 #define V4L2_DEC_CMD_STOP_TO_BLACK	(1 << 0)
 #define V4L2_DEC_CMD_STOP_IMMEDIATELY	(1 << 1)
 
+<<<<<<< HEAD
 /* Flags for V4L2_DEC_QCOM_CMD_FLUSH */
 #define V4L2_DEC_QCOM_CMD_FLUSH_OUTPUT  (1 << 0)
 #define V4L2_DEC_QCOM_CMD_FLUSH_CAPTURE (1 << 1)
@@ -1541,6 +1806,8 @@ struct v4l2_encoder_cmd {
 #define V4L2_QCOM_CMD_FLUSH_OUTPUT  (1 << 0)
 #define V4L2_QCOM_CMD_FLUSH_CAPTURE (1 << 1)
 
+=======
+>>>>>>> android-3.18
 /* Play format requirements (returned by the driver): */
 
 /* The decoder has no special format requirements */
@@ -1598,6 +1865,15 @@ struct v4l2_vbi_format {
 #define V4L2_VBI_UNSYNC		(1 << 0)
 #define V4L2_VBI_INTERLACED	(1 << 1)
 
+<<<<<<< HEAD
+=======
+/* ITU-R start lines for each field */
+#define V4L2_VBI_ITU_525_F1_START (1)
+#define V4L2_VBI_ITU_525_F2_START (264)
+#define V4L2_VBI_ITU_625_F1_START (1)
+#define V4L2_VBI_ITU_625_F2_START (314)
+
+>>>>>>> android-3.18
 /* Sliced VBI
  *
  *    This implements is a proposal V4L2 API to allow SLICED VBI
@@ -1721,6 +1997,10 @@ struct v4l2_plane_pix_format {
  * @colorspace:		enum v4l2_colorspace; supplemental to pixelformat
  * @plane_fmt:		per-plane information
  * @num_planes:		number of planes for this format
+<<<<<<< HEAD
+=======
+ * @flags:		format flags (V4L2_PIX_FMT_FLAG_*)
+>>>>>>> android-3.18
  */
 struct v4l2_pix_format_mplane {
 	__u32				width;
@@ -1731,7 +2011,23 @@ struct v4l2_pix_format_mplane {
 
 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
 	__u8				num_planes;
+<<<<<<< HEAD
 	__u8				reserved[11];
+=======
+	__u8				flags;
+	__u8				reserved[10];
+} __attribute__ ((packed));
+
+/**
+ * struct v4l2_sdr_format - SDR format definition
+ * @pixelformat:	little endian four character code (fourcc)
+ * @buffersize:		maximum size in bytes required for data
+ */
+struct v4l2_sdr_format {
+	__u32				pixelformat;
+	__u32				buffersize;
+	__u8				reserved[24];
+>>>>>>> android-3.18
 } __attribute__ ((packed));
 
 /**
@@ -1752,6 +2048,10 @@ struct v4l2_format {
 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+<<<<<<< HEAD
+=======
+		struct v4l2_sdr_format		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+>>>>>>> android-3.18
 		__u8	raw_data[200];                   /* user-defined */
 	} fmt;
 };
@@ -1776,6 +2076,7 @@ struct v4l2_streamparm {
 #define V4L2_EVENT_EOS				2
 #define V4L2_EVENT_CTRL				3
 #define V4L2_EVENT_FRAME_SYNC			4
+<<<<<<< HEAD
 #define V4L2_EVENT_PRIVATE_START		0x08000000
 
 #define V4L2_EVENT_MSM_VIDC_START	(V4L2_EVENT_PRIVATE_START + 0x00001000)
@@ -1793,6 +2094,12 @@ struct v4l2_streamparm {
 #define V4L2_EVENT_MSM_VIDC_HW_OVERLOAD (V4L2_EVENT_MSM_VIDC_START + 8)
 #define V4L2_EVENT_MSM_VIDC_MAX_CLIENTS (V4L2_EVENT_MSM_VIDC_START + 9)
 
+=======
+#define V4L2_EVENT_SOURCE_CHANGE		5
+#define V4L2_EVENT_MOTION_DET			6
+#define V4L2_EVENT_PRIVATE_START		0x08000000
+
+>>>>>>> android-3.18
 /* Payload for V4L2_EVENT_VSYNC */
 struct v4l2_event_vsync {
 	/* Can be V4L2_FIELD_ANY, _NONE, _TOP or _BOTTOM */
@@ -1822,12 +2129,41 @@ struct v4l2_event_frame_sync {
 	__u32 frame_sequence;
 };
 
+<<<<<<< HEAD
+=======
+#define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
+
+struct v4l2_event_src_change {
+	__u32 changes;
+};
+
+#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
+
+/**
+ * struct v4l2_event_motion_det - motion detection event
+ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
+ *                     frame_sequence field is valid.
+ * @frame_sequence:    the frame sequence number associated with this event.
+ * @region_mask:       which regions detected motion.
+ */
+struct v4l2_event_motion_det {
+	__u32 flags;
+	__u32 frame_sequence;
+	__u32 region_mask;
+};
+
+>>>>>>> android-3.18
 struct v4l2_event {
 	__u32				type;
 	union {
 		struct v4l2_event_vsync		vsync;
 		struct v4l2_event_ctrl		ctrl;
 		struct v4l2_event_frame_sync	frame_sync;
+<<<<<<< HEAD
+=======
+		struct v4l2_event_src_change	src_change;
+		struct v4l2_event_motion_det	motion_det;
+>>>>>>> android-3.18
 		__u8				data[64];
 	} u;
 	__u32				pending;
@@ -1857,11 +2193,21 @@ struct v4l2_event_subscription {
 /* VIDIOC_DBG_G_REGISTER and VIDIOC_DBG_S_REGISTER */
 
 #define V4L2_CHIP_MATCH_BRIDGE      0  /* Match against chip ID on the bridge (0 for the bridge) */
+<<<<<<< HEAD
 #define V4L2_CHIP_MATCH_HOST V4L2_CHIP_MATCH_BRIDGE
 #define V4L2_CHIP_MATCH_I2C_DRIVER  1  /* Match against I2C driver name */
 #define V4L2_CHIP_MATCH_I2C_ADDR    2  /* Match against I2C 7-bit address */
 #define V4L2_CHIP_MATCH_AC97        3  /* Match against anciliary AC97 chip */
 #define V4L2_CHIP_MATCH_SUBDEV      4  /* Match against subdev index */
+=======
+#define V4L2_CHIP_MATCH_SUBDEV      4  /* Match against subdev index */
+
+/* The following four defines are no longer in use */
+#define V4L2_CHIP_MATCH_HOST V4L2_CHIP_MATCH_BRIDGE
+#define V4L2_CHIP_MATCH_I2C_DRIVER  1  /* Match against I2C driver name */
+#define V4L2_CHIP_MATCH_I2C_ADDR    2  /* Match against I2C 7-bit address */
+#define V4L2_CHIP_MATCH_AC97        3  /* Match against ancillary AC97 chip */
+>>>>>>> android-3.18
 
 struct v4l2_dbg_match {
 	__u32 type; /* Match type */
@@ -1878,6 +2224,7 @@ struct v4l2_dbg_register {
 	__u64 val;
 } __attribute__ ((packed));
 
+<<<<<<< HEAD
 /* VIDIOC_DBG_G_CHIP_IDENT */
 struct v4l2_dbg_chip_ident {
 	struct v4l2_dbg_match match;
@@ -1885,6 +2232,8 @@ struct v4l2_dbg_chip_ident {
 	__u32 revision;    /* chip revision, chip specific */
 } __attribute__ ((packed));
 
+=======
+>>>>>>> android-3.18
 #define V4L2_CHIP_FL_READABLE (1 << 0)
 #define V4L2_CHIP_FL_WRITABLE (1 << 1)
 
@@ -1948,6 +2297,11 @@ struct v4l2_create_buffers {
 #define VIDIOC_QUERYMENU	_IOWR('V', 37, struct v4l2_querymenu)
 #define VIDIOC_G_INPUT		 _IOR('V', 38, int)
 #define VIDIOC_S_INPUT		_IOWR('V', 39, int)
+<<<<<<< HEAD
+=======
+#define VIDIOC_G_EDID		_IOWR('V', 40, struct v4l2_edid)
+#define VIDIOC_S_EDID		_IOWR('V', 41, struct v4l2_edid)
+>>>>>>> android-3.18
 #define VIDIOC_G_OUTPUT		 _IOR('V', 46, int)
 #define VIDIOC_S_OUTPUT		_IOWR('V', 47, int)
 #define VIDIOC_ENUMOUTPUT	_IOWR('V', 48, struct v4l2_output)
@@ -1985,6 +2339,7 @@ struct v4l2_create_buffers {
 #define	VIDIOC_DBG_S_REGISTER 	 _IOW('V', 79, struct v4l2_dbg_register)
 #define	VIDIOC_DBG_G_REGISTER 	_IOWR('V', 80, struct v4l2_dbg_register)
 
+<<<<<<< HEAD
 /* Experimental, meant for debugging, testing and internal use.
    Never use this ioctl in applications!
    Note: this ioctl is deprecated in favor of VIDIOC_DBG_G_CHIP_INFO and
@@ -1998,6 +2353,10 @@ struct v4l2_create_buffers {
 #define	VIDIOC_S_DV_PRESET	_IOWR('V', 84, struct v4l2_dv_preset)
 #define	VIDIOC_G_DV_PRESET	_IOWR('V', 85, struct v4l2_dv_preset)
 #define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
+=======
+#define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
+
+>>>>>>> android-3.18
 #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
 #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
 #define	VIDIOC_DQEVENT		 _IOR('V', 89, struct v4l2_event)
@@ -2032,6 +2391,11 @@ struct v4l2_create_buffers {
    Never use these in applications! */
 #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
 
+<<<<<<< HEAD
+=======
+#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+
+>>>>>>> android-3.18
 /* Reminder: when adding new ioctls please add support for them to
    drivers/media/video/v4l2-compat-ioctl32.c as well! */
 

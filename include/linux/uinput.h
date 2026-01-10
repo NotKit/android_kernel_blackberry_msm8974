@@ -20,6 +20,8 @@
  * Author: Aristeu Sergio Rozanski Filho <aris@cathedrallabs.org>
  *
  * Changes/Revisions:
+ *	0.4	01/09/2014 (Benjamin Tissoires <benjamin.tissoires@redhat.com>)
+ *		- add UI_GET_SYSNAME ioctl
  *	0.3	24/05/2006 (Anssi Hannula <anssi.hannulagmail.com>)
  *		- update ff support for the changes in kernel interface
  *		- add UINPUT_VERSION
@@ -41,14 +43,14 @@
 enum uinput_state { UIST_NEW_DEVICE, UIST_SETUP_COMPLETE, UIST_CREATED };
 
 struct uinput_request {
-	int			id;
-	int			code;	/* UI_FF_UPLOAD, UI_FF_ERASE */
+	unsigned int		id;
+	unsigned int		code;	/* UI_FF_UPLOAD, UI_FF_ERASE */
 
 	int			retval;
 	struct completion	done;
 
 	union {
-		int		effect_id;
+		unsigned int	effect_id;
 		struct {
 			struct ff_effect *effect;
 			struct ff_effect *old;

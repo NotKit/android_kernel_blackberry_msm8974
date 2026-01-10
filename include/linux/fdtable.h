@@ -9,6 +9,7 @@
 #include <linux/compiler.h>
 #include <linux/spinlock.h>
 #include <linux/rcupdate.h>
+#include <linux/nospec.h>
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/fs.h>
@@ -27,7 +28,6 @@ struct fdtable {
 	unsigned long *close_on_exec;
 	unsigned long *open_fds;
 	struct rcu_head rcu;
-	struct fdtable *next;
 };
 
 static inline bool close_on_exec(int fd, const struct fdtable *fdt)
@@ -60,29 +60,42 @@ struct files_struct {
 	struct file __rcu * fd_array[NR_OPEN_DEFAULT];
 };
 
-#define rcu_dereference_check_fdtable(files, fdtfd) \
-	(rcu_dereference_check((fdtfd), \
-			       lockdep_is_held(&(files)->file_lock) || \
-			       atomic_read(&(files)->count) == 1 || \
-			       rcu_my_thread_group_empty()))
-
-#define files_fdtable(files) \
-		(rcu_dereference_check_fdtable((files), (files)->fdt))
-
 struct file_operations;
 struct vfsmount;
 struct dentry;
 
+<<<<<<< HEAD
 extern void __init files_defer_init(void);
 
 static inline struct file * fcheck_files(struct files_struct *files, unsigned int fd)
-{
-	struct file * file = NULL;
-	struct fdtable *fdt = files_fdtable(files);
+=======
+#define rcu_dereference_check_fdtable(files, fdtfd) \
+	rcu_dereference_check((fdtfd), lockdep_is_held(&(files)->file_lock))
 
-	if (fd < fdt->max_fds)
-		file = rcu_dereference_check_fdtable(files, fdt->fd[fd]);
-	return file;
+#define files_fdtable(files) \
+	rcu_dereference_check_fdtable((files), (files)->fdt)
+
+/*
+ * The caller must ensure that fd table isn't shared or hold rcu or file lock
+ */
+static inline struct file *__fcheck_files(struct files_struct *files, unsigned int fd)
+{
+	struct fdtable *fdt = rcu_dereference_raw(files->fdt);
+
+	if (fd < fdt->max_fds) {
+		fd = array_index_nospec(fd, fdt->max_fds);
+		return rcu_dereference_raw(fdt->fd[fd]);
+	}
+	return NULL;
+}
+
+static inline struct file *fcheck_files(struct files_struct *files, unsigned int fd)
+>>>>>>> android-3.18
+{
+	rcu_lockdep_assert(rcu_read_lock_held() ||
+			   lockdep_is_held(&files->file_lock),
+			   "suspicious rcu_dereference_check() usage");
+	return __fcheck_files(files, fd);
 }
 
 /*

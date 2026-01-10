@@ -2,6 +2,10 @@
 #define _UAPI__LINUX_BRIDGE_EBT_802_3_H
 
 #include <linux/types.h>
+<<<<<<< HEAD
+=======
+#include <linux/if_ether.h>
+>>>>>>> android-3.18
 
 #define EBT_802_3_SAP 0x01
 #define EBT_802_3_TYPE 0x02
@@ -42,8 +46,13 @@ struct hdr_ni {
 };
 
 struct ebt_802_3_hdr {
+<<<<<<< HEAD
 	__u8  daddr[6];
 	__u8  saddr[6];
+=======
+	__u8  daddr[ETH_ALEN];
+	__u8  saddr[ETH_ALEN];
+>>>>>>> android-3.18
 	__be16 len;
 	union {
 		struct hdr_ui ui;

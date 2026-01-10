@@ -49,7 +49,16 @@
 #define PORT_XR17D15X	21	/* Exar XR17D15x UART */
 #define PORT_LPC3220	22	/* NXP LPC32xx SoC "Standard" UART */
 #define PORT_8250_CIR	23	/* CIR infrared port, has its own driver */
+<<<<<<< HEAD
 #define PORT_MAX_8250	23	/* max port ID */
+=======
+#define PORT_XR17V35X	24	/* Exar XR17V35x UARTs */
+#define PORT_BRCM_TRUMANAGE	25
+#define PORT_ALTR_16550_F32 26	/* Altera 16550 UART with 32 FIFOs */
+#define PORT_ALTR_16550_F64 27	/* Altera 16550 UART with 64 FIFOs */
+#define PORT_ALTR_16550_F128 28 /* Altera 16550 UART with 128 FIFOs */
+#define PORT_MAX_8250	28	/* max port ID */
+>>>>>>> android-3.18
 
 /*
  * ARM specific type numbers.  These are not currently guaranteed
@@ -206,7 +215,11 @@
 /* VIA VT8500 SoC */
 #define PORT_VT8500	97
 
+<<<<<<< HEAD
 /* Xilinx PSS UART */
+=======
+/* Cadence (Xilinx Zynq) UART */
+>>>>>>> android-3.18
 #define PORT_XUARTPS	98
 
 /* Atheros AR933X SoC */
@@ -215,5 +228,34 @@
 /* Energy Micro efm32 SoC */
 #define PORT_EFMUART   100
 
+<<<<<<< HEAD
+=======
+/* ARC (Synopsys) on-chip UART */
+#define PORT_ARC       101
+
+/* Rocketport EXPRESS/INFINITY */
+#define PORT_RP2	102
+
+/* Freescale lpuart */
+#define PORT_LPUART	103
+
+/* SH-SCI */
+#define PORT_HSCIF	104
+
+/* ST ASC type numbers */
+#define PORT_ASC       105
+
+/* Tilera TILE-Gx UART */
+#define PORT_TILEGX	106
+
+/* MEN 16z135 UART */
+#define PORT_MEN_Z135	107
+
+/* SC16IS74xx */
+#define PORT_SC16IS7XX   108
+
+/* MESON */
+#define PORT_MESON	109
+>>>>>>> android-3.18
 
 #endif /* _UAPILINUX_SERIAL_CORE_H */

@@ -19,6 +19,52 @@
 #include "proc-macros.S"
 
 /*
+ * The secondary kernel init calls v7_flush_dcache_all before it enables
+ * the L1; however, the L1 comes out of reset in an undefined state, so
+ * the clean + invalidate performed by v7_flush_dcache_all causes a bunch
+ * of cache lines with uninitialized data and uninitialized tags to get
+ * written out to memory, which does really unpleasant things to the main
+ * processor.  We fix this by performing an invalidate, rather than a
+ * clean + invalidate, before jumping into the kernel.
+ *
+ * This function is cloned from arch/arm/mach-tegra/headsmp.S, and needs
+ * to be called for both secondary cores startup and primary core resume
+ * procedures.
+ */
+ENTRY(v7_invalidate_l1)
+       mov     r0, #0
+       mcr     p15, 2, r0, c0, c0, 0
+       mrc     p15, 1, r0, c0, c0, 0
+
+       ldr     r1, =0x7fff
+       and     r2, r1, r0, lsr #13
+
+       ldr     r1, =0x3ff
+
+       and     r3, r1, r0, lsr #3      @ NumWays - 1
+       add     r2, r2, #1              @ NumSets
+
+       and     r0, r0, #0x7
+       add     r0, r0, #4      @ SetShift
+
+       clz     r1, r3          @ WayShift
+       add     r4, r3, #1      @ NumWays
+1:     sub     r2, r2, #1      @ NumSets--
+       mov     r3, r4          @ Temp = NumWays
+2:     subs    r3, r3, #1      @ Temp--
+       mov     r5, r3, lsl r1
+       mov     r6, r2, lsl r0
+       orr     r5, r5, r6      @ Reg = (Temp<<WayShift)|(NumSets<<SetShift)
+       mcr     p15, 0, r5, c7, c6, 2
+       bgt     2b
+       cmp     r2, #0
+       bgt     1b
+       dsb     st
+       isb
+       ret     lr
+ENDPROC(v7_invalidate_l1)
+
+/*
  *	v7_flush_icache_all()
  *
  *	Flush the whole I-cache.
@@ -30,7 +76,7 @@ ENTRY(v7_flush_icache_all)
 	mov	r0, #0
 	ALT_SMP(mcr	p15, 0, r0, c7, c1, 0)		@ invalidate I-cache inner shareable
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)		@ I+BTB cache invalidate
-	mov	pc, lr
+	ret	lr
 ENDPROC(v7_flush_icache_all)
 
  /*
@@ -48,7 +94,7 @@ ENTRY(v7_flush_dcache_louis)
 	ALT_UP(ands	r3, r0, #(7 << 27))	@ extract LoUU from clidr
 #ifdef CONFIG_ARM_ERRATA_643719
 	ALT_SMP(mrceq	p15, 0, r2, c0, c0, 0)	@ read main ID register
-	ALT_UP(moveq	pc, lr)			@ LoUU is zero, so nothing to do
+	ALT_UP(reteq	lr)			@ LoUU is zero, so nothing to do
 	ldreq	r1, =0x410fc090                 @ ID of ARM Cortex A9 r0p?
 	biceq	r2, r2, #0x0000000f             @ clear minor revision number
 	teqeq	r2, r1                          @ test for errata affected core and if so...
@@ -56,7 +102,7 @@ ENTRY(v7_flush_dcache_louis)
 #endif
 	ALT_SMP(mov	r3, r3, lsr #20)	@ r3 = LoUIS * 2
 	ALT_UP(mov	r3, r3, lsr #26)	@ r3 = LoUU * 2
-	moveq	pc, lr				@ return if level == 0
+	reteq	lr				@ return if level == 0
 	mov	r10, #0				@ r10 (starting level) = 0
 	b	flush_levels			@ start flushing cache levels
 ENDPROC(v7_flush_dcache_louis)
@@ -120,9 +166,9 @@ skip:
 finished:
 	mov	r10, #0				@ swith back to cache level 0
 	mcr	p15, 2, r10, c0, c0, 0		@ select current cache level in cssr
-	dsb
+	dsb	st
 	isb
-	mov	pc, lr
+	ret	lr
 ENDPROC(v7_flush_dcache_all)
 
 /*
@@ -145,7 +191,7 @@ ENTRY(v7_flush_kern_cache_all)
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)	@ I+BTB cache invalidate
  ARM(	ldmfd	sp!, {r4-r5, r7, r9-r11, lr}	)
  THUMB(	ldmfd	sp!, {r4-r7, r9-r11, lr}	)
-	mov	pc, lr
+	ret	lr
 ENDPROC(v7_flush_kern_cache_all)
 
  /*
@@ -163,7 +209,7 @@ ENTRY(v7_flush_kern_cache_louis)
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)	@ I+BTB cache invalidate
  ARM(	ldmfd	sp!, {r4-r5, r7, r9-r11, lr}	)
  THUMB(	ldmfd	sp!, {r4-r7, r9-r11, lr}	)
-	mov	pc, lr
+	ret	lr
 ENDPROC(v7_flush_kern_cache_louis)
 
 /*
@@ -189,7 +235,7 @@ ENTRY(v7_flush_user_cache_all)
  *	- we have a VIPT cache.
  */
 ENTRY(v7_flush_user_cache_range)
-	mov	pc, lr
+	ret	lr
 ENDPROC(v7_flush_user_cache_all)
 ENDPROC(v7_flush_user_cache_range)
 
@@ -250,7 +296,7 @@ ENTRY(v7_coherent_user_range)
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 6)	@ invalidate BTB
 	dsb	ishst
 	isb
-	mov	pc, lr
+	ret	lr
 
 /*
  * Fault handling for the cache operation above. If the virtual address in r0
@@ -261,7 +307,7 @@ ENTRY(v7_coherent_user_range)
 	dsb
 #endif
 	mov	r0, #-EFAULT
-	mov	pc, lr
+	ret	lr
  UNWIND(.fnend		)
 ENDPROC(v7_coherent_kern_range)
 ENDPROC(v7_coherent_user_range)
@@ -289,8 +335,8 @@ ENTRY(v7_flush_kern_dcache_area)
 	add	r0, r0, r2
 	cmp	r0, r1
 	blo	1b
-	dsb
-	mov	pc, lr
+	dsb	st
+	ret	lr
 ENDPROC(v7_flush_kern_dcache_area)
 
 /*
@@ -303,7 +349,7 @@ ENDPROC(v7_flush_kern_dcache_area)
  *	- start   - virtual start address of region
  *	- end     - virtual end address of region
  */
-ENTRY(v7_dma_inv_range)
+v7_dma_inv_range:
 	dcache_line_size r2, r3
 	sub	r3, r2, #1
 	tst	r0, r3
@@ -313,17 +359,19 @@ ENTRY(v7_dma_inv_range)
 	ALT_UP(W(nop))
 #endif
 	mcrne	p15, 0, r0, c7, c14, 1		@ clean & invalidate D / U line
+	addne	r0, r0, r2
 
 	tst	r1, r3
 	bic	r1, r1, r3
 	mcrne	p15, 0, r1, c7, c14, 1		@ clean & invalidate D / U line
-1:
-	mcr	p15, 0, r0, c7, c6, 1		@ invalidate D / U line
-	add	r0, r0, r2
 	cmp	r0, r1
+1:
+	mcrlo	p15, 0, r0, c7, c6, 1		@ invalidate D / U line
+	addlo	r0, r0, r2
+	cmplo	r0, r1
 	blo	1b
-	dsb
-	mov	pc, lr
+	dsb	st
+	ret	lr
 ENDPROC(v7_dma_inv_range)
 
 /*
@@ -331,7 +379,7 @@ ENDPROC(v7_dma_inv_range)
  *	- start   - virtual start address of region
  *	- end     - virtual end address of region
  */
-ENTRY(v7_dma_clean_range)
+v7_dma_clean_range:
 	dcache_line_size r2, r3
 	sub	r3, r2, #1
 	bic	r0, r0, r3
@@ -344,8 +392,8 @@ ENTRY(v7_dma_clean_range)
 	add	r0, r0, r2
 	cmp	r0, r1
 	blo	1b
-	dsb
-	mov	pc, lr
+	dsb	st
+	ret	lr
 ENDPROC(v7_dma_clean_range)
 
 /*
@@ -366,8 +414,8 @@ ENTRY(v7_dma_flush_range)
 	add	r0, r0, r2
 	cmp	r0, r1
 	blo	1b
-	dsb
-	mov	pc, lr
+	dsb	st
+	ret	lr
 ENDPROC(v7_dma_flush_range)
 
 /*
@@ -393,7 +441,7 @@ ENTRY(v7_dma_unmap_area)
 	add	r1, r1, r0
 	teq	r2, #DMA_TO_DEVICE
 	bne	v7_dma_inv_range
-	mov	pc, lr
+	ret	lr
 ENDPROC(v7_dma_unmap_area)
 
 	__INITDATA

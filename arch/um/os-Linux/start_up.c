@@ -18,13 +18,13 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <asm/unistd.h>
-#include "init.h"
-#include "os.h"
-#include "mem_user.h"
-#include "ptrace_user.h"
-#include "registers.h"
-#include "skas.h"
-#include "skas_ptrace.h"
+#include <init.h>
+#include <os.h>
+#include <mem_user.h>
+#include <ptrace_user.h>
+#include <registers.h>
+#include <skas.h>
+#include <skas_ptrace.h>
 
 static void ptrace_child(void)
 {
@@ -94,6 +94,8 @@ static void non_fatal(char *fmt, ...)
 static int start_ptraced_child(void)
 {
 	int pid, n, status;
+
+	fflush(stdout);
 
 	pid = fork();
 	if (pid == 0)

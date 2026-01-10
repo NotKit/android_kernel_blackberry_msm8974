@@ -35,6 +35,13 @@
 #define SEEK_HOLE	4	/* seek to the next hole */
 #define SEEK_MAX	SEEK_HOLE
 
+<<<<<<< HEAD
+=======
+#define RENAME_NOREPLACE	(1 << 0)	/* Don't overwrite target */
+#define RENAME_EXCHANGE		(1 << 1)	/* Exchange source and dest */
+#define RENAME_WHITEOUT		(1 << 2)	/* Whiteout source */
+
+>>>>>>> android-3.18
 struct fstrim_range {
 	__u64 start;
 	__u64 len;
@@ -49,14 +56,24 @@ struct files_stat_struct {
 };
 
 struct inodes_stat_t {
+<<<<<<< HEAD
 	int nr_inodes;
 	int nr_unused;
 	int dummy[5];		/* padding for sysctl ABI compatibility */
+=======
+	long nr_inodes;
+	long nr_unused;
+	long dummy[5];		/* padding for sysctl ABI compatibility */
+>>>>>>> android-3.18
 };
 
 
 #define NR_FILE  8192	/* this can well be larger on a larger system */
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> android-3.18
 /*
  * These are the fs-independent mount-flags: up to 32 flags are supported
  */
@@ -85,6 +102,12 @@ struct inodes_stat_t {
 #define MS_KERNMOUNT	(1<<22) /* this is a kern_mount call */
 #define MS_I_VERSION	(1<<23) /* Update inode I_version field */
 #define MS_STRICTATIME	(1<<24) /* Always perform atime updates */
+<<<<<<< HEAD
+=======
+#define MS_LAZYTIME	(1<<25) /* Update the on-disk [acm]times lazily */
+
+/* These sb flags are internal to the kernel */
+>>>>>>> android-3.18
 #define MS_NOSEC	(1<<28)
 #define MS_BORN		(1<<29)
 #define MS_ACTIVE	(1<<30)
@@ -93,7 +116,12 @@ struct inodes_stat_t {
 /*
  * Superblock flags that can be altered by MS_REMOUNT
  */
+<<<<<<< HEAD
 #define MS_RMT_MASK	(MS_RDONLY|MS_SYNCHRONOUS|MS_MANDLOCK|MS_I_VERSION)
+=======
+#define MS_RMT_MASK	(MS_RDONLY|MS_SYNCHRONOUS|MS_MANDLOCK|MS_I_VERSION|\
+			 MS_LAZYTIME)
+>>>>>>> android-3.18
 
 /*
  * Old magic mount flag and mask
@@ -143,7 +171,10 @@ struct inodes_stat_t {
 #define BLKSECDISCARD _IO(0x12,125)
 #define BLKROTATIONAL _IO(0x12,126)
 #define BLKZEROOUT _IO(0x12,127)
+<<<<<<< HEAD
 #define BLKSANITIZE _IO(0x12, 127)
+=======
+>>>>>>> android-3.18
 
 #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
 #define FIBMAP	   _IO(0x00,1)	/* bmap access */
@@ -151,7 +182,10 @@ struct inodes_stat_t {
 #define FIFREEZE	_IOWR('X', 119, int)	/* Freeze */
 #define FITHAW		_IOWR('X', 120, int)	/* Thaw */
 #define FITRIM		_IOWR('X', 121, struct fstrim_range)	/* Trim */
+<<<<<<< HEAD
 #define FS_IOC_SHUTDOWN		_IOR('X', 125, __u32)	/* Shutdown */
+=======
+>>>>>>> android-3.18
 
 #define FIDTRIM	_IOWR('f', 128, struct fstrim_range)	/* Deep discard trim */
 
@@ -169,7 +203,30 @@ struct inodes_stat_t {
  * File system encryption support
  */
 /* Policy provided via an ioctl on the topmost directory */
+<<<<<<< HEAD
 #define FS_KEY_DESCRIPTOR_SIZE 8
+=======
+#define FS_KEY_DESCRIPTOR_SIZE	8
+
+#define FS_POLICY_FLAGS_PAD_4		0x00
+#define FS_POLICY_FLAGS_PAD_8		0x01
+#define FS_POLICY_FLAGS_PAD_16		0x02
+#define FS_POLICY_FLAGS_PAD_32		0x03
+#define FS_POLICY_FLAGS_PAD_MASK	0x03
+#define FS_POLICY_FLAGS_VALID		0x03
+
+/* Encryption algorithms */
+#define FS_ENCRYPTION_MODE_INVALID		0
+#define FS_ENCRYPTION_MODE_AES_256_XTS		1
+#define FS_ENCRYPTION_MODE_AES_256_GCM		2
+#define FS_ENCRYPTION_MODE_AES_256_CBC		3
+#define FS_ENCRYPTION_MODE_AES_256_CTS		4
+#define FS_ENCRYPTION_MODE_AES_128_CBC		5
+#define FS_ENCRYPTION_MODE_AES_128_CTS		6
+#define FS_ENCRYPTION_MODE_SPECK128_256_XTS	7
+#define FS_ENCRYPTION_MODE_SPECK128_256_CTS	8
+
+>>>>>>> android-3.18
 
 struct fscrypt_policy {
 	__u8 version;
@@ -183,6 +240,22 @@ struct fscrypt_policy {
 #define FS_IOC_GET_ENCRYPTION_PWSALT	_IOW('f', 20, __u8[16])
 #define FS_IOC_GET_ENCRYPTION_POLICY	_IOW('f', 21, struct fscrypt_policy)
 
+<<<<<<< HEAD
+=======
+/* Parameters for passing an encryption key into the kernel keyring */
+#define FS_KEY_DESC_PREFIX		"fscrypt:"
+#define FS_KEY_DESC_PREFIX_SIZE		8
+
+/* Structure that userspace passes to the kernel keyring */
+#define FS_MAX_KEY_SIZE			64
+
+struct fscrypt_key {
+	__u32 mode;
+	__u8 raw[FS_MAX_KEY_SIZE];
+	__u32 size;
+};
+
+>>>>>>> android-3.18
 /*
  * Inode flags (FS_IOC_GETFLAGS / FS_IOC_SETFLAGS)
  */
@@ -200,6 +273,10 @@ struct fscrypt_policy {
 #define FS_NOCOMP_FL			0x00000400 /* Don't compress */
 #define FS_ECOMPR_FL			0x00000800 /* Compression error */
 /* End compression flags --- maybe not all used */
+<<<<<<< HEAD
+=======
+#define FS_ENCRYPT_FL			0x00000800 /* Encrypted file */
+>>>>>>> android-3.18
 #define FS_BTREE_FL			0x00001000 /* btree format dir */
 #define FS_INDEX_FL			0x00001000 /* hash-indexed directory */
 #define FS_IMAGIC_FL			0x00002000 /* AFS directory */
@@ -210,6 +287,11 @@ struct fscrypt_policy {
 #define FS_EXTENT_FL			0x00080000 /* Extents */
 #define FS_DIRECTIO_FL			0x00100000 /* Use direct i/o */
 #define FS_NOCOW_FL			0x00800000 /* Do not cow file */
+<<<<<<< HEAD
+=======
+#define FS_INLINE_DATA_FL		0x10000000 /* Reserved for ext4 */
+#define FS_PROJINHERIT_FL		0x20000000 /* Create with parents projid */
+>>>>>>> android-3.18
 #define FS_RESERVED_FL			0x80000000 /* reserved for ext2 lib */
 
 #define FS_FL_USER_VISIBLE		0x0003DFFF /* User visible flags */

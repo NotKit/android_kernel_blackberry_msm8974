@@ -28,6 +28,7 @@
 #include <linux/elf.h>
 
 #include <asm/asm.h>
+#include <asm/asm-eva.h>
 #include <asm/branch.h>
 #include <asm/cachectl.h>
 #include <asm/cacheflush.h>
@@ -41,25 +42,19 @@
 
 /*
  * For historic reasons the pipe(2) syscall on MIPS has an unusual calling
- * convention.  It returns results in registers $v0 / $v1 which means there
+ * convention.	It returns results in registers $v0 / $v1 which means there
  * is no need for it to do verify the validity of a userspace pointer
- * argument.  Historically that used to be expensive in Linux.  These days
+ * argument.  Historically that used to be expensive in Linux.	These days
  * the performance advantage is negligible.
  */
-asmlinkage int sysm_pipe(nabi_no_regargs volatile struct pt_regs regs)
+asmlinkage int sysm_pipe(void)
 {
 	int fd[2];
-	int error, res;
-
-	error = do_pipe_flags(fd, 0);
-	if (error) {
-		res = error;
-		goto out;
-	}
-	regs.regs[3] = fd[1];
-	res = fd[0];
-out:
-	return res;
+	int error = do_pipe_flags(fd, 0);
+	if (error)
+		return error;
+	current_pt_regs()->regs[3] = fd[1];
+	return fd[0];
 }
 
 SYSCALL_DEFINE6(mips_mmap, unsigned long, addr, unsigned long, len,
@@ -89,13 +84,8 @@ SYSCALL_DEFINE6(mips_mmap2, unsigned long, addr, unsigned long, len,
 }
 
 save_static_function(sys_fork);
-static int __used noinline
-_sys_fork(nabi_no_regargs struct pt_regs regs)
-{
-	return do_fork(SIGCHLD, regs.regs[29], &regs, 0, NULL, NULL);
-}
-
 save_static_function(sys_clone);
+<<<<<<< HEAD
 static int __used noinline
 _sys_clone(nabi_no_regargs struct pt_regs regs)
 {
@@ -148,6 +138,8 @@ asmlinkage int sys_execve(nabi_no_regargs struct pt_regs regs)
 out:
 	return error;
 }
+=======
+>>>>>>> android-3.18
 
 SYSCALL_DEFINE1(set_thread_area, unsigned long, addr)
 {
@@ -160,10 +152,10 @@ SYSCALL_DEFINE1(set_thread_area, unsigned long, addr)
 	return 0;
 }
 
-static inline int mips_atomic_set(struct pt_regs *regs,
-	unsigned long addr, unsigned long new)
+static inline int mips_atomic_set(unsigned long addr, unsigned long new)
 {
 	unsigned long old, tmp;
+	struct pt_regs *regs;
 	unsigned int err;
 
 	if (unlikely(addr & 3))
@@ -174,7 +166,7 @@ static inline int mips_atomic_set(struct pt_regs *regs,
 
 	if (cpu_has_llsc && R10000_LLSC_WAR) {
 		__asm__ __volatile__ (
-		"	.set	mips3					\n"
+		"	.set	arch=r4000				\n"
 		"	li	%[err], 0				\n"
 		"1:	ll	%[old], (%[addr])			\n"
 		"	move	%[tmp], %[new]				\n"
@@ -199,12 +191,14 @@ static inline int mips_atomic_set(struct pt_regs *regs,
 		: "memory");
 	} else if (cpu_has_llsc) {
 		__asm__ __volatile__ (
-		"	.set	mips3					\n"
+		"	.set	arch=r4000				\n"
 		"	li	%[err], 0				\n"
-		"1:	ll	%[old], (%[addr])			\n"
+		"1:							\n"
+		user_ll("%[old]", "(%[addr])")
 		"	move	%[tmp], %[new]				\n"
-		"2:	sc	%[tmp], (%[addr])			\n"
-		"	bnez	%[tmp], 4f				\n"
+		"2:							\n"
+		user_sc("%[tmp]", "(%[addr])")
+		"	beqz	%[tmp], 4f				\n"
 		"3:							\n"
 		"	.subsection 2					\n"
 		"4:	b	1b					\n"
@@ -244,6 +238,7 @@ static inline int mips_atomic_set(struct pt_regs *regs,
 	if (unlikely(err))
 		return err;
 
+	regs = current_pt_regs();
 	regs->regs[2] = old;
 	regs->regs[7] = 0;	/* No error */
 
@@ -257,22 +252,20 @@ static inline int mips_atomic_set(struct pt_regs *regs,
 	: "r" (regs));
 
 	/* unreached.  Honestly.  */
-	while (1);
+	unreachable();
 }
 
+/*
+ * mips_atomic_set() normally returns directly via syscall_exit potentially
+ * clobbering static registers, so be sure to preserve them.
+ */
 save_static_function(sys_sysmips);
-static int __used noinline
-_sys_sysmips(nabi_no_regargs struct pt_regs regs)
+
+SYSCALL_DEFINE3(sysmips, long, cmd, long, arg1, long, arg2)
 {
-	long cmd, arg1, arg2;
-
-	cmd = regs.regs[4];
-	arg1 = regs.regs[5];
-	arg2 = regs.regs[6];
-
 	switch (cmd) {
 	case MIPS_ATOMIC_SET:
-		return mips_atomic_set(&regs, arg1, arg2);
+		return mips_atomic_set(arg1, arg2);
 
 	case MIPS_FIXADE:
 		if (arg1 & ~3)
@@ -312,35 +305,4 @@ SYSCALL_DEFINE3(cachectl, char *, addr, int, nbytes, int, op)
 asmlinkage void bad_stack(void)
 {
 	do_exit(SIGSEGV);
-}
-
-/*
- * Do a system call from kernel instead of calling sys_execve so we
- * end up with proper pt_regs.
- */
-int kernel_execve(const char *filename,
-		  const char *const argv[],
-		  const char *const envp[])
-{
-	register unsigned long __a0 asm("$4") = (unsigned long) filename;
-	register unsigned long __a1 asm("$5") = (unsigned long) argv;
-	register unsigned long __a2 asm("$6") = (unsigned long) envp;
-	register unsigned long __a3 asm("$7");
-	unsigned long __v0;
-
-	__asm__ volatile ("					\n"
-	"	.set	noreorder				\n"
-	"	li	$2, %5		# __NR_execve		\n"
-	"	syscall						\n"
-	"	move	%0, $2					\n"
-	"	.set	reorder					\n"
-	: "=&r" (__v0), "=r" (__a3)
-	: "r" (__a0), "r" (__a1), "r" (__a2), "i" (__NR_execve)
-	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24",
-	  "memory");
-
-	if (__a3 == 0)
-		return __v0;
-
-	return -__v0;
 }

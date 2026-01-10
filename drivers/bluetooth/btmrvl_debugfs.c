@@ -29,20 +29,6 @@
 struct btmrvl_debugfs_data {
 	struct dentry *config_dir;
 	struct dentry *status_dir;
-
-	/* config */
-	struct dentry *psmode;
-	struct dentry *pscmd;
-	struct dentry *hsmode;
-	struct dentry *hscmd;
-	struct dentry *gpiogap;
-	struct dentry *hscfgcmd;
-
-	/* status */
-	struct dentry *curpsmode;
-	struct dentry *hsstate;
-	struct dentry *psstate;
-	struct dentry *txdnldready;
 };
 
 static int btmrvl_open_generic(struct inode *inode, struct file *file)
@@ -63,7 +49,13 @@ static ssize_t btmrvl_hscfgcmd_write(struct file *file,
 	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
 		return -EFAULT;
 
+<<<<<<< HEAD
 	ret = strict_strtol(buf, 10, &result);
+=======
+	ret = kstrtol(buf, 10, &result);
+	if (ret)
+		return ret;
+>>>>>>> android-3.18
 
 	priv->btmrvl_dev.hscfgcmd = result;
 
@@ -95,6 +87,7 @@ static const struct file_operations btmrvl_hscfgcmd_fops = {
 	.llseek = default_llseek,
 };
 
+<<<<<<< HEAD
 static ssize_t btmrvl_psmode_write(struct file *file, const char __user *ubuf,
 						size_t count, loff_t *ppos)
 {
@@ -134,6 +127,8 @@ static const struct file_operations btmrvl_psmode_fops = {
 	.llseek = default_llseek,
 };
 
+=======
+>>>>>>> android-3.18
 static ssize_t btmrvl_pscmd_write(struct file *file, const char __user *ubuf,
 						size_t count, loff_t *ppos)
 {
@@ -146,7 +141,13 @@ static ssize_t btmrvl_pscmd_write(struct file *file, const char __user *ubuf,
 	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
 		return -EFAULT;
 
+<<<<<<< HEAD
 	ret = strict_strtol(buf, 10, &result);
+=======
+	ret = kstrtol(buf, 10, &result);
+	if (ret)
+		return ret;
+>>>>>>> android-3.18
 
 	priv->btmrvl_dev.pscmd = result;
 
@@ -178,6 +179,7 @@ static const struct file_operations btmrvl_pscmd_fops = {
 	.llseek = default_llseek,
 };
 
+<<<<<<< HEAD
 static ssize_t btmrvl_gpiogap_write(struct file *file, const char __user *ubuf,
 						size_t count, loff_t *ppos)
 {
@@ -217,6 +219,8 @@ static const struct file_operations btmrvl_gpiogap_fops = {
 	.llseek = default_llseek,
 };
 
+=======
+>>>>>>> android-3.18
 static ssize_t btmrvl_hscmd_write(struct file *file, const char __user *ubuf,
 						size_t count, loff_t *ppos)
 {
@@ -229,7 +233,13 @@ static ssize_t btmrvl_hscmd_write(struct file *file, const char __user *ubuf,
 	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
 		return -EFAULT;
 
+<<<<<<< HEAD
 	ret = strict_strtol(buf, 10, &result);
+=======
+	ret = kstrtol(buf, 10, &result);
+	if (ret)
+		return ret;
+>>>>>>> android-3.18
 
 	priv->btmrvl_dev.hscmd = result;
 	if (priv->btmrvl_dev.hscmd) {
@@ -259,6 +269,7 @@ static const struct file_operations btmrvl_hscmd_fops = {
 	.llseek = default_llseek,
 };
 
+<<<<<<< HEAD
 static ssize_t btmrvl_hsmode_write(struct file *file, const char __user *ubuf,
 						size_t count, loff_t *ppos)
 {
@@ -370,6 +381,8 @@ static const struct file_operations btmrvl_txdnldready_fops = {
 	.llseek = default_llseek,
 };
 
+=======
+>>>>>>> android-3.18
 void btmrvl_debugfs_init(struct hci_dev *hdev)
 {
 	struct btmrvl_private *priv = hdev->driver_data;
@@ -388,6 +401,7 @@ void btmrvl_debugfs_init(struct hci_dev *hdev)
 
 	dbg->config_dir = debugfs_create_dir("config", hdev->debugfs);
 
+<<<<<<< HEAD
 	dbg->psmode = debugfs_create_file("psmode", 0644, dbg->config_dir,
 				hdev->driver_data, &btmrvl_psmode_fops);
 	dbg->pscmd = debugfs_create_file("pscmd", 0644, dbg->config_dir,
@@ -414,6 +428,30 @@ void btmrvl_debugfs_init(struct hci_dev *hdev)
 						dbg->status_dir,
 						hdev->driver_data,
 						&btmrvl_txdnldready_fops);
+=======
+	debugfs_create_u8("psmode", 0644, dbg->config_dir,
+			  &priv->btmrvl_dev.psmode);
+	debugfs_create_file("pscmd", 0644, dbg->config_dir,
+			    priv, &btmrvl_pscmd_fops);
+	debugfs_create_x16("gpiogap", 0644, dbg->config_dir,
+			   &priv->btmrvl_dev.gpio_gap);
+	debugfs_create_u8("hsmode", 0644, dbg->config_dir,
+			  &priv->btmrvl_dev.hsmode);
+	debugfs_create_file("hscmd", 0644, dbg->config_dir,
+			    priv, &btmrvl_hscmd_fops);
+	debugfs_create_file("hscfgcmd", 0644, dbg->config_dir,
+			    priv, &btmrvl_hscfgcmd_fops);
+
+	dbg->status_dir = debugfs_create_dir("status", hdev->debugfs);
+	debugfs_create_u8("curpsmode", 0444, dbg->status_dir,
+			  &priv->adapter->psmode);
+	debugfs_create_u8("psstate", 0444, dbg->status_dir,
+			  &priv->adapter->ps_state);
+	debugfs_create_u8("hsstate", 0444, dbg->status_dir,
+			  &priv->adapter->hs_state);
+	debugfs_create_u8("txdnldready", 0444, dbg->status_dir,
+			  &priv->btmrvl_dev.tx_dnld_rdy);
+>>>>>>> android-3.18
 }
 
 void btmrvl_debugfs_remove(struct hci_dev *hdev)
@@ -424,19 +462,8 @@ void btmrvl_debugfs_remove(struct hci_dev *hdev)
 	if (!dbg)
 		return;
 
-	debugfs_remove(dbg->psmode);
-	debugfs_remove(dbg->pscmd);
-	debugfs_remove(dbg->gpiogap);
-	debugfs_remove(dbg->hsmode);
-	debugfs_remove(dbg->hscmd);
-	debugfs_remove(dbg->hscfgcmd);
-	debugfs_remove(dbg->config_dir);
-
-	debugfs_remove(dbg->curpsmode);
-	debugfs_remove(dbg->psstate);
-	debugfs_remove(dbg->hsstate);
-	debugfs_remove(dbg->txdnldready);
-	debugfs_remove(dbg->status_dir);
+	debugfs_remove_recursive(dbg->config_dir);
+	debugfs_remove_recursive(dbg->status_dir);
 
 	kfree(dbg);
 }

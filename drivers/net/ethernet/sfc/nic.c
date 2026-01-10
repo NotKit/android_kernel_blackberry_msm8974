@@ -1,7 +1,7 @@
 /****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
+ * Driver for Solarflare network controllers and boards
  * Copyright 2005-2006 Fen Systems Ltd.
- * Copyright 2006-2011 Solarflare Communications Inc.
+ * Copyright 2006-2013 Solarflare Communications Inc.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -14,16 +14,19 @@
 #include <linux/pci.h>
 #include <linux/module.h>
 #include <linux/seq_file.h>
+#include <linux/cpu_rmap.h>
 #include "net_driver.h"
 #include "bitfield.h"
 #include "efx.h"
 #include "nic.h"
-#include "regs.h"
+#include "ef10_regs.h"
+#include "farch_regs.h"
 #include "io.h"
 #include "workarounds.h"
 
 /**************************************************************************
  *
+<<<<<<< HEAD
  * Configurable values
  *
  **************************************************************************
@@ -1145,159 +1148,31 @@ efx_handle_generated_event(struct efx_channel *channel, efx_qword_t *event)
 			  channel->channel, EFX_QWORD_VAL(*event));
 	}
 }
+=======
+ * Generic buffer handling
+ * These buffers are used for interrupt status, MAC stats, etc.
+ *
+ **************************************************************************/
+>>>>>>> android-3.18
 
-static void
-efx_handle_driver_event(struct efx_channel *channel, efx_qword_t *event)
+int efx_nic_alloc_buffer(struct efx_nic *efx, struct efx_buffer *buffer,
+			 unsigned int len, gfp_t gfp_flags)
 {
-	struct efx_nic *efx = channel->efx;
-	unsigned int ev_sub_code;
-	unsigned int ev_sub_data;
-
-	ev_sub_code = EFX_QWORD_FIELD(*event, FSF_AZ_DRIVER_EV_SUBCODE);
-	ev_sub_data = EFX_QWORD_FIELD(*event, FSF_AZ_DRIVER_EV_SUBDATA);
-
-	switch (ev_sub_code) {
-	case FSE_AZ_TX_DESCQ_FLS_DONE_EV:
-		netif_vdbg(efx, hw, efx->net_dev, "channel %d TXQ %d flushed\n",
-			   channel->channel, ev_sub_data);
-		efx_handle_tx_flush_done(efx, event);
-		efx_sriov_tx_flush_done(efx, event);
-		break;
-	case FSE_AZ_RX_DESCQ_FLS_DONE_EV:
-		netif_vdbg(efx, hw, efx->net_dev, "channel %d RXQ %d flushed\n",
-			   channel->channel, ev_sub_data);
-		efx_handle_rx_flush_done(efx, event);
-		efx_sriov_rx_flush_done(efx, event);
-		break;
-	case FSE_AZ_EVQ_INIT_DONE_EV:
-		netif_dbg(efx, hw, efx->net_dev,
-			  "channel %d EVQ %d initialised\n",
-			  channel->channel, ev_sub_data);
-		break;
-	case FSE_AZ_SRM_UPD_DONE_EV:
-		netif_vdbg(efx, hw, efx->net_dev,
-			   "channel %d SRAM update done\n", channel->channel);
-		break;
-	case FSE_AZ_WAKE_UP_EV:
-		netif_vdbg(efx, hw, efx->net_dev,
-			   "channel %d RXQ %d wakeup event\n",
-			   channel->channel, ev_sub_data);
-		break;
-	case FSE_AZ_TIMER_EV:
-		netif_vdbg(efx, hw, efx->net_dev,
-			   "channel %d RX queue %d timer expired\n",
-			   channel->channel, ev_sub_data);
-		break;
-	case FSE_AA_RX_RECOVER_EV:
-		netif_err(efx, rx_err, efx->net_dev,
-			  "channel %d seen DRIVER RX_RESET event. "
-			"Resetting.\n", channel->channel);
-		atomic_inc(&efx->rx_reset);
-		efx_schedule_reset(efx,
-				   EFX_WORKAROUND_6555(efx) ?
-				   RESET_TYPE_RX_RECOVERY :
-				   RESET_TYPE_DISABLE);
-		break;
-	case FSE_BZ_RX_DSC_ERROR_EV:
-		if (ev_sub_data < EFX_VI_BASE) {
-			netif_err(efx, rx_err, efx->net_dev,
-				  "RX DMA Q %d reports descriptor fetch error."
-				  " RX Q %d is disabled.\n", ev_sub_data,
-				  ev_sub_data);
-			efx_schedule_reset(efx, RESET_TYPE_RX_DESC_FETCH);
-		} else
-			efx_sriov_desc_fetch_err(efx, ev_sub_data);
-		break;
-	case FSE_BZ_TX_DSC_ERROR_EV:
-		if (ev_sub_data < EFX_VI_BASE) {
-			netif_err(efx, tx_err, efx->net_dev,
-				  "TX DMA Q %d reports descriptor fetch error."
-				  " TX Q %d is disabled.\n", ev_sub_data,
-				  ev_sub_data);
-			efx_schedule_reset(efx, RESET_TYPE_TX_DESC_FETCH);
-		} else
-			efx_sriov_desc_fetch_err(efx, ev_sub_data);
-		break;
-	default:
-		netif_vdbg(efx, hw, efx->net_dev,
-			   "channel %d unknown driver event code %d "
-			   "data %04x\n", channel->channel, ev_sub_code,
-			   ev_sub_data);
-		break;
-	}
+	buffer->addr = dma_zalloc_coherent(&efx->pci_dev->dev, len,
+					   &buffer->dma_addr, gfp_flags);
+	if (!buffer->addr)
+		return -ENOMEM;
+	buffer->len = len;
+	return 0;
 }
 
-int efx_nic_process_eventq(struct efx_channel *channel, int budget)
+void efx_nic_free_buffer(struct efx_nic *efx, struct efx_buffer *buffer)
 {
-	struct efx_nic *efx = channel->efx;
-	unsigned int read_ptr;
-	efx_qword_t event, *p_event;
-	int ev_code;
-	int tx_packets = 0;
-	int spent = 0;
-
-	read_ptr = channel->eventq_read_ptr;
-
-	for (;;) {
-		p_event = efx_event(channel, read_ptr);
-		event = *p_event;
-
-		if (!efx_event_present(&event))
-			/* End of events */
-			break;
-
-		netif_vdbg(channel->efx, intr, channel->efx->net_dev,
-			   "channel %d event is "EFX_QWORD_FMT"\n",
-			   channel->channel, EFX_QWORD_VAL(event));
-
-		/* Clear this event by marking it all ones */
-		EFX_SET_QWORD(*p_event);
-
-		++read_ptr;
-
-		ev_code = EFX_QWORD_FIELD(event, FSF_AZ_EV_CODE);
-
-		switch (ev_code) {
-		case FSE_AZ_EV_CODE_RX_EV:
-			efx_handle_rx_event(channel, &event);
-			if (++spent == budget)
-				goto out;
-			break;
-		case FSE_AZ_EV_CODE_TX_EV:
-			tx_packets += efx_handle_tx_event(channel, &event);
-			if (tx_packets > efx->txq_entries) {
-				spent = budget;
-				goto out;
-			}
-			break;
-		case FSE_AZ_EV_CODE_DRV_GEN_EV:
-			efx_handle_generated_event(channel, &event);
-			break;
-		case FSE_AZ_EV_CODE_DRIVER_EV:
-			efx_handle_driver_event(channel, &event);
-			break;
-		case FSE_CZ_EV_CODE_USER_EV:
-			efx_sriov_event(channel, &event);
-			break;
-		case FSE_CZ_EV_CODE_MCDI_EV:
-			efx_mcdi_process_event(channel, &event);
-			break;
-		case FSE_AZ_EV_CODE_GLOBAL_EV:
-			if (efx->type->handle_global_event &&
-			    efx->type->handle_global_event(channel, &event))
-				break;
-			/* else fall through */
-		default:
-			netif_err(channel->efx, hw, channel->efx->net_dev,
-				  "channel %d unknown event type %d (data "
-				  EFX_QWORD_FMT ")\n", channel->channel,
-				  ev_code, EFX_QWORD_VAL(event));
-		}
+	if (buffer->addr) {
+		dma_free_coherent(&efx->pci_dev->dev, buffer->len,
+				  buffer->addr, buffer->dma_addr);
+		buffer->addr = NULL;
 	}
-
-out:
-	channel->eventq_read_ptr = read_ptr;
-	return spent;
 }
 
 /* Check whether an event is present in the eventq at the current
@@ -1308,311 +1183,18 @@ bool efx_nic_event_present(struct efx_channel *channel)
 	return efx_event_present(efx_event(channel, channel->eventq_read_ptr));
 }
 
-/* Allocate buffer table entries for event queue */
-int efx_nic_probe_eventq(struct efx_channel *channel)
-{
-	struct efx_nic *efx = channel->efx;
-	unsigned entries;
-
-	entries = channel->eventq_mask + 1;
-	return efx_alloc_special_buffer(efx, &channel->eventq,
-					entries * sizeof(efx_qword_t));
-}
-
-void efx_nic_init_eventq(struct efx_channel *channel)
-{
-	efx_oword_t reg;
-	struct efx_nic *efx = channel->efx;
-
-	netif_dbg(efx, hw, efx->net_dev,
-		  "channel %d event queue in special buffers %d-%d\n",
-		  channel->channel, channel->eventq.index,
-		  channel->eventq.index + channel->eventq.entries - 1);
-
-	if (efx_nic_rev(efx) >= EFX_REV_SIENA_A0) {
-		EFX_POPULATE_OWORD_3(reg,
-				     FRF_CZ_TIMER_Q_EN, 1,
-				     FRF_CZ_HOST_NOTIFY_MODE, 0,
-				     FRF_CZ_TIMER_MODE, FFE_CZ_TIMER_MODE_DIS);
-		efx_writeo_table(efx, &reg, FR_BZ_TIMER_TBL, channel->channel);
-	}
-
-	/* Pin event queue buffer */
-	efx_init_special_buffer(efx, &channel->eventq);
-
-	/* Fill event queue with all ones (i.e. empty events) */
-	memset(channel->eventq.addr, 0xff, channel->eventq.len);
-
-	/* Push event queue to card */
-	EFX_POPULATE_OWORD_3(reg,
-			     FRF_AZ_EVQ_EN, 1,
-			     FRF_AZ_EVQ_SIZE, __ffs(channel->eventq.entries),
-			     FRF_AZ_EVQ_BUF_BASE_ID, channel->eventq.index);
-	efx_writeo_table(efx, &reg, efx->type->evq_ptr_tbl_base,
-			 channel->channel);
-
-	efx->type->push_irq_moderation(channel);
-}
-
-void efx_nic_fini_eventq(struct efx_channel *channel)
-{
-	efx_oword_t reg;
-	struct efx_nic *efx = channel->efx;
-
-	/* Remove event queue from card */
-	EFX_ZERO_OWORD(reg);
-	efx_writeo_table(efx, &reg, efx->type->evq_ptr_tbl_base,
-			 channel->channel);
-	if (efx_nic_rev(efx) >= EFX_REV_SIENA_A0)
-		efx_writeo_table(efx, &reg, FR_BZ_TIMER_TBL, channel->channel);
-
-	/* Unpin event queue */
-	efx_fini_special_buffer(efx, &channel->eventq);
-}
-
-/* Free buffers backing event queue */
-void efx_nic_remove_eventq(struct efx_channel *channel)
-{
-	efx_free_special_buffer(channel->efx, &channel->eventq);
-}
-
-
 void efx_nic_event_test_start(struct efx_channel *channel)
 {
 	channel->event_test_cpu = -1;
 	smp_wmb();
-	efx_magic_event(channel, EFX_CHANNEL_MAGIC_TEST(channel));
+	channel->efx->type->ev_test_generate(channel);
 }
 
-void efx_nic_generate_fill_event(struct efx_rx_queue *rx_queue)
-{
-	efx_magic_event(efx_rx_queue_channel(rx_queue),
-			EFX_CHANNEL_MAGIC_FILL(rx_queue));
-}
-
-/**************************************************************************
- *
- * Hardware interrupts
- * The hardware interrupt handler does very little work; all the event
- * queue processing is carried out by per-channel tasklets.
- *
- **************************************************************************/
-
-/* Enable/disable/generate interrupts */
-static inline void efx_nic_interrupts(struct efx_nic *efx,
-				      bool enabled, bool force)
-{
-	efx_oword_t int_en_reg_ker;
-
-	EFX_POPULATE_OWORD_3(int_en_reg_ker,
-			     FRF_AZ_KER_INT_LEVE_SEL, efx->irq_level,
-			     FRF_AZ_KER_INT_KER, force,
-			     FRF_AZ_DRV_INT_EN_KER, enabled);
-	efx_writeo(efx, &int_en_reg_ker, FR_AZ_INT_EN_KER);
-}
-
-void efx_nic_enable_interrupts(struct efx_nic *efx)
-{
-	EFX_ZERO_OWORD(*((efx_oword_t *) efx->irq_status.addr));
-	wmb(); /* Ensure interrupt vector is clear before interrupts enabled */
-
-	efx_nic_interrupts(efx, true, false);
-}
-
-void efx_nic_disable_interrupts(struct efx_nic *efx)
-{
-	/* Disable interrupts */
-	efx_nic_interrupts(efx, false, false);
-}
-
-/* Generate a test interrupt
- * Interrupt must already have been enabled, otherwise nasty things
- * may happen.
- */
 void efx_nic_irq_test_start(struct efx_nic *efx)
 {
 	efx->last_irq_cpu = -1;
 	smp_wmb();
-	efx_nic_interrupts(efx, true, true);
-}
-
-/* Process a fatal interrupt
- * Disable bus mastering ASAP and schedule a reset
- */
-irqreturn_t efx_nic_fatal_interrupt(struct efx_nic *efx)
-{
-	struct falcon_nic_data *nic_data = efx->nic_data;
-	efx_oword_t *int_ker = efx->irq_status.addr;
-	efx_oword_t fatal_intr;
-	int error, mem_perr;
-
-	efx_reado(efx, &fatal_intr, FR_AZ_FATAL_INTR_KER);
-	error = EFX_OWORD_FIELD(fatal_intr, FRF_AZ_FATAL_INTR);
-
-	netif_err(efx, hw, efx->net_dev, "SYSTEM ERROR "EFX_OWORD_FMT" status "
-		  EFX_OWORD_FMT ": %s\n", EFX_OWORD_VAL(*int_ker),
-		  EFX_OWORD_VAL(fatal_intr),
-		  error ? "disabling bus mastering" : "no recognised error");
-
-	/* If this is a memory parity error dump which blocks are offending */
-	mem_perr = (EFX_OWORD_FIELD(fatal_intr, FRF_AZ_MEM_PERR_INT_KER) ||
-		    EFX_OWORD_FIELD(fatal_intr, FRF_AZ_SRM_PERR_INT_KER));
-	if (mem_perr) {
-		efx_oword_t reg;
-		efx_reado(efx, &reg, FR_AZ_MEM_STAT);
-		netif_err(efx, hw, efx->net_dev,
-			  "SYSTEM ERROR: memory parity error "EFX_OWORD_FMT"\n",
-			  EFX_OWORD_VAL(reg));
-	}
-
-	/* Disable both devices */
-	pci_clear_master(efx->pci_dev);
-	if (efx_nic_is_dual_func(efx))
-		pci_clear_master(nic_data->pci_dev2);
-	efx_nic_disable_interrupts(efx);
-
-	/* Count errors and reset or disable the NIC accordingly */
-	if (efx->int_error_count == 0 ||
-	    time_after(jiffies, efx->int_error_expire)) {
-		efx->int_error_count = 0;
-		efx->int_error_expire =
-			jiffies + EFX_INT_ERROR_EXPIRE * HZ;
-	}
-	if (++efx->int_error_count < EFX_MAX_INT_ERRORS) {
-		netif_err(efx, hw, efx->net_dev,
-			  "SYSTEM ERROR - reset scheduled\n");
-		efx_schedule_reset(efx, RESET_TYPE_INT_ERROR);
-	} else {
-		netif_err(efx, hw, efx->net_dev,
-			  "SYSTEM ERROR - max number of errors seen."
-			  "NIC will be disabled\n");
-		efx_schedule_reset(efx, RESET_TYPE_DISABLE);
-	}
-
-	return IRQ_HANDLED;
-}
-
-/* Handle a legacy interrupt
- * Acknowledges the interrupt and schedule event queue processing.
- */
-static irqreturn_t efx_legacy_interrupt(int irq, void *dev_id)
-{
-	struct efx_nic *efx = dev_id;
-	efx_oword_t *int_ker = efx->irq_status.addr;
-	irqreturn_t result = IRQ_NONE;
-	struct efx_channel *channel;
-	efx_dword_t reg;
-	u32 queues;
-	int syserr;
-
-	/* Could this be ours?  If interrupts are disabled then the
-	 * channel state may not be valid.
-	 */
-	if (!efx->legacy_irq_enabled)
-		return result;
-
-	/* Read the ISR which also ACKs the interrupts */
-	efx_readd(efx, &reg, FR_BZ_INT_ISR0);
-	queues = EFX_EXTRACT_DWORD(reg, 0, 31);
-
-	/* Handle non-event-queue sources */
-	if (queues & (1U << efx->irq_level)) {
-		syserr = EFX_OWORD_FIELD(*int_ker, FSF_AZ_NET_IVEC_FATAL_INT);
-		if (unlikely(syserr))
-			return efx_nic_fatal_interrupt(efx);
-		efx->last_irq_cpu = raw_smp_processor_id();
-	}
-
-	if (queues != 0) {
-		if (EFX_WORKAROUND_15783(efx))
-			efx->irq_zero_count = 0;
-
-		/* Schedule processing of any interrupting queues */
-		efx_for_each_channel(channel, efx) {
-			if (queues & 1)
-				efx_schedule_channel_irq(channel);
-			queues >>= 1;
-		}
-		result = IRQ_HANDLED;
-
-	} else if (EFX_WORKAROUND_15783(efx)) {
-		efx_qword_t *event;
-
-		/* We can't return IRQ_HANDLED more than once on seeing ISR=0
-		 * because this might be a shared interrupt. */
-		if (efx->irq_zero_count++ == 0)
-			result = IRQ_HANDLED;
-
-		/* Ensure we schedule or rearm all event queues */
-		efx_for_each_channel(channel, efx) {
-			event = efx_event(channel, channel->eventq_read_ptr);
-			if (efx_event_present(event))
-				efx_schedule_channel_irq(channel);
-			else
-				efx_nic_eventq_read_ack(channel);
-		}
-	}
-
-	if (result == IRQ_HANDLED)
-		netif_vdbg(efx, intr, efx->net_dev,
-			   "IRQ %d on CPU %d status " EFX_DWORD_FMT "\n",
-			   irq, raw_smp_processor_id(), EFX_DWORD_VAL(reg));
-
-	return result;
-}
-
-/* Handle an MSI interrupt
- *
- * Handle an MSI hardware interrupt.  This routine schedules event
- * queue processing.  No interrupt acknowledgement cycle is necessary.
- * Also, we never need to check that the interrupt is for us, since
- * MSI interrupts cannot be shared.
- */
-static irqreturn_t efx_msi_interrupt(int irq, void *dev_id)
-{
-	struct efx_channel *channel = *(struct efx_channel **)dev_id;
-	struct efx_nic *efx = channel->efx;
-	efx_oword_t *int_ker = efx->irq_status.addr;
-	int syserr;
-
-	netif_vdbg(efx, intr, efx->net_dev,
-		   "IRQ %d on CPU %d status " EFX_OWORD_FMT "\n",
-		   irq, raw_smp_processor_id(), EFX_OWORD_VAL(*int_ker));
-
-	/* Handle non-event-queue sources */
-	if (channel->channel == efx->irq_level) {
-		syserr = EFX_OWORD_FIELD(*int_ker, FSF_AZ_NET_IVEC_FATAL_INT);
-		if (unlikely(syserr))
-			return efx_nic_fatal_interrupt(efx);
-		efx->last_irq_cpu = raw_smp_processor_id();
-	}
-
-	/* Schedule processing of the channel */
-	efx_schedule_channel_irq(channel);
-
-	return IRQ_HANDLED;
-}
-
-
-/* Setup RSS indirection table.
- * This maps from the hash value of the packet to RXQ
- */
-void efx_nic_push_rx_indir_table(struct efx_nic *efx)
-{
-	size_t i = 0;
-	efx_dword_t dword;
-
-	if (efx_nic_rev(efx) < EFX_REV_FALCON_B0)
-		return;
-
-	BUILD_BUG_ON(ARRAY_SIZE(efx->rx_indir_table) !=
-		     FR_BZ_RX_INDIRECTION_TBL_ROWS);
-
-	for (i = 0; i < FR_BZ_RX_INDIRECTION_TBL_ROWS; i++) {
-		EFX_POPULATE_DWORD_1(dword, FRF_BZ_IT_QUEUE,
-				     efx->rx_indir_table[i]);
-		efx_writed_table(efx, &dword, FR_BZ_RX_INDIRECTION_TBL, i);
-	}
+	efx->type->irq_test_generate(efx);
 }
 
 /* Hook interrupt handler(s)
@@ -1621,16 +1203,12 @@ void efx_nic_push_rx_indir_table(struct efx_nic *efx)
 int efx_nic_init_interrupt(struct efx_nic *efx)
 {
 	struct efx_channel *channel;
+	unsigned int n_irqs;
 	int rc;
 
 	if (!EFX_INT_MODE_USE_MSI(efx)) {
-		irq_handler_t handler;
-		if (efx_nic_rev(efx) >= EFX_REV_FALCON_B0)
-			handler = efx_legacy_interrupt;
-		else
-			handler = falcon_legacy_interrupt_a1;
-
-		rc = request_irq(efx->legacy_irq, handler, IRQF_SHARED,
+		rc = request_irq(efx->legacy_irq,
+				 efx->type->irq_handle_legacy, IRQF_SHARED,
 				 efx->name, efx);
 		if (rc) {
 			netif_err(efx, drv, efx->net_dev,
@@ -1641,24 +1219,54 @@ int efx_nic_init_interrupt(struct efx_nic *efx)
 		return 0;
 	}
 
+#ifdef CONFIG_RFS_ACCEL
+	if (efx->interrupt_mode == EFX_INT_MODE_MSIX) {
+		efx->net_dev->rx_cpu_rmap =
+			alloc_irq_cpu_rmap(efx->n_rx_channels);
+		if (!efx->net_dev->rx_cpu_rmap) {
+			rc = -ENOMEM;
+			goto fail1;
+		}
+	}
+#endif
+
 	/* Hook MSI or MSI-X interrupt */
+	n_irqs = 0;
 	efx_for_each_channel(channel, efx) {
-		rc = request_irq(channel->irq, efx_msi_interrupt,
+		rc = request_irq(channel->irq, efx->type->irq_handle_msi,
 				 IRQF_PROBE_SHARED, /* Not shared */
-				 efx->channel_name[channel->channel],
-				 &efx->channel[channel->channel]);
+				 efx->msi_context[channel->channel].name,
+				 &efx->msi_context[channel->channel]);
 		if (rc) {
 			netif_err(efx, drv, efx->net_dev,
 				  "failed to hook IRQ %d\n", channel->irq);
 			goto fail2;
 		}
+		++n_irqs;
+
+#ifdef CONFIG_RFS_ACCEL
+		if (efx->interrupt_mode == EFX_INT_MODE_MSIX &&
+		    channel->channel < efx->n_rx_channels) {
+			rc = irq_cpu_rmap_add(efx->net_dev->rx_cpu_rmap,
+					      channel->irq);
+			if (rc)
+				goto fail2;
+		}
+#endif
 	}
 
 	return 0;
 
  fail2:
-	efx_for_each_channel(channel, efx)
-		free_irq(channel->irq, &efx->channel[channel->channel]);
+#ifdef CONFIG_RFS_ACCEL
+	free_irq_cpu_rmap(efx->net_dev->rx_cpu_rmap);
+	efx->net_dev->rx_cpu_rmap = NULL;
+#endif
+	efx_for_each_channel(channel, efx) {
+		if (n_irqs-- == 0)
+			break;
+		free_irq(channel->irq, &efx->msi_context[channel->channel]);
+	}
  fail1:
 	return rc;
 }
@@ -1666,195 +1274,49 @@ int efx_nic_init_interrupt(struct efx_nic *efx)
 void efx_nic_fini_interrupt(struct efx_nic *efx)
 {
 	struct efx_channel *channel;
-	efx_oword_t reg;
 
-	/* Disable MSI/MSI-X interrupts */
-	efx_for_each_channel(channel, efx) {
-		if (channel->irq)
-			free_irq(channel->irq, &efx->channel[channel->channel]);
-	}
-
-	/* ACK legacy interrupt */
-	if (efx_nic_rev(efx) >= EFX_REV_FALCON_B0)
-		efx_reado(efx, &reg, FR_BZ_INT_ISR0);
-	else
-		falcon_irq_ack_a1(efx);
-
-	/* Disable legacy interrupt */
-	if (efx->legacy_irq)
-		free_irq(efx->legacy_irq, efx);
-}
-
-/* Looks at available SRAM resources and works out how many queues we
- * can support, and where things like descriptor caches should live.
- *
- * SRAM is split up as follows:
- * 0                          buftbl entries for channels
- * efx->vf_buftbl_base        buftbl entries for SR-IOV
- * efx->rx_dc_base            RX descriptor caches
- * efx->tx_dc_base            TX descriptor caches
- */
-void efx_nic_dimension_resources(struct efx_nic *efx, unsigned sram_lim_qw)
-{
-	unsigned vi_count, buftbl_min;
-
-	/* Account for the buffer table entries backing the datapath channels
-	 * and the descriptor caches for those channels.
-	 */
-	buftbl_min = ((efx->n_rx_channels * EFX_MAX_DMAQ_SIZE +
-		       efx->n_tx_channels * EFX_TXQ_TYPES * EFX_MAX_DMAQ_SIZE +
-		       efx->n_channels * EFX_MAX_EVQ_SIZE)
-		      * sizeof(efx_qword_t) / EFX_BUF_SIZE);
-	vi_count = max(efx->n_channels, efx->n_tx_channels * EFX_TXQ_TYPES);
-
-#ifdef CONFIG_SFC_SRIOV
-	if (efx_sriov_wanted(efx)) {
-		unsigned vi_dc_entries, buftbl_free, entries_per_vf, vf_limit;
-
-		efx->vf_buftbl_base = buftbl_min;
-
-		vi_dc_entries = RX_DC_ENTRIES + TX_DC_ENTRIES;
-		vi_count = max(vi_count, EFX_VI_BASE);
-		buftbl_free = (sram_lim_qw - buftbl_min -
-			       vi_count * vi_dc_entries);
-
-		entries_per_vf = ((vi_dc_entries + EFX_VF_BUFTBL_PER_VI) *
-				  efx_vf_size(efx));
-		vf_limit = min(buftbl_free / entries_per_vf,
-			       (1024U - EFX_VI_BASE) >> efx->vi_scale);
-
-		if (efx->vf_count > vf_limit) {
-			netif_err(efx, probe, efx->net_dev,
-				  "Reducing VF count from from %d to %d\n",
-				  efx->vf_count, vf_limit);
-			efx->vf_count = vf_limit;
-		}
-		vi_count += efx->vf_count * efx_vf_size(efx);
-	}
+#ifdef CONFIG_RFS_ACCEL
+	free_irq_cpu_rmap(efx->net_dev->rx_cpu_rmap);
+	efx->net_dev->rx_cpu_rmap = NULL;
 #endif
 
-	efx->tx_dc_base = sram_lim_qw - vi_count * TX_DC_ENTRIES;
-	efx->rx_dc_base = efx->tx_dc_base - vi_count * RX_DC_ENTRIES;
-}
-
-u32 efx_nic_fpga_ver(struct efx_nic *efx)
-{
-	efx_oword_t altera_build;
-	efx_reado(efx, &altera_build, FR_AZ_ALTERA_BUILD);
-	return EFX_OWORD_FIELD(altera_build, FRF_AZ_ALTERA_BUILD_VER);
-}
-
-void efx_nic_init_common(struct efx_nic *efx)
-{
-	efx_oword_t temp;
-
-	/* Set positions of descriptor caches in SRAM. */
-	EFX_POPULATE_OWORD_1(temp, FRF_AZ_SRM_TX_DC_BASE_ADR, efx->tx_dc_base);
-	efx_writeo(efx, &temp, FR_AZ_SRM_TX_DC_CFG);
-	EFX_POPULATE_OWORD_1(temp, FRF_AZ_SRM_RX_DC_BASE_ADR, efx->rx_dc_base);
-	efx_writeo(efx, &temp, FR_AZ_SRM_RX_DC_CFG);
-
-	/* Set TX descriptor cache size. */
-	BUILD_BUG_ON(TX_DC_ENTRIES != (8 << TX_DC_ENTRIES_ORDER));
-	EFX_POPULATE_OWORD_1(temp, FRF_AZ_TX_DC_SIZE, TX_DC_ENTRIES_ORDER);
-	efx_writeo(efx, &temp, FR_AZ_TX_DC_CFG);
-
-	/* Set RX descriptor cache size.  Set low watermark to size-8, as
-	 * this allows most efficient prefetching.
-	 */
-	BUILD_BUG_ON(RX_DC_ENTRIES != (8 << RX_DC_ENTRIES_ORDER));
-	EFX_POPULATE_OWORD_1(temp, FRF_AZ_RX_DC_SIZE, RX_DC_ENTRIES_ORDER);
-	efx_writeo(efx, &temp, FR_AZ_RX_DC_CFG);
-	EFX_POPULATE_OWORD_1(temp, FRF_AZ_RX_DC_PF_LWM, RX_DC_ENTRIES - 8);
-	efx_writeo(efx, &temp, FR_AZ_RX_DC_PF_WM);
-
-	/* Program INT_KER address */
-	EFX_POPULATE_OWORD_2(temp,
-			     FRF_AZ_NORM_INT_VEC_DIS_KER,
-			     EFX_INT_MODE_USE_MSI(efx),
-			     FRF_AZ_INT_ADR_KER, efx->irq_status.dma_addr);
-	efx_writeo(efx, &temp, FR_AZ_INT_ADR_KER);
-
-	if (EFX_WORKAROUND_17213(efx) && !EFX_INT_MODE_USE_MSI(efx))
-		/* Use an interrupt level unused by event queues */
-		efx->irq_level = 0x1f;
-	else
-		/* Use a valid MSI-X vector */
-		efx->irq_level = 0;
-
-	/* Enable all the genuinely fatal interrupts.  (They are still
-	 * masked by the overall interrupt mask, controlled by
-	 * falcon_interrupts()).
-	 *
-	 * Note: All other fatal interrupts are enabled
-	 */
-	EFX_POPULATE_OWORD_3(temp,
-			     FRF_AZ_ILL_ADR_INT_KER_EN, 1,
-			     FRF_AZ_RBUF_OWN_INT_KER_EN, 1,
-			     FRF_AZ_TBUF_OWN_INT_KER_EN, 1);
-	if (efx_nic_rev(efx) >= EFX_REV_SIENA_A0)
-		EFX_SET_OWORD_FIELD(temp, FRF_CZ_SRAM_PERR_INT_P_KER_EN, 1);
-	EFX_INVERT_OWORD(temp);
-	efx_writeo(efx, &temp, FR_AZ_FATAL_INTR_KER);
-
-	efx_nic_push_rx_indir_table(efx);
-
-	/* Disable the ugly timer-based TX DMA backoff and allow TX DMA to be
-	 * controlled by the RX FIFO fill level. Set arbitration to one pkt/Q.
-	 */
-	efx_reado(efx, &temp, FR_AZ_TX_RESERVED);
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_RX_SPACER, 0xfe);
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_RX_SPACER_EN, 1);
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_ONE_PKT_PER_Q, 1);
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_PUSH_EN, 1);
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_DIS_NON_IP_EV, 1);
-	/* Enable SW_EV to inherit in char driver - assume harmless here */
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_SOFT_EVT_EN, 1);
-	/* Prefetch threshold 2 => fetch when descriptor cache half empty */
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_PREF_THRESHOLD, 2);
-	/* Disable hardware watchdog which can misfire */
-	EFX_SET_OWORD_FIELD(temp, FRF_AZ_TX_PREF_WD_TMR, 0x3fffff);
-	/* Squash TX of packets of 16 bytes or less */
-	if (efx_nic_rev(efx) >= EFX_REV_FALCON_B0)
-		EFX_SET_OWORD_FIELD(temp, FRF_BZ_TX_FLUSH_MIN_LEN_EN, 1);
-	efx_writeo(efx, &temp, FR_AZ_TX_RESERVED);
-
-	if (efx_nic_rev(efx) >= EFX_REV_FALCON_B0) {
-		EFX_POPULATE_OWORD_4(temp,
-				     /* Default values */
-				     FRF_BZ_TX_PACE_SB_NOT_AF, 0x15,
-				     FRF_BZ_TX_PACE_SB_AF, 0xb,
-				     FRF_BZ_TX_PACE_FB_BASE, 0,
-				     /* Allow large pace values in the
-				      * fast bin. */
-				     FRF_BZ_TX_PACE_BIN_TH,
-				     FFE_BZ_TX_PACE_RESERVED);
-		efx_writeo(efx, &temp, FR_BZ_TX_PACE);
+	if (EFX_INT_MODE_USE_MSI(efx)) {
+		/* Disable MSI/MSI-X interrupts */
+		efx_for_each_channel(channel, efx)
+			free_irq(channel->irq,
+				 &efx->msi_context[channel->channel]);
+	} else {
+		/* Disable legacy interrupt */
+		free_irq(efx->legacy_irq, efx);
 	}
 }
 
 /* Register dump */
 
-#define REGISTER_REVISION_A	1
-#define REGISTER_REVISION_B	2
-#define REGISTER_REVISION_C	3
-#define REGISTER_REVISION_Z	3	/* latest revision */
+#define REGISTER_REVISION_FA	1
+#define REGISTER_REVISION_FB	2
+#define REGISTER_REVISION_FC	3
+#define REGISTER_REVISION_FZ	3	/* last Falcon arch revision */
+#define REGISTER_REVISION_ED	4
+#define REGISTER_REVISION_EZ	4	/* latest EF10 revision */
 
 struct efx_nic_reg {
 	u32 offset:24;
-	u32 min_revision:2, max_revision:2;
+	u32 min_revision:3, max_revision:3;
 };
 
-#define REGISTER(name, min_rev, max_rev) {				\
-	FR_ ## min_rev ## max_rev ## _ ## name,				\
-	REGISTER_REVISION_ ## min_rev, REGISTER_REVISION_ ## max_rev	\
+#define REGISTER(name, arch, min_rev, max_rev) {			\
+	arch ## R_ ## min_rev ## max_rev ## _ ## name,			\
+	REGISTER_REVISION_ ## arch ## min_rev,				\
+	REGISTER_REVISION_ ## arch ## max_rev				\
 }
-#define REGISTER_AA(name) REGISTER(name, A, A)
-#define REGISTER_AB(name) REGISTER(name, A, B)
-#define REGISTER_AZ(name) REGISTER(name, A, Z)
-#define REGISTER_BB(name) REGISTER(name, B, B)
-#define REGISTER_BZ(name) REGISTER(name, B, Z)
-#define REGISTER_CZ(name) REGISTER(name, C, Z)
+#define REGISTER_AA(name) REGISTER(name, F, A, A)
+#define REGISTER_AB(name) REGISTER(name, F, A, B)
+#define REGISTER_AZ(name) REGISTER(name, F, A, Z)
+#define REGISTER_BB(name) REGISTER(name, F, B, B)
+#define REGISTER_BZ(name) REGISTER(name, F, B, Z)
+#define REGISTER_CZ(name) REGISTER(name, F, C, Z)
+#define REGISTER_DZ(name) REGISTER(name, E, D, Z)
 
 static const struct efx_nic_reg efx_nic_regs[] = {
 	REGISTER_AZ(ADR_REGION),
@@ -1961,37 +1423,42 @@ static const struct efx_nic_reg efx_nic_regs[] = {
 	REGISTER_AB(XX_TXDRV_CTL),
 	/* XX_PRBS_CTL, XX_PRBS_CHK and XX_PRBS_ERR are not used */
 	/* XX_CORE_STAT is partly RC */
+	REGISTER_DZ(BIU_HW_REV_ID),
+	REGISTER_DZ(MC_DB_LWRD),
+	REGISTER_DZ(MC_DB_HWRD),
 };
 
 struct efx_nic_reg_table {
 	u32 offset:24;
-	u32 min_revision:2, max_revision:2;
+	u32 min_revision:3, max_revision:3;
 	u32 step:6, rows:21;
 };
 
-#define REGISTER_TABLE_DIMENSIONS(_, offset, min_rev, max_rev, step, rows) { \
+#define REGISTER_TABLE_DIMENSIONS(_, offset, arch, min_rev, max_rev, step, rows) { \
 	offset,								\
-	REGISTER_REVISION_ ## min_rev, REGISTER_REVISION_ ## max_rev,	\
+	REGISTER_REVISION_ ## arch ## min_rev,				\
+	REGISTER_REVISION_ ## arch ## max_rev,				\
 	step, rows							\
 }
-#define REGISTER_TABLE(name, min_rev, max_rev)				\
+#define REGISTER_TABLE(name, arch, min_rev, max_rev)			\
 	REGISTER_TABLE_DIMENSIONS(					\
-		name, FR_ ## min_rev ## max_rev ## _ ## name,		\
-		min_rev, max_rev,					\
-		FR_ ## min_rev ## max_rev ## _ ## name ## _STEP,	\
-		FR_ ## min_rev ## max_rev ## _ ## name ## _ROWS)
-#define REGISTER_TABLE_AA(name) REGISTER_TABLE(name, A, A)
-#define REGISTER_TABLE_AZ(name) REGISTER_TABLE(name, A, Z)
-#define REGISTER_TABLE_BB(name) REGISTER_TABLE(name, B, B)
-#define REGISTER_TABLE_BZ(name) REGISTER_TABLE(name, B, Z)
+		name, arch ## R_ ## min_rev ## max_rev ## _ ## name,	\
+		arch, min_rev, max_rev,					\
+		arch ## R_ ## min_rev ## max_rev ## _ ## name ## _STEP,	\
+		arch ## R_ ## min_rev ## max_rev ## _ ## name ## _ROWS)
+#define REGISTER_TABLE_AA(name) REGISTER_TABLE(name, F, A, A)
+#define REGISTER_TABLE_AZ(name) REGISTER_TABLE(name, F, A, Z)
+#define REGISTER_TABLE_BB(name) REGISTER_TABLE(name, F, B, B)
+#define REGISTER_TABLE_BZ(name) REGISTER_TABLE(name, F, B, Z)
 #define REGISTER_TABLE_BB_CZ(name)					\
-	REGISTER_TABLE_DIMENSIONS(name, FR_BZ_ ## name, B, B,		\
+	REGISTER_TABLE_DIMENSIONS(name, FR_BZ_ ## name, F, B, B,	\
 				  FR_BZ_ ## name ## _STEP,		\
 				  FR_BB_ ## name ## _ROWS),		\
-	REGISTER_TABLE_DIMENSIONS(name, FR_BZ_ ## name, C, Z,		\
+	REGISTER_TABLE_DIMENSIONS(name, FR_BZ_ ## name, F, C, Z,	\
 				  FR_BZ_ ## name ## _STEP,		\
 				  FR_CZ_ ## name ## _ROWS)
-#define REGISTER_TABLE_CZ(name) REGISTER_TABLE(name, C, Z)
+#define REGISTER_TABLE_CZ(name) REGISTER_TABLE(name, F, C, Z)
+#define REGISTER_TABLE_DZ(name) REGISTER_TABLE(name, E, D, Z)
 
 static const struct efx_nic_reg_table efx_nic_reg_tables[] = {
 	/* DRIVER is not used */
@@ -2009,9 +1476,9 @@ static const struct efx_nic_reg_table efx_nic_reg_tables[] = {
 	 * 1K entries allows for some expansion of queue count and
 	 * size before we need to change the version. */
 	REGISTER_TABLE_DIMENSIONS(BUF_FULL_TBL_KER, FR_AA_BUF_FULL_TBL_KER,
-				  A, A, 8, 1024),
+				  F, A, A, 8, 1024),
 	REGISTER_TABLE_DIMENSIONS(BUF_FULL_TBL, FR_BZ_BUF_FULL_TBL,
-				  B, Z, 8, 1024),
+				  F, B, Z, 8, 1024),
 	REGISTER_TABLE_CZ(RX_MAC_FILTER_TBL0),
 	REGISTER_TABLE_BB_CZ(TIMER_TBL),
 	REGISTER_TABLE_BB_CZ(TX_PACE_TBL),
@@ -2022,6 +1489,7 @@ static const struct efx_nic_reg_table efx_nic_reg_tables[] = {
 	/* MSIX_PBA_TABLE is not mapped */
 	/* SRM_DBG is not mapped (and is redundant with BUF_FLL_TBL) */
 	REGISTER_TABLE_BZ(RX_FILTER_TBL0),
+	REGISTER_TABLE_DZ(BIU_MC_SFT_STATUS),
 };
 
 size_t efx_nic_get_regs_len(struct efx_nic *efx)
@@ -2075,15 +1543,15 @@ void efx_nic_get_regs(struct efx_nic *efx, void *buf)
 
 		for (i = 0; i < table->rows; i++) {
 			switch (table->step) {
-			case 4: /* 32-bit register or SRAM */
-				efx_readd_table(efx, buf, table->offset, i);
+			case 4: /* 32-bit SRAM */
+				efx_readd(efx, buf, table->offset + 4 * i);
 				break;
 			case 8: /* 64-bit SRAM */
 				efx_sram_readq(efx,
 					       efx->membase + table->offset,
 					       buf, i);
 				break;
-			case 16: /* 128-bit register */
+			case 16: /* 128-bit-readable register */
 				efx_reado_table(efx, buf, table->offset, i);
 				break;
 			case 32: /* 128-bit register, interleaved */
@@ -2096,4 +1564,95 @@ void efx_nic_get_regs(struct efx_nic *efx, void *buf)
 			buf += size;
 		}
 	}
+}
+
+/**
+ * efx_nic_describe_stats - Describe supported statistics for ethtool
+ * @desc: Array of &struct efx_hw_stat_desc describing the statistics
+ * @count: Length of the @desc array
+ * @mask: Bitmask of which elements of @desc are enabled
+ * @names: Buffer to copy names to, or %NULL.  The names are copied
+ *	starting at intervals of %ETH_GSTRING_LEN bytes.
+ *
+ * Returns the number of visible statistics, i.e. the number of set
+ * bits in the first @count bits of @mask for which a name is defined.
+ */
+size_t efx_nic_describe_stats(const struct efx_hw_stat_desc *desc, size_t count,
+			      const unsigned long *mask, u8 *names)
+{
+	size_t visible = 0;
+	size_t index;
+
+	for_each_set_bit(index, mask, count) {
+		if (desc[index].name) {
+			if (names) {
+				strlcpy(names, desc[index].name,
+					ETH_GSTRING_LEN);
+				names += ETH_GSTRING_LEN;
+			}
+			++visible;
+		}
+	}
+
+	return visible;
+}
+
+/**
+ * efx_nic_update_stats - Convert statistics DMA buffer to array of u64
+ * @desc: Array of &struct efx_hw_stat_desc describing the DMA buffer
+ *	layout.  DMA widths of 0, 16, 32 and 64 are supported; where
+ *	the width is specified as 0 the corresponding element of
+ *	@stats is not updated.
+ * @count: Length of the @desc array
+ * @mask: Bitmask of which elements of @desc are enabled
+ * @stats: Buffer to update with the converted statistics.  The length
+ *	of this array must be at least @count.
+ * @dma_buf: DMA buffer containing hardware statistics
+ * @accumulate: If set, the converted values will be added rather than
+ *	directly stored to the corresponding elements of @stats
+ */
+void efx_nic_update_stats(const struct efx_hw_stat_desc *desc, size_t count,
+			  const unsigned long *mask,
+			  u64 *stats, const void *dma_buf, bool accumulate)
+{
+	size_t index;
+
+	for_each_set_bit(index, mask, count) {
+		if (desc[index].dma_width) {
+			const void *addr = dma_buf + desc[index].offset;
+			u64 val;
+
+			switch (desc[index].dma_width) {
+			case 16:
+				val = le16_to_cpup((__le16 *)addr);
+				break;
+			case 32:
+				val = le32_to_cpup((__le32 *)addr);
+				break;
+			case 64:
+				val = le64_to_cpup((__le64 *)addr);
+				break;
+			default:
+				WARN_ON(1);
+				val = 0;
+				break;
+			}
+
+			if (accumulate)
+				stats[index] += val;
+			else
+				stats[index] = val;
+		}
+	}
+}
+
+void efx_nic_fix_nodesc_drop_stat(struct efx_nic *efx, u64 *rx_nodesc_drops)
+{
+	/* if down, or this is the first update after coming up */
+	if (!(efx->net_dev->flags & IFF_UP) || !efx->rx_nodesc_drops_prev_state)
+		efx->rx_nodesc_drops_while_down +=
+			*rx_nodesc_drops - efx->rx_nodesc_drops_total;
+	efx->rx_nodesc_drops_total = *rx_nodesc_drops;
+	efx->rx_nodesc_drops_prev_state = !!(efx->net_dev->flags & IFF_UP);
+	*rx_nodesc_drops -= efx->rx_nodesc_drops_while_down;
 }

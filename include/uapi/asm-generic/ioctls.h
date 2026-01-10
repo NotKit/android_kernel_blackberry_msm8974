@@ -74,9 +74,15 @@
 #define TCSETXW		0x5435
 #define TIOCSIG		_IOW('T', 0x36, int)  /* pty: generate signal */
 #define TIOCVHANGUP	0x5437
+<<<<<<< HEAD
 #define TIOCPMGET	0x5441	/* PM get */
 #define TIOCPMPUT	0x5442	/* PM put */
 #define TIOCPMACT	0x5443	/* PM is active */
+=======
+#define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+#define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+#define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
+>>>>>>> android-3.18
 
 #define FIONCLEX	0x5450
 #define FIOCLEX		0x5451

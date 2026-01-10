@@ -31,7 +31,7 @@
 #define REALM_SZ			40	/* size of principal's auth domain */
 #define SNAME_SZ			40	/* size of service name */
 
-unsigned rxrpc_debug;
+unsigned int rxrpc_debug;
 module_param_named(debug, rxrpc_debug, uint, S_IWUSR | S_IRUGO);
 MODULE_PARM_DESC(debug, "rxkad debugging mask");
 
@@ -207,9 +207,9 @@ static int rxkad_secure_packet_encrypt(const struct rxrpc_call *call,
 	struct rxrpc_crypt iv;
 	struct scatterlist sg[16];
 	struct sk_buff *trailer;
-	unsigned len;
+	unsigned int len;
 	u16 check;
-	int nsg;
+	int nsg, err;
 
 	sp = rxrpc_skb(skb);
 
@@ -240,7 +240,9 @@ static int rxkad_secure_packet_encrypt(const struct rxrpc_call *call,
 	len &= ~(call->conn->size_align - 1);
 
 	sg_init_table(sg, nsg);
-	skb_to_sgvec(skb, sg, 0, len);
+	err = skb_to_sgvec(skb, sg, 0, len);
+	if (unlikely(err < 0))
+		return err;
 	crypto_blkcipher_encrypt_iv(&desc, sg, sg, len);
 
 	_leave(" = 0");
@@ -336,7 +338,7 @@ static int rxkad_verify_packet_auth(const struct rxrpc_call *call,
 	struct sk_buff *trailer;
 	u32 data_size, buf;
 	u16 check;
-	int nsg;
+	int nsg, ret;
 
 	_enter("");
 
@@ -348,7 +350,9 @@ static int rxkad_verify_packet_auth(const struct rxrpc_call *call,
 		goto nomem;
 
 	sg_init_table(sg, nsg);
-	skb_to_sgvec(skb, sg, 0, 8);
+	ret = skb_to_sgvec(skb, sg, 0, 8);
+	if (unlikely(ret < 0))
+		return ret;
 
 	/* start the decryption afresh */
 	memset(&iv, 0, sizeof(iv));
@@ -411,7 +415,7 @@ static int rxkad_verify_packet_encrypt(const struct rxrpc_call *call,
 	struct sk_buff *trailer;
 	u32 data_size, buf;
 	u16 check;
-	int nsg;
+	int nsg, ret;
 
 	_enter(",{%d}", skb->len);
 
@@ -430,7 +434,12 @@ static int rxkad_verify_packet_encrypt(const struct rxrpc_call *call,
 	}
 
 	sg_init_table(sg, nsg);
-	skb_to_sgvec(skb, sg, 0, skb->len);
+	ret = skb_to_sgvec(skb, sg, 0, skb->len);
+	if (unlikely(ret < 0)) {
+		if (sg != _sg)
+			kfree(sg);
+		return ret;
+	}
 
 	/* decrypt from the session key */
 	token = call->conn->key->payload.data;
@@ -826,7 +835,7 @@ static int rxkad_decrypt_ticket(struct rxrpc_connection *conn,
 	struct rxrpc_crypt iv, key;
 	struct scatterlist sg[1];
 	struct in_addr addr;
-	unsigned life;
+	unsigned int life;
 	time_t issue, now;
 	bool little_endian;
 	int ret;

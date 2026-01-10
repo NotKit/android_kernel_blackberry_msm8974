@@ -63,7 +63,7 @@ static int ioctl_send_fib(struct aac_dev * dev, void __user *arg)
 	struct fib *fibptr;
 	struct hw_fib * hw_fib = (struct hw_fib *)0;
 	dma_addr_t hw_fib_pa = (dma_addr_t)0LL;
-	unsigned size;
+	unsigned int size, osize;
 	int retval;
 
 	if (dev->in_reset) {
@@ -87,7 +87,8 @@ static int ioctl_send_fib(struct aac_dev * dev, void __user *arg)
 	 *	will not overrun the buffer when we copy the memory. Return
 	 *	an error if we would.
 	 */
-	size = le16_to_cpu(kfib->header.Size) + sizeof(struct aac_fibhdr);
+	osize = size = le16_to_cpu(kfib->header.Size) +
+		sizeof(struct aac_fibhdr);
 	if (size < le16_to_cpu(kfib->header.SenderSize))
 		size = le16_to_cpu(kfib->header.SenderSize);
 	if (size > dev->max_fib_size) {
@@ -115,6 +116,14 @@ static int ioctl_send_fib(struct aac_dev * dev, void __user *arg)
 
 	if (copy_from_user(kfib, arg, size)) {
 		retval = -EFAULT;
+		goto cleanup;
+	}
+
+	/* Sanity check the second copy */
+	if ((osize != le16_to_cpu(kfib->header.Size) +
+		sizeof(struct aac_fibhdr))
+		|| (size < le16_to_cpu(kfib->header.SenderSize))) {
+		retval = -EINVAL;
 		goto cleanup;
 	}
 
@@ -318,7 +327,8 @@ return_fib:
 			kthread_stop(dev->thread);
 			ssleep(1);
 			dev->aif_thread = 0;
-			dev->thread = kthread_run(aac_command_thread, dev, dev->name);
+			dev->thread = kthread_run(aac_command_thread, dev,
+						  "%s", dev->name);
 			ssleep(1);
 		}
 		if (f.wait) {
@@ -498,6 +508,8 @@ static int aac_send_raw_srb(struct aac_dev* dev, void __user * arg)
 		return -ENOMEM;
 	}
 	aac_fib_init(srbfib);
+	/* raw_srb FIB is not FastResponseCapable */
+	srbfib->hw_fib_va->header.XferState &= ~cpu_to_le32(FastResponseCapable);
 
 	srbcmd = (struct aac_srb*) fib_data(srbfib);
 

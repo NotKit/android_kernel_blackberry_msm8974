@@ -25,9 +25,6 @@
  *
  *  NOTES:
  *
- *   - async unlink should be used for avoiding the sleep inside lock.
- *     2.4.22 usb-uhci seems buggy for async unlinking and results in
- *     oops.  in such a cse, pass async_unlink=0 option.
  *   - the linked URBs would be preferred but not used so far because of
  *     the instability of unlinking.
  *   - type II is not supported properly.  there is no device which supports
@@ -82,10 +79,9 @@ static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;/* Enable this card *
 /* Vendor/product IDs for this card */
 static int vid[SNDRV_CARDS] = { [0 ... (SNDRV_CARDS-1)] = -1 };
 static int pid[SNDRV_CARDS] = { [0 ... (SNDRV_CARDS-1)] = -1 };
-static int nrpacks = 8;		/* max. number of packets per urb */
-static bool async_unlink = 1;
 static int device_setup[SNDRV_CARDS]; /* device parameter for this card */
 static bool ignore_ctl_error;
+static bool autoclock = true;
 
 module_param_array(index, int, NULL, 0444);
 MODULE_PARM_DESC(index, "Index value for the USB audio adapter.");
@@ -97,15 +93,13 @@ module_param_array(vid, int, NULL, 0444);
 MODULE_PARM_DESC(vid, "Vendor ID for the USB audio device.");
 module_param_array(pid, int, NULL, 0444);
 MODULE_PARM_DESC(pid, "Product ID for the USB audio device.");
-module_param(nrpacks, int, 0644);
-MODULE_PARM_DESC(nrpacks, "Max. number of packets per URB.");
-module_param(async_unlink, bool, 0444);
-MODULE_PARM_DESC(async_unlink, "Use async unlink mode.");
 module_param_array(device_setup, int, NULL, 0444);
 MODULE_PARM_DESC(device_setup, "Specific device setup (if needed).");
 module_param(ignore_ctl_error, bool, 0444);
 MODULE_PARM_DESC(ignore_ctl_error,
 		 "Ignore errors from USB controller for mixer interfaces.");
+module_param(autoclock, bool, 0444);
+MODULE_PARM_DESC(autoclock, "Enable auto-clock selection for UAC2 devices (default: yes).");
 
 /*
  * we keep the snd_usb_audio_t instances by ourselves for merging
@@ -131,8 +125,9 @@ static void snd_usb_stream_disconnect(struct list_head *head)
 		subs = &as->substream[idx];
 		if (!subs->num_formats)
 			continue;
-		snd_usb_release_substream_urbs(subs, 1);
 		subs->interface = -1;
+		subs->data_endpoint = NULL;
+		subs->sync_endpoint = NULL;
 	}
 }
 
@@ -144,8 +139,8 @@ static int snd_usb_create_stream(struct snd_usb_audio *chip, int ctrlif, int int
 	struct usb_interface *iface = usb_ifnum_to_if(dev, interface);
 
 	if (!iface) {
-		snd_printk(KERN_ERR "%d:%u:%d : does not exist\n",
-			   dev->devnum, ctrlif, interface);
+		dev_err(&dev->dev, "%u:%d : does not exist\n",
+			ctrlif, interface);
 		return -EINVAL;
 	}
 
@@ -170,8 +165,8 @@ static int snd_usb_create_stream(struct snd_usb_audio *chip, int ctrlif, int int
 	}
 
 	if (usb_interface_claimed(iface)) {
-		snd_printdd(KERN_INFO "%d:%d:%d: skipping, already claimed\n",
-						dev->devnum, ctrlif, interface);
+		dev_dbg(&dev->dev, "%d:%d: skipping, already claimed\n",
+			ctrlif, interface);
 		return -EINVAL;
 	}
 
@@ -181,33 +176,34 @@ static int snd_usb_create_stream(struct snd_usb_audio *chip, int ctrlif, int int
 		int err = snd_usbmidi_create(chip->card, iface,
 					     &chip->midi_list, NULL);
 		if (err < 0) {
-			snd_printk(KERN_ERR "%d:%u:%d: cannot create sequencer device\n",
-						dev->devnum, ctrlif, interface);
+			dev_err(&dev->dev,
+				"%u:%d: cannot create sequencer device\n",
+				ctrlif, interface);
 			return -EINVAL;
 		}
-		usb_driver_claim_interface(&usb_audio_driver, iface, (void *)-1L);
-
-		return 0;
+		return usb_driver_claim_interface(&usb_audio_driver, iface,
+						  USB_AUDIO_IFACE_UNUSED);
 	}
 
 	if ((altsd->bInterfaceClass != USB_CLASS_AUDIO &&
 	     altsd->bInterfaceClass != USB_CLASS_VENDOR_SPEC) ||
 	    altsd->bInterfaceSubClass != USB_SUBCLASS_AUDIOSTREAMING) {
-		snd_printdd(KERN_ERR "%d:%u:%d: skipping non-supported interface %d\n",
-					dev->devnum, ctrlif, interface, altsd->bInterfaceClass);
+		dev_dbg(&dev->dev,
+			"%u:%d: skipping non-supported interface %d\n",
+			ctrlif, interface, altsd->bInterfaceClass);
 		/* skip non-supported classes */
 		return -EINVAL;
 	}
 
 	if (snd_usb_get_speed(dev) == USB_SPEED_LOW) {
-		snd_printk(KERN_ERR "low speed audio streaming not supported\n");
+		dev_err(&dev->dev, "low speed audio streaming not supported\n");
 		return -EINVAL;
 	}
 
 	if (! snd_usb_parse_audio_interface(chip, interface)) {
 		usb_set_interface(dev, interface, 0); /* reset the current interface */
-		usb_driver_claim_interface(&usb_audio_driver, iface, (void *)-1L);
-		return -EINVAL;
+		return usb_driver_claim_interface(&usb_audio_driver, iface,
+						  USB_AUDIO_IFACE_UNUSED);
 	}
 
 	return 0;
@@ -221,25 +217,12 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 	struct usb_device *dev = chip->dev;
 	struct usb_host_interface *host_iface;
 	struct usb_interface_descriptor *altsd;
-	struct usb_interface *usb_iface;
 	void *control_header;
 	int i, protocol;
 	int rest_bytes;
 
-	usb_iface = usb_ifnum_to_if(dev, ctrlif);
-	if (!usb_iface) {
-		snd_printk(KERN_ERR "%d:%u : does not exist\n",
-					dev->devnum, ctrlif);
-		return -EINVAL;
-	}
-
 	/* find audiocontrol interface */
-	host_iface = &usb_iface->altsetting[0];
-	if (!host_iface) {
-		snd_printk(KERN_ERR "Audio Control interface is not available.");
-		return -EINVAL;
-	}
-
+	host_iface = &usb_ifnum_to_if(dev, ctrlif)->altsetting[0];
 	control_header = snd_usb_find_csint_desc(host_iface->extra,
 						 host_iface->extralen,
 						 NULL, UAC_HEADER);
@@ -247,7 +230,7 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 	protocol = altsd->bInterfaceProtocol;
 
 	if (!control_header) {
-		snd_printk(KERN_ERR "cannot find UAC_HEADER\n");
+		dev_err(&dev->dev, "cannot find UAC_HEADER\n");
 		return -EINVAL;
 	}
 
@@ -262,8 +245,9 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 
 	switch (protocol) {
 	default:
-		snd_printdd(KERN_WARNING "unknown interface protocol %#02x, assuming v1\n",
-			    protocol);
+		dev_warn(&dev->dev,
+			 "unknown interface protocol %#02x, assuming v1\n",
+			 protocol);
 		/* fall through */
 
 	case UAC_VERSION_1: {
@@ -275,7 +259,7 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 		}
 
 		if (!h1->bInCollection) {
-			snd_printk(KERN_INFO "skipping empty audio interface (v1)\n");
+			dev_info(&dev->dev, "skipping empty audio interface (v1)\n");
 			return -EINVAL;
 		}
 
@@ -285,7 +269,7 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 		}
 
 		if (h1->bLength < sizeof(*h1) + h1->bInCollection) {
-			snd_printk(KERN_ERR "invalid UAC_HEADER (v1)\n");
+			dev_err(&dev->dev, "invalid UAC_HEADER (v1)\n");
 			return -EINVAL;
 		}
 
@@ -297,9 +281,25 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 
 	case UAC_VERSION_2: {
 		struct usb_interface_assoc_descriptor *assoc =
-						usb_iface->intf_assoc;
+			usb_ifnum_to_if(dev, ctrlif)->intf_assoc;
+
 		if (!assoc) {
-			snd_printk(KERN_ERR "Audio class v2 interfaces need an interface association\n");
+			/*
+			 * Firmware writers cannot count to three.  So to find
+			 * the IAD on the NuForce UDH-100, also check the next
+			 * interface.
+			 */
+			struct usb_interface *iface =
+				usb_ifnum_to_if(dev, ctrlif + 1);
+			if (iface &&
+			    iface->intf_assoc &&
+			    iface->intf_assoc->bFunctionClass == USB_CLASS_AUDIO &&
+			    iface->intf_assoc->bFunctionProtocol == UAC_VERSION_2)
+				assoc = iface->intf_assoc;
+		}
+
+		if (!assoc) {
+			dev_err(&dev->dev, "Audio class v2 interfaces need an interface association\n");
 			return -EINVAL;
 		}
 
@@ -313,6 +313,7 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 		break;
 	}
 	}
+
 	return 0;
 }
 
@@ -325,6 +326,12 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 
 static int snd_usb_audio_free(struct snd_usb_audio *chip)
 {
+	struct list_head *p, *n;
+
+	list_for_each_safe(p, n, &chip->ep_list)
+		snd_usb_endpoint_free(p);
+
+	mutex_destroy(&chip->mutex);
 	kfree(chip);
 	return 0;
 }
@@ -348,7 +355,8 @@ static void remove_trailing_spaces(char *str)
 /*
  * create a chip instance and set its names.
  */
-static int snd_usb_audio_create(struct usb_device *dev, int idx,
+static int snd_usb_audio_create(struct usb_interface *intf,
+				struct usb_device *dev, int idx,
 				const struct snd_usb_audio_quirk *quirk,
 				struct snd_usb_audio **rchip)
 {
@@ -366,16 +374,18 @@ static int snd_usb_audio_create(struct usb_device *dev, int idx,
 	case USB_SPEED_LOW:
 	case USB_SPEED_FULL:
 	case USB_SPEED_HIGH:
+	case USB_SPEED_WIRELESS:
 	case USB_SPEED_SUPER:
 		break;
 	default:
-		snd_printk(KERN_ERR "unknown device speed %d\n", snd_usb_get_speed(dev));
+		dev_err(&dev->dev, "unknown device speed %d\n", snd_usb_get_speed(dev));
 		return -ENXIO;
 	}
 
-	err = snd_card_create(index[idx], id[idx], THIS_MODULE, 0, &card);
+	err = snd_card_new(&intf->dev, index[idx], id[idx], THIS_MODULE,
+			   0, &card);
 	if (err < 0) {
-		snd_printk(KERN_ERR "cannot create card instance %d\n", idx);
+		dev_err(&dev->dev, "cannot create card instance %d\n", idx);
 		return err;
 	}
 
@@ -385,18 +395,19 @@ static int snd_usb_audio_create(struct usb_device *dev, int idx,
 		return -ENOMEM;
 	}
 
+	mutex_init(&chip->mutex);
 	init_rwsem(&chip->shutdown_rwsem);
 	chip->index = idx;
 	chip->dev = dev;
 	chip->card = card;
 	chip->setup = device_setup[idx];
-	chip->nrpacks = nrpacks;
-	chip->async_unlink = async_unlink;
+	chip->autoclock = autoclock;
 	chip->probing = 1;
 
 	chip->usb_id = USB_ID(le16_to_cpu(dev->descriptor.idVendor),
 			      le16_to_cpu(dev->descriptor.idProduct));
 	INIT_LIST_HEAD(&chip->pcm_list);
+	INIT_LIST_HEAD(&chip->ep_list);
 	INIT_LIST_HEAD(&chip->midi_list);
 	INIT_LIST_HEAD(&chip->mixer_list);
 
@@ -515,7 +526,7 @@ snd_usb_audio_probe(struct usb_device *dev,
 	for (i = 0; i < SNDRV_CARDS; i++) {
 		if (usb_chip[i] && usb_chip[i]->dev == dev) {
 			if (usb_chip[i]->shutdown) {
-				snd_printk(KERN_ERR "USB device is in the shutdown state, cannot create a card instance\n");
+				dev_err(&dev->dev, "USB device is in the shutdown state, cannot create a card instance\n");
 				goto __error;
 			}
 			chip = usb_chip[i];
@@ -531,15 +542,15 @@ snd_usb_audio_probe(struct usb_device *dev,
 			if (enable[i] && ! usb_chip[i] &&
 			    (vid[i] == -1 || vid[i] == USB_ID_VENDOR(id)) &&
 			    (pid[i] == -1 || pid[i] == USB_ID_PRODUCT(id))) {
-				if (snd_usb_audio_create(dev, i, quirk, &chip) < 0) {
+				if (snd_usb_audio_create(intf, dev, i, quirk,
+							 &chip) < 0) {
 					goto __error;
 				}
-				snd_card_set_dev(chip->card, &intf->dev);
 				chip->pm_intf = intf;
 				break;
 			}
 		if (!chip) {
-			printk(KERN_ERR "no available usb audio device\n");
+			dev_err(&dev->dev, "no available usb audio device\n");
 			goto __error;
 		}
 	}
@@ -581,9 +592,12 @@ snd_usb_audio_probe(struct usb_device *dev,
 
  __error:
 	if (chip) {
+		/* chip->probing is inside the chip->card object,
+		 * reset before memory is possibly returned.
+		 */
+		chip->probing = 0;
 		if (!chip->num_interfaces)
 			snd_card_free(chip->card);
-		chip->probing = 0;
 	}
 	mutex_unlock(&register_mutex);
  __err_val:
@@ -601,7 +615,7 @@ static void snd_usb_audio_disconnect(struct usb_device *dev,
 	struct list_head *p;
 	bool was_shutdown;
 
-	if (chip == (void *)-1L)
+	if (chip == USB_AUDIO_IFACE_UNUSED)
 		return;
 
 	card = chip->card;
@@ -612,10 +626,16 @@ static void snd_usb_audio_disconnect(struct usb_device *dev,
 
 	mutex_lock(&register_mutex);
 	if (!was_shutdown) {
+		struct snd_usb_endpoint *ep;
+
 		snd_card_disconnect(card);
 		/* release the pcm resources */
 		list_for_each(p, &chip->pcm_list) {
 			snd_usb_stream_disconnect(p);
+		}
+		/* release the endpoint resources */
+		list_for_each_entry(ep, &chip->ep_list, list) {
+			snd_usb_endpoint_release(ep);
 		}
 		/* release the midi resources */
 		list_for_each(p, &chip->midi_list) {
@@ -665,7 +685,7 @@ int snd_usb_autoresume(struct snd_usb_audio *chip)
 	int err = -ENODEV;
 
 	down_read(&chip->shutdown_rwsem);
-	if (chip->probing)
+	if (chip->probing && chip->in_pm)
 		err = 0;
 	else if (!chip->shutdown)
 		err = usb_autopm_get_interface(chip->pm_intf);
@@ -677,7 +697,7 @@ int snd_usb_autoresume(struct snd_usb_audio *chip)
 void snd_usb_autosuspend(struct snd_usb_audio *chip)
 {
 	down_read(&chip->shutdown_rwsem);
-	if (!chip->shutdown && !chip->probing)
+	if (!chip->shutdown && !chip->probing && !chip->in_pm)
 		usb_autopm_put_interface(chip->pm_intf);
 	up_read(&chip->shutdown_rwsem);
 }
@@ -685,21 +705,25 @@ void snd_usb_autosuspend(struct snd_usb_audio *chip)
 static int usb_audio_suspend(struct usb_interface *intf, pm_message_t message)
 {
 	struct snd_usb_audio *chip = usb_get_intfdata(intf);
-	struct list_head *p;
 	struct snd_usb_stream *as;
 	struct usb_mixer_interface *mixer;
+	struct list_head *p;
 
-	if (chip == (void *)-1L)
+	if (chip == USB_AUDIO_IFACE_UNUSED)
 		return 0;
 
 	if (!PMSG_IS_AUTO(message)) {
 		snd_power_change_state(chip->card, SNDRV_CTL_POWER_D3hot);
 		if (!chip->num_suspended_intf++) {
-			list_for_each(p, &chip->pcm_list) {
-				as = list_entry(p, struct snd_usb_stream, list);
+			list_for_each_entry(as, &chip->pcm_list, list) {
 				snd_pcm_suspend_all(as->pcm);
+				as->substream[0].need_setup_ep =
+					as->substream[1].need_setup_ep = true;
 			}
- 		}
+			list_for_each(p, &chip->midi_list) {
+				snd_usbmidi_suspend(p);
+			}
+		}
 	} else {
 		/*
 		 * otherwise we keep the rest of the system in the dark
@@ -709,30 +733,38 @@ static int usb_audio_suspend(struct usb_interface *intf, pm_message_t message)
 			chip->autosuspended = 1;
 	}
 
-	list_for_each_entry(mixer, &chip->mixer_list, list)
-		snd_usb_mixer_inactivate(mixer);
+	if (chip->num_suspended_intf == 1)
+		list_for_each_entry(mixer, &chip->mixer_list, list)
+			snd_usb_mixer_suspend(mixer);
 
 	return 0;
 }
 
-static int usb_audio_resume(struct usb_interface *intf)
+static int __usb_audio_resume(struct usb_interface *intf, bool reset_resume)
 {
 	struct snd_usb_audio *chip = usb_get_intfdata(intf);
 	struct usb_mixer_interface *mixer;
+	struct list_head *p;
 	int err = 0;
 
-	if (chip == (void *)-1L)
+	if (chip == USB_AUDIO_IFACE_UNUSED)
 		return 0;
 	if (--chip->num_suspended_intf)
 		return 0;
+
+	chip->in_pm = 1;
 	/*
 	 * ALSA leaves material resumption to user space
 	 * we just notify and restart the mixers
 	 */
 	list_for_each_entry(mixer, &chip->mixer_list, list) {
-		err = snd_usb_mixer_activate(mixer);
+		err = snd_usb_mixer_resume(mixer, reset_resume);
 		if (err < 0)
 			goto err_out;
+	}
+
+	list_for_each(p, &chip->midi_list) {
+		snd_usbmidi_resume(p);
 	}
 
 	if (!chip->autosuspended)
@@ -740,11 +772,23 @@ static int usb_audio_resume(struct usb_interface *intf)
 	chip->autosuspended = 0;
 
 err_out:
+	chip->in_pm = 0;
 	return err;
+}
+
+static int usb_audio_resume(struct usb_interface *intf)
+{
+	return __usb_audio_resume(intf, false);
+}
+
+static int usb_audio_reset_resume(struct usb_interface *intf)
+{
+	return __usb_audio_resume(intf, true);
 }
 #else
 #define usb_audio_suspend	NULL
 #define usb_audio_resume	NULL
+#define usb_audio_reset_resume	NULL
 #endif		/* CONFIG_PM */
 
 static struct usb_device_id usb_audio_ids [] = {
@@ -754,8 +798,7 @@ static struct usb_device_id usb_audio_ids [] = {
       .bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL },
     { }						/* Terminating entry */
 };
-
-MODULE_DEVICE_TABLE (usb, usb_audio_ids);
+MODULE_DEVICE_TABLE(usb, usb_audio_ids);
 
 /*
  * entry point for linux usb interface
@@ -767,24 +810,9 @@ static struct usb_driver usb_audio_driver = {
 	.disconnect =	usb_audio_disconnect,
 	.suspend =	usb_audio_suspend,
 	.resume =	usb_audio_resume,
+	.reset_resume =	usb_audio_reset_resume,
 	.id_table =	usb_audio_ids,
 	.supports_autosuspend = 1,
 };
 
-static int __init snd_usb_audio_init(void)
-{
-	if (nrpacks < 1 || nrpacks > MAX_PACKS) {
-		printk(KERN_WARNING "invalid nrpacks value.\n");
-		return -EINVAL;
-	}
-
-	return usb_register(&usb_audio_driver);
-}
-
-static void __exit snd_usb_audio_cleanup(void)
-{
-	usb_deregister(&usb_audio_driver);
-}
-
-module_init(snd_usb_audio_init);
-module_exit(snd_usb_audio_cleanup);
+module_usb_driver(usb_audio_driver);

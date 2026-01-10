@@ -28,6 +28,9 @@
 #define EBADTYPE	527	/* Type not supported by server */
 #define EJUKEBOX	528	/* Request initiated, but will not complete before timeout */
 #define EIOCBQUEUED	529	/* iocb queued, will get completion event */
+<<<<<<< HEAD
 #define EIOCBRETRY	530	/* iocb queued, will trigger a retry */
+=======
+>>>>>>> android-3.18
 
 #endif

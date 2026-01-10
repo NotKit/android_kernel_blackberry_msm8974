@@ -58,7 +58,6 @@
 #include <linux/moduleparam.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
-#include <linux/init.h>
 #include <linux/skbuff.h>
 #include <linux/netdevice.h>
 #include <linux/slab.h>
@@ -1083,7 +1082,7 @@ static int stir421x_patch_device(struct irda_usb_cb *self)
          * are "42101001.sb" or "42101002.sb"
          */
         sprintf(stir421x_fw_name, "4210%4X.sb",
-                self->usbdev->descriptor.bcdDevice);
+		le16_to_cpu(self->usbdev->descriptor.bcdDevice));
         ret = request_firmware(&fw, stir421x_fw_name, &self->usbdev->dev);
         if (ret < 0)
                 return ret;
@@ -1671,7 +1670,7 @@ static int irda_usb_probe(struct usb_interface *intf,
 
 	/* Is this really necessary? (no, except maybe for broken devices) */
 	if (usb_reset_configuration (dev) < 0) {
-		err("reset_configuration failed");
+		dev_err(&intf->dev, "reset_configuration failed\n");
 		ret = -EIO;
 		goto err_out_3;
 	}

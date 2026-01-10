@@ -22,12 +22,13 @@
 #include <mach/irqs.h>
 #include <mach/msm_iomap.h>
 #include <mach/dma.h>
-#include <mach/board.h>
 
 #include "devices.h"
+#include "common.h"
 
 #include <asm/mach/flash.h>
 
+<<<<<<< HEAD
 #include <asm/mach/mmc.h>
 #include <mach/msm_hsusb.h>
 #include <mach/usbdiag.h>
@@ -63,6 +64,42 @@ static struct resource resources_uart2[] = {
 		.end	= MSM_UART2_PHYS + MSM_UART2_SIZE - 1,
 		.flags	= IORESOURCE_MEM,
 	},
+};
+=======
+#include <linux/platform_data/mmc-msm_sdcc.h>
+#include "clock.h"
+#include "clock-pcom.h"
+>>>>>>> android-3.18
+
+static struct resource msm_gpio_resources[] = {
+	{
+		.start	= 64 + 165 + 9,
+		.end	= 64 + 165 + 9,
+		.flags	= IORESOURCE_IRQ,
+	},
+	{
+		.start	= 64 + 165 + 10,
+		.end	= 64 + 165 + 10,
+		.flags	= IORESOURCE_IRQ,
+	},
+	{
+		.start	= 0xa9000800,
+		.end	= 0xa9000800 + SZ_4K - 1,
+		.flags	= IORESOURCE_MEM,
+		.name  = "gpio1"
+	},
+	{
+		.start	= 0xa9100C00,
+		.end	= 0xa9100C00 + SZ_4K - 1,
+		.flags	= IORESOURCE_MEM,
+		.name  = "gpio2"
+	},
+};
+
+struct platform_device msm_device_gpio_8x50 = {
+	.name	= "gpio-msm-8x50",
+	.num_resources	= ARRAY_SIZE(msm_gpio_resources),
+	.resource	= msm_gpio_resources,
 };
 
 static struct resource resources_uart3[] = {
@@ -836,6 +873,7 @@ static void tsif_release(struct device *dev)
 	dev_info(dev, "release\n");
 }
 
+<<<<<<< HEAD
 struct platform_device msm_device_tsif = {
 	.name          = "msm_tsif",
 	.id            = 0,
@@ -959,5 +997,68 @@ struct platform_device msm_kgsl_3d0 = {
 	.dev = {
 		.platform_data = &kgsl_3d0_pdata,
 	},
+=======
+static struct clk_pcom_desc msm_clocks_8x50[] = {
+	CLK_PCOM("adm_clk",	ADM_CLK,	NULL, 0),
+	CLK_PCOM("ce_clk",	CE_CLK,		NULL, 0),
+	CLK_PCOM("ebi1_clk",	EBI1_CLK,	NULL, CLK_MIN),
+	CLK_PCOM("ebi2_clk",	EBI2_CLK,	NULL, 0),
+	CLK_PCOM("ecodec_clk",	ECODEC_CLK,	NULL, 0),
+	CLK_PCOM("emdh_clk",	EMDH_CLK,	NULL, OFF | CLK_MINMAX),
+	CLK_PCOM("gp_clk",	GP_CLK,		NULL, 0),
+	CLK_PCOM("grp_clk",	GRP_3D_CLK,	NULL, 0),
+	CLK_PCOM("i2c_clk",	I2C_CLK,	NULL, 0),
+	CLK_PCOM("icodec_rx_clk",	ICODEC_RX_CLK,	NULL, 0),
+	CLK_PCOM("icodec_tx_clk",	ICODEC_TX_CLK,	NULL, 0),
+	CLK_PCOM("imem_clk",	IMEM_CLK,	NULL, OFF),
+	CLK_PCOM("mdc_clk",	MDC_CLK,	NULL, 0),
+	CLK_PCOM("mddi_clk",	PMDH_CLK,	NULL, OFF | CLK_MINMAX),
+	CLK_PCOM("mdp_clk",	MDP_CLK,	NULL, OFF),
+	CLK_PCOM("mdp_lcdc_pclk_clk", MDP_LCDC_PCLK_CLK, NULL, 0),
+	CLK_PCOM("mdp_lcdc_pad_pclk_clk", MDP_LCDC_PAD_PCLK_CLK, NULL, 0),
+	CLK_PCOM("mdp_vsync_clk",	MDP_VSYNC_CLK,	NULL, 0),
+	CLK_PCOM("pbus_clk",	PBUS_CLK,	NULL, CLK_MIN),
+	CLK_PCOM("pcm_clk",	PCM_CLK,	NULL, 0),
+	CLK_PCOM("sdac_clk",	SDAC_CLK,	NULL, OFF),
+	CLK_PCOM("sdc_clk",	SDC1_CLK,	"msm_sdcc.1", OFF),
+	CLK_PCOM("sdc_pclk",	SDC1_P_CLK,	"msm_sdcc.1", OFF),
+	CLK_PCOM("sdc_clk",	SDC2_CLK,	"msm_sdcc.2", OFF),
+	CLK_PCOM("sdc_pclk",	SDC2_P_CLK,	"msm_sdcc.2", OFF),
+	CLK_PCOM("sdc_clk",	SDC3_CLK,	"msm_sdcc.3", OFF),
+	CLK_PCOM("sdc_pclk",	SDC3_P_CLK,	"msm_sdcc.3", OFF),
+	CLK_PCOM("sdc_clk",	SDC4_CLK,	"msm_sdcc.4", OFF),
+	CLK_PCOM("sdc_pclk",	SDC4_P_CLK,	"msm_sdcc.4", OFF),
+	CLK_PCOM("spi_clk",	SPI_CLK,	NULL, 0),
+	CLK_PCOM("tsif_clk",	TSIF_CLK,	NULL, 0),
+	CLK_PCOM("tsif_ref_clk",	TSIF_REF_CLK,	NULL, 0),
+	CLK_PCOM("tv_dac_clk",	TV_DAC_CLK,	NULL, 0),
+	CLK_PCOM("tv_enc_clk",	TV_ENC_CLK,	NULL, 0),
+	CLK_PCOM("core",	UART1_CLK,	NULL, OFF),
+	CLK_PCOM("core",	UART2_CLK,	NULL, 0),
+	CLK_PCOM("core",	UART3_CLK,	"msm_serial.2", OFF),
+	CLK_PCOM("uartdm_clk",	UART1DM_CLK,	NULL, OFF),
+	CLK_PCOM("uartdm_clk",	UART2DM_CLK,	NULL, 0),
+	CLK_PCOM("usb_hs_clk",	USB_HS_CLK,	NULL, OFF),
+	CLK_PCOM("usb_hs_pclk",	USB_HS_P_CLK,	NULL, OFF),
+	CLK_PCOM("usb_otg_clk",	USB_OTG_CLK,	NULL, 0),
+	CLK_PCOM("vdc_clk",	VDC_CLK,	NULL, OFF | CLK_MIN),
+	CLK_PCOM("vfe_clk",	VFE_CLK,	NULL, OFF),
+	CLK_PCOM("vfe_mdc_clk",	VFE_MDC_CLK,	NULL, OFF),
+	CLK_PCOM("vfe_axi_clk",	VFE_AXI_CLK,	NULL, OFF),
+	CLK_PCOM("usb_hs2_clk",	USB_HS2_CLK,	NULL, OFF),
+	CLK_PCOM("usb_hs2_pclk",	USB_HS2_P_CLK,	NULL, OFF),
+	CLK_PCOM("usb_hs3_clk",	USB_HS3_CLK,	NULL, OFF),
+	CLK_PCOM("usb_hs3_pclk",	USB_HS3_P_CLK,	NULL, OFF),
+	CLK_PCOM("usb_phy_clk",	USB_PHY_CLK,	NULL, 0),
 };
 
+static struct pcom_clk_pdata msm_clock_8x50_pdata = {
+	.lookup = msm_clocks_8x50,
+	.num_lookups = ARRAY_SIZE(msm_clocks_8x50),
+>>>>>>> android-3.18
+};
+
+struct platform_device msm_clock_8x50 = {
+	.name = "msm-clock-pcom",
+	.dev.platform_data = &msm_clock_8x50_pdata,
+};

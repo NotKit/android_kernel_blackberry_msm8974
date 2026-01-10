@@ -22,7 +22,7 @@
  *
  */
 #include <linux/time.h>
-#include "asequencer.h"
+#include <sound/asequencer.h>
 
 typedef struct snd_seq_real_time snd_seq_real_time_t;
 typedef union snd_seq_timestamp snd_seq_timestamp_t;
@@ -55,7 +55,8 @@ typedef union snd_seq_timestamp snd_seq_timestamp_t;
 #define SNDRV_SEQ_DEFAULT_CLIENT_EVENTS	200
 
 /* max delivery path length */
-#define SNDRV_SEQ_MAX_HOPS		10
+/* NOTE: this shouldn't be greater than MAX_LOCKDEP_SUBCLASSES */
+#define SNDRV_SEQ_MAX_HOPS		8
 
 /* max size of event size */
 #define SNDRV_SEQ_MAX_EVENT_LEN		0x3fffffff

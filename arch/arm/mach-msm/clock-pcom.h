@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 /* Copyright (c) 2009-2011, The Linux Foundation. All rights reserved.
+=======
+/*
+ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+>>>>>>> android-3.18
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -138,6 +143,7 @@
 
 extern int pc_clk_reset(unsigned id, enum clk_reset_action action);
 
+<<<<<<< HEAD
 struct clk_ops;
 extern struct clk_ops clk_ops_pcom;
 extern struct clk_ops clk_ops_pcom_div2;
@@ -167,6 +173,27 @@ static inline struct pcom_clk *to_pcom_clk(struct clk *clk)
 			.dbg_name = #clk_id, \
 			CLK_INIT(clk_name.c), \
 		}, \
+=======
+struct clk_pcom_desc {
+	unsigned id;
+	const char *name;
+	const char *con;
+	const char *dev;
+	unsigned long flags;
+};
+
+struct pcom_clk_pdata {
+	struct clk_pcom_desc *lookup;
+	u32 num_lookups;
+};
+
+#define CLK_PCOM(clk_name, clk_id, clk_dev, clk_flags) {	\
+	.id = P_##clk_id,					\
+	.name = #clk_id,					\
+	.con = clk_name,					\
+	.dev = clk_dev,						\
+	.flags = clk_flags,					\
+>>>>>>> android-3.18
 	}
 
 #endif

@@ -37,7 +37,11 @@
  * @RFKILL_TYPE_WWAN: switch is on a wireless WAN device.
  * @RFKILL_TYPE_GPS: switch is on a GPS device.
  * @RFKILL_TYPE_FM: switch is on a FM radio device.
+<<<<<<< HEAD
  * @RFKILL_TYPE_MODEM: switch is on a mobile radio device.
+=======
+ * @RFKILL_TYPE_NFC: switch is on an NFC device.
+>>>>>>> android-3.18
  * @NUM_RFKILL_TYPES: number of defined rfkill types
  */
 enum rfkill_type {
@@ -49,7 +53,11 @@ enum rfkill_type {
 	RFKILL_TYPE_WWAN,
 	RFKILL_TYPE_GPS,
 	RFKILL_TYPE_FM,
+<<<<<<< HEAD
 	RFKILL_TYPE_MODEM,
+=======
+	RFKILL_TYPE_NFC,
+>>>>>>> android-3.18
 	NUM_RFKILL_TYPES,
 };
 

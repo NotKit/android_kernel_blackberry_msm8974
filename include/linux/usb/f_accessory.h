@@ -18,6 +18,7 @@
 #ifndef __LINUX_USB_F_ACCESSORY_H
 #define __LINUX_USB_F_ACCESSORY_H
 
+<<<<<<< HEAD
 /* Use Google Vendor ID when in accessory mode */
 #define USB_ACCESSORY_VENDOR_ID 0x18D1
 
@@ -142,5 +143,8 @@
 #define ACCESSORY_IS_START_REQUESTED        _IO('M', 7)
 /* returns audio mode (set via the ACCESSORY_SET_AUDIO_MODE control request) */
 #define ACCESSORY_GET_AUDIO_MODE            _IO('M', 8)
+=======
+#include <uapi/linux/usb/f_accessory.h>
+>>>>>>> android-3.18
 
 #endif /* __LINUX_USB_F_ACCESSORY_H */

@@ -60,6 +60,13 @@ struct keychord_device {
 	unsigned char		head;
 	unsigned char		tail;
 	__u16			buff[BUFFER_SIZE];
+<<<<<<< HEAD
+=======
+	/* Bit to serialize writes to this device */
+#define KEYCHORD_BUSY			0x01
+	unsigned long		flags;
+	wait_queue_head_t	write_waitq;
+>>>>>>> android-3.18
 };
 
 static int check_keychord(struct keychord_device *kdev,
@@ -172,7 +179,10 @@ static int keychord_connect(struct input_handler *handler,
 		goto err_input_open_device;
 
 	pr_info("keychord: using input dev %s for fevent\n", dev->name);
+<<<<<<< HEAD
 
+=======
+>>>>>>> android-3.18
 	return 0;
 
 err_input_open_device:
@@ -225,6 +235,44 @@ static ssize_t keychord_read(struct file *file, char __user *buffer,
 }
 
 /*
+<<<<<<< HEAD
+=======
+ * serializes writes on a device. can use mutex_lock_interruptible()
+ * for this particular use case as well - a matter of preference.
+ */
+static int
+keychord_write_lock(struct keychord_device *kdev)
+{
+	int ret;
+	unsigned long flags;
+
+	spin_lock_irqsave(&kdev->lock, flags);
+	while (kdev->flags & KEYCHORD_BUSY) {
+		spin_unlock_irqrestore(&kdev->lock, flags);
+		ret = wait_event_interruptible(kdev->write_waitq,
+			       ((kdev->flags & KEYCHORD_BUSY) == 0));
+		if (ret)
+			return ret;
+		spin_lock_irqsave(&kdev->lock, flags);
+	}
+	kdev->flags |= KEYCHORD_BUSY;
+	spin_unlock_irqrestore(&kdev->lock, flags);
+	return 0;
+}
+
+static void
+keychord_write_unlock(struct keychord_device *kdev)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&kdev->lock, flags);
+	kdev->flags &= ~KEYCHORD_BUSY;
+	spin_unlock_irqrestore(&kdev->lock, flags);
+	wake_up_interruptible(&kdev->write_waitq);
+}
+
+/*
+>>>>>>> android-3.18
  * keychord_write is used to configure the driver
  */
 static ssize_t keychord_write(struct file *file, const char __user *buffer,
@@ -232,11 +280,21 @@ static ssize_t keychord_write(struct file *file, const char __user *buffer,
 {
 	struct keychord_device *kdev = file->private_data;
 	struct input_keychord *keychords = 0;
+<<<<<<< HEAD
 	struct input_keychord *keychord, *next, *end;
 	int ret, i, key;
 	unsigned long flags;
 
 	if (count < sizeof(struct input_keychord))
+=======
+	struct input_keychord *keychord;
+	int ret, i, key;
+	unsigned long flags;
+	size_t resid = count;
+	size_t key_bytes;
+
+	if (count < sizeof(struct input_keychord) || count > PAGE_SIZE)
+>>>>>>> android-3.18
 		return -EINVAL;
 	keychords = kzalloc(count, GFP_KERNEL);
 	if (!keychords)
@@ -248,6 +306,25 @@ static ssize_t keychord_write(struct file *file, const char __user *buffer,
 		return -EFAULT;
 	}
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Serialize writes to this device to prevent various races.
+	 * 1) writers racing here could do duplicate input_unregister_handler()
+	 *    calls, resulting in attempting to unlink a node from a list that
+	 *    does not exist.
+	 * 2) writers racing here could do duplicate input_register_handler() calls
+	 *    below, resulting in a duplicate insertion of a node into the list.
+	 * 3) a double kfree of keychords can occur (in the event that
+	 *    input_register_handler() fails below.
+	 */
+	ret = keychord_write_lock(kdev);
+	if (ret) {
+		kfree(keychords);
+		return ret;
+	}
+
+>>>>>>> android-3.18
 	/* unregister handler before changing configuration */
 	if (kdev->registered) {
 		input_unregister_handler(&kdev->input_handler);
@@ -265,15 +342,40 @@ static ssize_t keychord_write(struct file *file, const char __user *buffer,
 	kdev->head = kdev->tail = 0;
 
 	keychord = keychords;
+<<<<<<< HEAD
 	end = (struct input_keychord *)((char *)keychord + count);
 
 	while (keychord < end) {
 		next = NEXT_KEYCHORD(keychord);
 		if (keychord->count <= 0 || next > end) {
+=======
+
+	while (resid > 0) {
+		/* Is the entire keychord entry header present ? */
+		if (resid < sizeof(struct input_keychord)) {
+			pr_err("keychord: Insufficient bytes present for header %zu\n",
+			       resid);
+			goto err_unlock_return;
+		}
+		resid -= sizeof(struct input_keychord);
+		if (keychord->count <= 0) {
+>>>>>>> android-3.18
 			pr_err("keychord: invalid keycode count %d\n",
 				keychord->count);
 			goto err_unlock_return;
 		}
+<<<<<<< HEAD
+=======
+		key_bytes = keychord->count * sizeof(keychord->keycodes[0]);
+		/* Do we have all the expected keycodes ? */
+		if (resid < key_bytes) {
+			pr_err("keychord: Insufficient bytes present for keycount %zu\n",
+			       resid);
+			goto err_unlock_return;
+		}
+		resid -= key_bytes;
+
+>>>>>>> android-3.18
 		if (keychord->version != KEYCHORD_VERSION) {
 			pr_err("keychord: unsupported version %d\n",
 				keychord->version);
@@ -292,7 +394,11 @@ static ssize_t keychord_write(struct file *file, const char __user *buffer,
 		}
 
 		kdev->keychord_count++;
+<<<<<<< HEAD
 		keychord = next;
+=======
+		keychord = NEXT_KEYCHORD(keychord);
+>>>>>>> android-3.18
 	}
 
 	kdev->keychords = keychords;
@@ -302,15 +408,28 @@ static ssize_t keychord_write(struct file *file, const char __user *buffer,
 	if (ret) {
 		kfree(keychords);
 		kdev->keychords = 0;
+<<<<<<< HEAD
+=======
+		keychord_write_unlock(kdev);
+>>>>>>> android-3.18
 		return ret;
 	}
 	kdev->registered = 1;
 
+<<<<<<< HEAD
+=======
+	keychord_write_unlock(kdev);
+
+>>>>>>> android-3.18
 	return count;
 
 err_unlock_return:
 	spin_unlock_irqrestore(&kdev->lock, flags);
 	kfree(keychords);
+<<<<<<< HEAD
+=======
+	keychord_write_unlock(kdev);
+>>>>>>> android-3.18
 	return -EINVAL;
 }
 
@@ -336,6 +455,10 @@ static int keychord_open(struct inode *inode, struct file *file)
 
 	spin_lock_init(&kdev->lock);
 	init_waitqueue_head(&kdev->waitq);
+<<<<<<< HEAD
+=======
+	init_waitqueue_head(&kdev->write_waitq);
+>>>>>>> android-3.18
 
 	kdev->input_handler.event = keychord_event;
 	kdev->input_handler.connect = keychord_connect;
@@ -357,6 +480,10 @@ static int keychord_release(struct inode *inode, struct file *file)
 
 	if (kdev->registered)
 		input_unregister_handler(&kdev->input_handler);
+<<<<<<< HEAD
+=======
+	kfree(kdev->keychords);
+>>>>>>> android-3.18
 	kfree(kdev);
 
 	return 0;

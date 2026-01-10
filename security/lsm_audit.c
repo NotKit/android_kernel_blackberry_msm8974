@@ -213,12 +213,15 @@ static void dump_common_audit_data(struct audit_buffer *ab,
 {
 	struct task_struct *tsk = current;
 
-	if (a->tsk)
-		tsk = a->tsk;
-	if (tsk && tsk->pid) {
-		audit_log_format(ab, " pid=%d comm=", tsk->pid);
-		audit_log_untrustedstring(ab, tsk->comm);
-	}
+	/*
+	 * To keep stack sizes in check force programers to notice if they
+	 * start making this union too large!  See struct lsm_network_audit
+	 * as an example of how to deal with large data.
+	 */
+	BUILD_BUG_ON(sizeof(a->u) > sizeof(void *)*2);
+
+	audit_log_format(ab, " pid=%d comm=", task_tgid_nr(current));
+	audit_log_untrustedstring(ab, tsk->comm);
 
 	switch (a->type) {
 	case LSM_AUDIT_DATA_NONE:
@@ -261,7 +264,9 @@ static void dump_common_audit_data(struct audit_buffer *ab,
 		struct inode *inode;
 
 		audit_log_format(ab, " name=");
+		spin_lock(&a->u.dentry->d_lock);
 		audit_log_untrustedstring(ab, a->u.dentry->d_name.name);
+		spin_unlock(&a->u.dentry->d_lock);
 
 		inode = a->u.dentry->d_inode;
 		if (inode) {
@@ -279,8 +284,9 @@ static void dump_common_audit_data(struct audit_buffer *ab,
 		dentry = d_find_alias(inode);
 		if (dentry) {
 			audit_log_format(ab, " name=");
-			audit_log_untrustedstring(ab,
-					 dentry->d_name.name);
+			spin_lock(&dentry->d_lock);
+			audit_log_untrustedstring(ab, dentry->d_name.name);
+			spin_unlock(&dentry->d_lock);
 			dput(dentry);
 		}
 		audit_log_format(ab, " dev=");
@@ -290,15 +296,19 @@ static void dump_common_audit_data(struct audit_buffer *ab,
 	}
 	case LSM_AUDIT_DATA_TASK:
 		tsk = a->u.tsk;
-		if (tsk && tsk->pid) {
-			audit_log_format(ab, " pid=%d comm=", tsk->pid);
-			audit_log_untrustedstring(ab, tsk->comm);
+		if (tsk) {
+			pid_t pid = task_tgid_nr(tsk);
+			if (pid) {
+				audit_log_format(ab, " pid=%d comm=", pid);
+				audit_log_untrustedstring(ab, tsk->comm);
+			}
 		}
 		break;
 	case LSM_AUDIT_DATA_NET:
 		if (a->u.net->sk) {
 			struct sock *sk = a->u.net->sk;
 			struct unix_sock *u;
+			struct unix_address *addr;
 			int len = 0;
 			char *p = NULL;
 
@@ -314,28 +324,30 @@ static void dump_common_audit_data(struct audit_buffer *ab,
 						"faddr", "fport");
 				break;
 			}
+#if IS_ENABLED(CONFIG_IPV6)
 			case AF_INET6: {
 				struct inet_sock *inet = inet_sk(sk);
-				struct ipv6_pinfo *inet6 = inet6_sk(sk);
 
-				print_ipv6_addr(ab, &inet6->rcv_saddr,
+				print_ipv6_addr(ab, &sk->sk_v6_rcv_saddr,
 						inet->inet_sport,
 						"laddr", "lport");
-				print_ipv6_addr(ab, &inet6->daddr,
+				print_ipv6_addr(ab, &sk->sk_v6_daddr,
 						inet->inet_dport,
 						"faddr", "fport");
 				break;
 			}
+#endif
 			case AF_UNIX:
 				u = unix_sk(sk);
+				addr = smp_load_acquire(&u->addr);
+				if (!addr)
+					break;
 				if (u->path.dentry) {
 					audit_log_d_path(ab, " path=", &u->path);
 					break;
 				}
-				if (!u->addr)
-					break;
-				len = u->addr->len-sizeof(short);
-				p = &u->addr->name->sun_path[0];
+				len = addr->len-sizeof(short);
+				p = &addr->name->sun_path[0];
 				audit_log_format(ab, " path=");
 				if (*p)
 					audit_log_untrustedstring(ab, p);
@@ -408,7 +420,8 @@ void common_lsm_audit(struct common_audit_data *a,
 	if (a == NULL)
 		return;
 	/* we use GFP_ATOMIC so we won't sleep */
-	ab = audit_log_start(current->audit_context, GFP_ATOMIC, AUDIT_AVC);
+	ab = audit_log_start(current->audit_context, GFP_ATOMIC | __GFP_NOWARN,
+			     AUDIT_AVC);
 
 	if (ab == NULL)
 		return;

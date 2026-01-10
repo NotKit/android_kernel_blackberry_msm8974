@@ -30,7 +30,7 @@
 #include <asm/machdep.h>
 #include <asm/mpc52xx.h>
 
-static struct of_device_id mpc5200_gpio_ids[] __initdata = {
+static const struct of_device_id mpc5200_gpio_ids[] __initconst = {
 	{ .compatible = "fsl,mpc5200-gpio", },
 	{ .compatible = "mpc5200-gpio", },
 	{}
@@ -232,7 +232,7 @@ static void __init media5200_setup_arch(void)
 }
 
 /* list of the supported boards */
-static const char *board[] __initdata = {
+static const char * const board[] __initconst = {
 	"fsl,media5200",
 	NULL
 };

@@ -1,184 +1,84 @@
 /*
-    comedi/drivers/amplc_pc236.c
-    Driver for Amplicon PC36AT and PCI236 DIO boards.
-
-    Copyright (C) 2002 MEV Ltd. <http://www.mev.co.uk/>
-
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 2000 David A. Schleef <ds@schleef.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
+ * comedi/drivers/amplc_pc236.c
+ * Driver for Amplicon PC36AT DIO boards.
+ *
+ * Copyright (C) 2002 MEV Ltd. <http://www.mev.co.uk/>
+ *
+ * COMEDI - Linux Control and Measurement Device Interface
+ * Copyright (C) 2000 David A. Schleef <ds@schleef.org>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 /*
-Driver: amplc_pc236
-Description: Amplicon PC36AT, PCI236
-Author: Ian Abbott <abbotti@mev.co.uk>
-Devices: [Amplicon] PC36AT (pc36at), PCI236 (pci236 or amplc_pc236)
-Updated: Wed, 01 Apr 2009 15:41:25 +0100
-Status: works
+ * Driver: amplc_pc236
+ * Description: Amplicon PC36AT
+ * Author: Ian Abbott <abbotti@mev.co.uk>
+ * Devices: [Amplicon] PC36AT (pc36at)
+ * Updated: Fri, 25 Jul 2014 15:32:40 +0000
+ * Status: works
+ *
+ * Configuration options - PC36AT:
+ *   [0] - I/O port base address
+ *   [1] - IRQ (optional)
+ *
+ * The PC36AT board has a single 8255 appearing as subdevice 0.
+ *
+ * Subdevice 1 pretends to be a digital input device, but it always returns
+ * 0 when read. However, if you run a command with scan_begin_src=TRIG_EXT,
+ * a rising edge on port C bit 3 acts as an external trigger, which can be
+ * used to wake up tasks.  This is like the comedi_parport device, but the
+ * only way to physically disable the interrupt on the PC36AT is to remove
+ * the IRQ jumper.  If no interrupt is connected, then subdevice 1 is
+ * unused.
+ */
 
-Configuration options - PC36AT:
-  [0] - I/O port base address
-  [1] - IRQ (optional)
-
-Configuration options - PCI236:
-  [0] - PCI bus of device (optional)
-  [1] - PCI slot of device (optional)
-  If bus/slot is not specified, the first available PCI device will be
-  used.
-
-The PC36AT ISA board and PCI236 PCI board have a single 8255 appearing
-as subdevice 0.
-
-Subdevice 1 pretends to be a digital input device, but it always returns
-0 when read. However, if you run a command with scan_begin_src=TRIG_EXT,
-a rising edge on port C bit 3 acts as an external trigger, which can be
-used to wake up tasks.  This is like the comedi_parport device, but the
-only way to physically disable the interrupt on the PC36AT is to remove
-the IRQ jumper.  If no interrupt is connected, then subdevice 1 is
-unused.
-*/
-
-#include <linux/interrupt.h>
+#include <linux/module.h>
 
 #include "../comedidev.h"
 
-#include "comedi_pci.h"
+#include "amplc_pc236.h"
 
-#include "8255.h"
-#include "plx9052.h"
+static int pc236_attach(struct comedi_device *dev, struct comedi_devconfig *it)
+{
+	struct pc236_private *devpriv;
+	int ret;
 
-#define PC236_DRIVER_NAME	"amplc_pc236"
+	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+	if (!devpriv)
+		return -ENOMEM;
 
-/* PCI236 PCI configuration register information */
-#define PCI_VENDOR_ID_AMPLICON 0x14dc
-#define PCI_DEVICE_ID_AMPLICON_PCI236 0x0009
-#define PCI_DEVICE_ID_INVALID 0xffff
+	ret = comedi_request_region(dev, it->options[0], 0x4);
+	if (ret)
+		return ret;
 
-/* PC36AT / PCI236 registers */
+	return amplc_pc236_common_attach(dev, dev->iobase, it->options[1], 0);
+}
 
-#define PC236_IO_SIZE		4
-#define PC236_LCR_IO_SIZE	128
-
-/*
- * INTCSR values for PCI236.
- */
-/* Disable interrupt, also clear any interrupt there */
-#define PCI236_INTR_DISABLE (PLX9052_INTCSR_LI1ENAB_DISABLED \
-	| PLX9052_INTCSR_LI1POL_HIGH \
-	| PLX9052_INTCSR_LI2POL_HIGH \
-	| PLX9052_INTCSR_PCIENAB_DISABLED \
-	| PLX9052_INTCSR_LI1SEL_EDGE \
-	| PLX9052_INTCSR_LI1CLRINT_ASSERTED)
-/* Enable interrupt, also clear any interrupt there. */
-#define PCI236_INTR_ENABLE (PLX9052_INTCSR_LI1ENAB_ENABLED \
-	| PLX9052_INTCSR_LI1POL_HIGH \
-	| PLX9052_INTCSR_LI2POL_HIGH \
-	| PLX9052_INTCSR_PCIENAB_ENABLED \
-	| PLX9052_INTCSR_LI1SEL_EDGE \
-	| PLX9052_INTCSR_LI1CLRINT_ASSERTED)
-
-/*
- * Board descriptions for Amplicon PC36AT and PCI236.
- */
-
-enum pc236_bustype { isa_bustype, pci_bustype };
-enum pc236_model { pc36at_model, pci236_model, anypci_model };
-
-struct pc236_board {
-	const char *name;
-	const char *fancy_name;
-	unsigned short devid;
-	enum pc236_bustype bustype;
-	enum pc236_model model;
-};
 static const struct pc236_board pc236_boards[] = {
 	{
-	 .name = "pc36at",
-	 .fancy_name = "PC36AT",
-	 .bustype = isa_bustype,
-	 .model = pc36at_model,
-	 },
-#ifdef CONFIG_COMEDI_PCI
-	{
-	 .name = "pci236",
-	 .fancy_name = "PCI236",
-	 .devid = PCI_DEVICE_ID_AMPLICON_PCI236,
-	 .bustype = pci_bustype,
-	 .model = pci236_model,
-	 },
-#endif
-#ifdef CONFIG_COMEDI_PCI
-	{
-	 .name = PC236_DRIVER_NAME,
-	 .fancy_name = PC236_DRIVER_NAME,
-	 .devid = PCI_DEVICE_ID_INVALID,
-	 .bustype = pci_bustype,
-	 .model = anypci_model,	/* wildcard */
-	 },
-#endif
+		.name = "pc36at",
+	},
 };
 
-#ifdef CONFIG_COMEDI_PCI
-static DEFINE_PCI_DEVICE_TABLE(pc236_pci_table) = {
-	{ PCI_DEVICE(PCI_VENDOR_ID_AMPLICON, PCI_DEVICE_ID_AMPLICON_PCI236) },
-	{0}
-};
-
-MODULE_DEVICE_TABLE(pci, pc236_pci_table);
-#endif /* CONFIG_COMEDI_PCI */
-
-/*
- * Useful for shorthand access to the particular board structure
- */
-#define thisboard ((const struct pc236_board *)dev->board_ptr)
-
-/* this structure is for data unique to this hardware driver.  If
-   several hardware drivers keep similar information in this structure,
-   feel free to suggest moving the variable to the struct comedi_device struct.
- */
-struct pc236_private {
-#ifdef CONFIG_COMEDI_PCI
-	/* PCI device */
-	struct pci_dev *pci_dev;
-	unsigned long lcr_iobase; /* PLX PCI9052 config registers in PCIBAR1 */
-#endif
-	int enable_irq;
-};
-
-#define devpriv ((struct pc236_private *)dev->private)
-
-/*
- * The struct comedi_driver structure tells the Comedi core module
- * which functions to call to configure/deconfigure (attach/detach)
- * the board, and also about the kernel module that contains
- * the device code.
- */
-static int pc236_attach(struct comedi_device *dev, struct comedi_devconfig *it);
-static int pc236_detach(struct comedi_device *dev);
-static struct comedi_driver driver_amplc_pc236 = {
-	.driver_name = PC236_DRIVER_NAME,
+static struct comedi_driver amplc_pc236_driver = {
+	.driver_name = "amplc_pc236",
 	.module = THIS_MODULE,
 	.attach = pc236_attach,
-	.detach = pc236_detach,
+	.detach = comedi_legacy_detach,
 	.board_name = &pc236_boards[0].name,
 	.offset = sizeof(struct pc236_board),
 	.num_names = ARRAY_SIZE(pc236_boards),
 };
 
+<<<<<<< HEAD
 #ifdef CONFIG_COMEDI_PCI
 static int __devinit driver_amplc_pc236_pci_probe(struct pci_dev *dev,
 						  const struct pci_device_id
@@ -711,7 +611,10 @@ static irqreturn_t pc236_interrupt(int irq, void *d)
 	}
 	return IRQ_RETVAL(handled);
 }
+=======
+module_comedi_driver(amplc_pc236_driver);
+>>>>>>> android-3.18
 
 MODULE_AUTHOR("Comedi http://www.comedi.org");
-MODULE_DESCRIPTION("Comedi low-level driver");
+MODULE_DESCRIPTION("Comedi driver for Amplicon PC36AT DIO boards");
 MODULE_LICENSE("GPL");

@@ -21,6 +21,7 @@ if NET_VENDOR_CIRRUS
 config CS89x0
 	tristate "CS89x0 support"
 	depends on ISA || EISA || ARM
+	depends on !PPC32
 	---help---
 	  Support for CS89x0 chipset based Ethernet cards. If you have a
 	  network (Ethernet) card of this type, say Y and read the
@@ -44,7 +45,6 @@ config CS89x0_PLATFORM
 config EP93XX_ETH
 	tristate "EP93xx Ethernet support"
 	depends on ARM && ARCH_EP93XX
-	select NET_CORE
 	select MII
 	help
 	  This is a driver for the ethernet hardware included in EP93xx CPUs.

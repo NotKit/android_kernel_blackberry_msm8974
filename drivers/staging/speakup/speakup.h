@@ -12,8 +12,6 @@
 /* proc permissions */
 #define USER_R (S_IFREG|S_IRUGO)
 #define USER_W (S_IFREG|S_IWUGO)
-#define USER_RW (S_IFREG|S_IRUGO|S_IWUGO)
-#define ROOT_W (S_IFREG|S_IRUGO|S_IWUSR)
 
 #define TOGGLE_0 .u.n = {NULL, 0, 0, 1, 0, 0, NULL }
 #define TOGGLE_1 .u.n = {NULL, 1, 0, 1, 0, 0, NULL }
@@ -44,11 +42,6 @@
 #define IS_CHAR(x, type) (spk_chartab[((u_char)x)]&type)
 #define IS_TYPE(x, type) ((spk_chartab[((u_char)x)]&type) == type)
 
-#define SET_DEFAULT -4
-#define E_RANGE -3
-#define E_TOOLONG -2
-#define E_UNDEF -1
-
 extern int speakup_thread(void *data);
 extern void spk_reset_default_chars(void);
 extern void spk_reset_default_chartab(void);
@@ -58,9 +51,13 @@ void spk_reset_index_count(int sc);
 void spk_get_index_count(int *linecount, int *sentcount);
 extern int spk_set_key_info(const u_char *key_info, u_char *k_buffer);
 extern char *spk_strlwr(char *s);
+<<<<<<< HEAD
 extern char *speakup_s2i(char *start, int *dest);
 extern char *spk_s2uchar(char *start, char *dest);
 extern char *spk_xlate(char *s);
+=======
+extern char *spk_s2uchar(char *start, char *dest);
+>>>>>>> android-3.18
 extern int speakup_kobj_init(void);
 extern void speakup_kobj_exit(void);
 extern int spk_chartab_get_value(char *keyword);

@@ -67,6 +67,7 @@ static u64 compute_subtree_max_end(struct memtype *data)
 		max_end = child_max_end;
 
 	return max_end;
+<<<<<<< HEAD
 }
 
 /* Update 'subtree_max_end' for node and its parents */
@@ -104,6 +105,12 @@ static void memtype_rb_rotate_cb(struct rb_node *old, struct rb_node *new)
 static const struct rb_augment_callbacks memtype_rb_augment_cb = {
 	memtype_rb_propagate_cb, memtype_rb_copy_cb, memtype_rb_rotate_cb
 };
+=======
+}
+
+RB_DECLARE_CALLBACKS(static, memtype_rb_augment_cb, struct memtype, rb,
+		     u64, subtree_max_end, compute_subtree_max_end)
+>>>>>>> android-3.18
 
 /* Find the first (lowest start addr) overlapping range from rb tree */
 static struct memtype *memtype_rb_lowest_match(struct rb_root *root,

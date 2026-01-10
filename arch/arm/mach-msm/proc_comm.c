@@ -21,8 +21,11 @@
 #include <linux/spinlock.h>
 #include <linux/module.h>
 #include <mach/msm_iomap.h>
+<<<<<<< HEAD
 #include <mach/system.h>
 #include <mach/proc_comm.h>
+=======
+>>>>>>> android-3.18
 
 #include "smd_private.h"
 
@@ -155,4 +158,22 @@ end:
 	spin_unlock_irqrestore(&proc_comm_lock, flags);
 	return ret;
 }
+<<<<<<< HEAD
 EXPORT_SYMBOL(msm_proc_comm);
+=======
+
+/*
+ * We need to wait for the ARM9 to at least partially boot
+ * up before we can continue. Since the ARM9 does resource
+ * allocation, if we dont' wait we could end up crashing or in
+ * and unknown state. This function should be called early to
+ * wait on the ARM9.
+ */
+void proc_comm_boot_wait(void)
+{
+	void __iomem *base = MSM_SHARED_RAM_BASE;
+ 
+	proc_comm_wait_for(base + MDM_STATUS, PCOM_READY);
+ 
+}
+>>>>>>> android-3.18

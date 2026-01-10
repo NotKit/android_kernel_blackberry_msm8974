@@ -72,7 +72,6 @@ static int ecryptfs_threadfn(void *ignored)
 			req = list_first_entry(&ecryptfs_kthread_ctl.req_list,
 					       struct ecryptfs_open_req,
 					       kthread_ctl_list);
-			mutex_lock(&req->mux);
 			list_del(&req->kthread_ctl_list);
 			*req->lower_file = dentry_open(&req->path,
 				(O_RDWR | O_LARGEFILE), current_cred());
@@ -103,16 +102,15 @@ int __init ecryptfs_init_kthread(void)
 
 void ecryptfs_destroy_kthread(void)
 {
-	struct ecryptfs_open_req *req;
+	struct ecryptfs_open_req *req, *tmp;
 
 	mutex_lock(&ecryptfs_kthread_ctl.mux);
 	ecryptfs_kthread_ctl.flags |= ECRYPTFS_KTHREAD_ZOMBIE;
-	list_for_each_entry(req, &ecryptfs_kthread_ctl.req_list,
-			    kthread_ctl_list) {
-		mutex_lock(&req->mux);
-		req->flags |= ECRYPTFS_REQ_ZOMBIE;
-		wake_up(&req->wait);
-		mutex_unlock(&req->mux);
+	list_for_each_entry_safe(req, tmp, &ecryptfs_kthread_ctl.req_list,
+				 kthread_ctl_list) {
+		list_del(&req->kthread_ctl_list);
+		*req->lower_file = ERR_PTR(-EIO);
+		complete(&req->done);
 	}
 	mutex_unlock(&ecryptfs_kthread_ctl.mux);
 	kthread_stop(ecryptfs_kthread);
@@ -134,7 +132,7 @@ int ecryptfs_privileged_open(struct file **lower_file,
 			     struct vfsmount *lower_mnt,
 			     const struct cred *cred)
 {
-	struct ecryptfs_open_req *req;
+	struct ecryptfs_open_req req;
 	int flags = O_LARGEFILE;
 	int rc = 0;
 
@@ -161,27 +159,14 @@ int ecryptfs_privileged_open(struct file **lower_file,
 		printk(KERN_ERR "%s: We are in the middle of shutting down; "
 		       "aborting privileged request to open lower file\n",
 			__func__);
-		goto out_free;
+		goto out;
 	}
-	list_add_tail(&req->kthread_ctl_list, &ecryptfs_kthread_ctl.req_list);
+	list_add_tail(&req.kthread_ctl_list, &ecryptfs_kthread_ctl.req_list);
 	mutex_unlock(&ecryptfs_kthread_ctl.mux);
 	wake_up(&ecryptfs_kthread_ctl.wait);
-	wait_event(req->wait, (req->flags != 0));
-	mutex_lock(&req->mux);
-	BUG_ON(req->flags == 0);
-	if (req->flags & ECRYPTFS_REQ_DROPPED
-	    || req->flags & ECRYPTFS_REQ_ZOMBIE) {
-		rc = -EIO;
-		printk(KERN_WARNING "%s: Privileged open request dropped\n",
-		       __func__);
-		goto out_unlock;
-	}
-	if (IS_ERR(*req->lower_file))
-		rc = PTR_ERR(*req->lower_file);
-out_unlock:
-	mutex_unlock(&req->mux);
-out_free:
-	kmem_cache_free(ecryptfs_open_req_cache, req);
+	wait_for_completion(&req.done);
+	if (IS_ERR(*lower_file))
+		rc = PTR_ERR(*lower_file);
 out:
 	return rc;
 }

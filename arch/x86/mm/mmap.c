@@ -31,7 +31,7 @@
 #include <linux/sched.h>
 #include <asm/elf.h>
 
-struct __read_mostly va_alignment va_align = {
+struct va_alignment __read_mostly va_align = {
 	.flags = -1,
 };
 
@@ -95,25 +95,22 @@ static unsigned long mmap_base(void)
 }
 
 /*
- * Bottom-up (legacy) layout on X86_32 did not support randomization, X86_64
- * does, but not when emulating X86_32
- */
-static unsigned long mmap_legacy_base(void)
-{
-	if (mmap_is_ia32())
-		return TASK_UNMAPPED_BASE;
-	else
-		return TASK_UNMAPPED_BASE + mmap_rnd();
-}
-
-/*
  * This function, called very early during the creation of a new
  * process VM image, sets up which VM layout function to use:
  */
 void arch_pick_mmap_layout(struct mm_struct *mm)
 {
+<<<<<<< HEAD
 	mm->mmap_legacy_base = mmap_legacy_base();
 	mm->mmap_base = mmap_base();
+=======
+	unsigned long random_factor = 0UL;
+
+	if (current->flags & PF_RANDOMIZE)
+		random_factor = mmap_rnd();
+
+	mm->mmap_legacy_base = TASK_UNMAPPED_BASE + random_factor;
+>>>>>>> android-3.18
 
 	if (mmap_is_legacy()) {
 		mm->mmap_base = mm->mmap_legacy_base;

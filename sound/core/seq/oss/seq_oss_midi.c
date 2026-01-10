@@ -29,6 +29,7 @@
 #include "../seq_lock.h"
 #include <linux/init.h>
 #include <linux/slab.h>
+#include <linux/nospec.h>
 
 
 /*
@@ -72,7 +73,7 @@ static int send_midi_event(struct seq_oss_devinfo *dp, struct snd_seq_event *ev,
  * look up the existing ports
  * this looks a very exhausting job.
  */
-int __init
+int
 snd_seq_oss_midi_lookup_ports(int client)
 {
 	struct snd_seq_client_info *clinfo;
@@ -153,7 +154,6 @@ snd_seq_oss_midi_check_new_port(struct snd_seq_port_info *pinfo)
 	struct seq_oss_midi *mdev;
 	unsigned long flags;
 
-	debug_printk(("check for MIDI client %d port %d\n", pinfo->addr.client, pinfo->addr.port));
 	/* the port must include generic midi */
 	if (! (pinfo->type & SNDRV_SEQ_PORT_TYPE_MIDI_GENERIC))
 		return 0;
@@ -175,7 +175,7 @@ snd_seq_oss_midi_check_new_port(struct snd_seq_port_info *pinfo)
 	 * allocate midi info record
 	 */
 	if ((mdev = kzalloc(sizeof(*mdev), GFP_KERNEL)) == NULL) {
-		snd_printk(KERN_ERR "can't malloc midi info\n");
+		pr_err("ALSA: seq_oss: can't malloc midi info\n");
 		return -ENOMEM;
 	}
 
@@ -191,7 +191,7 @@ snd_seq_oss_midi_check_new_port(struct snd_seq_port_info *pinfo)
 
 	/* create MIDI coder */
 	if (snd_midi_event_new(MAX_MIDI_EVENT_BUF, &mdev->coder) < 0) {
-		snd_printk(KERN_ERR "can't malloc midi coder\n");
+		pr_err("ALSA: seq_oss: can't malloc midi coder\n");
 		kfree(mdev);
 		return -ENOMEM;
 	}
@@ -319,6 +319,7 @@ get_mididev(struct seq_oss_devinfo *dp, int dev)
 {
 	if (dev < 0 || dev >= dp->max_mididev)
 		return NULL;
+	dev = array_index_nospec(dev, dp->max_mididev);
 	return get_mdev(dev);
 }
 
@@ -406,7 +407,6 @@ snd_seq_oss_midi_close(struct seq_oss_devinfo *dp, int dev)
 		return 0;
 	}
 
-	debug_printk(("closing client %d port %d mode %d\n", mdev->client, mdev->port, mdev->opened));
 	memset(&subs, 0, sizeof(subs));
 	if (mdev->opened & PERM_WRITE) {
 		subs.sender = dp->addr;
@@ -470,7 +470,6 @@ snd_seq_oss_midi_reset(struct seq_oss_devinfo *dp, int dev)
 		struct snd_seq_event ev;
 		int c;
 
-		debug_printk(("resetting client %d port %d\n", mdev->client, mdev->port));
 		memset(&ev, 0, sizeof(ev));
 		ev.dest.client = mdev->client;
 		ev.dest.port = mdev->port;
@@ -618,9 +617,8 @@ send_midi_event(struct seq_oss_devinfo *dp, struct snd_seq_event *ev, struct seq
 	if (!dp->timer->running)
 		len = snd_seq_oss_timer_start(dp->timer);
 	if (ev->type == SNDRV_SEQ_EVENT_SYSEX) {
-		if ((ev->flags & SNDRV_SEQ_EVENT_LENGTH_MASK) == SNDRV_SEQ_EVENT_LENGTH_VARIABLE)
-			snd_seq_oss_readq_puts(dp->readq, mdev->seq_device,
-					       ev->data.ext.ptr, ev->data.ext.len);
+		snd_seq_oss_readq_sysex(dp->readq, mdev->seq_device, ev);
+		snd_midi_event_reset_decode(mdev->coder);
 	} else {
 		len = snd_midi_event_decode(mdev->coder, msg, sizeof(msg), ev);
 		if (len > 0)

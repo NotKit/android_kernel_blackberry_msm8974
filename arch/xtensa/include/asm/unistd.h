@@ -1,16 +1,7 @@
-/*
- * include/asm-xtensa/unistd.h
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * Copyright (C) 2001 - 2005 Tensilica Inc.
- */
-
 #ifndef _XTENSA_UNISTD_H
 #define _XTENSA_UNISTD_H
 
+<<<<<<< HEAD
 #ifndef __SYSCALL
 # define __SYSCALL(nr,func,nargs)
 #endif
@@ -716,12 +707,14 @@ __SYSCALL(308, sys_setns, 2)
  * but it doesn't work on all toolchains, so we just do it by hand
  */
 #define cond_syscall(x) asm(".weak\t" #x "\n\t.set\t" #x ",sys_ni_syscall");
+=======
+#define __ARCH_WANT_SYS_CLONE
+#include <uapi/asm/unistd.h>
+>>>>>>> android-3.18
 
 #define __ARCH_WANT_STAT64
 #define __ARCH_WANT_SYS_UTIME
 #define __ARCH_WANT_SYS_LLSEEK
-#define __ARCH_WANT_SYS_RT_SIGACTION
-#define __ARCH_WANT_SYS_RT_SIGSUSPEND
 #define __ARCH_WANT_SYS_GETPGRP
 
 /* 
@@ -736,5 +729,4 @@ __SYSCALL(308, sys_setns, 2)
 #define __IGNORE_vfork				/* use clone */
 #define __IGNORE_fadvise64			/* use fadvise64_64 */
 
-#endif	/* __KERNEL__ */
-#endif	/* _XTENSA_UNISTD_H */
+#endif /* _XTENSA_UNISTD_H */

@@ -2,7 +2,7 @@
  *	TURBOchannel bus services.
  *
  *	Copyright (c) Harald Koerfgen, 1998
- *	Copyright (c) 2001, 2003, 2005, 2006  Maciej W. Rozycki
+ *	Copyright (c) 2001, 2003, 2005, 2006, 2018  Maciej W. Rozycki
  *	Copyright (c) 2005  James Simmons
  *
  *	This file is subject to the terms and conditions of the GNU
@@ -10,6 +10,7 @@
  *	directory of this archive for more details.
  */
 #include <linux/compiler.h>
+#include <linux/dma-mapping.h>
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/ioport.h>
@@ -93,6 +94,11 @@ static void __init tc_bus_add_devices(struct tc_bus *tbus)
 		tdev->dev.bus = &tc_bus_type;
 		tdev->slot = slot;
 
+		/* TURBOchannel has 34-bit DMA addressing (16GiB space). */
+		tdev->dma_mask = DMA_BIT_MASK(34);
+		tdev->dev.dma_mask = &tdev->dma_mask;
+		tdev->dev.coherent_dma_mask = DMA_BIT_MASK(34);
+
 		for (i = 0; i < 8; i++) {
 			tdev->firmware[i] =
 				readb(module + offset + TC_FIRM_VER + 4 * i);
@@ -129,7 +135,10 @@ static void __init tc_bus_add_devices(struct tc_bus *tbus)
 
 		tc_device_get_irq(tdev);
 
-		device_register(&tdev->dev);
+		if (device_register(&tdev->dev)) {
+			put_device(&tdev->dev);
+			goto out_err;
+		}
 		list_add_tail(&tdev->node, &tbus->devices);
 
 out_err:
@@ -148,7 +157,10 @@ static int __init tc_init(void)
 
 	INIT_LIST_HEAD(&tc_bus.devices);
 	dev_set_name(&tc_bus.dev, "tc");
-	device_register(&tc_bus.dev);
+	if (device_register(&tc_bus.dev)) {
+		put_device(&tc_bus.dev);
+		return 0;
+	}
 
 	if (tc_bus.info.slot_size) {
 		unsigned int tc_clock = tc_get_speed(&tc_bus) / 100000;

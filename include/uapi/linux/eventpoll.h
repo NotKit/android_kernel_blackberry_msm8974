@@ -25,7 +25,23 @@
 #define EPOLL_CTL_ADD 1
 #define EPOLL_CTL_DEL 2
 #define EPOLL_CTL_MOD 3
+<<<<<<< HEAD
 #define EPOLL_CTL_DISABLE 4
+=======
+
+/* Epoll event masks */
+#define EPOLLIN		0x00000001
+#define EPOLLPRI	0x00000002
+#define EPOLLOUT	0x00000004
+#define EPOLLERR	0x00000008
+#define EPOLLHUP	0x00000010
+#define EPOLLRDNORM	0x00000040
+#define EPOLLRDBAND	0x00000080
+#define EPOLLWRNORM	0x00000100
+#define EPOLLWRBAND	0x00000200
+#define EPOLLMSG	0x00000400
+#define EPOLLRDHUP	0x00002000
+>>>>>>> android-3.18
 
 /*
  * Request the handling of system wakeup events so as to prevent system suspends
@@ -62,5 +78,20 @@ struct epoll_event {
 	__u64 data;
 } EPOLL_PACKED;
 
+<<<<<<< HEAD
 
+=======
+#ifdef CONFIG_PM_SLEEP
+static inline void ep_take_care_of_epollwakeup(struct epoll_event *epev)
+{
+	if ((epev->events & EPOLLWAKEUP) && !capable(CAP_BLOCK_SUSPEND))
+		epev->events &= ~EPOLLWAKEUP;
+}
+#else
+static inline void ep_take_care_of_epollwakeup(struct epoll_event *epev)
+{
+	epev->events &= ~EPOLLWAKEUP;
+}
+#endif
+>>>>>>> android-3.18
 #endif /* _UAPI_LINUX_EVENTPOLL_H */

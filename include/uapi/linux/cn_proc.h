@@ -56,7 +56,13 @@ struct proc_event {
 		PROC_EVENT_PTRACE = 0x00000100,
 		PROC_EVENT_COMM = 0x00000200,
 		/* "next" should be 0x00000400 */
+<<<<<<< HEAD
 		/* "last" is the last process event: exit */
+=======
+		/* "last" is the last process event: exit,
+		 * while "next to last" is coredumping event */
+		PROC_EVENT_COREDUMP = 0x40000000,
+>>>>>>> android-3.18
 		PROC_EVENT_EXIT = 0x80000000
 	} what;
 	__u32 cpu;
@@ -110,11 +116,23 @@ struct proc_event {
 			char           comm[16];
 		} comm;
 
+<<<<<<< HEAD
+=======
+		struct coredump_proc_event {
+			__kernel_pid_t process_pid;
+			__kernel_pid_t process_tgid;
+		} coredump;
+
+>>>>>>> android-3.18
 		struct exit_proc_event {
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
 			__u32 exit_code, exit_signal;
 		} exit;
+<<<<<<< HEAD
+=======
+
+>>>>>>> android-3.18
 	} event_data;
 };
 

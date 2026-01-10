@@ -31,11 +31,13 @@
 #include <linux/mutex.h>
 #include <linux/slab.h>
 #include <linux/compat.h>
+#include <linux/of.h>
+#include <linux/of_device.h>
 
 #include <linux/spi/spi.h>
 #include <linux/spi/spidev.h>
 
-#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 
 /*
@@ -71,7 +73,8 @@ static DECLARE_BITMAP(minors, N_SPI_MINORS);
  */
 #define SPI_MODE_MASK		(SPI_CPHA | SPI_CPOL | SPI_CS_HIGH \
 				| SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP \
-				| SPI_NO_CS | SPI_READY)
+				| SPI_NO_CS | SPI_READY | SPI_TX_DUAL \
+				| SPI_TX_QUAD | SPI_RX_DUAL | SPI_RX_QUAD)
 
 struct spidev_data {
 	dev_t			devt;
@@ -79,11 +82,16 @@ struct spidev_data {
 	struct spi_device	*spi;
 	struct list_head	device_entry;
 
-	/* buffer is NULL unless this device is open (users > 0) */
+	/* TX/RX buffers are NULL unless this device is open (users > 0) */
 	struct mutex		buf_lock;
 	unsigned		users;
+<<<<<<< HEAD
 	u8			*buffer;
 	u8			*bufferrx;
+=======
+	u8			*tx_buffer;
+	u8			*rx_buffer;
+>>>>>>> android-3.18
 };
 
 static LIST_HEAD(device_list);
@@ -157,7 +165,7 @@ static inline ssize_t
 spidev_sync_write(struct spidev_data *spidev, size_t len)
 {
 	struct spi_transfer	t = {
-			.tx_buf		= spidev->buffer,
+			.tx_buf		= spidev->tx_buffer,
 			.len		= len,
 		};
 	struct spi_message	m;
@@ -171,7 +179,7 @@ static inline ssize_t
 spidev_sync_read(struct spidev_data *spidev, size_t len)
 {
 	struct spi_transfer	t = {
-			.rx_buf		= spidev->buffer,
+			.rx_buf		= spidev->rx_buffer,
 			.len		= len,
 		};
 	struct spi_message	m;
@@ -201,7 +209,7 @@ spidev_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
 	if (status > 0) {
 		unsigned long	missing;
 
-		missing = copy_to_user(buf, spidev->buffer, status);
+		missing = copy_to_user(buf, spidev->rx_buffer, status);
 		if (missing == status)
 			status = -EFAULT;
 		else
@@ -228,10 +236,10 @@ spidev_write(struct file *filp, const char __user *buf,
 	spidev = filp->private_data;
 
 	mutex_lock(&spidev->buf_lock);
-	missing = copy_from_user(spidev->buffer, buf, count);
-	if (missing == 0) {
+	missing = copy_from_user(spidev->tx_buffer, buf, count);
+	if (missing == 0)
 		status = spidev_sync_write(spidev, count);
-	} else
+	else
 		status = -EFAULT;
 	mutex_unlock(&spidev->buf_lock);
 
@@ -246,7 +254,11 @@ static int spidev_message(struct spidev_data *spidev,
 	struct spi_transfer	*k_tmp;
 	struct spi_ioc_transfer *u_tmp;
 	unsigned		n, total;
+<<<<<<< HEAD
 	u8			*buf, *bufrx;
+=======
+	u8			*tx_buf, *rx_buf;
+>>>>>>> android-3.18
 	int			status = -EFAULT;
 
 	spi_message_init(&msg);
@@ -258,8 +270,13 @@ static int spidev_message(struct spidev_data *spidev,
 	 * We walk the array of user-provided transfers, using each one
 	 * to initialize a kernel version of the same transfer.
 	 */
+<<<<<<< HEAD
 	buf = spidev->buffer;
 	bufrx = spidev->bufferrx;
+=======
+	tx_buf = spidev->tx_buffer;
+	rx_buf = spidev->rx_buffer;
+>>>>>>> android-3.18
 	total = 0;
 	for (n = n_xfers, k_tmp = k_xfers, u_tmp = u_xfers;
 			n;
@@ -276,23 +293,34 @@ static int spidev_message(struct spidev_data *spidev,
 		}
 
 		if (u_tmp->rx_buf) {
+<<<<<<< HEAD
 			k_tmp->rx_buf = bufrx;
+=======
+			k_tmp->rx_buf = rx_buf;
+>>>>>>> android-3.18
 			if (!access_ok(VERIFY_WRITE, (u8 __user *)
 						(uintptr_t) u_tmp->rx_buf,
 						u_tmp->len))
 				goto done;
 		}
 		if (u_tmp->tx_buf) {
-			k_tmp->tx_buf = buf;
-			if (copy_from_user(buf, (const u8 __user *)
+			k_tmp->tx_buf = tx_buf;
+			if (copy_from_user(tx_buf, (const u8 __user *)
 						(uintptr_t) u_tmp->tx_buf,
 					u_tmp->len))
 				goto done;
 		}
+<<<<<<< HEAD
 		buf += k_tmp->len;
 		bufrx += k_tmp->len;
+=======
+		tx_buf += k_tmp->len;
+		rx_buf += k_tmp->len;
+>>>>>>> android-3.18
 
 		k_tmp->cs_change = !!u_tmp->cs_change;
+		k_tmp->tx_nbits = u_tmp->tx_nbits;
+		k_tmp->rx_nbits = u_tmp->rx_nbits;
 		k_tmp->bits_per_word = u_tmp->bits_per_word;
 		k_tmp->delay_usecs = u_tmp->delay_usecs;
 		k_tmp->speed_hz = u_tmp->speed_hz;
@@ -315,17 +343,21 @@ static int spidev_message(struct spidev_data *spidev,
 		goto done;
 
 	/* copy any rx data out of bounce buffer */
+<<<<<<< HEAD
 	buf = spidev->bufferrx;
+=======
+	rx_buf = spidev->rx_buffer;
+>>>>>>> android-3.18
 	for (n = n_xfers, u_tmp = u_xfers; n; n--, u_tmp++) {
 		if (u_tmp->rx_buf) {
 			if (__copy_to_user((u8 __user *)
-					(uintptr_t) u_tmp->rx_buf, buf,
+					(uintptr_t) u_tmp->rx_buf, rx_buf,
 					u_tmp->len)) {
 				status = -EFAULT;
 				goto done;
 			}
 		}
-		buf += u_tmp->len;
+		rx_buf += u_tmp->len;
 	}
 	status = total;
 
@@ -387,6 +419,10 @@ spidev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		retval = __put_user(spi->mode & SPI_MODE_MASK,
 					(__u8 __user *)arg);
 		break;
+	case SPI_IOC_RD_MODE32:
+		retval = __put_user(spi->mode & SPI_MODE_MASK,
+					(__u32 __user *)arg);
+		break;
 	case SPI_IOC_RD_LSB_FIRST:
 		retval = __put_user((spi->mode & SPI_LSB_FIRST) ?  1 : 0,
 					(__u8 __user *)arg);
@@ -400,9 +436,13 @@ spidev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	/* write requests */
 	case SPI_IOC_WR_MODE:
-		retval = __get_user(tmp, (u8 __user *)arg);
+	case SPI_IOC_WR_MODE32:
+		if (cmd == SPI_IOC_WR_MODE)
+			retval = __get_user(tmp, (u8 __user *)arg);
+		else
+			retval = __get_user(tmp, (u32 __user *)arg);
 		if (retval == 0) {
-			u8	save = spi->mode;
+			u32	save = spi->mode;
 
 			if (tmp & ~SPI_MODE_MASK) {
 				retval = -EINVAL;
@@ -410,18 +450,18 @@ spidev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			}
 
 			tmp |= spi->mode & ~SPI_MODE_MASK;
-			spi->mode = (u8)tmp;
+			spi->mode = (u16)tmp;
 			retval = spi_setup(spi);
 			if (retval < 0)
 				spi->mode = save;
 			else
-				dev_dbg(&spi->dev, "spi mode %02x\n", tmp);
+				dev_dbg(&spi->dev, "spi mode %x\n", tmp);
 		}
 		break;
 	case SPI_IOC_WR_LSB_FIRST:
 		retval = __get_user(tmp, (__u8 __user *)arg);
 		if (retval == 0) {
-			u8	save = spi->mode;
+			u32	save = spi->mode;
 
 			if (tmp)
 				spi->mode |= SPI_LSB_FIRST;
@@ -525,14 +565,21 @@ static int spidev_open(struct inode *inode, struct file *filp)
 			break;
 		}
 	}
-	if (status == 0) {
-		if (!spidev->buffer) {
-			spidev->buffer = kmalloc(bufsiz, GFP_KERNEL);
-			if (!spidev->buffer) {
+
+	if (status) {
+		pr_debug("spidev: nothing for minor %d\n", iminor(inode));
+		goto err_find_dev;
+	}
+
+	if (!spidev->tx_buffer) {
+		spidev->tx_buffer = kmalloc(bufsiz, GFP_KERNEL);
+		if (!spidev->tx_buffer) {
 				dev_dbg(&spidev->spi->dev, "open/ENOMEM\n");
 				status = -ENOMEM;
+			goto err_find_dev;
 			}
 		}
+<<<<<<< HEAD
 		if (!spidev->bufferrx) {
 			spidev->bufferrx = kmalloc(bufsiz, GFP_KERNEL);
 			if (!spidev->bufferrx) {
@@ -546,10 +593,29 @@ static int spidev_open(struct inode *inode, struct file *filp)
 			spidev->users++;
 			filp->private_data = spidev;
 			nonseekable_open(inode, filp);
-		}
-	} else
-		pr_debug("spidev: nothing for minor %d\n", iminor(inode));
+=======
 
+	if (!spidev->rx_buffer) {
+		spidev->rx_buffer = kmalloc(bufsiz, GFP_KERNEL);
+		if (!spidev->rx_buffer) {
+			dev_dbg(&spidev->spi->dev, "open/ENOMEM\n");
+			status = -ENOMEM;
+			goto err_alloc_rx_buf;
+>>>>>>> android-3.18
+		}
+	}
+
+	spidev->users++;
+	filp->private_data = spidev;
+	nonseekable_open(inode, filp);
+
+	mutex_unlock(&device_list_lock);
+	return 0;
+
+err_alloc_rx_buf:
+	kfree(spidev->tx_buffer);
+	spidev->tx_buffer = NULL;
+err_find_dev:
 	mutex_unlock(&device_list_lock);
 	return status;
 }
@@ -568,10 +634,18 @@ static int spidev_release(struct inode *inode, struct file *filp)
 	if (!spidev->users) {
 		int		dofree;
 
+<<<<<<< HEAD
 		kfree(spidev->buffer);
 		spidev->buffer = NULL;
 		kfree(spidev->bufferrx);
 		spidev->bufferrx = NULL;
+=======
+		kfree(spidev->tx_buffer);
+		spidev->tx_buffer = NULL;
+
+		kfree(spidev->rx_buffer);
+		spidev->rx_buffer = NULL;
+>>>>>>> android-3.18
 
 		/* ... after we unbound from the underlying device? */
 		spin_lock_irq(&spidev->spi_lock);
@@ -581,6 +655,9 @@ static int spidev_release(struct inode *inode, struct file *filp)
 		if (dofree)
 			kfree(spidev);
 	}
+#ifdef CONFIG_SPI_SLAVE
+	spi_slave_abort(spidev->spi);
+#endif
 	mutex_unlock(&device_list_lock);
 
 	return status;
@@ -612,7 +689,7 @@ static struct class *spidev_class;
 
 /*-------------------------------------------------------------------------*/
 
-static int __devinit spidev_probe(struct spi_device *spi)
+static int spidev_probe(struct spi_device *spi)
 {
 	struct spidev_data	*spidev;
 	int			status;
@@ -642,7 +719,7 @@ static int __devinit spidev_probe(struct spi_device *spi)
 		dev = device_create(spidev_class, &spi->dev, spidev->devt,
 				    spidev, "spidev%d.%d",
 				    spi->master->bus_num, spi->chip_select);
-		status = IS_ERR(dev) ? PTR_ERR(dev) : 0;
+		status = PTR_ERR_OR_ZERO(dev);
 	} else {
 		dev_dbg(&spi->dev, "no minor number available!\n");
 		status = -ENODEV;
@@ -661,18 +738,17 @@ static int __devinit spidev_probe(struct spi_device *spi)
 	return status;
 }
 
-static int __devexit spidev_remove(struct spi_device *spi)
+static int spidev_remove(struct spi_device *spi)
 {
 	struct spidev_data	*spidev = spi_get_drvdata(spi);
 
+	/* prevent new opens */
+	mutex_lock(&device_list_lock);
 	/* make sure ops on existing fds can abort cleanly */
 	spin_lock_irq(&spidev->spi_lock);
 	spidev->spi = NULL;
-	spi_set_drvdata(spi, NULL);
 	spin_unlock_irq(&spidev->spi_lock);
 
-	/* prevent new opens */
-	mutex_lock(&device_list_lock);
 	list_del(&spidev->device_entry);
 	device_destroy(spidev_class, spidev->devt);
 	clear_bit(MINOR(spidev->devt), minors);
@@ -683,13 +759,21 @@ static int __devexit spidev_remove(struct spi_device *spi)
 	return 0;
 }
 
+static const struct of_device_id spidev_dt_ids[] = {
+	{ .compatible = "rohm,dh2228fv" },
+	{},
+};
+
+MODULE_DEVICE_TABLE(of, spidev_dt_ids);
+
 static struct spi_driver spidev_spi_driver = {
 	.driver = {
 		.name =		"spidev",
 		.owner =	THIS_MODULE,
+		.of_match_table = of_match_ptr(spidev_dt_ids),
 	},
 	.probe =	spidev_probe,
-	.remove =	__devexit_p(spidev_remove),
+	.remove =	spidev_remove,
 
 	/* NOTE:  suspend/resume methods are not necessary here.
 	 * We don't do anything except pass the requests to/from

@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2011 The Linux Foundation. All rights reserved.
+=======
+ * Copyright (c) 2011, The Linux Foundation. All rights reserved.
+>>>>>>> android-3.18
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and

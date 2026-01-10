@@ -17,8 +17,11 @@
 struct user_namespace;
 extern struct user_namespace init_user_ns;
 
+<<<<<<< HEAD
 #if defined(NOTYET)
 
+=======
+>>>>>>> android-3.18
 typedef struct {
 	uid_t val;
 } kuid_t;
@@ -41,6 +44,7 @@ static inline gid_t __kgid_val(kgid_t gid)
 	return gid.val;
 }
 
+<<<<<<< HEAD
 #else
 
 typedef uid_t kuid_t;
@@ -61,6 +65,8 @@ static inline gid_t __kgid_val(kgid_t gid)
 
 #endif
 
+=======
+>>>>>>> android-3.18
 #define GLOBAL_ROOT_UID KUIDT_INIT(0)
 #define GLOBAL_ROOT_GID KGIDT_INIT(0)
 

@@ -102,7 +102,10 @@ enum {
 #define TCP_QUICKACK		12	/* Block/reenable quick acks */
 #define TCP_CONGESTION		13	/* Congestion control algorithm */
 #define TCP_MD5SIG		14	/* TCP MD5 Signature (RFC2385) */
+<<<<<<< HEAD
 #define TCP_COOKIE_TRANSACTIONS	15	/* TCP Cookie Transactions */
+=======
+>>>>>>> android-3.18
 #define TCP_THIN_LINEAR_TIMEOUTS 16      /* Use linear timeouts for thin streams*/
 #define TCP_THIN_DUPACK         17      /* Fast retrans. after 1 dupack */
 #define TCP_USER_TIMEOUT	18	/* How long for loss retry before timeout */
@@ -111,6 +114,11 @@ enum {
 #define TCP_QUEUE_SEQ		21
 #define TCP_REPAIR_OPTIONS	22
 #define TCP_FASTOPEN		23	/* Enable FastOpen on listeners */
+<<<<<<< HEAD
+=======
+#define TCP_TIMESTAMP		24
+#define TCP_NOTSENT_LOWAT	25	/* limit number of unsent bytes in write queue */
+>>>>>>> android-3.18
 
 struct tcp_repair_opt {
 	__u32	opt_code;
@@ -130,6 +138,10 @@ enum {
 #define TCPI_OPT_WSCALE		4
 #define TCPI_OPT_ECN		8 /* ECN was negociated at TCP session init */
 #define TCPI_OPT_ECN_SEEN	16 /* we received at least one packet with ECT */
+<<<<<<< HEAD
+=======
+#define TCPI_OPT_SYN_DATA	32 /* SYN-ACK acked data in SYN sent or rcvd */
+>>>>>>> android-3.18
 
 enum tcp_ca_state {
 	TCP_CA_Open = 0,
@@ -152,7 +164,10 @@ struct tcp_info {
 	__u8	tcpi_backoff;
 	__u8	tcpi_options;
 	__u8	tcpi_snd_wscale : 4, tcpi_rcv_wscale : 4;
+<<<<<<< HEAD
 	__u8    tcpi_count;
+=======
+>>>>>>> android-3.18
 
 	__u32	tcpi_rto;
 	__u32	tcpi_ato;
@@ -188,10 +203,13 @@ struct tcp_info {
 
 	__u64	tcpi_pacing_rate;
 	__u64	tcpi_max_pacing_rate;
+<<<<<<< HEAD
 	__u64	tcpi_bytes_acked;    /* RFC4898 tcpEStatsAppHCThruOctetsAcked */
 	__u64	tcpi_bytes_received; /* RFC4898 tcpEStatsAppHCThruOctetsReceived */
 	__u32	tcpi_segs_out;	     /* RFC4898 tcpEStatsPerfSegsOut */
 	__u32	tcpi_segs_in;	     /* RFC4898 tcpEStatsPerfSegsIn */
+=======
+>>>>>>> android-3.18
 };
 
 /* for TCP_MD5SIG socket option */
@@ -205,6 +223,7 @@ struct tcp_md5sig {
 	__u8	tcpm_key[TCP_MD5SIG_MAXKEYLEN];		/* key (binary) */
 };
 
+<<<<<<< HEAD
 /* for TCP_COOKIE_TRANSACTIONS (TCPCT) socket option */
 #define TCP_COOKIE_MIN		 8		/*  64-bits */
 #define TCP_COOKIE_MAX		16		/* 128-bits */
@@ -230,4 +249,6 @@ struct tcp_cookie_transactions {
 };
 
 
+=======
+>>>>>>> android-3.18
 #endif /* _UAPI_LINUX_TCP_H */

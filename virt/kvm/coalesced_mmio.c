@@ -72,7 +72,7 @@ static int coalesced_mmio_write(struct kvm_io_device *this,
 
 	spin_lock(&dev->kvm->ring_lock);
 
-	insert = ACCESS_ONCE(ring->last);
+	insert = READ_ONCE(ring->last);
 	if (!coalesced_mmio_has_room(dev, insert) ||
 	    insert >= KVM_COALESCED_MMIO_MAX) {
 		spin_unlock(&dev->kvm->ring_lock);

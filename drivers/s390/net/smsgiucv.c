@@ -157,7 +157,7 @@ static int smsg_pm_restore_thaw(struct device *dev)
 #ifdef CONFIG_PM_DEBUG
 	printk(KERN_WARNING "smsg_pm_restore_thaw\n");
 #endif
-	if (smsg_path && iucv_path_connected) {
+	if (smsg_path && !iucv_path_connected) {
 		memset(smsg_path, 0, sizeof(*smsg_path));
 		smsg_path->msglim = 255;
 		smsg_path->flags = 0;
@@ -190,7 +190,7 @@ static struct device_driver smsg_driver = {
 
 static void __exit smsg_exit(void)
 {
-	cpcmd("SET SMSG IUCV", NULL, 0, NULL);
+	cpcmd("SET SMSG OFF", NULL, 0, NULL);
 	device_unregister(smsg_dev);
 	iucv_unregister(&smsg_handler, 1);
 	driver_unregister(&smsg_driver);

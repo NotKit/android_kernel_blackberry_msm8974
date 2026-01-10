@@ -22,7 +22,6 @@
 #include <linux/kobject.h>
 
 struct pscsi_plugin_task {
-	struct se_task pscsi_task;
 	unsigned char pscsi_sense[SCSI_SENSE_BUFFERSIZE];
 	int	pscsi_direction;
 	int	pscsi_result;
@@ -38,6 +37,7 @@ struct pscsi_plugin_task {
 #define PDF_HAS_VIRT_HOST_ID	0x20
 
 struct pscsi_dev_virt {
+	struct se_device dev;
 	int	pdv_flags;
 	int	pdv_host_id;
 	int	pdv_channel_id;
@@ -46,7 +46,10 @@ struct pscsi_dev_virt {
 	struct block_device *pdv_bd;
 	struct scsi_device *pdv_sd;
 	struct Scsi_Host *pdv_lld_host;
+<<<<<<< HEAD
 	struct se_hba *pdv_se_hba;
+=======
+>>>>>>> android-3.18
 } ____cacheline_aligned;
 
 typedef enum phv_modes {

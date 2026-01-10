@@ -29,6 +29,11 @@
 #ifndef __V4L2_COMMON__
 #define __V4L2_COMMON__
 
+<<<<<<< HEAD
+=======
+#include <linux/types.h>
+
+>>>>>>> android-3.18
 /*
  *
  * Selection interface definitions
@@ -68,4 +73,15 @@
 #define V4L2_SUBDEV_SEL_FLAG_SIZE_LE	V4L2_SEL_FLAG_LE
 #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG V4L2_SEL_FLAG_KEEP_CONFIG
 
+<<<<<<< HEAD
+=======
+struct v4l2_edid {
+	__u32 pad;
+	__u32 start_block;
+	__u32 blocks;
+	__u32 reserved[5];
+	__u8  *edid;
+};
+
+>>>>>>> android-3.18
 #endif /* __V4L2_COMMON__ */

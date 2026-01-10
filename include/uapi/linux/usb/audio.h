@@ -175,7 +175,10 @@ struct uac1_ac_header_descriptor_##n {			\
 	__u8  baInterfaceNr[n];					\
 } __attribute__ ((packed))
 
+<<<<<<< HEAD
 DECLARE_UAC_AC_HEADER_DESCRIPTOR(2);
+=======
+>>>>>>> android-3.18
 /* 4.3.2.1 Input Terminal Descriptor */
 struct uac_input_terminal_descriptor {
 	__u8  bLength;			/* in bytes: 12 */
@@ -370,7 +373,11 @@ static inline __u8 uac_processing_unit_bControlSize(struct uac_processing_unit_d
 {
 	return (protocol == UAC_VERSION_1) ?
 		desc->baSourceID[desc->bNrInPins + 4] :
+<<<<<<< HEAD
 		desc->baSourceID[desc->bNrInPins + 6];
+=======
+		2; /* in UAC2, this value is constant */
+>>>>>>> android-3.18
 }
 
 static inline __u8 *uac_processing_unit_bmControls(struct uac_processing_unit_descriptor *desc,
@@ -378,21 +385,35 @@ static inline __u8 *uac_processing_unit_bmControls(struct uac_processing_unit_de
 {
 	return (protocol == UAC_VERSION_1) ?
 		&desc->baSourceID[desc->bNrInPins + 5] :
+<<<<<<< HEAD
 		&desc->baSourceID[desc->bNrInPins + 7];
+=======
+		&desc->baSourceID[desc->bNrInPins + 6];
+>>>>>>> android-3.18
 }
 
 static inline __u8 uac_processing_unit_iProcessing(struct uac_processing_unit_descriptor *desc,
 						   int protocol)
 {
 	__u8 control_size = uac_processing_unit_bControlSize(desc, protocol);
+<<<<<<< HEAD
 	return desc->baSourceID[desc->bNrInPins + control_size];
+=======
+	return *(uac_processing_unit_bmControls(desc, protocol)
+			+ control_size);
+>>>>>>> android-3.18
 }
 
 static inline __u8 *uac_processing_unit_specific(struct uac_processing_unit_descriptor *desc,
 						 int protocol)
 {
 	__u8 control_size = uac_processing_unit_bControlSize(desc, protocol);
+<<<<<<< HEAD
 	return &desc->baSourceID[desc->bNrInPins + control_size + 1];
+=======
+	return uac_processing_unit_bmControls(desc, protocol)
+			+ control_size + 1;
+>>>>>>> android-3.18
 }
 
 /* 4.5.2 Class-Specific AS Interface Descriptor */
@@ -455,7 +476,10 @@ struct uac_format_type_i_discrete_descriptor_##n {		\
 	__u8  tSamFreq[n][3];					\
 } __attribute__ ((packed))
 
+<<<<<<< HEAD
 DECLARE_UAC_FORMAT_TYPE_I_DISCRETE_DESC(1);
+=======
+>>>>>>> android-3.18
 #define UAC_FORMAT_TYPE_I_DISCRETE_DESC_SIZE(n)	(8 + (n * 3))
 
 struct uac_format_type_i_ext_descriptor {

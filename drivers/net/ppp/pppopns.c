@@ -32,7 +32,10 @@
 #include <linux/ppp_defs.h>
 #include <linux/if.h>
 #include <linux/if_ppp.h>
+<<<<<<< HEAD
 #include <linux/if_pppopns.h>
+=======
+>>>>>>> android-3.18
 #include <linux/if_pppox.h>
 #include <linux/ppp_channel.h>
 #include <asm/uaccess.h>
@@ -170,7 +173,11 @@ drop:
 	return NET_RX_DROP;
 }
 
+<<<<<<< HEAD
 static void pppopns_recv(struct sock *sk_raw, int length)
+=======
+static void pppopns_recv(struct sock *sk_raw)
+>>>>>>> android-3.18
 {
 	struct sk_buff *skb;
 	while ((skb = skb_dequeue(&sk_raw->sk_receive_queue))) {

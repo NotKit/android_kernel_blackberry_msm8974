@@ -24,6 +24,12 @@
 #define VENDOR_ID_CYPRESS		0x04b4
 #define PRODUCT_ID_CYPHIDCOM		0x5500
 
+<<<<<<< HEAD
+=======
+/* Simply Automated HID->COM UPB PIM (using Cypress PID 0x5500) */
+#define VENDOR_ID_SAI			0x17dd
+
+>>>>>>> android-3.18
 /* FRWD Dongle - a GPS sports watch */
 #define VENDOR_ID_FRWD			0x6737
 #define PRODUCT_ID_CYPHIDCOM_FRWD	0x0001
@@ -55,6 +61,7 @@
 #define CT_GENERIC	0x0F
 /* End of chiptype definitions */
 
+<<<<<<< HEAD
 /* RS-232 serial data communication protocol definitions */
 /* these are sent / read at byte 0 of the input/output hid reports */
 /* You can find these values defined in the CY4601 USB to Serial design notes */
@@ -68,6 +75,25 @@
 #define CYP_ERROR	0x08	/* received from input report - device to host */
 /* Note - the below has nothing to do with the "feature report" reset */
 #define CONTROL_RESET	0x08	/* sent with output report - host to device */
+=======
+/*
+ * RS-232 serial data communication protocol definitions.
+ *
+ * These are sent / read at byte 0 of the input/output hid reports.
+ * You can find these values defined in the CY4601 USB to Serial design notes.
+ */
+
+#define CONTROL_DTR	0x20	/* data terminal ready */
+#define CONTROL_RTS	0x10	/* request to send */
+#define CONTROL_RESET	0x08	/* sent with output report */
+
+#define UART_MSR_MASK	0xf0
+#define UART_RI		0x80	/* ring indicator */
+#define UART_CD		0x40	/* carrier detect */
+#define UART_DSR	0x20	/* data set ready */
+#define UART_CTS	0x10	/* clear to send */
+#define CYP_ERROR	0x08	/* received from input report */
+>>>>>>> android-3.18
 
 /* End of RS-232 protocol definitions */
 

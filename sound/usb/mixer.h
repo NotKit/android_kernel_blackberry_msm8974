@@ -23,6 +23,7 @@ struct usb_mixer_interface {
 
 	u8 audigy2nx_leds[3];
 	u8 xonar_u1_status;
+	bool disconnected;
 };
 
 #define MAX_CHANNELS	16	/* max logical channels */
@@ -34,6 +35,8 @@ enum {
 	USB_MIXER_U8,
 	USB_MIXER_S16,
 	USB_MIXER_U16,
+	USB_MIXER_S32,
+	USB_MIXER_U32,
 };
 
 struct usb_mixer_elem_info {
@@ -43,6 +46,7 @@ struct usb_mixer_elem_info {
 	unsigned int id;
 	unsigned int control;	/* CS or ICN (high byte) */
 	unsigned int cmask; /* channel mask bitmap: 0 = master */
+	unsigned int idx_off; /* Control index offset */
 	unsigned int ch_readonly;
 	unsigned int master_readonly;
 	int channels;
@@ -52,6 +56,7 @@ struct usb_mixer_elem_info {
 	int cached;
 	int cache_val[MAX_CHANNELS];
 	u8 initialized;
+	u8 min_mute;
 };
 
 int snd_usb_create_mixer(struct snd_usb_audio *chip, int ctrlif,
@@ -62,10 +67,16 @@ void snd_usb_mixer_notify_id(struct usb_mixer_interface *mixer, int unitid);
 
 int snd_usb_mixer_set_ctl_value(struct usb_mixer_elem_info *cval,
 				int request, int validx, int value_set);
-void snd_usb_mixer_inactivate(struct usb_mixer_interface *mixer);
-int snd_usb_mixer_activate(struct usb_mixer_interface *mixer);
 
 int snd_usb_mixer_add_control(struct usb_mixer_interface *mixer,
 			      struct snd_kcontrol *kctl);
+
+int snd_usb_mixer_vol_tlv(struct snd_kcontrol *kcontrol, int op_flag,
+			  unsigned int size, unsigned int __user *_tlv);
+
+#ifdef CONFIG_PM
+int snd_usb_mixer_suspend(struct usb_mixer_interface *mixer);
+int snd_usb_mixer_resume(struct usb_mixer_interface *mixer, bool reset_resume);
+#endif
 
 #endif /* __USBMIXER_H */

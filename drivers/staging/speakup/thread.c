@@ -21,8 +21,13 @@ int speakup_thread(void *data)
 	mutex_lock(&spk_mutex);
 	while (1) {
 		DEFINE_WAIT(wait);
+
 		while (1) {
+<<<<<<< HEAD
 			spk_lock(flags);
+=======
+			spin_lock_irqsave(&speakup_info.spinlock, flags);
+>>>>>>> android-3.18
 			our_sound = spk_unprocessed_sound;
 			spk_unprocessed_sound.active = 0;
 			prepare_to_wait(&speakup_event, &wait,
@@ -32,7 +37,7 @@ int speakup_thread(void *data)
 				(synth && synth->catch_up && synth->alive &&
 					(speakup_info.flushing ||
 					!synth_buffer_empty()));
-			spk_unlock(flags);
+			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			if (should_break)
 				break;
 			mutex_unlock(&spk_mutex);

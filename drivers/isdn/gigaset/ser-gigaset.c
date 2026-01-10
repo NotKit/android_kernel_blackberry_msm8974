@@ -340,17 +340,16 @@ static int gigaset_initbcshw(struct bc_state *bcs)
 {
 	/* unused */
 	bcs->hw.ser = NULL;
-	return 1;
+	return 0;
 }
 
 /*
  * Free B channel structure
  * Called by "gigaset_freebcs" in common.c
  */
-static int gigaset_freebcshw(struct bc_state *bcs)
+static void gigaset_freebcshw(struct bc_state *bcs)
 {
 	/* unused */
-	return 1;
 }
 
 /*
@@ -371,12 +370,19 @@ static void gigaset_freecshw(struct cardstate *cs)
 	tasklet_kill(&cs->write_tasklet);
 	if (!cs->hw.ser)
 		return;
+	dev_set_drvdata(&cs->hw.ser->dev.dev, NULL);
 	platform_device_unregister(&cs->hw.ser->dev);
+	kfree(cs->hw.ser);
+	cs->hw.ser = NULL;
 }
 
 static void gigaset_device_release(struct device *dev)
 {
-	kfree(container_of(dev, struct ser_cardstate, dev.dev));
+	struct platform_device *pdev = to_platform_device(dev);
+
+	/* adapted from platform_device_release() in drivers/base/platform.c */
+	kfree(dev->platform_data);
+	kfree(pdev->resource);
 }
 
 /*
@@ -391,7 +397,7 @@ static int gigaset_initcshw(struct cardstate *cs)
 	scs = kzalloc(sizeof(struct ser_cardstate), GFP_KERNEL);
 	if (!scs) {
 		pr_err("out of memory\n");
-		return 0;
+		return -ENOMEM;
 	}
 	cs->hw.ser = scs;
 
@@ -403,12 +409,13 @@ static int gigaset_initcshw(struct cardstate *cs)
 		pr_err("error %d registering platform device\n", rc);
 		kfree(cs->hw.ser);
 		cs->hw.ser = NULL;
-		return 0;
+		return rc;
 	}
+	dev_set_drvdata(&cs->hw.ser->dev.dev, cs);
 
 	tasklet_init(&cs->write_tasklet,
 		     gigaset_modem_fill, (unsigned long) cs);
-	return 1;
+	return 0;
 }
 
 /*
@@ -495,6 +502,7 @@ static int
 gigaset_tty_open(struct tty_struct *tty)
 {
 	struct cardstate *cs;
+	int rc;
 
 	gig_dbg(DEBUG_INIT, "Starting HLL for Gigaset M101");
 
@@ -507,22 +515,34 @@ gigaset_tty_open(struct tty_struct *tty)
 
 	/* allocate memory for our device state and initialize it */
 	cs = gigaset_initcs(driver, 1, 1, 0, cidmode, GIGASET_MODULENAME);
-	if (!cs)
+	if (!cs) {
+		rc = -ENODEV;
 		goto error;
+	}
 
 	cs->dev = &cs->hw.ser->dev.dev;
 	cs->hw.ser->tty = tty;
 	atomic_set(&cs->hw.ser->refcnt, 1);
 	init_completion(&cs->hw.ser->dead_cmp);
-
 	tty->disc_data = cs;
+
+	/* Set the amount of data we're willing to receive per call
+	 * from the hardware driver to half of the input buffer size
+	 * to leave some reserve.
+	 * Note: We don't do flow control towards the hardware driver.
+	 * If more data is received than will fit into the input buffer,
+	 * it will be dropped and an error will be logged. This should
+	 * never happen as the device is slow and the buffer size ample.
+	 */
+	tty->receive_room = RBUFSIZE/2;
 
 	/* OK.. Initialization of the datastructures and the HW is done.. Now
 	 * startup system and notify the LL that we are ready to run
 	 */
 	if (startmode == SM_LOCKED)
 		cs->mstate = MS_LOCKED;
-	if (!gigaset_start(cs)) {
+	rc = gigaset_start(cs);
+	if (rc < 0) {
 		tasklet_kill(&cs->write_tasklet);
 		goto error;
 	}
@@ -534,7 +554,7 @@ error:
 	gig_dbg(DEBUG_INIT, "Startup of HLL failed");
 	tty->disc_data = NULL;
 	gigaset_freecs(cs);
-	return -ENODEV;
+	return rc;
 }
 
 /*
@@ -767,8 +787,10 @@ static int __init ser_gigaset_init(void)
 	driver = gigaset_initdriver(GIGASET_MINOR, GIGASET_MINORS,
 				    GIGASET_MODULENAME, GIGASET_DEVNAME,
 				    &ops, THIS_MODULE);
-	if (!driver)
+	if (!driver) {
+		rc = -ENOMEM;
 		goto error;
+	}
 
 	rc = tty_register_ldisc(N_GIGASET_M101, &gigaset_ldisc);
 	if (rc != 0) {

@@ -21,7 +21,7 @@
 12	common	brk			sys_brk
 13	64	rt_sigaction		sys_rt_sigaction
 14	common	rt_sigprocmask		sys_rt_sigprocmask
-15	64	rt_sigreturn		stub_rt_sigreturn
+15	64	rt_sigreturn		stub_rt_sigreturn/ptregs
 16	64	ioctl			sys_ioctl
 17	common	pread64			sys_pread64
 18	common	pwrite64		sys_pwrite64
@@ -62,10 +62,17 @@
 53	common	socketpair		sys_socketpair
 54	64	setsockopt		sys_setsockopt
 55	64	getsockopt		sys_getsockopt
+<<<<<<< HEAD
 56	common	clone			stub_clone
 57	common	fork			stub_fork
 58	common	vfork			stub_vfork
 59	64	execve			stub_execve
+=======
+56	common	clone			stub_clone/ptregs
+57	common	fork			stub_fork/ptregs
+58	common	vfork			stub_vfork/ptregs
+59	64	execve			stub_execve/ptregs
+>>>>>>> android-3.18
 60	common	exit			sys_exit
 61	common	wait4			sys_wait4
 62	common	kill			sys_kill
@@ -137,7 +144,7 @@
 128	64	rt_sigtimedwait		sys_rt_sigtimedwait
 129	64	rt_sigqueueinfo		sys_rt_sigqueueinfo
 130	common	rt_sigsuspend		sys_rt_sigsuspend
-131	64	sigaltstack		stub_sigaltstack
+131	64	sigaltstack		sys_sigaltstack
 132	common	utime			sys_utime
 133	common	mknod			sys_mknod
 134	64	uselib
@@ -318,14 +325,27 @@
 309	common	getcpu			sys_getcpu
 310	64	process_vm_readv	sys_process_vm_readv
 311	64	process_vm_writev	sys_process_vm_writev
+<<<<<<< HEAD
 317	common	seccomp			sys_seccomp
 318	common	getrandom		sys_getrandom
+=======
+312	common	kcmp			sys_kcmp
+313	common	finit_module		sys_finit_module
+314	common	sched_setattr		sys_sched_setattr
+315	common	sched_getattr		sys_sched_getattr
+316	common	renameat2		sys_renameat2
+317	common	seccomp			sys_seccomp
+318	common	getrandom		sys_getrandom
+319	common	memfd_create		sys_memfd_create
+320	common	kexec_file_load		sys_kexec_file_load
+321	common	bpf			sys_bpf
+>>>>>>> android-3.18
 
 #
 # x32-specific system call numbers start at 512 to avoid cache impact
 # for native 64-bit operation.
 #
-512	x32	rt_sigaction		sys32_rt_sigaction
+512	x32	rt_sigaction		compat_sys_rt_sigaction
 513	x32	rt_sigreturn		stub_x32_rt_sigreturn
 514	x32	ioctl			compat_sys_ioctl
 515	x32	readv			compat_sys_readv
@@ -333,12 +353,12 @@
 517	x32	recvfrom		compat_sys_recvfrom
 518	x32	sendmsg			compat_sys_sendmsg
 519	x32	recvmsg			compat_sys_recvmsg
-520	x32	execve			stub_x32_execve
+520	x32	execve			stub_x32_execve/ptregs
 521	x32	ptrace			compat_sys_ptrace
-522	x32	rt_sigpending		sys32_rt_sigpending
+522	x32	rt_sigpending		compat_sys_rt_sigpending
 523	x32	rt_sigtimedwait		compat_sys_rt_sigtimedwait
-524	x32	rt_sigqueueinfo		sys32_rt_sigqueueinfo
-525	x32	sigaltstack		stub_x32_sigaltstack
+524	x32	rt_sigqueueinfo		compat_sys_rt_sigqueueinfo
+525	x32	sigaltstack		compat_sys_sigaltstack
 526	x32	timer_create		compat_sys_timer_create
 527	x32	mq_notify		compat_sys_mq_notify
 528	x32	kexec_load		compat_sys_kexec_load

@@ -173,31 +173,9 @@ bfad_debugfs_open_reg(struct inode *inode, struct file *file)
 static loff_t
 bfad_debugfs_lseek(struct file *file, loff_t offset, int orig)
 {
-	struct bfad_debug_info *debug;
-	loff_t pos = file->f_pos;
-
-	debug = file->private_data;
-
-	switch (orig) {
-	case 0:
-		file->f_pos = offset;
-		break;
-	case 1:
-		file->f_pos += offset;
-		break;
-	case 2:
-		file->f_pos = debug->buffer_len - offset;
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	if (file->f_pos < 0 || file->f_pos > debug->buffer_len) {
-		file->f_pos = pos;
-		return -EINVAL;
-	}
-
-	return file->f_pos;
+	struct bfad_debug_info *debug = file->private_data;
+	return fixed_size_llseek(file, offset, orig,
+				debug->buffer_len);
 }
 
 static ssize_t
@@ -276,7 +254,8 @@ bfad_debugfs_write_regrd(struct file *file, const char __user *buf,
 	struct bfad_s *bfad = port->bfad;
 	struct bfa_s *bfa = &bfad->bfa;
 	struct bfa_ioc_s *ioc = &bfa->ioc;
-	int addr, len, rc, i;
+	int addr, rc, i;
+	u32 len;
 	u32 *regbuf;
 	void __iomem *rb, *reg_addr;
 	unsigned long flags;
@@ -296,7 +275,7 @@ bfad_debugfs_write_regrd(struct file *file, const char __user *buf,
 	}
 
 	rc = sscanf(kern_buf, "%x:%x", &addr, &len);
-	if (rc < 2) {
+	if (rc < 2 || len > (UINT_MAX >> 2)) {
 		printk(KERN_INFO
 			"bfad[%d]: %s failed to read user buf\n",
 			bfad->inst_no, __func__);

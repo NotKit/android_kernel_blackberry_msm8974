@@ -135,7 +135,7 @@ mISDN_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 		return err;
 
 	if (msg->msg_name) {
-		struct sockaddr_mISDN *maddr = msg->msg_name;
+		DECLARE_SOCKADDR(struct sockaddr_mISDN *, maddr, msg->msg_name);
 
 		maddr->family = AF_ISDN;
 		maddr->dev = _pms(sk)->dev->id;
@@ -179,7 +179,6 @@ mISDN_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 	struct sock		*sk = sock->sk;
 	struct sk_buff		*skb;
 	int			err = -ENOMEM;
-	struct sockaddr_mISDN	*maddr;
 
 	if (*debug & DEBUG_SOCKET)
 		printk(KERN_DEBUG "%s: len %d flags %x ch %d proto %x\n",
@@ -214,7 +213,7 @@ mISDN_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 
 	if (msg->msg_namelen >= sizeof(struct sockaddr_mISDN)) {
 		/* if we have a address, we use it */
-		maddr = (struct sockaddr_mISDN *)msg->msg_name;
+		DECLARE_SOCKADDR(struct sockaddr_mISDN *, maddr, msg->msg_name);
 		mISDN_HEAD_ID(skb) = maddr->channel;
 	} else { /* use default for L2 messages */
 		if ((sk->sk_protocol == ISDN_P_LAPD_TE) ||
@@ -396,7 +395,7 @@ data_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			memcpy(di.channelmap, dev->channelmap,
 			       sizeof(di.channelmap));
 			di.nrbchan = dev->nrbchan;
-			strcpy(di.name, dev_name(&dev->dev));
+			strscpy(di.name, dev_name(&dev->dev), sizeof(di.name));
 			if (copy_to_user((void __user *)arg, &di, sizeof(di)))
 				err = -EFAULT;
 		} else
@@ -478,7 +477,6 @@ data_sock_bind(struct socket *sock, struct sockaddr *addr, int addr_len)
 {
 	struct sockaddr_mISDN *maddr = (struct sockaddr_mISDN *) addr;
 	struct sock *sk = sock->sk;
-	struct hlist_node *node;
 	struct sock *csk;
 	int err = 0;
 
@@ -503,7 +501,7 @@ data_sock_bind(struct socket *sock, struct sockaddr *addr, int addr_len)
 
 	if (sk->sk_protocol < ISDN_P_B_START) {
 		read_lock_bh(&data_sockets.lock);
-		sk_for_each(csk, node, &data_sockets.head) {
+		sk_for_each(csk, &data_sockets.head) {
 			if (sk == csk)
 				continue;
 			if (_pms(csk)->dev != _pms(sk)->dev)
@@ -574,6 +572,7 @@ data_sock_getname(struct socket *sock, struct sockaddr *addr,
 	lock_sock(sk);
 
 	*addr_len = sizeof(*maddr);
+	maddr->family = AF_ISDN;
 	maddr->dev = _pms(sk)->dev->id;
 	maddr->channel = _pms(sk)->ch.nr;
 	maddr->sapi = _pms(sk)->ch.addr & 0xff;
@@ -680,7 +679,7 @@ base_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			memcpy(di.channelmap, dev->channelmap,
 			       sizeof(di.channelmap));
 			di.nrbchan = dev->nrbchan;
-			strcpy(di.name, dev_name(&dev->dev));
+			strscpy(di.name, dev_name(&dev->dev), sizeof(di.name));
 			if (copy_to_user((void __user *)arg, &di, sizeof(di)))
 				err = -EFAULT;
 		} else
@@ -694,6 +693,7 @@ base_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			err = -EFAULT;
 			break;
 		}
+		dn.name[sizeof(dn.name) - 1] = '\0';
 		dev = get_mdevice(dn.id);
 		if (dev)
 			err = device_rename(&dev->dev, dn.name);

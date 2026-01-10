@@ -1,4 +1,9 @@
-/* IPv4 specific functions of netfilter core */
+/*
+ * IPv4 specific functions of netfilter core
+ *
+ * Rusty Russell (C) 2000 -- This code is GPL.
+ * Patrick McHardy (C) 2006-2012
+ */
 #include <linux/kernel.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv4.h>
@@ -12,14 +17,15 @@
 #include <net/netfilter/nf_queue.h>
 
 /* route_me_harder function, used by iptable_nat, iptable_mangle + ip_queue */
-int ip_route_me_harder(struct sk_buff *skb, unsigned addr_type)
+int ip_route_me_harder(struct sk_buff *skb, unsigned int addr_type)
 {
 	struct net *net = dev_net(skb_dst(skb)->dev);
 	const struct iphdr *iph = ip_hdr(skb);
 	struct rtable *rt;
 	struct flowi4 fl4 = {};
 	__be32 saddr = iph->saddr;
-	__u8 flags = skb->sk ? inet_sk_flowi_flags(skb->sk) : 0;
+	const struct sock *sk = skb_to_full_sk(skb);
+	__u8 flags = sk ? inet_sk_flowi_flags(sk) : 0;
 	unsigned int hh_len;
 
 	if (addr_type == RTN_UNSPEC)
@@ -35,28 +41,28 @@ int ip_route_me_harder(struct sk_buff *skb, unsigned addr_type)
 	fl4.daddr = iph->daddr;
 	fl4.saddr = saddr;
 	fl4.flowi4_tos = RT_TOS(iph->tos);
-	fl4.flowi4_oif = skb->sk ? skb->sk->sk_bound_dev_if : 0;
+	fl4.flowi4_oif = sk ? sk->sk_bound_dev_if : 0;
 	fl4.flowi4_mark = skb->mark;
 	fl4.flowi4_flags = flags;
 	rt = ip_route_output_key(net, &fl4);
 	if (IS_ERR(rt))
-		return -1;
+		return PTR_ERR(rt);
 
 	/* Drop old route. */
 	skb_dst_drop(skb);
 	skb_dst_set(skb, &rt->dst);
 
 	if (skb_dst(skb)->error)
-		return -1;
+		return skb_dst(skb)->error;
 
 #ifdef CONFIG_XFRM
 	if (!(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
 	    xfrm_decode_session(skb, flowi4_to_flowi(&fl4), AF_INET) == 0) {
 		struct dst_entry *dst = skb_dst(skb);
 		skb_dst_set(skb, NULL);
-		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), skb->sk, 0);
+		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), sk, 0);
 		if (IS_ERR(dst))
-			return -1;
+			return PTR_ERR(dst);
 		skb_dst_set(skb, dst);
 	}
 #endif
@@ -66,7 +72,7 @@ int ip_route_me_harder(struct sk_buff *skb, unsigned addr_type)
 	if (skb_headroom(skb) < hh_len &&
 	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)),
 				0, GFP_ATOMIC))
-		return -1;
+		return -ENOMEM;
 
 	return 0;
 }
@@ -188,25 +194,15 @@ static const struct nf_afinfo nf_ip_afinfo = {
 	.route_key_size		= sizeof(struct ip_rt_info),
 };
 
-static int ipv4_netfilter_init(void)
+static int __init ipv4_netfilter_init(void)
 {
 	return nf_register_afinfo(&nf_ip_afinfo);
 }
 
-static void ipv4_netfilter_fini(void)
+static void __exit ipv4_netfilter_fini(void)
 {
 	nf_unregister_afinfo(&nf_ip_afinfo);
 }
 
 module_init(ipv4_netfilter_init);
 module_exit(ipv4_netfilter_fini);
-
-#ifdef CONFIG_SYSCTL
-struct ctl_path nf_net_ipv4_netfilter_sysctl_path[] = {
-	{ .procname = "net", },
-	{ .procname = "ipv4", },
-	{ .procname = "netfilter", },
-	{ }
-};
-EXPORT_SYMBOL_GPL(nf_net_ipv4_netfilter_sysctl_path);
-#endif /* CONFIG_SYSCTL */

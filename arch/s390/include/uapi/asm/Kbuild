@@ -1,8 +1,11 @@
 # UAPI Header export list
 include include/uapi/asm-generic/Kbuild.asm
 
+<<<<<<< HEAD
 generic-y += kvm_para.h
 
+=======
+>>>>>>> android-3.18
 header-y += auxvec.h
 header-y += bitsperlong.h
 header-y += byteorder.h
@@ -18,6 +21,10 @@ header-y += ioctls.h
 header-y += ipcbuf.h
 header-y += kvm.h
 header-y += kvm_para.h
+<<<<<<< HEAD
+=======
+header-y += kvm_perf.h
+>>>>>>> android-3.18
 header-y += kvm_virtio.h
 header-y += mman.h
 header-y += monwriter.h
@@ -37,6 +44,11 @@ header-y += siginfo.h
 header-y += signal.h
 header-y += socket.h
 header-y += sockios.h
+<<<<<<< HEAD
+=======
+header-y += sclp_ctl.h
+header-y += sie.h
+>>>>>>> android-3.18
 header-y += stat.h
 header-y += statfs.h
 header-y += swab.h
@@ -46,5 +58,9 @@ header-y += termios.h
 header-y += types.h
 header-y += ucontext.h
 header-y += unistd.h
+<<<<<<< HEAD
+=======
+header-y += virtio-ccw.h
+>>>>>>> android-3.18
 header-y += vtoc.h
 header-y += zcrypt.h

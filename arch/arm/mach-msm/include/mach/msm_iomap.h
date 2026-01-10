@@ -50,10 +50,13 @@
 /* Legacy single-target iomap */
 #if defined(CONFIG_ARCH_QSD8X50)
 #include "msm_iomap-8x50.h"
+<<<<<<< HEAD
 #elif defined(CONFIG_ARCH_MSM8X60)
 #include "msm_iomap-8x60.h"
 #elif defined(CONFIG_ARCH_FSM9XXX)
 #include "msm_iomap-fsm9xxx.h"
+=======
+>>>>>>> android-3.18
 #else
 
 /* Unified iomap */
@@ -72,6 +75,7 @@
 #define MSM_IMEM_BASE		IOMEM(0xFA00A000)	/*  4K	*/
 #endif
 
+<<<<<<< HEAD
 #define MSM_ACC0_BASE		IOMEM(0xFA00B000)	/*  4K	*/
 #define MSM_ACC1_BASE		IOMEM(0xFA00C000)	/*  4K	*/
 #define MSM_ACC2_BASE		IOMEM(0xFA00D000)	/*  4K	*/
@@ -140,5 +144,11 @@
 #include "msm_iomap-samarium.h"
 
 #endif
+=======
+/* Virtual addresses shared across all MSM targets. */
+#define MSM_CSR_BASE		IOMEM(0xE0001000)
+#define MSM_GPIO1_BASE		IOMEM(0xE0003000)
+#define MSM_GPIO2_BASE		IOMEM(0xE0004000)
+>>>>>>> android-3.18
 
 #endif

@@ -360,6 +360,7 @@ struct rds_message {
 		} rdma;
 		struct rm_data_op {
 			unsigned int		op_active:1;
+			unsigned int		op_notify:1;
 			unsigned int		op_nents;
 			unsigned int		op_count;
 			struct scatterlist	*op_sg;
@@ -379,6 +380,11 @@ struct rds_notifier {
 	uint64_t		n_user_token;
 	int			n_status;
 };
+
+/* Available as part of RDS core, so doesn't need to participate
+ * in get_preferred transport etc
+ */
+#define	RDS_TRANS_LOOP	3
 
 /**
  * struct rds_transport -  transport specific behavioural hooks
@@ -749,7 +755,7 @@ void rds_atomic_send_complete(struct rds_message *rm, int wc_status);
 int rds_cmsg_atomic(struct rds_sock *rs, struct rds_message *rm,
 		    struct cmsghdr *cmsg);
 
-extern void __rds_put_mr_final(struct rds_mr *mr);
+void __rds_put_mr_final(struct rds_mr *mr);
 static inline void rds_mr_put(struct rds_mr *mr)
 {
 	if (atomic_dec_and_test(&mr->r_refcount))

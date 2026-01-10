@@ -25,6 +25,7 @@
 #include <linux/selection.h>
 #include <linux/tiocl.h>
 #include <linux/console.h>
+#include <linux/tty_flip.h>
 
 /* Don't take this from <ctype.h>: 011-015 on the screen aren't spaces */
 #define isspace(c)	((c) == ' ')
@@ -77,6 +78,11 @@ void clear_selection(void)
 		highlight(sel_start, sel_end);
 		sel_start = -1;
 	}
+}
+
+bool vc_is_sel(struct vc_data *vc)
+{
+	return vc == sel_cons;
 }
 
 /*
@@ -357,17 +363,13 @@ int paste_selection(struct tty_struct *tty)
 	struct  tty_ldisc *ld;
 	DECLARE_WAITQUEUE(wait, current);
 
-
 	console_lock();
 	poke_blanked_console();
 	console_unlock();
 
-	/* FIXME: wtf is this supposed to achieve ? */
-	ld = tty_ldisc_ref(tty);
-	if (!ld)
-		ld = tty_ldisc_ref_wait(tty);
+	ld = tty_ldisc_ref_wait(tty);
+	tty_buffer_lock_exclusive(&vc->port);
 
-	/* FIXME: this is completely unsafe */
 	add_wait_queue(&vc->paste_wait, &wait);
 	mutex_lock(&sel_lock);
 	while (sel_buffer && sel_buffer_lth > pasted) {
@@ -379,15 +381,15 @@ int paste_selection(struct tty_struct *tty)
 			continue;
 		}
 		count = sel_buffer_lth - pasted;
-		count = min(count, tty->receive_room);
-		tty->ldisc->ops->receive_buf(tty, sel_buffer + pasted,
-								NULL, count);
+		count = tty_ldisc_receive_buf(ld, sel_buffer + pasted, NULL,
+					      count);
 		pasted += count;
 	}
 	mutex_unlock(&sel_lock);
 	remove_wait_queue(&vc->paste_wait, &wait);
 	__set_current_state(TASK_RUNNING);
 
+	tty_buffer_unlock_exclusive(&vc->port);
 	tty_ldisc_deref(ld);
 	return 0;
 }

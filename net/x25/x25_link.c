@@ -21,6 +21,8 @@
  *	2000-09-04	Henner Eisen	  dev_hold() / dev_put() for x25_neigh.
  */
 
+#define pr_fmt(fmt) "X25: " fmt
+
 #include <linux/kernel.h>
 #include <linux/jiffies.h>
 #include <linux/timer.h>
@@ -31,9 +33,6 @@
 #include <linux/init.h>
 #include <net/x25.h>
 
-#ifdef KW_TAINT_ANALYSIS
-   extern void * get_tainted_stuff();
-#endif
 LIST_HEAD(x25_neigh_list);
 DEFINE_RWLOCK(x25_neigh_list_lock);
 
@@ -96,13 +95,13 @@ void x25_link_control(struct sk_buff *skb, struct x25_neigh *nb,
 		if (!pskb_may_pull(skb, X25_STD_MIN_LEN + 4))
 			break;
 
-		printk(KERN_WARNING "x25: diagnostic #%d - %02X %02X %02X\n",
+		pr_warn("diagnostic #%d - %02X %02X %02X\n",
 		       skb->data[3], skb->data[4],
 		       skb->data[5], skb->data[6]);
 		break;
 
 	default:
-		printk(KERN_WARNING "x25: received unknown %02X with LCI 000\n",
+		pr_warn("received unknown %02X with LCI 000\n",
 		       frametype);
 		break;
 	}
@@ -341,17 +340,13 @@ struct x25_neigh *x25_get_neigh(struct net_device *dev)
 /*
  *	Handle the ioctls that control the subscription functions.
  */
-int x25_subscr_ioctl(unsigned int cmd, void __user *arg_actual)
+int x25_subscr_ioctl(unsigned int cmd, void __user *arg)
 {
 	struct x25_subscrip_struct x25_subscr;
 	struct x25_neigh *nb;
 	struct net_device *dev;
 	int rc = -EINVAL;
-	#ifdef KW_TAINT_ANALYSIS
-	void __user *arg = (void __user *)get_tainted_stuff();
-	#else
-	void __user *arg = arg_actual;
-	#endif
+
 	if (cmd != SIOCX25GSUBSCRIP && cmd != SIOCX25SSUBSCRIP)
 		goto out;
 

@@ -26,33 +26,25 @@
 #include <linux/gpio.h>
 #include <linux/platform_device.h>
 #include <linux/spi/spi.h>
-#include <linux/i2c/pca953x.h>
+#include <linux/platform_data/pca953x.h>
 
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
 
 #include <mach/hardware.h>
-#include <mach/board.h>
 #include <mach/at91sam9_smc.h>
 
+#include "at91_aic.h"
+#include "board.h"
 #include "sam9_smc.h"
 #include "generic.h"
+#include "gpio.h"
 
 #define SNAPPER9260_IO_EXP_GPIO(x)	(NR_BUILTIN_GPIO + (x))
 
 static void __init snapper9260_init_early(void)
 {
 	at91_initialize(18432000);
-
-	/* Debug on ttyS0 */
-	at91_register_uart(0, 0, 0);
-	at91_set_serial_console(0);
-
-	at91_register_uart(AT91SAM9260_ID_US0, 1,
-			   ATMEL_UART_CTS | ATMEL_UART_RTS);
-	at91_register_uart(AT91SAM9260_ID_US1, 2,
-			   ATMEL_UART_CTS | ATMEL_UART_RTS);
-	at91_register_uart(AT91SAM9260_ID_US2, 3, 0);
 }
 
 static struct at91_usbh_data __initdata snapper9260_usbh_data = {
@@ -162,12 +154,22 @@ static void __init snapper9260_add_device_nand(void)
 
 static void __init snapper9260_board_init(void)
 {
+	at91_register_devices();
+
 	at91_add_device_i2c(snapper9260_i2c_devices,
 			    ARRAY_SIZE(snapper9260_i2c_devices));
 
 	snapper9260_i2c_isl1208.irq = gpio_to_irq(AT91_PIN_PA31);
 	i2c_register_board_info(0, &snapper9260_i2c_isl1208, 1);
 
+	/* Debug on ttyS0 */
+	at91_register_uart(0, 0, 0);
+
+	at91_register_uart(AT91SAM9260_ID_US0, 1,
+			   ATMEL_UART_CTS | ATMEL_UART_RTS);
+	at91_register_uart(AT91SAM9260_ID_US1, 2,
+			   ATMEL_UART_CTS | ATMEL_UART_RTS);
+	at91_register_uart(AT91SAM9260_ID_US2, 3, 0);
 	at91_add_device_serial();
 	at91_add_device_usbh(&snapper9260_usbh_data);
 	at91_add_device_udc(&snapper9260_udc_data);
@@ -178,8 +180,9 @@ static void __init snapper9260_board_init(void)
 }
 
 MACHINE_START(SNAPPER_9260, "Bluewater Systems Snapper 9260/9G20 module")
-	.timer		= &at91sam926x_timer,
+	.init_time	= at91_init_time,
 	.map_io		= at91_map_io,
+	.handle_irq	= at91_aic_handle_irq,
 	.init_early	= snapper9260_init_early,
 	.init_irq	= at91_init_irq_default,
 	.init_machine	= snapper9260_board_init,

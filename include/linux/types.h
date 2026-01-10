@@ -16,7 +16,7 @@ typedef __kernel_dev_t		dev_t;
 typedef __kernel_ino_t		ino_t;
 typedef __kernel_mode_t		mode_t;
 typedef unsigned short		umode_t;
-typedef __kernel_nlink_t	nlink_t;
+typedef __u32			nlink_t;
 typedef __kernel_off_t		off_t;
 typedef __kernel_pid_t		pid_t;
 typedef __kernel_daddr_t	daddr_t;
@@ -142,6 +142,7 @@ typedef unsigned long blkcnt_t;
 #define pgoff_t unsigned long
 #endif
 
+/* A dma_addr_t can hold any valid DMA or bus address for the platform */
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
 typedef u64 dma_addr_t;
 #else
@@ -156,6 +157,7 @@ typedef u32 dma_addr_t;
 #endif
 typedef unsigned __bitwise__ gfp_t;
 typedef unsigned __bitwise__ fmode_t;
+typedef unsigned __bitwise__ oom_flags_t;
 
 #ifdef CONFIG_PHYS_ADDR_T_64BIT
 typedef u64 phys_addr_t;
@@ -201,14 +203,18 @@ struct ustat {
 };
 
 /**
- * struct rcu_head - callback structure for use with RCU
+ * struct callback_head - callback structure for use with RCU and task_work
  * @next: next update requests in a list
  * @func: actual update function to call after the grace period.
  */
-struct rcu_head {
-	struct rcu_head *next;
-	void (*func)(struct rcu_head *head);
+struct callback_head {
+	struct callback_head *next;
+	void (*func)(struct callback_head *head);
 };
+#define rcu_head callback_head
+
+/* clocksource cycle base type */
+typedef u64 cycle_t;
 
 #endif /*  __ASSEMBLY__ */
 #endif /* _LINUX_TYPES_H */

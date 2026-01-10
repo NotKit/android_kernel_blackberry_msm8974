@@ -16,17 +16,15 @@
 /* Chosen so that structs with an unsigned long line up. */
 #define MAX_PARAM_PREFIX_LEN (64 - sizeof(unsigned long))
 
-#define ___module_cat(a,b) __mod_ ## a ## b
-#define __module_cat(a,b) ___module_cat(a,b)
 #ifdef MODULE
 #define __MODULE_INFO(tag, name, info)					  \
-static const char __module_cat(name,__LINE__)[]				  \
+static const char __UNIQUE_ID(name)[]					  \
   __used __attribute__((section(".modinfo"), unused, aligned(1)))	  \
   = __stringify(tag) "=" info
 #else  /* !MODULE */
 /* This struct is here for syntactic coherency, it is not used */
 #define __MODULE_INFO(tag, name, info)					  \
-  struct __module_cat(name,__LINE__) {}
+  struct __UNIQUE_ID(name) {}
 #endif
 #define __MODULE_PARM_TYPE(name, _type)					  \
   __MODULE_INFO(parmtype, name##type, #name ":" _type)
@@ -58,17 +56,29 @@ struct kernel_param_ops {
 	void (*free)(void *arg);
 };
 
+/*
+ * Flags available for kernel_param
+ *
+ * UNSAFE - the parameter is dangerous and setting it will taint the kernel
+ */
+enum {
+	KERNEL_PARAM_FL_UNSAFE = (1 << 0)
+};
+
 struct kernel_param {
 	const char *name;
 	const struct kernel_param_ops *ops;
 	u16 perm;
-	s16 level;
+	s8 level;
+	u8 flags;
 	union {
 		void *arg;
 		const struct kparam_string *str;
 		const struct kparam_array *arr;
 	};
 };
+
+extern const struct kernel_param __start___param[], __stop___param[];
 
 /* Special one for strings we want to copy into */
 struct kparam_string {
@@ -115,6 +125,12 @@ struct kparam_array
 	module_param_named(name, name, type, perm)
 
 /**
+ * module_param_unsafe - same as module_param but taints kernel
+ */
+#define module_param_unsafe(name, type, perm)			\
+	module_param_named_unsafe(name, name, type, perm)
+
+/**
  * module_param_named - typesafe helper for a renamed module/cmdline parameter
  * @name: a valid C identifier which is the parameter name.
  * @value: the actual lvalue to alter.
@@ -131,6 +147,14 @@ struct kparam_array
 	__MODULE_PARM_TYPE(name, #type)
 
 /**
+ * module_param_named_unsafe - same as module_param_named but taints kernel
+ */
+#define module_param_named_unsafe(name, value, type, perm)		\
+	param_check_##type(name, &(value));				\
+	module_param_cb_unsafe(name, &param_ops_##type, &value, perm);	\
+	__MODULE_PARM_TYPE(name, #type)
+
+/**
  * module_param_cb - general callback for a module/cmdline parameter
  * @name: a valid C identifier which is the parameter name.
  * @ops: the set & get operations for this parameter.
@@ -139,7 +163,15 @@ struct kparam_array
  * The ops can have NULL set or get functions.
  */
 #define module_param_cb(name, ops, arg, perm)				      \
+<<<<<<< HEAD
 	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1)
+=======
+	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1, 0)
+
+#define module_param_cb_unsafe(name, ops, arg, perm)			      \
+	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1,    \
+			    KERNEL_PARAM_FL_UNSAFE)
+>>>>>>> android-3.18
 
 /**
  * <level>_param_cb - general callback for a module/cmdline parameter
@@ -151,7 +183,7 @@ struct kparam_array
  * The ops can have NULL set or get functions.
  */
 #define __level_param_cb(name, ops, arg, perm, level)			\
-	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, level)
+	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, level, 0)
 
 #define core_param_cb(name, ops, arg, perm)		\
 	__level_param_cb(name, ops, arg, perm, 1)
@@ -186,24 +218,29 @@ struct kparam_array
 
 /* This is the fundamental function for registering boot/module
    parameters. */
-#define __module_param_call(prefix, name, ops, arg, perm, level)	\
+#define __module_param_call(prefix, name, ops, arg, perm, level, flags)	\
 	/* Default value instead of permissions? */			\
-	static int __param_perm_check_##name __attribute__((unused)) =	\
-	BUILD_BUG_ON_ZERO((perm) < 0 || (perm) > 0777 || ((perm) & 2))	\
-	+ BUILD_BUG_ON_ZERO(sizeof(""prefix) > MAX_PARAM_PREFIX_LEN);	\
-	static const char __param_str_##name[] = prefix #name;		\
+	static const char __param_str_##name[] = prefix #name; \
 	static struct kernel_param __moduleparam_const __param_##name	\
 	__used								\
     __attribute__ ((unused,__section__ ("__param"),aligned(sizeof(void *)))) \
-	= { __param_str_##name, ops, perm, level, { arg } }
+	= { __param_str_##name, ops, VERIFY_OCTAL_PERMISSIONS(perm),	\
+	    level, flags, { arg } }
 
 /* Obsolete - use module_param_cb() */
 #define module_param_call(name, set, get, arg, perm)			\
 	static struct kernel_param_ops __param_ops_##name =		\
+<<<<<<< HEAD
 		{ 0, (void *)set, (void *)get };			\
 	__module_param_call(MODULE_PARAM_PREFIX,			\
 			    name, &__param_ops_##name, arg,		\
 			    (perm) + sizeof(__check_old_set_param(set))*0, -1)
+=======
+		{ .flags = 0, (void *)set, (void *)get };		\
+	__module_param_call(MODULE_PARAM_PREFIX,			\
+			    name, &__param_ops_##name, arg,		\
+			    (perm) + sizeof(__check_old_set_param(set))*0, -1, 0)
+>>>>>>> android-3.18
 
 /* We don't get oldget: it's often a new-style param_get_uint, etc. */
 static inline int
@@ -283,7 +320,11 @@ static inline void __kernel_param_unlock(void)
  */
 #define core_param(name, var, type, perm)				\
 	param_check_##type(name, &(var));				\
+<<<<<<< HEAD
 	__module_param_call("", name, &param_ops_##type, &var, perm, -1)
+=======
+	__module_param_call("", name, &param_ops_##type, &var, perm, -1, 0)
+>>>>>>> android-3.18
 #endif /* !MODULE */
 
 /**
@@ -301,7 +342,11 @@ static inline void __kernel_param_unlock(void)
 		= { len, string };					\
 	__module_param_call(MODULE_PARAM_PREFIX, name,			\
 			    &param_ops_string,				\
+<<<<<<< HEAD
 			    .str = &__param_string_##name, perm, -1);	\
+=======
+			    .str = &__param_string_##name, perm, -1, 0);\
+>>>>>>> android-3.18
 	__MODULE_PARM_TYPE(name, "string")
 
 /**
@@ -325,13 +370,14 @@ extern bool parameq(const char *name1, const char *name2);
 extern bool parameqn(const char *name1, const char *name2, size_t n);
 
 /* Called on module insert or kernel boot */
-extern int parse_args(const char *name,
+extern char *parse_args(const char *name,
 		      char *args,
 		      const struct kernel_param *params,
 		      unsigned num,
 		      s16 level_min,
 		      s16 level_max,
-		      int (*unknown)(char *param, char *val));
+		      int (*unknown)(char *param, char *val,
+			      const char *doing));
 
 /* Called by module remove. */
 #ifdef CONFIG_SYSFS
@@ -347,7 +393,7 @@ static inline void destroy_params(const struct kernel_param *params,
 /* The macros to do compile-time type checking stolen from Jakub
    Jelinek, who IIRC came up with this idea for the 2.4 module init code. */
 #define __param_check(name, p, type) \
-	static inline type *__check_##name(void) { return(p); }
+	static inline type __always_unused *__check_##name(void) { return(p); }
 
 extern struct kernel_param_ops param_ops_byte;
 extern int param_set_byte(const char *val, const struct kernel_param *kp);
@@ -383,6 +429,11 @@ extern struct kernel_param_ops param_ops_ulong;
 extern int param_set_ulong(const char *val, const struct kernel_param *kp);
 extern int param_get_ulong(char *buffer, const struct kernel_param *kp);
 #define param_check_ulong(name, p) __param_check(name, p, unsigned long)
+
+extern struct kernel_param_ops param_ops_ullong;
+extern int param_set_ullong(const char *val, const struct kernel_param *kp);
+extern int param_get_ullong(char *buffer, const struct kernel_param *kp);
+#define param_check_ullong(name, p) __param_check(name, p, unsigned long long)
 
 extern struct kernel_param_ops param_ops_charp;
 extern int param_set_charp(const char *val, const struct kernel_param *kp);
@@ -442,7 +493,11 @@ extern int param_set_bint(const char *val, const struct kernel_param *kp);
 	__module_param_call(MODULE_PARAM_PREFIX, name,			\
 			    &param_array_ops,				\
 			    .arr = &__param_arr_##name,			\
+<<<<<<< HEAD
 			    perm, -1);					\
+=======
+			    perm, -1, 0);				\
+>>>>>>> android-3.18
 	__MODULE_PARM_TYPE(name, "array of " #type)
 
 extern struct kernel_param_ops param_array_ops;
@@ -451,7 +506,7 @@ extern struct kernel_param_ops param_ops_string;
 extern int param_set_copystring(const char *val, const struct kernel_param *);
 extern int param_get_string(char *buffer, const struct kernel_param *kp);
 
-/* for exporting parameters in /sys/parameters */
+/* for exporting parameters in /sys/module/.../parameters */
 
 struct module;
 

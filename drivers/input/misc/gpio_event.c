@@ -221,6 +221,7 @@ static struct platform_driver gpio_event_driver = {
 	},
 };
 
+<<<<<<< HEAD
 static int __devinit gpio_event_init(void)
 {
 	return platform_driver_register(&gpio_event_driver);
@@ -233,6 +234,9 @@ static void __exit gpio_event_exit(void)
 
 module_init(gpio_event_init);
 module_exit(gpio_event_exit);
+=======
+module_platform_driver(gpio_event_driver);
+>>>>>>> android-3.18
 
 MODULE_DESCRIPTION("GPIO Event Driver");
 MODULE_LICENSE("GPL");

@@ -1,5 +1,5 @@
 /*
- *    Copyright IBM Corp. 1999,2012
+ *    Copyright IBM Corp. 1999, 2012
  *    Author(s): Hartmut Penner <hp@de.ibm.com>,
  *		 Martin Schwidefsky <schwidefsky@de.ibm.com>,
  *		 Denis Joseph Barrow,
@@ -11,6 +11,7 @@
 #include <linux/types.h>
 #include <asm/ptrace.h>
 #include <asm/cpu.h>
+#include <asm/types.h>
 
 #ifdef CONFIG_32BIT
 
@@ -30,6 +31,11 @@ struct save_area {
 	u32	gp_regs[16];
 	u32	ctrl_regs[16];
 } __packed;
+
+struct save_area_ext {
+	struct save_area	sa;
+	__vector128		vx_regs[32];
+};
 
 struct _lowcore {
 	psw_t	restart_psw;			/* 0x0000 */
@@ -56,13 +62,14 @@ struct _lowcore {
 	__u16	pgm_code;			/* 0x008e */
 	__u32	trans_exc_code;			/* 0x0090 */
 	__u16	mon_class_num;			/* 0x0094 */
-	__u16	per_perc_atmid;			/* 0x0096 */
+	__u8	per_code;			/* 0x0096 */
+	__u8	per_atmid;			/* 0x0097 */
 	__u32	per_address;			/* 0x0098 */
 	__u32	monitor_code;			/* 0x009c */
 	__u8	exc_access_id;			/* 0x00a0 */
 	__u8	per_access_id;			/* 0x00a1 */
 	__u8	op_access_id;			/* 0x00a2 */
-	__u8	ar_access_id;			/* 0x00a3 */
+	__u8	ar_mode_id;			/* 0x00a3 */
 	__u8	pad_0x00a4[0x00b8-0x00a4];	/* 0x00a4 */
 	__u16	subchannel_id;			/* 0x00b8 */
 	__u16	subchannel_nr;			/* 0x00ba */
@@ -93,7 +100,9 @@ struct _lowcore {
 	__u32	save_area_sync[8];		/* 0x0200 */
 	__u32	save_area_async[8];		/* 0x0220 */
 	__u32	save_area_restart[1];		/* 0x0240 */
-	__u8	pad_0x0244[0x0248-0x0244];	/* 0x0244 */
+
+	/* CPU flags. */
+	__u32	cpu_flags;			/* 0x0244 */
 
 	/* Return psws. */
 	psw_t	return_psw;			/* 0x0248 */
@@ -139,12 +148,18 @@ struct _lowcore {
 	__u32	percpu_offset;			/* 0x02f0 */
 	__u32	machine_flags;			/* 0x02f4 */
 	__u32	ftrace_func;			/* 0x02f8 */
+<<<<<<< HEAD
 	__u8	pad_0x02fc[0x0300-0x02fc];	/* 0x02fc */
 
 	/* Interrupt response block */
 	__u8	irb[96];			/* 0x0300 */
 
 	__u8	pad_0x0360[0x0e00-0x0360];	/* 0x0360 */
+=======
+	__u32	spinlock_lockval;		/* 0x02fc */
+
+	__u8	pad_0x0300[0x0e00-0x0300];	/* 0x0300 */
+>>>>>>> android-3.18
 
 	/*
 	 * 0xe00 contains the address of the IPL Parameter Information
@@ -183,6 +198,11 @@ struct save_area {
 	u64	ctrl_regs[16];
 } __packed;
 
+struct save_area_ext {
+	struct save_area	sa;
+	__vector128		vx_regs[32];
+};
+
 struct _lowcore {
 	__u8	pad_0x0000[0x0014-0x0000];	/* 0x0000 */
 	__u32	ipl_parmblock_ptr;		/* 0x0014 */
@@ -196,12 +216,13 @@ struct _lowcore {
 	__u16	pgm_code;			/* 0x008e */
 	__u32	data_exc_code;			/* 0x0090 */
 	__u16	mon_class_num;			/* 0x0094 */
-	__u16	per_perc_atmid;			/* 0x0096 */
+	__u8	per_code;			/* 0x0096 */
+	__u8	per_atmid;			/* 0x0097 */
 	__u64	per_address;			/* 0x0098 */
 	__u8	exc_access_id;			/* 0x00a0 */
 	__u8	per_access_id;			/* 0x00a1 */
 	__u8	op_access_id;			/* 0x00a2 */
-	__u8	ar_access_id;			/* 0x00a3 */
+	__u8	ar_mode_id;			/* 0x00a3 */
 	__u8	pad_0x00a4[0x00a8-0x00a4];	/* 0x00a4 */
 	__u64	trans_exc_code;			/* 0x00a8 */
 	__u64	monitor_code;			/* 0x00b0 */
@@ -237,7 +258,9 @@ struct _lowcore {
 	__u64	save_area_sync[8];		/* 0x0200 */
 	__u64	save_area_async[8];		/* 0x0240 */
 	__u64	save_area_restart[1];		/* 0x0280 */
-	__u8	pad_0x0288[0x0290-0x0288];	/* 0x0288 */
+
+	/* CPU flags. */
+	__u64	cpu_flags;			/* 0x0288 */
 
 	/* Return psws. */
 	psw_t	return_psw;			/* 0x0290 */
@@ -285,6 +308,7 @@ struct _lowcore {
 	__u64	machine_flags;			/* 0x0388 */
 	__u64	ftrace_func;			/* 0x0390 */
 	__u64	gmap;				/* 0x0398 */
+<<<<<<< HEAD
 	__u8	pad_0x03a0[0x0400-0x03a0];	/* 0x03a0 */
 
 	/* Interrupt response block. */
@@ -295,6 +319,15 @@ struct _lowcore {
 	__u32	paste[16];			/* 0x0480 */
 
 	__u8	pad_0x04c0[0x0e00-0x04c0];	/* 0x04c0 */
+=======
+	__u32	spinlock_lockval;		/* 0x03a0 */
+	__u8	pad_0x03a0[0x0400-0x03a4];	/* 0x03a4 */
+
+	/* Per cpu primary space access list */
+	__u32	paste[16];			/* 0x0400 */
+
+	__u8	pad_0x04c0[0x0e00-0x0440];	/* 0x0440 */
+>>>>>>> android-3.18
 
 	/*
 	 * 0xe00 contains the address of the IPL Parameter Information
@@ -303,19 +336,17 @@ struct _lowcore {
 	 */
 	__u64	ipib;				/* 0x0e00 */
 	__u32	ipib_checksum;			/* 0x0e08 */
-	/*
-	 * Because the vmcore_info pointer is not 8 byte aligned it never
-	 * should not be accessed directly. For accessing the pointer, first
-	 * copy it to a local pointer variable.
-	 */
-	__u8	vmcore_info[8];			/* 0x0e0c */
+	__u64	vmcore_info;			/* 0x0e0c */
 	__u8	pad_0x0e14[0x0e18-0x0e14];	/* 0x0e14 */
 	__u64	os_info;			/* 0x0e18 */
 	__u8	pad_0x0e20[0x0f00-0x0e20];	/* 0x0e20 */
 
 	/* Extended facility list */
 	__u64	stfle_fac_list[32];		/* 0x0f00 */
-	__u8	pad_0x1000[0x11b8-0x1000];	/* 0x1000 */
+	__u8	pad_0x1000[0x11b0-0x1000];	/* 0x1000 */
+
+	/* Pointer to vector register save area */
+	__u64	vector_save_area_addr;		/* 0x11b0 */
 
 	/* 64 bit extparam used for pfault/diag 250: defined by architecture */
 	__u64	ext_params2;			/* 0x11B8 */
@@ -335,9 +366,14 @@ struct _lowcore {
 	__u8	pad_0x1338[0x1340-0x1338];	/* 0x1338 */
 	__u32	access_regs_save_area[16];	/* 0x1340 */
 	__u64	cregs_save_area[16];		/* 0x1380 */
+	__u8	pad_0x1400[0x1800-0x1400];	/* 0x1400 */
 
-	/* align to the top of the prefix area */
-	__u8	pad_0x1400[0x2000-0x1400];	/* 0x1400 */
+	/* Transaction abort diagnostic block */
+	__u8	pgm_tdb[256];			/* 0x1800 */
+	__u8	pad_0x1900[0x1c00-0x1900];	/* 0x1900 */
+
+	/* Software defined save area for vector registers */
+	__u8	vector_save_area[1024];		/* 0x1c00 */
 } __packed;
 
 #endif /* CONFIG_32BIT */

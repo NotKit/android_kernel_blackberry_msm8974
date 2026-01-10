@@ -153,6 +153,12 @@ struct input_keymap_entry {
 
 #define EVIOCGRAB		_IOW('E', 0x90, int)			/* Grab/Release device */
 
+<<<<<<< HEAD
+=======
+/* HACK: disable conflicting EVIOCREVOKE until Android userspace stops using EVIOCSSUSPENDBLOCK */
+/*#define EVIOCREVOKE		_IOW('E', 0x91, int)*/			/* Revoke device access */
+
+>>>>>>> android-3.18
 #define EVIOCGSUSPENDBLOCK	_IOR('E', 0x91, int)			/* get suspend block enable */
 #define EVIOCSSUSPENDBLOCK	_IOW('E', 0x91, int)			/* set suspend block enable */
 
@@ -166,7 +172,12 @@ struct input_keymap_entry {
 #define INPUT_PROP_DIRECT		0x01	/* direct input devices */
 #define INPUT_PROP_BUTTONPAD		0x02	/* has button(s) under pad */
 #define INPUT_PROP_SEMI_MT		0x03	/* touch rectangle only */
+<<<<<<< HEAD
 #define INPUT_PROP_NO_DUMMY_RELEASE	0x04	/* no dummy event */
+=======
+#define INPUT_PROP_TOPBUTTONPAD		0x04	/* softbuttons at top of pad */
+#define INPUT_PROP_POINTING_STICK	0x05	/* is a pointing stick */
+>>>>>>> android-3.18
 
 #define INPUT_PROP_MAX			0x1f
 #define INPUT_PROP_CNT			(INPUT_PROP_MAX + 1)
@@ -198,8 +209,13 @@ struct input_keymap_entry {
 #define SYN_CONFIG		1
 #define SYN_MT_REPORT		2
 #define SYN_DROPPED		3
+<<<<<<< HEAD
 #define SYN_TIME_SEC		4
 #define SYN_TIME_NSEC		5
+=======
+#define SYN_MAX			0xf
+#define SYN_CNT			(SYN_MAX+1)
+>>>>>>> android-3.18
 
 /*
  * Keys and buttons
@@ -476,6 +492,7 @@ struct input_keymap_entry {
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
 
+<<<<<<< HEAD
 /* Oppo specific keycodes */
 #define KEY_GESTURE_CIRCLE		250
 #define KEY_GESTURE_DOUBLE_SWIPE	251
@@ -484,6 +501,8 @@ struct input_keymap_entry {
 #define KEY_GESTURE_RIGHT_ARROW		254
 #define KEY_GESTURE_UP_ARROW		255
 
+=======
+>>>>>>> android-3.18
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
 #define BTN_MISC		0x100
@@ -524,11 +543,23 @@ struct input_keymap_entry {
 #define BTN_DEAD		0x12f
 
 #define BTN_GAMEPAD		0x130
+<<<<<<< HEAD
 #define BTN_A			0x130
 #define BTN_B			0x131
 #define BTN_C			0x132
 #define BTN_X			0x133
 #define BTN_Y			0x134
+=======
+#define BTN_SOUTH		0x130
+#define BTN_A			BTN_SOUTH
+#define BTN_EAST		0x131
+#define BTN_B			BTN_EAST
+#define BTN_C			0x132
+#define BTN_NORTH		0x133
+#define BTN_X			BTN_NORTH
+#define BTN_WEST		0x134
+#define BTN_Y			BTN_WEST
+>>>>>>> android-3.18
 #define BTN_Z			0x135
 #define BTN_TL			0x136
 #define BTN_TR			0x137
@@ -721,6 +752,14 @@ struct input_keymap_entry {
 #define KEY_CAMERA_LEFT		0x219
 #define KEY_CAMERA_RIGHT	0x21a
 
+<<<<<<< HEAD
+=======
+#define KEY_ATTENDANT_ON	0x21b
+#define KEY_ATTENDANT_OFF	0x21c
+#define KEY_ATTENDANT_TOGGLE	0x21d	/* Attendant call on or off */
+#define KEY_LIGHTS_TOGGLE	0x21e	/* Reading light on or off */
+
+>>>>>>> android-3.18
 #define BTN_DPAD_UP		0x220
 #define BTN_DPAD_DOWN		0x221
 #define BTN_DPAD_LEFT		0x222
@@ -739,6 +778,16 @@ struct input_keymap_entry {
 #define KEY_BRIGHTNESS_MIN		0x250	/* Set Brightness to Minimum */
 #define KEY_BRIGHTNESS_MAX		0x251	/* Set Brightness to Maximum */
 
+<<<<<<< HEAD
+=======
+#define KEY_KBDINPUTASSIST_PREV		0x260
+#define KEY_KBDINPUTASSIST_NEXT		0x261
+#define KEY_KBDINPUTASSIST_PREVGROUP		0x262
+#define KEY_KBDINPUTASSIST_NEXTGROUP		0x263
+#define KEY_KBDINPUTASSIST_ACCEPT		0x264
+#define KEY_KBDINPUTASSIST_CANCEL		0x265
+
+>>>>>>> android-3.18
 #define BTN_TRIGGER_HAPPY		0x2c0
 #define BTN_TRIGGER_HAPPY1		0x2c0
 #define BTN_TRIGGER_HAPPY2		0x2c1
@@ -876,11 +925,15 @@ struct input_keymap_entry {
 #define SW_FRONT_PROXIMITY	0x0b  /* set = front proximity sensor active */
 #define SW_ROTATE_LOCK		0x0c  /* set = rotate locked/disabled */
 #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
+<<<<<<< HEAD
 #define SW_HPHL_OVERCURRENT    0x0e  /* set = over current on left hph */
 #define SW_HPHR_OVERCURRENT    0x0f  /* set = over current on right hph */
 #define SW_UNSUPPORT_INSERT	0x10  /* set = unsupported device inserted */
 #define SW_MICROPHONE2_INSERT   0x11  /* set = inserted */
 #define SW_MUTE_DEVICE		0x12  /* set = device disabled */
+=======
+#define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
+>>>>>>> android-3.18
 #define SW_MAX			0x0f
 #define SW_CNT			(SW_MAX+1)
 
@@ -893,6 +946,10 @@ struct input_keymap_entry {
 #define MSC_GESTURE		0x02
 #define MSC_RAW			0x03
 #define MSC_SCAN		0x04
+<<<<<<< HEAD
+=======
+#define MSC_TIMESTAMP		0x05
+>>>>>>> android-3.18
 #define MSC_MAX			0x07
 #define MSC_CNT			(MSC_MAX+1)
 

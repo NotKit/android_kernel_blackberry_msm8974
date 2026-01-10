@@ -80,12 +80,15 @@
  *	SA_RESTORER	0x04000000
  */
 
+<<<<<<< HEAD
 /*
  * sigaltstack controls
  */
 #define SS_ONSTACK	1
 #define SS_DISABLE	2
 
+=======
+>>>>>>> android-3.18
 #define MINSIGSTKSZ	2048
 #define SIGSTKSZ	8192
 
@@ -99,6 +102,14 @@ typedef unsigned long old_sigset_t;
 
 #include <asm-generic/signal-defs.h>
 
+<<<<<<< HEAD
+=======
+#ifdef SA_RESTORER
+#define __ARCH_HAS_SA_RESTORER
+#endif
+
+#ifndef __KERNEL__
+>>>>>>> android-3.18
 struct sigaction {
 	__sighandler_t sa_handler;
 	unsigned long sa_flags;
@@ -107,10 +118,14 @@ struct sigaction {
 #endif
 	sigset_t sa_mask;		/* mask last for extensibility */
 };
+<<<<<<< HEAD
 
 struct k_sigaction {
 	struct sigaction sa;
 };
+=======
+#endif
+>>>>>>> android-3.18
 
 typedef struct sigaltstack {
 	void __user *ss_sp;

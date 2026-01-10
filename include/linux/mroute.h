@@ -9,7 +9,7 @@
 #ifdef CONFIG_IP_MROUTE
 static inline int ip_mroute_opt(int opt)
 {
-	return (opt >= MRT_BASE) && (opt <= MRT_BASE + 10);
+	return (opt >= MRT_BASE) && (opt <= MRT_MAX);
 }
 #else
 static inline int ip_mroute_opt(int opt)
@@ -103,5 +103,9 @@ struct mfc_cache {
 struct rtmsg;
 extern int ipmr_get_route(struct net *net, struct sk_buff *skb,
 			  __be32 saddr, __be32 daddr,
+<<<<<<< HEAD
 			  struct rtmsg *rtm, int nowait);
+=======
+			  struct rtmsg *rtm, int nowait, u32 portid);
+>>>>>>> android-3.18
 #endif

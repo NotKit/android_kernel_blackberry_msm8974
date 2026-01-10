@@ -252,12 +252,12 @@ static void dccp_write_xmitlet(unsigned long data)
 	else
 		dccp_write_xmit(sk);
 	bh_unlock_sock(sk);
+	sock_put(sk);
 }
 
 static void dccp_write_xmit_timer(unsigned long data)
 {
 	dccp_write_xmitlet(data);
-	sock_put((struct sock *)data);
 }
 
 void dccp_init_xmit_timers(struct sock *sk)
@@ -280,7 +280,7 @@ static ktime_t dccp_timestamp_seed;
  */
 u32 dccp_timestamp(void)
 {
-	s64 delta = ktime_us_delta(ktime_get_real(), dccp_timestamp_seed);
+	u64 delta = (u64)ktime_us_delta(ktime_get_real(), dccp_timestamp_seed);
 
 	do_div(delta, 10);
 	return delta;

@@ -13,7 +13,6 @@
  */
 
 #include <linux/module.h>
-#include <linux/init.h>
 #include <linux/input.h>
 #include <linux/i2c.h>
 #include <linux/slab.h>
@@ -71,7 +70,7 @@ struct mpr121_init_register {
 	u8 val;
 };
 
-static const struct mpr121_init_register init_reg_table[] __devinitconst = {
+static const struct mpr121_init_register init_reg_table[] = {
 	{ MHD_RISING_ADDR,	0x1 },
 	{ NHD_RISING_ADDR,	0x1 },
 	{ MHD_FALLING_ADDR,	0x1 },
@@ -88,7 +87,8 @@ static irqreturn_t mpr_touchkey_interrupt(int irq, void *dev_id)
 	struct mpr121_touchkey *mpr121 = dev_id;
 	struct i2c_client *client = mpr121->client;
 	struct input_dev *input = mpr121->input_dev;
-	unsigned int key_num, key_val, pressed;
+	unsigned long bit_changed;
+	unsigned int key_num;
 	int reg;
 
 	reg = i2c_smbus_read_byte_data(client, ELE_TOUCH_STATUS_1_ADDR);
@@ -106,24 +106,28 @@ static irqreturn_t mpr_touchkey_interrupt(int irq, void *dev_id)
 
 	reg &= TOUCH_STATUS_MASK;
 	/* use old press bit to figure out which bit changed */
-	key_num = ffs(reg ^ mpr121->statusbits) - 1;
-	pressed = reg & (1 << key_num);
+	bit_changed = reg ^ mpr121->statusbits;
 	mpr121->statusbits = reg;
+	for_each_set_bit(key_num, &bit_changed, mpr121->keycount) {
+		unsigned int key_val, pressed;
 
-	key_val = mpr121->keycodes[key_num];
+		pressed = reg & BIT(key_num);
+		key_val = mpr121->keycodes[key_num];
 
-	input_event(input, EV_MSC, MSC_SCAN, key_num);
-	input_report_key(input, key_val, pressed);
+		input_event(input, EV_MSC, MSC_SCAN, key_num);
+		input_report_key(input, key_val, pressed);
+
+		dev_dbg(&client->dev, "key %d %d %s\n", key_num, key_val,
+			pressed ? "pressed" : "released");
+
+	}
 	input_sync(input);
-
-	dev_dbg(&client->dev, "key %d %d %s\n", key_num, key_val,
-		pressed ? "pressed" : "released");
 
 out:
 	return IRQ_HANDLED;
 }
 
-static int __devinit mpr121_phys_init(const struct mpr121_platform_data *pdata,
+static int mpr121_phys_init(const struct mpr121_platform_data *pdata,
 				      struct mpr121_touchkey *mpr121,
 				      struct i2c_client *client)
 {
@@ -185,10 +189,11 @@ err_i2c_write:
 	return ret;
 }
 
-static int __devinit mpr_touchkey_probe(struct i2c_client *client,
-					const struct i2c_device_id *id)
+static int mpr_touchkey_probe(struct i2c_client *client,
+			      const struct i2c_device_id *id)
 {
-	const struct mpr121_platform_data *pdata = client->dev.platform_data;
+	const struct mpr121_platform_data *pdata =
+			dev_get_platdata(&client->dev);
 	struct mpr121_touchkey *mpr121;
 	struct input_dev *input_dev;
 	int error;
@@ -230,6 +235,7 @@ static int __devinit mpr_touchkey_probe(struct i2c_client *client,
 	input_dev->id.bustype = BUS_I2C;
 	input_dev->dev.parent = &client->dev;
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP);
+	input_set_capability(input_dev, EV_MSC, MSC_SCAN);
 
 	input_dev->keycode = mpr121->keycodes;
 	input_dev->keycodesize = sizeof(mpr121->keycodes[0]);
@@ -248,7 +254,7 @@ static int __devinit mpr_touchkey_probe(struct i2c_client *client,
 
 	error = request_threaded_irq(client->irq, NULL,
 				     mpr_touchkey_interrupt,
-				     IRQF_TRIGGER_FALLING,
+				     IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
 				     client->dev.driver->name, mpr121);
 	if (error) {
 		dev_err(&client->dev, "Failed to register interrupt\n");
@@ -272,7 +278,7 @@ err_free_mem:
 	return error;
 }
 
-static int __devexit mpr_touchkey_remove(struct i2c_client *client)
+static int mpr_touchkey_remove(struct i2c_client *client)
 {
 	struct mpr121_touchkey *mpr121 = i2c_get_clientdata(client);
 
@@ -327,7 +333,7 @@ static struct i2c_driver mpr_touchkey_driver = {
 	},
 	.id_table	= mpr121_id,
 	.probe		= mpr_touchkey_probe,
-	.remove		= __devexit_p(mpr_touchkey_remove),
+	.remove		= mpr_touchkey_remove,
 };
 
 module_i2c_driver(mpr_touchkey_driver);

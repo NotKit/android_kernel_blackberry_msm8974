@@ -33,7 +33,7 @@ struct debugfs_reg32 {
 };
 
 struct debugfs_regset32 {
-	struct debugfs_reg32 *regs;
+	const struct debugfs_reg32 *regs;
 	int nregs;
 	void __iomem *base;
 };
@@ -54,6 +54,11 @@ struct dentry *debugfs_create_dir(const char *name, struct dentry *parent);
 
 struct dentry *debugfs_create_symlink(const char *name, struct dentry *parent,
 				      const char *dest);
+
+struct dentry *debugfs_create_automount(const char *name,
+					struct dentry *parent,
+					struct vfsmount *(*f)(void *),
+					void *data);
 
 void debugfs_remove(struct dentry *dentry);
 void debugfs_remove_recursive(struct dentry *dentry);
@@ -94,6 +99,10 @@ struct dentry *debugfs_create_regset32(const char *name, umode_t mode,
 
 int debugfs_print_regs32(struct seq_file *s, const struct debugfs_reg32 *regs,
 			 int nregs, void __iomem *base, char *prefix);
+
+struct dentry *debugfs_create_u32_array(const char *name, umode_t mode,
+					struct dentry *parent,
+					u32 *array, u32 elements);
 
 bool debugfs_initialized(void);
 
@@ -188,9 +197,22 @@ static inline struct dentry *debugfs_create_x32(const char *name, umode_t mode,
 	return ERR_PTR(-ENODEV);
 }
 
+static inline struct dentry *debugfs_create_x64(const char *name, umode_t mode,
+						struct dentry *parent,
+						u64 *value)
+{
+	return ERR_PTR(-ENODEV);
+}
+
 static inline struct dentry *debugfs_create_size_t(const char *name, umode_t mode,
 				     struct dentry *parent,
 				     size_t *value)
+{
+	return ERR_PTR(-ENODEV);
+}
+
+static inline struct dentry *debugfs_create_atomic_t(const char *name, umode_t mode,
+				     struct dentry *parent, atomic_t *value)
 {
 	return ERR_PTR(-ENODEV);
 }
@@ -216,9 +238,22 @@ static inline struct dentry *debugfs_create_regset32(const char *name,
 	return ERR_PTR(-ENODEV);
 }
 
+static inline int debugfs_print_regs32(struct seq_file *s, const struct debugfs_reg32 *regs,
+			 int nregs, void __iomem *base, char *prefix)
+{
+	return 0;
+}
+
 static inline bool debugfs_initialized(void)
 {
 	return false;
+}
+
+static inline struct dentry *debugfs_create_u32_array(const char *name, umode_t mode,
+					struct dentry *parent,
+					u32 *array, u32 elements)
+{
+	return ERR_PTR(-ENODEV);
 }
 
 #endif

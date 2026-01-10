@@ -33,6 +33,7 @@ static bool rpfilter_lookup_reverse6(const struct sk_buff *skb,
 	struct ipv6hdr *iph = ipv6_hdr(skb);
 	bool ret = false;
 	struct flowi6 fl6 = {
+		.flowi6_iif = LOOPBACK_IFINDEX,
 		.flowlabel = (* (__be32 *) iph) & IPV6_FLOWINFO_MASK,
 		.flowi6_proto = iph->nexthdr,
 		.daddr = iph->saddr,
@@ -67,7 +68,7 @@ static bool rpfilter_lookup_reverse6(const struct sk_buff *skb,
 	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
 		ret = true;
  out:
-	dst_release(&rt->dst);
+	ip6_rt_put(rt);
 	return ret;
 }
 

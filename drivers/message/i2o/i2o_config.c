@@ -188,6 +188,13 @@ static int i2o_cfg_parms(unsigned long arg, unsigned int type)
 	if (!dev)
 		return -ENXIO;
 
+	/*
+	 * Stop users being able to try and allocate arbitrary amounts
+	 * of DMA space. 64K is way more than sufficient for this.
+	 */
+	if (kcmd.oplen > 65536)
+		return -EMSGSIZE;
+
 	ops = memdup_user(kcmd.opbuf, kcmd.oplen);
 	if (IS_ERR(ops))
 		return PTR_ERR(ops);
@@ -680,6 +687,11 @@ static int i2o_cfg_passthru32(struct file *file, unsigned cmnd,
 		}
 		size = size >> 16;
 		size *= 4;
+		if (size > sizeof(rmsg)) {
+			rcode = -EINVAL;
+			goto sg_list_cleanup;
+		}
+
 		/* Copy in the user's I2O command */
 		if (copy_from_user(rmsg, user_msg, size)) {
 			rcode = -EFAULT;
@@ -742,25 +754,25 @@ static long i2o_cfg_compat_ioctl(struct file *file, unsigned cmd,
 				 unsigned long arg)
 {
 	int ret;
-	mutex_lock(&i2o_cfg_mutex);
 	switch (cmd) {
 	case I2OGETIOPS:
 		ret = i2o_cfg_ioctl(file, cmd, arg);
 		break;
 	case I2OPASSTHRU32:
+		mutex_lock(&i2o_cfg_mutex);
 		ret = i2o_cfg_passthru32(file, cmd, arg);
+		mutex_unlock(&i2o_cfg_mutex);
 		break;
 	default:
 		ret = -ENOIOCTLCMD;
 		break;
 	}
-	mutex_unlock(&i2o_cfg_mutex);
 	return ret;
 }
 
 #endif
 
-#ifdef CONFIG_I2O_EXT_ADAPTEC
+#if defined(CONFIG_I2O_EXT_ADAPTEC) && !defined(CONFIG_64BIT)
 static int i2o_cfg_passthru(unsigned long arg)
 {
 	struct i2o_cmd_passthru __user *cmd =
@@ -915,6 +927,11 @@ static int i2o_cfg_passthru(unsigned long arg)
 		}
 		size = size >> 16;
 		size *= 4;
+		if (size > sizeof(rmsg)) {
+			rcode = -EFAULT;
+			goto sg_list_cleanup;
+		}
+
 		/* Copy in the user's I2O command */
 		if (copy_from_user(rmsg, user_msg, size)) {
 			rcode = -EFAULT;
@@ -1028,7 +1045,7 @@ static long i2o_cfg_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
 		ret = i2o_cfg_evt_get(arg, fp);
 		break;
 
-#ifdef CONFIG_I2O_EXT_ADAPTEC
+#if defined(CONFIG_I2O_EXT_ADAPTEC) && !defined(CONFIG_64BIT)
 	case I2OPASSTHRU:
 		ret = i2o_cfg_passthru(arg);
 		break;

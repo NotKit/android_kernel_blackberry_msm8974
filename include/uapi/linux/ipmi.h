@@ -59,6 +59,7 @@
  * if it becomes full and it is queried once a second to see if
  * anything is in it.  Incoming commands to the driver will get
  * delivered as commands.
+<<<<<<< HEAD
  *
  * This driver provides two main interfaces: one for in-kernel
  * applications and another for userland applications.  The
@@ -68,6 +69,9 @@
  * interface is defined later in the file.  */
 
 
+=======
+ */
+>>>>>>> android-3.18
 
 /*
  * This is an overlay for all the address types, so it's easy to

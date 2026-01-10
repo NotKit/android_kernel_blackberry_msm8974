@@ -3,6 +3,10 @@
 
 #include <linux/types.h>
 #include <linux/sockios.h>
+<<<<<<< HEAD
+=======
+#include <linux/in6.h>		/* For struct sockaddr_in6. */
+>>>>>>> android-3.18
 
 /*
  *	Based on the MROUTING 3.5 defines primarily to keep
@@ -26,6 +30,12 @@
 #define MRT6_ASSERT	(MRT6_BASE+7)	/* Activate PIM assert mode		*/
 #define MRT6_PIM	(MRT6_BASE+8)	/* enable PIM code			*/
 #define MRT6_TABLE	(MRT6_BASE+9)	/* Specify mroute table ID		*/
+<<<<<<< HEAD
+=======
+#define MRT6_ADD_MFC_PROXY	(MRT6_BASE+10)	/* Add a (*,*|G) mfc entry	*/
+#define MRT6_DEL_MFC_PROXY	(MRT6_BASE+11)	/* Del a (*,*|G) mfc entry	*/
+#define MRT6_MAX	(MRT6_BASE+11)
+>>>>>>> android-3.18
 
 #define SIOCGETMIFCNT_IN6	SIOCPROTOPRIVATE	/* IP protocol privates */
 #define SIOCGETSGCNT_IN6	(SIOCPROTOPRIVATE+1)

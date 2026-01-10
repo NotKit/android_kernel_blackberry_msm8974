@@ -72,9 +72,12 @@ struct input_value {
  * @timer: timer for software autorepeat
  * @rep: current values for autorepeat parameters (delay, rate)
  * @mt: pointer to multitouch state
+<<<<<<< HEAD
  * @mtsize: number of MT slots the device uses
  * @slot: MT slot currently being transmitted
  * @trkid: stores MT tracking ID for the current contact
+=======
+>>>>>>> android-3.18
  * @absinfo: array of &struct input_absinfo elements holding information
  *	about absolute axes (current value, min, max, flat, fuzz,
  *	resolution)
@@ -111,11 +114,15 @@ struct input_value {
  *	last user closes the device
  * @going_away: marks devices that are in a middle of unregistering and
  *	causes input_open_device*() fail with -ENODEV.
- * @sync: set to %true when there were no new events since last EV_SYN
  * @dev: driver model's view of this device
  * @h_list: list of input handles associated with the device. When
  *	accessing the list dev->mutex must be held
  * @node: used to place the device onto input_dev_list
+ * @num_vals: number of values queued in the current frame
+ * @max_vals: maximum number of values queued in a frame
+ * @vals: array of values queued in the current frame
+ * @devres_managed: indicates that devices is managed with devres framework
+ *	and needs not be explicitly unregistered or freed.
  */
 struct input_dev {
 	const char *name;
@@ -154,11 +161,15 @@ struct input_dev {
 
 	int rep[REP_CNT];
 
+<<<<<<< HEAD
 	struct input_mt_slot *mt;
 
 	int mtsize;
 	int slot;
 	int trkid;
+=======
+	struct input_mt *mt;
+>>>>>>> android-3.18
 
 	struct input_absinfo *absinfo;
 
@@ -180,8 +191,6 @@ struct input_dev {
 	unsigned int users;
 	bool going_away;
 
-	bool sync;
-
 	struct device dev;
 
 	struct list_head	h_list;
@@ -190,6 +199,11 @@ struct input_dev {
 	unsigned int num_vals;
 	unsigned int max_vals;
 	struct input_value *vals;
+<<<<<<< HEAD
+=======
+
+	bool devres_managed;
+>>>>>>> android-3.18
 };
 #define to_input_dev(d) container_of(d, struct input_dev, dev)
 
@@ -262,7 +276,10 @@ struct input_handle;
  * @start: starts handler for given handle. This function is called by
  *	input core right after connect() method and also when a process
  *	that "grabbed" a device releases it
+<<<<<<< HEAD
  * @fops: file operations this driver implements
+=======
+>>>>>>> android-3.18
  * @legacy_minors: set to %true by drivers using legacy minor ranges
  * @minor: beginning of range of 32 legacy minors for devices this driver
  *	can provide
@@ -298,7 +315,10 @@ struct input_handler {
 	void (*disconnect)(struct input_handle *handle);
 	void (*start)(struct input_handle *handle);
 
+<<<<<<< HEAD
 	const struct file_operations *fops;
+=======
+>>>>>>> android-3.18
 	bool legacy_minors;
 	int minor;
 	const char *name;
@@ -335,7 +355,8 @@ struct input_handle {
 	struct list_head	h_node;
 };
 
-struct input_dev *input_allocate_device(void);
+struct input_dev __must_check *input_allocate_device(void);
+struct input_dev __must_check *devm_input_allocate_device(struct device *);
 void input_free_device(struct input_dev *dev);
 
 static inline struct input_dev *input_get_device(struct input_dev *dev)
@@ -531,6 +552,7 @@ int input_ff_event(struct input_dev *dev, unsigned int type, unsigned int code, 
 
 int input_ff_upload(struct input_dev *dev, struct ff_effect *effect, struct file *file);
 int input_ff_erase(struct input_dev *dev, int effect_id, struct file *file);
+int input_ff_flush(struct input_dev *dev, struct file *file);
 
 int input_ff_create_memless(struct input_dev *dev, void *data,
 		int (*play_effect)(struct input_dev *, void *, struct ff_effect *));

@@ -14,7 +14,6 @@
 #include <linux/err.h>
 #include <linux/kernel.h>
 #include <linux/irq.h>
-#include <linux/gpio.h>
 #include <linux/platform_device.h>
 #include <linux/delay.h>
 #include <linux/bootmem.h>
@@ -6508,6 +6507,7 @@ static struct msm_gpio tsc2007_config_data[] = {
 	"tsc2007_irq" },
 };
 
+<<<<<<< HEAD
 static struct regulator_bulk_data tsc2007_regs[] = {
 	{ .supply = "s3", .min_uV = 1800000, .max_uV = 1800000 },
 	{ .supply = "s2", .min_uV = 1300000, .max_uV = 1300000 },
@@ -6667,6 +6667,19 @@ out:
 }
 
 static int isa1200_dev_setup(bool enable)
+=======
+#include <mach/clk.h>
+#include <mach/msm_iomap.h>
+#include <mach/dma.h>
+
+#include <mach/vreg.h>
+#include "devices.h"
+#include "gpiomux.h"
+#include "proc_comm.h"
+#include "common.h"
+
+static void __init msm7x30_fixup(struct tag *tag, char **cmdline)
+>>>>>>> android-3.18
 {
 	int rc;
 
@@ -6766,6 +6779,7 @@ static struct flip_switch_pdata flip_switch_data = {
 	.flip_mpp_config = kp_flip_mpp_config,
 };
 
+<<<<<<< HEAD
 static struct platform_device flip_switch_device = {
 	.name   = "kp_flip_switch",
 	.id	= -1,
@@ -6891,6 +6905,46 @@ static struct i2c_board_info cy8ctma300_board_info[] = {
 		I2C_BOARD_INFO("cy8ctma300", 0x2),
 		.platform_data = &cy8ctma300_pdata,
 	}
+=======
+static int hsusb_link_clk_reset(struct clk *link_clk, bool assert)
+{
+	int ret;
+
+	if (assert) {
+		ret = clk_reset(link_clk, CLK_RESET_ASSERT);
+		if (ret)
+			pr_err("usb hs_clk assert failed\n");
+	} else {
+		ret = clk_reset(link_clk, CLK_RESET_DEASSERT);
+		if (ret)
+			pr_err("usb hs_clk deassert failed\n");
+	}
+	return ret;
+}
+
+static int hsusb_phy_clk_reset(struct clk *phy_clk)
+{
+	int ret;
+
+	ret = clk_reset(phy_clk, CLK_RESET_ASSERT);
+	if (ret) {
+		pr_err("usb phy clk assert failed\n");
+		return ret;
+	}
+	usleep_range(10000, 12000);
+	ret = clk_reset(phy_clk, CLK_RESET_DEASSERT);
+	if (ret)
+		pr_err("usb phy clk deassert failed\n");
+	return ret;
+}
+
+static struct msm_otg_platform_data msm_otg_pdata = {
+	.phy_init_seq		= hsusb_phy_init_seq,
+	.mode                   = USB_DR_MODE_PERIPHERAL,
+	.otg_control		= OTG_PHY_CONTROL,
+	.link_clk_reset		= hsusb_link_clk_reset,
+	.phy_clk_reset		= hsusb_phy_clk_reset,
+>>>>>>> android-3.18
 };
 
 static void __init msm7x30_init(void)
@@ -7175,6 +7229,7 @@ static struct memtype_reserve msm7x30_reserve_table[] __initdata = {
 	},
 };
 
+<<<<<<< HEAD
 unsigned long size;
 unsigned long msm_ion_camera_size;
 
@@ -7187,6 +7242,13 @@ static void fix_sizes(void)
 
 #ifdef CONFIG_ION_MSM
 	msm_ion_camera_size = size;
+=======
+static struct platform_device *devices[] __initdata = {
+	&msm_clock_7x30,
+	&msm_device_gpio_7x30,
+#if defined(CONFIG_SERIAL_MSM)
+        &msm_device_uart2,
+>>>>>>> android-3.18
 #endif
 }
 
@@ -7270,6 +7332,7 @@ static void __init msm7x30_map_io(void)
 {
 	msm_shared_ram_phys = 0x00100000;
 	msm_map_msm7x30_io();
+<<<<<<< HEAD
 	if (socinfo_init() < 0)
 		pr_err("socinfo_init() failed!\n");
 }
@@ -7290,6 +7353,13 @@ static void __init msm7x30_fixup(struct tag *tags, char **cmdline,
 				break;
 		}
 	}
+=======
+}
+
+static void __init msm7x30_init_late(void)
+{
+	smd_debugfs_init();
+>>>>>>> android-3.18
 }
 
 MACHINE_START(MSM7X30_SURF, "QCT MSM7X30 SURF")
@@ -7298,10 +7368,15 @@ MACHINE_START(MSM7X30_SURF, "QCT MSM7X30 SURF")
 	.reserve = msm7x30_reserve,
 	.init_irq = msm7x30_init_irq,
 	.init_machine = msm7x30_init,
+<<<<<<< HEAD
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
 	.fixup = msm7x30_fixup,
+=======
+	.init_late = msm7x30_init_late,
+	.init_time	= msm7x30_timer_init,
+>>>>>>> android-3.18
 MACHINE_END
 
 MACHINE_START(MSM7X30_FFA, "QCT MSM7X30 FFA")
@@ -7334,10 +7409,15 @@ MACHINE_START(MSM8X55_SURF, "QCT MSM8X55 SURF")
 	.reserve = msm7x30_reserve,
 	.init_irq = msm7x30_init_irq,
 	.init_machine = msm7x30_init,
+<<<<<<< HEAD
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
 	.fixup = msm7x30_fixup,
+=======
+	.init_late = msm7x30_init_late,
+	.init_time	= msm7x30_timer_init,
+>>>>>>> android-3.18
 MACHINE_END
 
 MACHINE_START(MSM8X55_FFA, "QCT MSM8X55 FFA")
@@ -7368,8 +7448,13 @@ MACHINE_START(MSM8X55_SVLTE_FFA, "QCT MSM8X55 SVLTE FFA")
 	.reserve = msm7x30_reserve,
 	.init_irq = msm7x30_init_irq,
 	.init_machine = msm7x30_init,
+<<<<<<< HEAD
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
 	.fixup = msm7x30_fixup,
+=======
+	.init_late = msm7x30_init_late,
+	.init_time	= msm7x30_timer_init,
+>>>>>>> android-3.18
 MACHINE_END

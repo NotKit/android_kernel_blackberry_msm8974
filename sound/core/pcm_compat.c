@@ -101,7 +101,9 @@ struct snd_pcm_sw_params32 {
 	u32 silence_threshold;
 	u32 silence_size;
 	u32 boundary;
-	unsigned char reserved[64];
+	u32 proto;
+	u32 tstamp_type;
+	unsigned char reserved[56];
 };
 
 /* recalcuate the boundary within 32bit */
@@ -133,7 +135,9 @@ static int snd_pcm_ioctl_sw_params_compat(struct snd_pcm_substream *substream,
 	    get_user(params.start_threshold, &src->start_threshold) ||
 	    get_user(params.stop_threshold, &src->stop_threshold) ||
 	    get_user(params.silence_threshold, &src->silence_threshold) ||
-	    get_user(params.silence_size, &src->silence_size))
+	    get_user(params.silence_size, &src->silence_size) ||
+	    get_user(params.tstamp_type, &src->tstamp_type) ||
+	    get_user(params.proto, &src->proto))
 		return -EFAULT;
 	/*
 	 * Check silent_size parameter.  Since we have 64bit boundary,
@@ -190,8 +194,9 @@ struct snd_pcm_status32 {
 	u32 avail_max;
 	u32 overrange;
 	s32 suspended_state;
+	u32 reserved_alignment;
 	struct compat_timespec audio_tstamp;
-	unsigned char reserved[60-sizeof(struct compat_timespec)];
+	unsigned char reserved[56-sizeof(struct compat_timespec)];
 } __attribute__((packed));
 
 
@@ -235,10 +240,15 @@ static int snd_pcm_ioctl_hw_params_compat(struct snd_pcm_substream *substream,
 	if (! (runtime = substream->runtime))
 		return -ENOTTY;
 
-	/* only fifo_size is different, so just copy all */
-	data = memdup_user(data32, sizeof(*data32));
-	if (IS_ERR(data))
-		return PTR_ERR(data);
+	data = kmalloc(sizeof(*data), GFP_KERNEL);
+	if (!data)
+		return -ENOMEM;
+
+	/* only fifo_size (RO from userspace) is different, so just copy all */
+	if (copy_from_user(data, data32, sizeof(*data32))) {
+		err = -EFAULT;
+		goto error;
+	}
 
 	if (refine)
 		err = snd_pcm_hw_refine(substream, data);
@@ -328,6 +338,8 @@ static int snd_pcm_ioctl_xfern_compat(struct snd_pcm_substream *substream,
 		return -ENOTTY;
 	if (substream->stream != dir)
 		return -EINVAL;
+	if (substream->runtime->status->state == SNDRV_PCM_STATE_OPEN)
+		return -EBADFD;
 
 	if ((ch = substream->runtime->channels) > 128)
 		return -EINVAL;
@@ -461,26 +473,8 @@ enum {
 	SNDRV_PCM_IOCTL_WRITEN_FRAMES32 = _IOW('A', 0x52, struct snd_xfern32),
 	SNDRV_PCM_IOCTL_READN_FRAMES32 = _IOR('A', 0x53, struct snd_xfern32),
 	SNDRV_PCM_IOCTL_SYNC_PTR32 = _IOWR('A', 0x23, struct snd_pcm_sync_ptr32),
+
 };
-
-static int snd_compressed_ioctl32(struct snd_pcm_substream *substream,
-				 unsigned int cmd, void __user *arg)
-{
-	struct snd_pcm_runtime *runtime;
-	int err = 0;
-
-	if (PCM_RUNTIME_CHECK(substream))
-		return -ENXIO;
-	runtime = substream->runtime;
-	if (substream->ops->compat_ioctl) {
-		err = substream->ops->compat_ioctl(substream, cmd, arg);
-	} else {
-		err = -ENOIOCTLCMD;
-		pr_err("%s failed cmd = %d\n", __func__, cmd);
-	}
-	pr_debug("%s called with cmd = %d\n", __func__, cmd);
-	return err;
-}
 
 static long snd_pcm_ioctl_compat(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -549,9 +543,6 @@ static long snd_pcm_ioctl_compat(struct file *file, unsigned int cmd, unsigned l
 		return snd_pcm_ioctl_rewind_compat(substream, argp);
 	case SNDRV_PCM_IOCTL_FORWARD32:
 		return snd_pcm_ioctl_forward_compat(substream, argp);
-	default:
-		if (_IOC_TYPE(cmd) == 'C')
-			return snd_compressed_ioctl32(substream, cmd, argp);
 	}
 
 	return -ENOIOCTLCMD;

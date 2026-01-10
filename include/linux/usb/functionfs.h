@@ -3,6 +3,7 @@
 
 #include <uapi/linux/usb/functionfs.h>
 
+<<<<<<< HEAD
 
 struct ffs_data;
 struct usb_composite_dev;
@@ -33,4 +34,6 @@ static void functionfs_release_dev_callback(struct ffs_data *ffs_data)
 	__attribute__((nonnull));
 
 
+=======
+>>>>>>> android-3.18
 #endif

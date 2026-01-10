@@ -12,6 +12,7 @@
 #include <linux/errno.h>
 #include <linux/slab.h>
 #include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/list.h>
 #include <linux/string.h>
 #include <linux/device.h>
@@ -19,6 +20,7 @@
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/composite.h>
+<<<<<<< HEAD
 
 /**
  * usb_find_descriptor_fillbuf - fill buffer with the requested descriptor
@@ -54,6 +56,8 @@ usb_find_descriptor_fillbuf(void *buf, unsigned buflen,
 
 	return -ENOENT;
 }
+=======
+>>>>>>> android-3.18
 
 /**
  * usb_descriptor_fillbuf - fill buffer with descriptors
@@ -88,7 +92,7 @@ usb_descriptor_fillbuf(void *buf, unsigned buflen,
 	}
 	return dest - (u8 *)buf;
 }
-
+EXPORT_SYMBOL_GPL(usb_descriptor_fillbuf);
 
 /**
  * usb_gadget_config_buf - builts a complete configuration descriptor
@@ -141,6 +145,7 @@ int usb_gadget_config_buf(
 	cp->bmAttributes |= USB_CONFIG_ATT_ONE;
 	return len;
 }
+EXPORT_SYMBOL_GPL(usb_gadget_config_buf);
 
 /**
  * usb_copy_descriptors - copy a vector of USB descriptors

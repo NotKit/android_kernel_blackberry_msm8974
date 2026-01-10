@@ -9,6 +9,7 @@
 #ifndef __LINUX_USB_OTG_H
 #define __LINUX_USB_OTG_H
 
+<<<<<<< HEAD
 #include <linux/notifier.h>
 
 /* OTG defines lots of enumeration states before device reset */
@@ -80,6 +81,9 @@ struct usb_phy_io_ops {
 	int (*read)(struct usb_phy *x, u32 reg);
 	int (*write)(struct usb_phy *x, u32 val, u32 reg);
 };
+=======
+#include <linux/usb/phy.h>
+>>>>>>> android-3.18
 
 struct usb_otg {
 	u8			default_a;
@@ -110,6 +114,7 @@ struct usb_otg {
 
 };
 
+<<<<<<< HEAD
 /*
  * the otg driver needs to interact with both device side and host side
  * usb controllers.  it decides which controller is active at a given
@@ -229,6 +234,9 @@ static inline const char *otg_state_string(enum usb_otg_state state)
 	return NULL;
 }
 #endif
+=======
+extern const char *usb_otg_state_string(enum usb_otg_state state);
+>>>>>>> android-3.18
 
 /* Context: can sleep */
 static inline int
@@ -273,6 +281,7 @@ otg_set_peripheral(struct usb_otg *otg, struct usb_gadget *periph)
 }
 
 static inline int
+<<<<<<< HEAD
 usb_phy_set_power(struct usb_phy *x, unsigned mA)
 {
 	if (x && x->set_power)
@@ -300,6 +309,8 @@ usb_phy_set_autosuspend(struct usb_phy *x, int enable_autosuspend)
 }
 
 static inline int
+=======
+>>>>>>> android-3.18
 otg_start_srp(struct usb_otg *otg)
 {
 	if (otg && otg->start_srp)
@@ -308,20 +319,14 @@ otg_start_srp(struct usb_otg *otg)
 	return -ENOTSUPP;
 }
 
-/* notifiers */
-static inline int
-usb_register_notifier(struct usb_phy *x, struct notifier_block *nb)
-{
-	return atomic_notifier_chain_register(&x->notifier, nb);
-}
-
-static inline void
-usb_unregister_notifier(struct usb_phy *x, struct notifier_block *nb)
-{
-	atomic_notifier_chain_unregister(&x->notifier, nb);
-}
-
 /* for OTG controller drivers (and maybe other stuff) */
 extern int usb_bus_start_enum(struct usb_bus *bus, unsigned port_num);
+
+enum usb_dr_mode {
+	USB_DR_MODE_UNKNOWN,
+	USB_DR_MODE_HOST,
+	USB_DR_MODE_PERIPHERAL,
+	USB_DR_MODE_OTG,
+};
 
 #endif /* __LINUX_USB_OTG_H */

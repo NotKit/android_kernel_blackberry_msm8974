@@ -1,6 +1,7 @@
 #ifndef _LINUX_JBD_STATE_H
 #define _LINUX_JBD_STATE_H
 
+<<<<<<< HEAD
 enum jbd_state_bits {
 	BH_JBD			/* Has an attached ext3 journal_head */
 	  = BH_PrivateStart,
@@ -26,6 +27,9 @@ BUFFER_FNS(RevokeValid, revokevalid)
 TAS_BUFFER_FNS(RevokeValid, revokevalid)
 BUFFER_FNS(Freed, freed)
 BUFFER_FNS(Verified, verified)
+=======
+#include <linux/bit_spinlock.h>
+>>>>>>> android-3.18
 
 static inline struct buffer_head *jh2bh(struct journal_head *jh)
 {

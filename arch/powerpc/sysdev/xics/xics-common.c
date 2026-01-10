@@ -49,7 +49,7 @@ void xics_update_irq_servers(void)
 	int i, j;
 	struct device_node *np;
 	u32 ilen;
-	const u32 *ireg;
+	const __be32 *ireg;
 	u32 hcpuid;
 
 	/* Find the server numbers for the boot cpu. */
@@ -75,8 +75,8 @@ void xics_update_irq_servers(void)
 	 * default distribution server
 	 */
 	for (j = 0; j < i; j += 2) {
-		if (ireg[j] == hcpuid) {
-			xics_default_distrib_server = ireg[j+1];
+		if (be32_to_cpu(ireg[j]) == hcpuid) {
+			xics_default_distrib_server = be32_to_cpu(ireg[j+1]);
 			break;
 		}
 	}
@@ -329,9 +329,6 @@ static int xics_host_map(struct irq_domain *h, unsigned int virq,
 
 	pr_devel("xics: map virq %d, hwirq 0x%lx\n", virq, hw);
 
-	/* Insert the interrupt mapping into the radix tree for fast lookup */
-	irq_radix_revmap_insert(xics_host, virq, hw);
-
 	/* They aren't all level sensitive but we just don't really know */
 	irq_set_status_flags(virq, IRQ_LEVEL);
 
@@ -386,7 +383,7 @@ void __init xics_register_ics(struct ics *ics)
 static void __init xics_get_server_size(void)
 {
 	struct device_node *np;
-	const u32 *isize;
+	const __be32 *isize;
 
 	/* We fetch the interrupt server size from the first ICS node
 	 * we find if any
@@ -397,7 +394,7 @@ static void __init xics_get_server_size(void)
 	isize = of_get_property(np, "ibm,interrupt-server#-size", NULL);
 	if (!isize)
 		return;
-	xics_interrupt_server_size = *isize;
+	xics_interrupt_server_size = be32_to_cpu(*isize);
 	of_node_put(np);
 }
 

@@ -57,6 +57,7 @@
 # define RLIM_INFINITY		(~0UL)
 #endif
 
+<<<<<<< HEAD
 /*
  * RLIMIT_STACK default maximum - some architectures override it:
  */
@@ -64,5 +65,7 @@
 # define _STK_LIM_MAX		RLIM_INFINITY
 #endif
 
+=======
+>>>>>>> android-3.18
 
 #endif /* _UAPI_ASM_GENERIC_RESOURCE_H */

@@ -61,7 +61,6 @@ struct mirror_set {
 	struct dm_region_hash *rh;
 	struct dm_kcopyd_client *kcopyd_client;
 	struct dm_io_client *io_client;
-	mempool_t *read_record_pool;
 
 	/* recovery */
 	region_t nr_regions;
@@ -82,6 +81,9 @@ struct mirror_set {
 	unsigned nr_mirrors;
 	struct mirror mirror[0];
 };
+
+DECLARE_DM_KCOPYD_THROTTLE_WITH_MODULE_PARM(raid1_resync_throttle,
+		"A percentage of time allocated for raid resynchronization");
 
 static void wakeup_mirrord(void *context)
 {
@@ -139,13 +141,12 @@ static void dispatch_bios(void *context, struct bio_list *bio_list)
 		queue_bio(ms, bio, WRITE);
 }
 
-#define MIN_READ_RECORDS 20
-struct dm_raid1_read_record {
+struct dm_raid1_bio_record {
 	struct mirror *m;
+	/* if details->bi_bdev == NULL, details were not saved */
 	struct dm_bio_details details;
+	region_t write_region;
 };
-
-static struct kmem_cache *_dm_raid1_read_record_cache;
 
 /*
  * Every mirror should look like this one.
@@ -431,7 +432,7 @@ static int mirror_available(struct mirror_set *ms, struct bio *bio)
 	region_t region = dm_rh_bio_to_region(ms->rh, bio);
 
 	if (log->type->in_sync(log, region, 0))
-		return choose_mirror(ms,  bio->bi_sector) ? 1 : 0;
+		return choose_mirror(ms,  bio->bi_iter.bi_sector) ? 1 : 0;
 
 	return 0;
 }
@@ -441,15 +442,15 @@ static int mirror_available(struct mirror_set *ms, struct bio *bio)
  */
 static sector_t map_sector(struct mirror *m, struct bio *bio)
 {
-	if (unlikely(!bio->bi_size))
+	if (unlikely(!bio->bi_iter.bi_size))
 		return 0;
-	return m->offset + dm_target_offset(m->ms->ti, bio->bi_sector);
+	return m->offset + dm_target_offset(m->ms->ti, bio->bi_iter.bi_sector);
 }
 
 static void map_bio(struct mirror *m, struct bio *bio)
 {
 	bio->bi_bdev = m->dev->bdev;
-	bio->bi_sector = map_sector(m, bio);
+	bio->bi_iter.bi_sector = map_sector(m, bio);
 }
 
 static void map_region(struct dm_io_region *io, struct mirror *m,
@@ -457,7 +458,7 @@ static void map_region(struct dm_io_region *io, struct mirror *m,
 {
 	io->bdev = m->dev->bdev;
 	io->sector = map_sector(m, bio);
-	io->count = bio->bi_size >> 9;
+	io->count = bio_sectors(bio);
 }
 
 static void hold_bio(struct mirror_set *ms, struct bio *bio)
@@ -525,8 +526,8 @@ static void read_async_bio(struct mirror *m, struct bio *bio)
 	struct dm_io_region io;
 	struct dm_io_request io_req = {
 		.bi_rw = READ,
-		.mem.type = DM_IO_BVEC,
-		.mem.ptr.bvec = bio->bi_io_vec + bio->bi_idx,
+		.mem.type = DM_IO_BIO,
+		.mem.ptr.bio = bio,
 		.notify.fn = read_callback,
 		.notify.context = bio,
 		.client = m->ms->io_client,
@@ -558,7 +559,7 @@ static void do_reads(struct mirror_set *ms, struct bio_list *reads)
 		 * We can only read balance if the region is in sync.
 		 */
 		if (likely(region_in_sync(ms, region, 1)))
-			m = choose_mirror(ms, bio->bi_sector);
+			m = choose_mirror(ms, bio->bi_iter.bi_sector);
 		else if (m && atomic_read(&m->error_count))
 			m = NULL;
 
@@ -637,8 +638,8 @@ static void do_write(struct mirror_set *ms, struct bio *bio)
 	struct mirror *m;
 	struct dm_io_request io_req = {
 		.bi_rw = WRITE | (bio->bi_rw & WRITE_FLUSH_FUA),
-		.mem.type = DM_IO_BVEC,
-		.mem.ptr.bvec = bio->bi_io_vec + bio->bi_idx,
+		.mem.type = DM_IO_BIO,
+		.mem.ptr.bio = bio,
 		.notify.fn = write_callback,
 		.notify.context = bio,
 		.client = ms->io_client,
@@ -885,19 +886,9 @@ static struct mirror_set *alloc_context(unsigned int nr_mirrors,
 	atomic_set(&ms->suspend, 0);
 	atomic_set(&ms->default_mirror, DEFAULT_MIRROR);
 
-	ms->read_record_pool = mempool_create_slab_pool(MIN_READ_RECORDS,
-						_dm_raid1_read_record_cache);
-
-	if (!ms->read_record_pool) {
-		ti->error = "Error creating mirror read_record_pool";
-		kfree(ms);
-		return NULL;
-	}
-
 	ms->io_client = dm_io_client_create();
 	if (IS_ERR(ms->io_client)) {
 		ti->error = "Error creating dm_io client";
-		mempool_destroy(ms->read_record_pool);
 		kfree(ms);
  		return NULL;
 	}
@@ -909,7 +900,6 @@ static struct mirror_set *alloc_context(unsigned int nr_mirrors,
 	if (IS_ERR(ms->rh)) {
 		ti->error = "Error creating dirty region hash";
 		dm_io_client_destroy(ms->io_client);
-		mempool_destroy(ms->read_record_pool);
 		kfree(ms);
 		return NULL;
 	}
@@ -925,7 +915,6 @@ static void free_context(struct mirror_set *ms, struct dm_target *ti,
 
 	dm_io_client_destroy(ms->io_client);
 	dm_region_hash_destroy(ms->rh);
-	mempool_destroy(ms->read_record_pool);
 	kfree(ms);
 }
 
@@ -1090,13 +1079,24 @@ static int mirror_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	}
 
 	ti->private = ms;
+<<<<<<< HEAD
 	ti->split_io = dm_rh_get_region_size(ms->rh);
 	ti->num_flush_requests = 1;
 	ti->num_discard_requests = 1;
 	ti->discard_zeroes_data_unsupported = 1;
+=======
+>>>>>>> android-3.18
 
-	ms->kmirrord_wq = alloc_workqueue("kmirrord",
-					  WQ_NON_REENTRANT | WQ_MEM_RECLAIM, 0);
+	r = dm_set_target_max_io_len(ti, dm_rh_get_region_size(ms->rh));
+	if (r)
+		goto err_free_context;
+
+	ti->num_flush_bios = 1;
+	ti->num_discard_bios = 1;
+	ti->per_bio_data_size = sizeof(struct dm_raid1_bio_record);
+	ti->discard_zeroes_data_unsupported = true;
+
+	ms->kmirrord_wq = alloc_workqueue("kmirrord", WQ_MEM_RECLAIM, 0);
 	if (!ms->kmirrord_wq) {
 		DMERR("couldn't start kmirrord");
 		r = -ENOMEM;
@@ -1129,7 +1129,7 @@ static int mirror_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 		goto err_destroy_wq;
 	}
 
-	ms->kcopyd_client = dm_kcopyd_client_create();
+	ms->kcopyd_client = dm_kcopyd_client_create(&dm_kcopyd_throttle);
 	if (IS_ERR(ms->kcopyd_client)) {
 		r = PTR_ERR(ms->kcopyd_client);
 		goto err_destroy_wq;
@@ -1151,7 +1151,7 @@ static void mirror_dtr(struct dm_target *ti)
 
 	del_timer_sync(&ms->timer);
 	flush_workqueue(ms->kmirrord_wq);
-	flush_work_sync(&ms->trigger_event);
+	flush_work(&ms->trigger_event);
 	dm_kcopyd_client_destroy(ms->kcopyd_client);
 	destroy_workqueue(ms->kmirrord_wq);
 	free_context(ms, ti, ms->nr_mirrors);
@@ -1160,18 +1160,20 @@ static void mirror_dtr(struct dm_target *ti)
 /*
  * Mirror mapping function
  */
-static int mirror_map(struct dm_target *ti, struct bio *bio,
-		      union map_info *map_context)
+static int mirror_map(struct dm_target *ti, struct bio *bio)
 {
 	int r, rw = bio_rw(bio);
 	struct mirror *m;
 	struct mirror_set *ms = ti->private;
-	struct dm_raid1_read_record *read_record = NULL;
 	struct dm_dirty_log *log = dm_rh_dirty_log(ms->rh);
+	struct dm_raid1_bio_record *bio_record =
+	  dm_per_bio_data(bio, sizeof(struct dm_raid1_bio_record));
+
+	bio_record->details.bi_bdev = NULL;
 
 	if (rw == WRITE) {
 		/* Save region for mirror_end_io() handler */
-		map_context->ll = dm_rh_bio_to_region(ms->rh, bio);
+		bio_record->write_region = dm_rh_bio_to_region(ms->rh, bio);
 		queue_bio(ms, bio, rw);
 		return DM_MAPIO_SUBMITTED;
 	}
@@ -1195,37 +1197,37 @@ static int mirror_map(struct dm_target *ti, struct bio *bio,
 	 * The region is in-sync and we can perform reads directly.
 	 * Store enough information so we can retry if it fails.
 	 */
-	m = choose_mirror(ms, bio->bi_sector);
+	m = choose_mirror(ms, bio->bi_iter.bi_sector);
 	if (unlikely(!m))
 		return -EIO;
 
-	read_record = mempool_alloc(ms->read_record_pool, GFP_NOIO);
-	if (likely(read_record)) {
-		dm_bio_record(&read_record->details, bio);
-		map_context->ptr = read_record;
-		read_record->m = m;
-	}
+	dm_bio_record(&bio_record->details, bio);
+	bio_record->m = m;
 
 	map_bio(m, bio);
 
 	return DM_MAPIO_REMAPPED;
 }
 
-static int mirror_end_io(struct dm_target *ti, struct bio *bio,
-			 int error, union map_info *map_context)
+static int mirror_end_io(struct dm_target *ti, struct bio *bio, int error)
 {
 	int rw = bio_rw(bio);
 	struct mirror_set *ms = (struct mirror_set *) ti->private;
 	struct mirror *m = NULL;
 	struct dm_bio_details *bd = NULL;
-	struct dm_raid1_read_record *read_record = map_context->ptr;
+	struct dm_raid1_bio_record *bio_record =
+	  dm_per_bio_data(bio, sizeof(struct dm_raid1_bio_record));
 
 	/*
 	 * We need to dec pending if this was a write.
 	 */
 	if (rw == WRITE) {
 		if (!(bio->bi_rw & (REQ_FLUSH | REQ_DISCARD)))
+<<<<<<< HEAD
 			dm_rh_dec(ms->rh, map_context->ll);
+=======
+			dm_rh_dec(ms->rh, bio_record->write_region);
+>>>>>>> android-3.18
 		return error;
 	}
 
@@ -1236,7 +1238,7 @@ static int mirror_end_io(struct dm_target *ti, struct bio *bio,
 		goto out;
 
 	if (unlikely(error)) {
-		if (!read_record) {
+		if (!bio_record->details.bi_bdev) {
 			/*
 			 * There wasn't enough memory to record necessary
 			 * information for a retry or there was no other
@@ -1246,7 +1248,7 @@ static int mirror_end_io(struct dm_target *ti, struct bio *bio,
 			return -EIO;
 		}
 
-		m = read_record->m;
+		m = bio_record->m;
 
 		DMERR("Mirror read failed from %s. Trying alternative device.",
 		      m->dev->name);
@@ -1258,22 +1260,21 @@ static int mirror_end_io(struct dm_target *ti, struct bio *bio,
 		 * mirror.
 		 */
 		if (default_ok(m) || mirror_available(ms, bio)) {
-			bd = &read_record->details;
+			bd = &bio_record->details;
 
 			dm_bio_restore(bd, bio);
-			mempool_free(read_record, ms->read_record_pool);
-			map_context->ptr = NULL;
+			bio_record->details.bi_bdev = NULL;
+
+			atomic_inc(&bio->bi_remaining);
+
 			queue_bio(ms, bio, rw);
-			return 1;
+			return DM_ENDIO_INCOMPLETE;
 		}
 		DMERR("All replicated volumes dead, failing I/O");
 	}
 
 out:
-	if (read_record) {
-		mempool_free(read_record, ms->read_record_pool);
-		map_context->ptr = NULL;
-	}
+	bio_record->details.bi_bdev = NULL;
 
 	return error;
 }
@@ -1372,7 +1373,11 @@ static char device_status_char(struct mirror *m)
 
 
 static void mirror_status(struct dm_target *ti, status_type_t type,
+<<<<<<< HEAD
 			  char *result, unsigned int maxlen)
+=======
+			  unsigned status_flags, char *result, unsigned maxlen)
+>>>>>>> android-3.18
 {
 	unsigned int m, sz = 0;
 	struct mirror_set *ms = (struct mirror_set *) ti->private;
@@ -1425,7 +1430,7 @@ static int mirror_iterate_devices(struct dm_target *ti,
 
 static struct target_type mirror_target = {
 	.name	 = "mirror",
-	.version = {1, 12, 1},
+	.version = {1, 13, 2},
 	.module	 = THIS_MODULE,
 	.ctr	 = mirror_ctr,
 	.dtr	 = mirror_dtr,
@@ -1442,13 +1447,6 @@ static int __init dm_mirror_init(void)
 {
 	int r;
 
-	_dm_raid1_read_record_cache = KMEM_CACHE(dm_raid1_read_record, 0);
-	if (!_dm_raid1_read_record_cache) {
-		DMERR("Can't allocate dm_raid1_read_record cache");
-		r = -ENOMEM;
-		goto bad_cache;
-	}
-
 	r = dm_register_target(&mirror_target);
 	if (r < 0) {
 		DMERR("Failed to register mirror target");
@@ -1458,15 +1456,12 @@ static int __init dm_mirror_init(void)
 	return 0;
 
 bad_target:
-	kmem_cache_destroy(_dm_raid1_read_record_cache);
-bad_cache:
 	return r;
 }
 
 static void __exit dm_mirror_exit(void)
 {
 	dm_unregister_target(&mirror_target);
-	kmem_cache_destroy(_dm_raid1_read_record_cache);
 }
 
 /* Module hooks */

@@ -1,8 +1,11 @@
 #
 # USB peripheral controller drivers
 #
-ccflags-$(CONFIG_USB_GADGET_DEBUG) := -DDEBUG
+subdir-ccflags-$(CONFIG_USB_GADGET_DEBUG)	:= -DDEBUG
+subdir-ccflags-$(CONFIG_USB_GADGET_VERBOSE)	+= -DVERBOSE_DEBUG
+ccflags-y				+= -I$(srctree)/drivers/usb/gadget/udc
 
+<<<<<<< HEAD
 obj-$(CONFIG_USB_GADGET)	+= udc-core.o
 obj-$(CONFIG_USB_DUMMY_HCD)	+= dummy_hcd.o
 obj-$(CONFIG_USB_NET2272)	+= net2272.o
@@ -76,4 +79,14 @@ obj-$(CONFIG_USB_G_WEBCAM)	+= g_webcam.o
 obj-$(CONFIG_USB_G_NCM)		+= g_ncm.o
 obj-$(CONFIG_USB_G_ACM_MS)	+= g_acm_ms.o
 obj-$(CONFIG_USB_GADGET_TARGET)	+= tcm_usb_gadget.o
+=======
+obj-$(CONFIG_USB_LIBCOMPOSITE)	+= libcomposite.o
+libcomposite-y			:= usbstring.o config.o epautoconf.o
+libcomposite-y			+= composite.o functions.o configfs.o u_f.o
+
+g_android-y			:= android.o
+
+obj-$(CONFIG_USB_GADGET)	+= udc/ function/ legacy/
+
+>>>>>>> android-3.18
 obj-$(CONFIG_USB_G_ANDROID)	+= g_android.o

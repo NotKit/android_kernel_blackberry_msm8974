@@ -205,13 +205,29 @@
 
 #define IDT_ENTRIES 256
 #define NUM_EXCEPTION_VECTORS 32
+/* Bitmask of exception vectors which push an error code on the stack */
+#define EXCEPTION_ERRCODE_MASK  0x00027d00
 #define GDT_SIZE (GDT_ENTRIES * 8)
 #define GDT_ENTRY_TLS_ENTRIES 3
 #define TLS_SIZE (GDT_ENTRY_TLS_ENTRIES * 8)
 
 #ifdef __KERNEL__
+
+/*
+ * early_idt_handler_array is an array of entry points referenced in the
+ * early IDT.  For simplicity, it's a real array with one entry point
+ * every nine bytes.  That leaves room for an optional 'push $0' if the
+ * vector has no error code (two bytes), a 'push $vector_number' (two
+ * bytes), and a jump to the common entry code (up to five bytes).
+ */
+#define EARLY_IDT_HANDLER_SIZE 9
+
 #ifndef __ASSEMBLY__
-extern const char early_idt_handlers[NUM_EXCEPTION_VECTORS][10];
+
+extern const char early_idt_handler_array[NUM_EXCEPTION_VECTORS][EARLY_IDT_HANDLER_SIZE];
+#ifdef CONFIG_TRACING
+# define trace_early_idt_handler_array early_idt_handler_array
+#endif
 
 /*
  * Load a segment. Fall back on loading the zero

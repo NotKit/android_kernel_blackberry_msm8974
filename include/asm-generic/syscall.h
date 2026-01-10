@@ -144,16 +144,27 @@ void syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
 
 /**
  * syscall_get_arch - return the AUDIT_ARCH for the current system call
+<<<<<<< HEAD
  * @task:	task of interest, must be in system call entry tracing
  * @regs:	task_pt_regs() of @task
  *
  * Returns the AUDIT_ARCH_* based on the system call convention in use.
  *
  * It's only valid to call this when @task is stopped on entry to a system
+=======
+ *
+ * Returns the AUDIT_ARCH_* based on the system call convention in use.
+ *
+ * It's only valid to call this when current is stopped on entry to a system
+>>>>>>> android-3.18
  * call, due to %TIF_SYSCALL_TRACE, %TIF_SYSCALL_AUDIT, or %TIF_SECCOMP.
  *
  * Architectures which permit CONFIG_HAVE_ARCH_SECCOMP_FILTER must
  * provide an implementation of this.
  */
+<<<<<<< HEAD
 int syscall_get_arch(struct task_struct *task, struct pt_regs *regs);
+=======
+int syscall_get_arch(void);
+>>>>>>> android-3.18
 #endif	/* _ASM_SYSCALL_H */

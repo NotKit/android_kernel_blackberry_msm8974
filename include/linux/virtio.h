@@ -8,6 +8,7 @@
 #include <linux/device.h>
 #include <linux/mod_devicetable.h>
 #include <linux/gfp.h>
+#include <linux/vringh.h>
 
 /**
  * virtqueue - a queue to register buffers for sending or receiving.
@@ -17,12 +18,19 @@
  * @vdev: the virtio device this queue was created for.
  * @vq_ops: the operations for this virtqueue (see below).
  * @priv: a pointer for the virtqueue implementation to use.
+ * @index: the zero-based ordinal number for this queue.
+ * @num_free: number of elements we expect to be able to fit.
+ *
+ * A note on @num_free: with indirect buffers, each buffer needs one
+ * element in the queue, otherwise a buffer will need one element per
+ * sg element.
  */
 struct virtqueue {
 	struct list_head list;
 	void (*callback)(struct virtqueue *vq);
 	const char *name;
 	struct virtio_device *vdev;
+<<<<<<< HEAD
 	struct virtqueue_ops *vq_ops;
 	void *priv;
 };
@@ -178,6 +186,31 @@ static inline void *virtqueue_get_buf(struct virtqueue *vq, unsigned int *len)
 {
 	return vq->vq_ops->get_buf(vq, len);
 }
+=======
+	unsigned int index;
+	unsigned int num_free;
+	void *priv;
+};
+
+int virtqueue_add_outbuf(struct virtqueue *vq,
+			 struct scatterlist sg[], unsigned int num,
+			 void *data,
+			 gfp_t gfp);
+
+int virtqueue_add_inbuf(struct virtqueue *vq,
+			struct scatterlist sg[], unsigned int num,
+			void *data,
+			gfp_t gfp);
+
+int virtqueue_add_sgs(struct virtqueue *vq,
+		      struct scatterlist *sgs[],
+		      unsigned int out_sgs,
+		      unsigned int in_sgs,
+		      void *data,
+		      gfp_t gfp);
+
+bool virtqueue_kick(struct virtqueue *vq);
+>>>>>>> android-3.18
 
 /**
  * virtqueue_disable_cb - disable callbacks
@@ -193,6 +226,7 @@ static inline void virtqueue_disable_cb(struct virtqueue *vq)
 	vq->vq_ops->disable_cb(vq);
 }
 
+<<<<<<< HEAD
 /**
  * virtqueue_enable_cb - restart callbacks after disable_cb.
  * @vq: the struct virtqueue we're talking about.
@@ -208,6 +242,9 @@ static inline bool virtqueue_enable_cb(struct virtqueue *vq)
 {
 	return vq->vq_ops->enable_cb(vq);
 }
+=======
+bool virtqueue_notify(struct virtqueue *vq);
+>>>>>>> android-3.18
 
 /**
  * virtqueue_enable_cb_delayed - restart callbacks after disable_cb.
@@ -226,6 +263,10 @@ static inline bool virtqueue_enable_cb_delayed(struct virtqueue *vq)
 {
 	return vq->vq_ops->enable_cb_delayed(vq);
 }
+
+unsigned virtqueue_enable_cb_prepare(struct virtqueue *vq);
+
+bool virtqueue_poll(struct virtqueue *vq, unsigned);
 
 unsigned virtqueue_enable_cb_prepare(struct virtqueue *vq);
 
@@ -259,21 +300,33 @@ static inline unsigned int virtqueue_get_impl_size(struct virtqueue *vq)
 	return vq->vq_ops->get_impl_size(vq);
 }
 
+bool virtqueue_is_broken(struct virtqueue *vq);
+
 /**
  * virtio_device - representation of a device using virtio
  * @index: unique position on the virtio bus
+ * @failed: saved value for CONFIG_S_FAILED bit (for restore)
+ * @config_enabled: configuration change reporting enabled
+ * @config_change_pending: configuration change reported while disabled
+ * @config_lock: protects configuration change reporting
  * @dev: underlying device.
  * @id: the device type identification (used to match it with a driver).
  * @config: the configuration ops for this device.
+ * @vringh_config: configuration ops for host vrings.
  * @vqs: the list of virtqueues for this device.
  * @features: the features supported by both driver and device.
  * @priv: private pointer for the driver's use.
  */
 struct virtio_device {
 	int index;
+	bool failed;
+	bool config_enabled;
+	bool config_change_pending;
+	spinlock_t config_lock;
 	struct device dev;
 	struct virtio_device_id id;
-	struct virtio_config_ops *config;
+	const struct virtio_config_ops *config;
+	const struct vringh_config_ops *vringh_config;
 	struct list_head vqs;
 	/* Note that this is a Linux set_bit-style bitmap. */
 	unsigned long features[1];
@@ -287,6 +340,17 @@ static inline struct virtio_device *dev_to_virtio(struct device *_dev)
 
 int register_virtio_device(struct virtio_device *dev);
 void unregister_virtio_device(struct virtio_device *dev);
+
+void virtio_break_device(struct virtio_device *dev);
+
+void virtio_config_changed(struct virtio_device *dev);
+#ifdef CONFIG_PM_SLEEP
+int virtio_device_freeze(struct virtio_device *dev);
+int virtio_device_restore(struct virtio_device *dev);
+#endif
+
+#define virtio_device_for_each_vq(vdev, vq) \
+	list_for_each_entry(vq, &vdev->vqs, list)
 
 /**
  * virtio_driver - operations for a virtio I/O driver
@@ -305,6 +369,7 @@ struct virtio_driver {
 	const unsigned int *feature_table;
 	unsigned int feature_table_size;
 	int (*probe)(struct virtio_device *dev);
+	void (*scan)(struct virtio_device *dev);
 	void (*remove)(struct virtio_device *dev);
 	void (*config_changed)(struct virtio_device *dev);
 #ifdef CONFIG_PM
@@ -313,6 +378,20 @@ struct virtio_driver {
 #endif
 };
 
+static inline struct virtio_driver *drv_to_virtio(struct device_driver *drv)
+{
+	return container_of(drv, struct virtio_driver, driver);
+}
+
 int register_virtio_driver(struct virtio_driver *drv);
 void unregister_virtio_driver(struct virtio_driver *drv);
+
+/* module_virtio_driver() - Helper macro for drivers that don't do
+ * anything special in module init/exit.  This eliminates a lot of
+ * boilerplate.  Each module may only use this macro once, and
+ * calling it replaces module_init() and module_exit()
+ */
+#define module_virtio_driver(__virtio_driver) \
+	module_driver(__virtio_driver, register_virtio_driver, \
+			unregister_virtio_driver)
 #endif /* _LINUX_VIRTIO_H */

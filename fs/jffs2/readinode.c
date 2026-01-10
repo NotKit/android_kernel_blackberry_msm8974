@@ -543,33 +543,13 @@ static int jffs2_build_inode_fragtree(struct jffs2_sb_info *c,
 
 static void jffs2_free_tmp_dnode_info_list(struct rb_root *list)
 {
-	struct rb_node *this;
-	struct jffs2_tmp_dnode_info *tn;
+	struct jffs2_tmp_dnode_info *tn, *next;
 
-	this = list->rb_node;
-
-	/* Now at bottom of tree */
-	while (this) {
-		if (this->rb_left)
-			this = this->rb_left;
-		else if (this->rb_right)
-			this = this->rb_right;
-		else {
-			tn = rb_entry(this, struct jffs2_tmp_dnode_info, rb);
+	rbtree_postorder_for_each_entry_safe(tn, next, list, rb) {
 			jffs2_free_full_dnode(tn->fn);
 			jffs2_free_tmp_dnode_info(tn);
-
-			this = rb_parent(this);
-			if (!this)
-				break;
-
-			if (this->rb_left == &tn->rb)
-				this->rb_left = NULL;
-			else if (this->rb_right == &tn->rb)
-				this->rb_right = NULL;
-			else BUG();
-		}
 	}
+
 	*list = RB_ROOT;
 }
 
@@ -688,6 +668,22 @@ static inline int read_direntry(struct jffs2_sb_info *c, struct jffs2_raw_node_r
 			jffs2_free_full_dirent(fd);
 			return -EIO;
 		}
+
+#ifdef CONFIG_JFFS2_SUMMARY
+		/*
+		 * we use CONFIG_JFFS2_SUMMARY because without it, we
+		 * have checked it while mounting
+		 */
+		crc = crc32(0, fd->name, rd->nsize);
+		if (unlikely(crc != je32_to_cpu(rd->name_crc))) {
+			JFFS2_NOTICE("name CRC failed on dirent node at"
+			   "%#08x: read %#08x,calculated %#08x\n",
+			   ref_offset(ref), je32_to_cpu(rd->node_crc), crc);
+			jffs2_mark_node_obsolete(c, ref);
+			jffs2_free_full_dirent(fd);
+			return 0;
+		}
+#endif
 	}
 
 	fd->nhash = full_name_hash(fd->name, rd->nsize);
@@ -1269,19 +1265,25 @@ static int jffs2_do_read_inode_internal(struct jffs2_sb_info *c,
 			/* Symlink's inode data is the target path. Read it and
 			 * keep in RAM to facilitate quick follow symlink
 			 * operation. */
-			f->target = kmalloc(je32_to_cpu(latest_node->csize) + 1, GFP_KERNEL);
+			uint32_t csize = je32_to_cpu(latest_node->csize);
+			if (csize > JFFS2_MAX_NAME_LEN) {
+				mutex_unlock(&f->sem);
+				jffs2_do_clear_inode(c, f);
+				return -ENAMETOOLONG;
+			}
+			f->target = kmalloc(csize + 1, GFP_KERNEL);
 			if (!f->target) {
-				JFFS2_ERROR("can't allocate %d bytes of memory for the symlink target path cache\n", je32_to_cpu(latest_node->csize));
+				JFFS2_ERROR("can't allocate %u bytes of memory for the symlink target path cache\n", csize);
 				mutex_unlock(&f->sem);
 				jffs2_do_clear_inode(c, f);
 				return -ENOMEM;
 			}
 
 			ret = jffs2_flash_read(c, ref_offset(rii.latest_ref) + sizeof(*latest_node),
-						je32_to_cpu(latest_node->csize), &retlen, (char *)f->target);
+					       csize, &retlen, (char *)f->target);
 
-			if (ret  || retlen != je32_to_cpu(latest_node->csize)) {
-				if (retlen != je32_to_cpu(latest_node->csize))
+			if (ret || retlen != csize) {
+				if (retlen != csize)
 					ret = -EIO;
 				kfree(f->target);
 				f->target = NULL;
@@ -1290,7 +1292,7 @@ static int jffs2_do_read_inode_internal(struct jffs2_sb_info *c,
 				return ret;
 			}
 
-			f->target[je32_to_cpu(latest_node->csize)] = '\0';
+			f->target[csize] = '\0';
 			dbg_readinode("symlink's target '%s' cached\n", f->target);
 		}
 
@@ -1418,6 +1420,7 @@ int jffs2_do_crccheck_inode(struct jffs2_sb_info *c, struct jffs2_inode_cache *i
 		mutex_unlock(&f->sem);
 		jffs2_do_clear_inode(c, f);
 	}
+	jffs2_xattr_do_crccheck_inode(c, ic);
 	kfree (f);
 	return ret;
 }
@@ -1441,11 +1444,6 @@ void jffs2_do_clear_inode(struct jffs2_sb_info *c, struct jffs2_inode_info *f)
 	}
 
 	jffs2_kill_fragtree(&f->fragtree, deleted?c:NULL);
-
-	if (f->target) {
-		kfree(f->target);
-		f->target = NULL;
-	}
 
 	fds = f->dents;
 	while(fds) {

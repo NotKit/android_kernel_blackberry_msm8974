@@ -68,6 +68,9 @@
 #define ARM_INST_CMP_R		0x01500000
 #define ARM_INST_CMP_I		0x03500000
 
+#define ARM_INST_EOR_R		0x00200000
+#define ARM_INST_EOR_I		0x02200000
+
 #define ARM_INST_LDRB_I		0x05d00000
 #define ARM_INST_LDRB_R		0x07d00000
 #define ARM_INST_LDRH_I		0x01d000b0
@@ -111,6 +114,20 @@
 
 #define ARM_INST_UMULL		0x00800090
 
+/*
+ * Use a suitable undefined instruction to use for ARM/Thumb2 faulting.
+ * We need to be careful not to conflict with those used by other modules
+ * (BUG, kprobes, etc) and the register_undef_hook() system.
+ *
+ * The ARM architecture reference manual guarantees that the following
+ * instruction space will produce an undefined instruction exception on
+ * all CPUs:
+ *
+ * ARM:   xxxx 0111 1111 xxxx xxxx xxxx 1111 xxxx	ARMv7-AR, section A5.4
+ * Thumb: 1101 1110 xxxx xxxx				ARMv7-M, section A5.2.6
+ */
+#define ARM_INST_UDF		0xe7fddef1
+
 /* register */
 #define _AL3_R(op, rd, rn, rm)	((op ## _R) | (rd) << 12 | (rn) << 16 | (rm))
 /* immediate */
@@ -131,6 +148,9 @@
 
 #define ARM_CMP_R(rn, rm)	_AL3_R(ARM_INST_CMP, 0, rn, rm)
 #define ARM_CMP_I(rn, imm)	_AL3_I(ARM_INST_CMP, 0, rn, imm)
+
+#define ARM_EOR_R(rd, rn, rm)	_AL3_R(ARM_INST_EOR, rd, rn, rm)
+#define ARM_EOR_I(rd, rn, imm)	_AL3_I(ARM_INST_EOR, rd, rn, imm)
 
 #define ARM_LDR_I(rt, rn, off)	(ARM_INST_LDR_I | (rt) << 12 | (rn) << 16 \
 				 | (off))

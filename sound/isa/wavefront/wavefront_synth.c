@@ -538,7 +538,7 @@ munge_int32 (unsigned int src,
 	                            /* Note: we leave the upper bits in place */ 
 
 		dst++;
- 	};
+	}
 	return dst;
 };
 
@@ -785,6 +785,9 @@ wavefront_send_patch (snd_wavefront_t *dev, wavefront_patch_info *header)
 	DPRINT (WF_DEBUG_LOAD_PATCH, "downloading patch %d\n",
 				      header->number);
 
+	if (header->number >= ARRAY_SIZE(dev->patch_status))
+		return -EINVAL;
+
 	dev->patch_status[header->number] |= WF_SLOT_FILLED;
 
 	bptr = buf;
@@ -808,6 +811,9 @@ wavefront_send_program (snd_wavefront_t *dev, wavefront_patch_info *header)
 
 	DPRINT (WF_DEBUG_LOAD_PATCH, "downloading program %d\n",
 		header->number);
+
+	if (header->number >= ARRAY_SIZE(dev->prog_status))
+		return -EINVAL;
 
 	dev->prog_status[header->number] = WF_SLOT_USED;
 
@@ -897,6 +903,9 @@ wavefront_send_sample (snd_wavefront_t *dev,
 		snd_printk ("unspecified sample => %d\n", x);
 		header->number = x;
 	}
+
+	if (header->number >= WF_MAX_SAMPLE)
+		return -EINVAL;
 
 	if (header->size) {
 
@@ -1165,7 +1174,10 @@ wavefront_send_alias (snd_wavefront_t *dev, wavefront_patch_info *header)
 				      "alias for %d\n",
 				      header->number,
 				      header->hdr.a.OriginalSample);
-    
+
+	if (header->number >= WF_MAX_SAMPLE)
+		return -EINVAL;
+
 	munge_int32 (header->number, &alias_hdr[0], 2);
 	munge_int32 (header->hdr.a.OriginalSample, &alias_hdr[2], 2);
 	munge_int32 (*((unsigned int *)&header->hdr.a.sampleStartOffset),
@@ -1196,7 +1208,10 @@ wavefront_send_multisample (snd_wavefront_t *dev, wavefront_patch_info *header)
 	int num_samples;
 	unsigned char *msample_hdr;
 
-	msample_hdr = kmalloc(sizeof(WF_MSAMPLE_BYTES), GFP_KERNEL);
+	if (header->number >= WF_MAX_SAMPLE)
+		return -EINVAL;
+
+	msample_hdr = kmalloc(WF_MSAMPLE_BYTES, GFP_KERNEL);
 	if (! msample_hdr)
 		return -ENOMEM;
 
@@ -1739,7 +1754,7 @@ snd_wavefront_internal_interrupt (snd_wavefront_card_t *card)
 7 Unused
 */
 
-static int __devinit
+static int
 snd_wavefront_interrupt_bits (int irq)
 
 {
@@ -1767,7 +1782,7 @@ snd_wavefront_interrupt_bits (int irq)
 	return bits;
 }
 
-static void __devinit
+static void
 wavefront_should_cause_interrupt (snd_wavefront_t *dev, 
 				  int val, int port, unsigned long timeout)
 
@@ -1786,7 +1801,7 @@ wavefront_should_cause_interrupt (snd_wavefront_t *dev,
 	}
 }
 
-static int __devinit
+static int
 wavefront_reset_to_cleanliness (snd_wavefront_t *dev)
 
 {
@@ -1937,7 +1952,7 @@ wavefront_reset_to_cleanliness (snd_wavefront_t *dev)
 	return (1);
 }
 
-static int __devinit
+static int
 wavefront_download_firmware (snd_wavefront_t *dev, char *path)
 
 {
@@ -2010,7 +2025,7 @@ wavefront_download_firmware (snd_wavefront_t *dev, char *path)
 }
 
 
-static int __devinit
+static int
 wavefront_do_reset (snd_wavefront_t *dev)
 
 {
@@ -2099,7 +2114,7 @@ wavefront_do_reset (snd_wavefront_t *dev)
 	return 1;
 }
 
-int __devinit
+int
 snd_wavefront_start (snd_wavefront_t *dev)
 
 {
@@ -2141,7 +2156,7 @@ snd_wavefront_start (snd_wavefront_t *dev)
 	return (0);
 }
 
-int __devinit
+int
 snd_wavefront_detect (snd_wavefront_card_t *card)
 
 {

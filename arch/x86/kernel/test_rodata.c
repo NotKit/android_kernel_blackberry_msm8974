@@ -12,6 +12,7 @@
 #include <linux/module.h>
 #include <asm/cacheflush.h>
 #include <asm/sections.h>
+#include <asm/asm.h>
 
 int rodata_test(void)
 {
@@ -42,14 +43,7 @@ int rodata_test(void)
 		".section .fixup,\"ax\"\n"
 		"2:	jmp 1b\n"
 		".previous\n"
-		".section __ex_table,\"a\"\n"
-		"       .align 16\n"
-#ifdef CONFIG_X86_32
-		"	.long 0b,2b\n"
-#else
-		"	.quad 0b,2b\n"
-#endif
-		".previous"
+		_ASM_EXTABLE(0b,2b)
 		: [rslt] "=r" (result)
 		: [rodata_test] "r" (&rodata_test_data), [zero] "r" (0UL)
 	);
@@ -82,5 +76,5 @@ int rodata_test(void)
 }
 
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("Testcase for the DEBUG_RODATA infrastructure");
+MODULE_DESCRIPTION("Testcase for marking rodata as read-only");
 MODULE_AUTHOR("Arjan van de Ven <arjan@linux.intel.com>");

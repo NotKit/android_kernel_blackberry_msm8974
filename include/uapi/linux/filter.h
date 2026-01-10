@@ -7,7 +7,11 @@
 
 #include <linux/compiler.h>
 #include <linux/types.h>
+<<<<<<< HEAD
 
+=======
+#include <linux/bpf_common.h>
+>>>>>>> android-3.18
 
 /*
  * Current version of the filter code architecture.
@@ -32,6 +36,7 @@ struct sock_fprog {	/* Required for SO_ATTACH_FILTER. */
 	struct sock_filter __user *filter;
 };
 
+<<<<<<< HEAD
 /*
  * Instruction classes
  */
@@ -82,6 +87,8 @@ struct sock_fprog {	/* Required for SO_ATTACH_FILTER. */
 #define         BPF_K           0x00
 #define         BPF_X           0x08
 
+=======
+>>>>>>> android-3.18
 /* ret - BPF_K and BPF_X also apply */
 #define BPF_RVAL(code)  ((code) & 0x18)
 #define         BPF_A           0x10
@@ -91,10 +98,13 @@ struct sock_fprog {	/* Required for SO_ATTACH_FILTER. */
 #define         BPF_TAX         0x00
 #define         BPF_TXA         0x80
 
+<<<<<<< HEAD
 #ifndef BPF_MAXINSNS
 #define BPF_MAXINSNS 4096
 #endif
 
+=======
+>>>>>>> android-3.18
 /*
  * Macros for filter block array initializers.
  */
@@ -127,7 +137,15 @@ struct sock_fprog {	/* Required for SO_ATTACH_FILTER. */
 #define SKF_AD_RXHASH	32
 #define SKF_AD_CPU	36
 #define SKF_AD_ALU_XOR_X	40
+<<<<<<< HEAD
 #define SKF_AD_MAX	44
+=======
+#define SKF_AD_VLAN_TAG	44
+#define SKF_AD_VLAN_TAG_PRESENT 48
+#define SKF_AD_PAY_OFFSET	52
+#define SKF_AD_RANDOM	56
+#define SKF_AD_MAX	60
+>>>>>>> android-3.18
 #define SKF_NET_OFF   (-0x100000)
 #define SKF_LL_OFF    (-0x200000)
 

@@ -28,8 +28,14 @@ SECTIONS
 {
 	. = 0x00000000;
 	.text : {
-	_text = .;		/* Text and read-only data */
+		/* Text and read-only data */
 		HEAD_TEXT
+		/*
+		 * E.g. perf doesn't like symbols starting at address zero,
+		 * therefore skip the initial PSW and channel program located
+		 * at address zero and let _text start at 0x200.
+		 */
+	_text = 0x200;
 		TEXT_TEXT
 		SCHED_TEXT
 		LOCK_TEXT
@@ -45,7 +51,7 @@ SECTIONS
 
 	.dummy : { *(.dummy) } :data
 
-	RODATA
+	RO_DATA_SECTION(PAGE_SIZE)
 
 #ifdef CONFIG_SHARED_KERNEL
 	. = ALIGN(0x100000);	/* VM shared segments are 1MB aligned */
@@ -73,6 +79,10 @@ SECTIONS
 	*/
 	.exit.text : {
 		EXIT_TEXT
+	}
+
+	.exit.data : {
+		EXIT_DATA
 	}
 
 	/* early.c uses stsi, which requires page aligned data. */

@@ -91,4 +91,38 @@
 #define MSM_AD5_PHYS          0xAC000000
 #define MSM_AD5_SIZE          (SZ_1M*13)
 
+<<<<<<< HEAD
+=======
+
+#define MSM_I2C_SIZE          SZ_4K
+#define MSM_I2C_PHYS          0xA9900000
+
+#define MSM_HSUSB_PHYS        0xA0800000
+#define MSM_HSUSB_SIZE        SZ_1K
+
+#define MSM_NAND_PHYS           0xA0A00000
+
+
+#define MSM_TSIF_PHYS        (0xa0100000)
+#define MSM_TSIF_SIZE        (0x200)
+
+#define MSM_TSSC_PHYS         0xAA300000
+
+#define MSM_UART1DM_PHYS      0xA0200000
+#define MSM_UART2DM_PHYS      0xA0900000
+
+
+#define MSM_SDC1_PHYS          0xA0300000
+#define MSM_SDC1_SIZE          SZ_4K
+
+#define MSM_SDC2_PHYS          0xA0400000
+#define MSM_SDC2_SIZE          SZ_4K
+
+#define MSM_SDC3_PHYS          0xA0500000
+#define MSM_SDC3_SIZE           SZ_4K
+
+#define MSM_SDC4_PHYS          0xA0600000
+#define MSM_SDC4_SIZE          SZ_4K
+
+>>>>>>> android-3.18
 #endif

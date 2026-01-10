@@ -23,12 +23,19 @@
 #include <linux/crc32.h>
 #include <linux/mii.h>
 #include <linux/eeprom_93cx6.h>
+<<<<<<< HEAD
 #include <linux/ks8851.h>
 
 #include <linux/spi/spi.h>
 #include <linux/regulator/consumer.h>
 #include <linux/gpio.h>
 #include <linux/of.h>
+=======
+#include <linux/regulator/consumer.h>
+
+#include <linux/spi/spi.h>
+#include <linux/gpio.h>
+>>>>>>> android-3.18
 #include <linux/of_gpio.h>
 
 #include "ks8851.h"
@@ -74,7 +81,6 @@ union ks8851_tx_hdr {
  * @mii: The MII state information for the mii calls.
  * @rxctrl: RX settings for @rxctrl_work.
  * @tx_work: Work queue for tx packets
- * @irq_work: Work queue for servicing interrupts
  * @rxctrl_work: Work queue for updating RX mode and multicast lists
  * @txq: Queue of packets for transmission.
  * @spi_msg1: pre-setup SPI transfer with one message, @spi_xfer1.
@@ -89,6 +95,9 @@ union ks8851_tx_hdr {
  * @rc_rxqcr: Cached copy of KS_RXQCR.
  * @eeprom_size: Companion eeprom size in Bytes, 0 if no eeprom
  * @eeprom: 93CX6 EEPROM state for accessing on-board EEPROM.
+ * @vdd_reg:	Optional regulator supplying the chip
+ * @vdd_io: Optional digital power supply for IO
+ * @gpio: Optional reset_n gpio
  *
  * The @lock ensures that the chip is protected when certain operations are
  * in progress. When the read or write packet transfer is in progress, most
@@ -126,7 +135,6 @@ struct ks8851_net {
 	struct ks8851_rxctrl	rxctrl;
 
 	struct work_struct	tx_work;
-	struct work_struct	irq_work;
 	struct work_struct	rxctrl_work;
 
 	struct sk_buff_head	txq;
@@ -141,6 +149,9 @@ struct ks8851_net {
 	int			rst_gpio;
 
 	struct eeprom_93cx6	eeprom;
+	struct regulator	*vdd_reg;
+	struct regulator	*vdd_io;
+	int			gpio;
 };
 
 static int msg_enable;
@@ -431,7 +442,7 @@ static void ks8851_read_mac_addr(struct net_device *dev)
  *
  * Get or create the initial mac address for the device and then set that
  * into the station address register. If there is an EEPROM present, then
- * we try that. If no valid mac address is found we use random_ether_addr()
+ * we try that. If no valid mac address is found we use eth_random_addr()
  * to create a new one.
  */
 static void ks8851_init_mac(struct ks8851_net *ks)
@@ -450,23 +461,6 @@ static void ks8851_init_mac(struct ks8851_net *ks)
 
 	eth_hw_addr_random(dev);
 	ks8851_write_mac_addr(dev);
-}
-
-/**
- * ks8851_irq - device interrupt handler
- * @irq: Interrupt number passed from the IRQ handler.
- * @pw: The private word passed to register_irq(), our struct ks8851_net.
- *
- * Disable the interrupt from happening again until we've processed the
- * current status by scheduling ks8851_irq_work().
- */
-static irqreturn_t ks8851_irq(int irq, void *pw)
-{
-	struct ks8851_net *ks = pw;
-
-	disable_irq_nosync(irq);
-	schedule_work(&ks->irq_work);
-	return IRQ_HANDLED;
 }
 
 /**
@@ -566,9 +560,8 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
 		/* set dma read address */
 		ks8851_wrreg16(ks, KS_RXFDPR, RXFDPR_RXFPAI | 0x00);
 
-		/* start the packet dma process, and set auto-dequeue rx */
-		ks8851_wrreg16(ks, KS_RXQCR,
-			       ks->rc_rxqcr | RXQCR_SDA | RXQCR_ADRFE);
+		/* start DMA access */
+		ks8851_wrreg16(ks, KS_RXQCR, ks->rc_rxqcr | RXQCR_SDA);
 
 		if (rxlen > 4) {
 			unsigned int rxalign;
@@ -599,24 +592,26 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
 			}
 		}
 
-		ks8851_wrreg16(ks, KS_RXQCR, ks->rc_rxqcr);
+		/* end DMA access and dequeue packet */
+		ks8851_wrreg16(ks, KS_RXQCR, ks->rc_rxqcr | RXQCR_RRXEF);
 	}
 }
 
 /**
- * ks8851_irq_work - work queue handler for dealing with interrupt requests
- * @work: The work structure that was scheduled by schedule_work()
+ * ks8851_irq - IRQ handler for dealing with interrupt requests
+ * @irq: IRQ number
+ * @_ks: cookie
  *
- * This is the handler invoked when the ks8851_irq() is called to find out
- * what happened, as we cannot allow ourselves to sleep whilst waiting for
- * anything other process has the chip's lock.
+ * This handler is invoked when the IRQ line asserts to find out what happened.
+ * As we cannot allow ourselves to sleep in HARDIRQ context, this handler runs
+ * in thread context.
  *
  * Read the interrupt status, work out what needs to be done and then clear
  * any of the interrupts that are not needed.
  */
-static void ks8851_irq_work(struct work_struct *work)
+static irqreturn_t ks8851_irq(int irq, void *_ks)
 {
-	struct ks8851_net *ks = container_of(work, struct ks8851_net, irq_work);
+	struct ks8851_net *ks = _ks;
 	unsigned status;
 	unsigned handled = 0;
 
@@ -697,7 +692,7 @@ static void ks8851_irq_work(struct work_struct *work)
 	if (status & IRQ_TXI)
 		netif_wake_queue(ks->netdev);
 
-	enable_irq(ks->netdev->irq);
+	return IRQ_HANDLED;
 }
 
 /**
@@ -815,6 +810,15 @@ static void ks8851_tx_work(struct work_struct *work)
 static int ks8851_net_open(struct net_device *dev)
 {
 	struct ks8851_net *ks = netdev_priv(dev);
+	int ret;
+
+	ret = request_threaded_irq(dev->irq, NULL, ks8851_irq,
+				   IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+				   dev->name, ks);
+	if (ret < 0) {
+		netdev_err(dev, "failed to get irq\n");
+		return ret;
+	}
 
 	/* lock the card, even if we may not actually be doing anything
 	 * else at the moment */
@@ -879,6 +883,7 @@ static int ks8851_net_open(struct net_device *dev)
 	netif_dbg(ks, ifup, ks->netdev, "network device up\n");
 
 	mutex_unlock(&ks->lock);
+	mii_check_link(&ks->mii);
 	return 0;
 }
 
@@ -905,7 +910,6 @@ static int ks8851_net_stop(struct net_device *dev)
 	mutex_unlock(&ks->lock);
 
 	/* stop any outstanding work */
-	flush_work(&ks->irq_work);
 	flush_work(&ks->tx_work);
 	flush_work(&ks->rxctrl_work);
 
@@ -929,6 +933,8 @@ static int ks8851_net_stop(struct net_device *dev)
 
 		dev_kfree_skb(txb);
 	}
+
+	free_irq(dev->irq, ks);
 
 	return 0;
 }
@@ -1061,7 +1067,6 @@ static int ks8851_set_mac_address(struct net_device *dev, void *addr)
 	if (!is_valid_ether_addr(sa->sa_data))
 		return -EADDRNOTAVAIL;
 
-	dev->addr_assign_type &= ~NET_ADDR_RANDOM;
 	memcpy(dev->dev_addr, sa->sa_data, ETH_ALEN);
 	return ks8851_write_mac_addr(dev);
 }
@@ -1393,37 +1398,36 @@ static int ks8851_read_selftest(struct ks8851_net *ks)
 
 /* driver bus management functions */
 
-#ifdef CONFIG_PM
-static int ks8851_suspend(struct spi_device *spi, pm_message_t state)
-{
-	struct ks8851_net *ks = dev_get_drvdata(&spi->dev);
-	struct net_device *dev = ks->netdev;
+#ifdef CONFIG_PM_SLEEP
 
-	if (netif_running(dev)) {
-		netif_device_detach(dev);
-		ks8851_net_stop(dev);
+static int ks8851_suspend(struct device *dev)
+{
+	struct ks8851_net *ks = dev_get_drvdata(dev);
+	struct net_device *netdev = ks->netdev;
+
+	if (netif_running(netdev)) {
+		netif_device_detach(netdev);
+		ks8851_net_stop(netdev);
 	}
 
 	return 0;
 }
 
-static int ks8851_resume(struct spi_device *spi)
+static int ks8851_resume(struct device *dev)
 {
-	struct ks8851_net *ks = dev_get_drvdata(&spi->dev);
-	struct net_device *dev = ks->netdev;
+	struct ks8851_net *ks = dev_get_drvdata(dev);
+	struct net_device *netdev = ks->netdev;
 
-	if (netif_running(dev)) {
-		ks8851_net_open(dev);
-		netif_device_attach(dev);
+	if (netif_running(netdev)) {
+		ks8851_net_open(netdev);
+		netif_device_attach(netdev);
 	}
 
 	return 0;
 }
-#else
-#define ks8851_suspend NULL
-#define ks8851_resume NULL
 #endif
 
+<<<<<<< HEAD
 static int __devinit ks8851_init_hw(struct spi_device *spi,
 				    struct ks8851_net *ks)
 {
@@ -1485,11 +1489,17 @@ fail_gpio:
 }
 
 static int __devinit ks8851_probe(struct spi_device *spi)
+=======
+static SIMPLE_DEV_PM_OPS(ks8851_pm_ops, ks8851_suspend, ks8851_resume);
+
+static int ks8851_probe(struct spi_device *spi)
+>>>>>>> android-3.18
 {
 	struct net_device *ndev;
 	struct ks8851_net *ks;
 	int ret;
 	unsigned cider;
+	int gpio;
 
 	ndev = alloc_etherdev(sizeof(struct ks8851_net));
 	if (!ndev)
@@ -1507,11 +1517,58 @@ static int __devinit ks8851_probe(struct spi_device *spi)
 	ks->spidev = spi;
 	ks->tx_space = 6144;
 
+	gpio = of_get_named_gpio_flags(spi->dev.of_node, "reset-gpios",
+				       0, NULL);
+	if (gpio == -EPROBE_DEFER) {
+		ret = gpio;
+		goto err_gpio;
+	}
+
+	ks->gpio = gpio;
+	if (gpio_is_valid(gpio)) {
+		ret = devm_gpio_request_one(&spi->dev, gpio,
+					    GPIOF_OUT_INIT_LOW, "ks8851_rst_n");
+		if (ret) {
+			dev_err(&spi->dev, "reset gpio request failed\n");
+			goto err_gpio;
+		}
+	}
+
+	ks->vdd_io = devm_regulator_get(&spi->dev, "vdd-io");
+	if (IS_ERR(ks->vdd_io)) {
+		ret = PTR_ERR(ks->vdd_io);
+		goto err_reg_io;
+	}
+
+	ret = regulator_enable(ks->vdd_io);
+	if (ret) {
+		dev_err(&spi->dev, "regulator vdd_io enable fail: %d\n",
+			ret);
+		goto err_reg_io;
+	}
+
+	ks->vdd_reg = devm_regulator_get(&spi->dev, "vdd");
+	if (IS_ERR(ks->vdd_reg)) {
+		ret = PTR_ERR(ks->vdd_reg);
+		goto err_reg;
+	}
+
+	ret = regulator_enable(ks->vdd_reg);
+	if (ret) {
+		dev_err(&spi->dev, "regulator vdd enable fail: %d\n",
+			ret);
+		goto err_reg;
+	}
+
+	if (gpio_is_valid(gpio)) {
+		usleep_range(10000, 11000);
+		gpio_set_value(gpio, 1);
+	}
+
 	mutex_init(&ks->lock);
 	spin_lock_init(&ks->statelock);
 
 	INIT_WORK(&ks->tx_work, ks8851_tx_work);
-	INIT_WORK(&ks->irq_work, ks8851_irq_work);
 	INIT_WORK(&ks->rxctrl_work, ks8851_rxctrl_work);
 
 	/* initialise pre-made spi transfer messages */
@@ -1547,11 +1604,12 @@ static int __devinit ks8851_probe(struct spi_device *spi)
 
 	skb_queue_head_init(&ks->txq);
 
-	SET_ETHTOOL_OPS(ndev, &ks8851_ethtool_ops);
+	ndev->ethtool_ops = &ks8851_ethtool_ops;
 	SET_NETDEV_DEV(ndev, &spi->dev);
 
-	dev_set_drvdata(&spi->dev, ks);
+	spi_set_drvdata(spi, ks);
 
+	netif_carrier_off(ks->netdev);
 	ndev->if_port = IF_PORT_100BASET;
 	ndev->netdev_ops = &ks8851_netdev_ops;
 	ndev->irq = spi->irq;
@@ -1578,13 +1636,6 @@ static int __devinit ks8851_probe(struct spi_device *spi)
 	ks8851_read_selftest(ks);
 	ks8851_init_mac(ks);
 
-	ret = request_irq(spi->irq, ks8851_irq, IRQF_TRIGGER_LOW,
-			  ndev->name, ks);
-	if (ret < 0) {
-		dev_err(&spi->dev, "failed to get irq\n");
-		goto err_irq;
-	}
-
 	ret = register_netdev(ndev);
 	if (ret) {
 		dev_err(&spi->dev, "failed to register network device\n");
@@ -1597,11 +1648,9 @@ static int __devinit ks8851_probe(struct spi_device *spi)
 
 	return 0;
 
-
 err_netdev:
-	free_irq(ndev->irq, ks);
-
 err_id:
+<<<<<<< HEAD
 err_irq:
 	if (gpio_is_valid(ks->rst_gpio))
 		gpio_free(ks->rst_gpio);
@@ -1617,13 +1666,22 @@ err_irq:
 	}
 
 err_init:
+=======
+	if (gpio_is_valid(gpio))
+		gpio_set_value(gpio, 0);
+	regulator_disable(ks->vdd_reg);
+err_reg:
+	regulator_disable(ks->vdd_io);
+err_reg_io:
+err_gpio:
+>>>>>>> android-3.18
 	free_netdev(ndev);
 	return ret;
 }
 
-static int __devexit ks8851_remove(struct spi_device *spi)
+static int ks8851_remove(struct spi_device *spi)
 {
-	struct ks8851_net *priv = dev_get_drvdata(&spi->dev);
+	struct ks8851_net *priv = spi_get_drvdata(spi);
 
 	if (netif_msg_drv(priv))
 		dev_info(&spi->dev, "remove\n");
@@ -1642,17 +1700,26 @@ static int __devexit ks8851_remove(struct spi_device *spi)
 	}
 
 	unregister_netdev(priv->netdev);
-	free_irq(spi->irq, priv);
+	if (gpio_is_valid(priv->gpio))
+		gpio_set_value(priv->gpio, 0);
+	regulator_disable(priv->vdd_reg);
+	regulator_disable(priv->vdd_io);
 	free_netdev(priv->netdev);
 
 	return 0;
 }
 
+<<<<<<< HEAD
 static struct of_device_id ks8851_match_table[] = {
 	{
 		.compatible = "micrel,ks8851",
 	},
 	{}
+=======
+static const struct of_device_id ks8851_match_table[] = {
+	{ .compatible = "micrel,ks8851" },
+	{ }
+>>>>>>> android-3.18
 };
 
 static struct spi_driver ks8851_driver = {
@@ -1660,25 +1727,12 @@ static struct spi_driver ks8851_driver = {
 		.name = "ks8851",
 		.of_match_table = ks8851_match_table,
 		.owner = THIS_MODULE,
+		.pm = &ks8851_pm_ops,
 	},
 	.probe = ks8851_probe,
-	.remove = __devexit_p(ks8851_remove),
-	.suspend = ks8851_suspend,
-	.resume = ks8851_resume,
+	.remove = ks8851_remove,
 };
-
-static int __init ks8851_init(void)
-{
-	return spi_register_driver(&ks8851_driver);
-}
-
-static void __exit ks8851_exit(void)
-{
-	spi_unregister_driver(&ks8851_driver);
-}
-
-module_init(ks8851_init);
-module_exit(ks8851_exit);
+module_spi_driver(ks8851_driver);
 
 MODULE_DESCRIPTION("KS8851 Network driver");
 MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");

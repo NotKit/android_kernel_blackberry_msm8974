@@ -9,8 +9,9 @@
 #ifndef _ASM_SOCKET_H
 #define _ASM_SOCKET_H
 
-#include <asm/sockios.h>
+#include <uapi/asm/socket.h>
 
+<<<<<<< HEAD
 /*
  * For setsockopt(2)
  *
@@ -92,6 +93,8 @@ To add: #define SO_REUSEPORT 0x0200	/* Allow local address and port reuse.  */
 #define SO_MAX_PACING_RATE	44
 
 #ifdef __KERNEL__
+=======
+>>>>>>> android-3.18
 
 /** sock_type - Socket types
  *
@@ -127,7 +130,5 @@ enum sock_type {
 #define SOCK_NONBLOCK	O_NONBLOCK
 
 #define ARCH_HAS_SOCKET_TYPES 1
-
-#endif /* __KERNEL__ */
 
 #endif /* _ASM_SOCKET_H */

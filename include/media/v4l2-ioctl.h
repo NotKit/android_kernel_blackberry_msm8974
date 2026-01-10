@@ -40,7 +40,7 @@ struct v4l2_ioctl_ops {
 					      struct v4l2_fmtdesc *f);
 	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
 					      struct v4l2_fmtdesc *f);
-	int (*vidioc_enum_fmt_type_private)(struct file *file, void *fh,
+	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
 					    struct v4l2_fmtdesc *f);
 
 	/* VIDIOC_G_FMT handlers */
@@ -64,7 +64,7 @@ struct v4l2_ioctl_ops {
 					   struct v4l2_format *f);
 	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
 					   struct v4l2_format *f);
-	int (*vidioc_g_fmt_type_private)(struct file *file, void *fh,
+	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
 					struct v4l2_format *f);
 
 	/* VIDIOC_S_FMT handlers */
@@ -88,7 +88,7 @@ struct v4l2_ioctl_ops {
 					   struct v4l2_format *f);
 	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
 					   struct v4l2_format *f);
-	int (*vidioc_s_fmt_type_private)(struct file *file, void *fh,
+	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
 					struct v4l2_format *f);
 
 	/* VIDIOC_TRY_FMT handlers */
@@ -112,7 +112,7 @@ struct v4l2_ioctl_ops {
 					     struct v4l2_format *f);
 	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
 					     struct v4l2_format *f);
-	int (*vidioc_try_fmt_type_private)(struct file *file, void *fh,
+	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
 					  struct v4l2_format *f);
 
 	/* Buffer handlers */
@@ -158,6 +158,8 @@ struct v4l2_ioctl_ops {
 		/* Control handling */
 	int (*vidioc_queryctrl)        (struct file *file, void *fh,
 					struct v4l2_queryctrl *a);
+	int (*vidioc_query_ext_ctrl)   (struct file *file, void *fh,
+					struct v4l2_query_ext_ctrl *a);
 	int (*vidioc_g_ctrl)           (struct file *file, void *fh,
 					struct v4l2_control *a);
 	int (*vidioc_s_ctrl)           (struct file *file, void *fh,
@@ -196,7 +198,7 @@ struct v4l2_ioctl_ops {
 	int (*vidioc_g_crop)           (struct file *file, void *fh,
 					struct v4l2_crop *a);
 	int (*vidioc_s_crop)           (struct file *file, void *fh,
-					struct v4l2_crop *a);
+					const struct v4l2_crop *a);
 	int (*vidioc_g_selection)      (struct file *file, void *fh,
 					struct v4l2_selection *s);
 	int (*vidioc_s_selection)      (struct file *file, void *fh,
@@ -255,8 +257,6 @@ struct v4l2_ioctl_ops {
 	int (*vidioc_g_chip_info)      (struct file *file, void *fh,
 					struct v4l2_dbg_chip_info *chip);
 #endif
-	int (*vidioc_g_chip_ident)     (struct file *file, void *fh,
-					struct v4l2_dbg_chip_ident *chip);
 
 	int (*vidioc_enum_framesizes)   (struct file *file, void *fh,
 					 struct v4l2_frmsizeenum *fsize);
@@ -265,15 +265,6 @@ struct v4l2_ioctl_ops {
 					   struct v4l2_frmivalenum *fival);
 
 	/* DV Timings IOCTLs */
-	int (*vidioc_enum_dv_presets) (struct file *file, void *fh,
-				       struct v4l2_dv_enum_preset *preset);
-
-	int (*vidioc_s_dv_preset) (struct file *file, void *fh,
-				   struct v4l2_dv_preset *preset);
-	int (*vidioc_g_dv_preset) (struct file *file, void *fh,
-				   struct v4l2_dv_preset *preset);
-	int (*vidioc_query_dv_preset) (struct file *file, void *fh,
-					struct v4l2_dv_preset *qpreset);
 	int (*vidioc_s_dv_timings) (struct file *file, void *fh,
 				    struct v4l2_dv_timings *timings);
 	int (*vidioc_g_dv_timings) (struct file *file, void *fh,
@@ -284,15 +275,20 @@ struct v4l2_ioctl_ops {
 				    struct v4l2_enum_dv_timings *timings);
 	int (*vidioc_dv_timings_cap) (struct file *file, void *fh,
 				    struct v4l2_dv_timings_cap *cap);
+<<<<<<< HEAD
+=======
+	int (*vidioc_g_edid) (struct file *file, void *fh, struct v4l2_edid *edid);
+	int (*vidioc_s_edid) (struct file *file, void *fh, struct v4l2_edid *edid);
+>>>>>>> android-3.18
 
 	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
-					struct v4l2_event_subscription *sub);
+					const struct v4l2_event_subscription *sub);
 	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
-					struct v4l2_event_subscription *sub);
+					const struct v4l2_event_subscription *sub);
 
 	/* For other private ioctls */
 	long (*vidioc_default)	       (struct file *file, void *fh,
-					bool valid_prio, int cmd, void *arg);
+					bool valid_prio, unsigned int cmd, void *arg);
 };
 
 
@@ -302,6 +298,7 @@ struct v4l2_ioctl_ops {
 #define V4L2_DEBUG_IOCTL     0x01
 #define V4L2_DEBUG_IOCTL_ARG 0x02
 
+<<<<<<< HEAD
 /* Use this macro for non-I2C drivers. Pass the driver name as the first arg. */
 #define v4l_print_ioctl(name, cmd)  		 \
 	do {  					 \
@@ -309,6 +306,8 @@ struct v4l2_ioctl_ops {
 		v4l_printk_ioctl(cmd);		 \
 	} while (0)
 
+=======
+>>>>>>> android-3.18
 /*  Video standard functions  */
 extern const char *v4l2_norm_to_name(v4l2_std_id id);
 extern void v4l2_video_std_frame_period(int id, struct v4l2_fract *frameperiod);
@@ -316,7 +315,16 @@ extern int v4l2_video_std_construct(struct v4l2_standard *vs,
 				    int id, const char *name);
 /* Prints the ioctl in a human-readable format. If prefix != NULL,
    then do printk(KERN_DEBUG "%s: ", prefix) first. */
+<<<<<<< HEAD
 extern void v4l_printk_ioctl(unsigned int cmd);
+=======
+extern void v4l_printk_ioctl(const char *prefix, unsigned int cmd);
+
+/* Internal use only: get the mutex (if any) that we need to lock for the
+   given command. */
+struct video_device;
+extern struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd);
+>>>>>>> android-3.18
 
 /* Internal use only: get the mutex (if any) that we need to lock for the
    given command. */

@@ -120,6 +120,21 @@ enum {
 	RTM_SETDCB,
 #define RTM_SETDCB RTM_SETDCB
 
+<<<<<<< HEAD
+=======
+	RTM_NEWNETCONF = 80,
+#define RTM_NEWNETCONF RTM_NEWNETCONF
+	RTM_GETNETCONF = 82,
+#define RTM_GETNETCONF RTM_GETNETCONF
+
+	RTM_NEWMDB = 84,
+#define RTM_NEWMDB RTM_NEWMDB
+	RTM_DELMDB = 85,
+#define RTM_DELMDB RTM_DELMDB
+	RTM_GETMDB = 86,
+#define RTM_GETMDB RTM_GETMDB
+
+>>>>>>> android-3.18
 	__RTM_MAX,
 #define RTM_MAX		(((__RTM_MAX + 3) & ~3) - 1)
 };
@@ -222,6 +237,10 @@ enum {
 #define RTPROT_XORP	14	/* XORP */
 #define RTPROT_NTK	15	/* Netsukuku */
 #define RTPROT_DHCP	16      /* DHCP client */
+<<<<<<< HEAD
+=======
+#define RTPROT_MROUTED	17      /* Multicast daemon */
+>>>>>>> android-3.18
 
 /* rtm_scope
 
@@ -283,7 +302,11 @@ enum rtattr_type_t {
 	RTA_MP_ALGO, /* no longer used */
 	RTA_TABLE,
 	RTA_MARK,
+<<<<<<< HEAD
 	RTA_UNUSED1, /* RTA_MFC_STATS in later kernels */
+=======
+	RTA_MFC_STATS,
+>>>>>>> android-3.18
 	RTA_VIA,
 	RTA_NEWDST,
 	RTA_PREF,
@@ -381,6 +404,11 @@ enum {
 #define RTAX_RTO_MIN RTAX_RTO_MIN
 	RTAX_INITRWND,
 #define RTAX_INITRWND RTAX_INITRWND
+<<<<<<< HEAD
+=======
+	RTAX_QUICKACK,
+#define RTAX_QUICKACK RTAX_QUICKACK
+>>>>>>> android-3.18
 	__RTAX_MAX
 };
 
@@ -412,6 +440,15 @@ struct rta_session {
 	} u;
 };
 
+<<<<<<< HEAD
+=======
+struct rta_mfc_stats {
+	__u64	mfcs_packets;
+	__u64	mfcs_bytes;
+	__u64	mfcs_wrong_if;
+};
+
+>>>>>>> android-3.18
 /****
  *		General form of address family dependent message.
  ****/
@@ -596,6 +633,15 @@ enum rtnetlink_groups {
 #define RTNLGRP_PHONET_ROUTE	RTNLGRP_PHONET_ROUTE
 	RTNLGRP_DCB,
 #define RTNLGRP_DCB		RTNLGRP_DCB
+<<<<<<< HEAD
+=======
+	RTNLGRP_IPV4_NETCONF,
+#define RTNLGRP_IPV4_NETCONF	RTNLGRP_IPV4_NETCONF
+	RTNLGRP_IPV6_NETCONF,
+#define RTNLGRP_IPV6_NETCONF	RTNLGRP_IPV6_NETCONF
+	RTNLGRP_MDB,
+#define RTNLGRP_MDB		RTNLGRP_MDB
+>>>>>>> android-3.18
 	__RTNLGRP_MAX
 };
 #define RTNLGRP_MAX	(__RTNLGRP_MAX - 1)
@@ -613,6 +659,10 @@ struct tcamsg {
 
 /* New extended info filters for IFLA_EXT_MASK */
 #define RTEXT_FILTER_VF		(1 << 0)
+<<<<<<< HEAD
+=======
+#define RTEXT_FILTER_BRVLAN	(1 << 1)
+>>>>>>> android-3.18
 
 /* End of information exported to user level */
 

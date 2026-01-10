@@ -10,15 +10,14 @@
  * published by the Free Software Foundation.
 */
 
-#include <plat/clock.h>
-#include <plat/regs-watchdog.h>
-#include <mach/map.h>
+#ifndef __PLAT_SAMSUNG_WATCHDOG_RESET_H
+#define __PLAT_SAMSUNG_WATCHDOG_RESET_H
 
-#include <linux/clk.h>
-#include <linux/err.h>
-#include <linux/io.h>
-#include <linux/delay.h>
+extern void samsung_wdt_reset(void);
+extern void samsung_wdt_reset_of_init(void);
+extern void samsung_wdt_reset_init(void __iomem *base);
 
+<<<<<<< HEAD
 static inline void arch_wdt_reset(void)
 {
 	printk("arch_reset: attempting watchdog reset\n");
@@ -44,3 +43,6 @@ static inline void arch_wdt_reset(void)
 	/* delay to allow the serial port to show the message */
 	mdelay(50);
 }
+=======
+#endif /* __PLAT_SAMSUNG_WATCHDOG_RESET_H */
+>>>>>>> android-3.18

@@ -16,6 +16,10 @@
 #include <stdio.h>
 
 #include "../include/asm/required-features.h"
+<<<<<<< HEAD
+=======
+#include "../include/asm/disabled-features.h"
+>>>>>>> android-3.18
 #include "../include/asm/cpufeature.h"
 #include "../kernel/cpu/capflags.c"
 

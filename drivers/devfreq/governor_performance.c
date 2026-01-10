@@ -32,6 +32,7 @@ static int devfreq_performance_handler(struct devfreq *devfreq,
 				unsigned int event, void *data)
 {
 	int ret = 0;
+<<<<<<< HEAD
 	unsigned long freq;
 
 	mutex_lock(&devfreq->lock);
@@ -52,6 +53,15 @@ static int devfreq_performance_handler(struct devfreq *devfreq,
 		break;
 	}
 	mutex_unlock(&devfreq->lock);
+=======
+
+	if (event == DEVFREQ_GOV_START) {
+		mutex_lock(&devfreq->lock);
+		ret = update_devfreq(devfreq);
+		mutex_unlock(&devfreq->lock);
+	}
+
+>>>>>>> android-3.18
 	return ret;
 }
 

@@ -7,7 +7,10 @@
 #define _LINUX_RANDOM_H
 
 #include <uapi/linux/random.h>
+<<<<<<< HEAD
 
+=======
+>>>>>>> android-3.18
 
 extern void add_device_randomness(const void *, unsigned int);
 extern void add_input_randomness(unsigned int type, unsigned int code,
@@ -27,6 +30,7 @@ unsigned int get_random_int(void);
 unsigned long get_random_long(void);
 unsigned long randomize_range(unsigned long start, unsigned long end, unsigned long len);
 
+<<<<<<< HEAD
 u32 prandom_u32(void);
 void prandom_bytes(void *buf, int nbytes);
 void prandom_seed(u32 seed);
@@ -63,6 +67,14 @@ static inline void prandom_seed_state(struct rnd_state *state, u64 seed)
 	state->s2 = __seed(i, 8);
 	state->s3 = __seed(i, 16);
 }
+=======
+/*
+ * This is designed to be standalone for just prandom
+ * users, but for now we include it from <linux/random.h>
+ * for legacy reasons.
+ */
+#include <linux/prandom.h>
+>>>>>>> android-3.18
 
 #ifdef CONFIG_ARCH_RANDOM
 # include <asm/archrandom.h>
@@ -72,6 +84,22 @@ static inline int arch_get_random_long(unsigned long *v)
 	return 0;
 }
 static inline int arch_get_random_int(unsigned int *v)
+{
+	return 0;
+}
+static inline int arch_has_random(void)
+{
+	return 0;
+}
+static inline int arch_get_random_seed_long(unsigned long *v)
+{
+	return 0;
+}
+static inline int arch_get_random_seed_int(unsigned int *v)
+{
+	return 0;
+}
+static inline int arch_has_random_seed(void)
 {
 	return 0;
 }

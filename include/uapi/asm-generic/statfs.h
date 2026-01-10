@@ -13,7 +13,11 @@
  */
 #ifndef __statfs_word
 #if __BITS_PER_LONG == 64
+<<<<<<< HEAD
 #define __statfs_word long
+=======
+#define __statfs_word __kernel_long_t
+>>>>>>> android-3.18
 #else
 #define __statfs_word __u32
 #endif

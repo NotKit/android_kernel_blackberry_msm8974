@@ -1,7 +1,7 @@
 /*
  * PAV alias management for the DASD ECKD discipline
  *
- * Copyright IBM Corporation, 2007
+ * Copyright IBM Corp. 2007
  * Author(s): Stefan Weinhuber <wein@de.ibm.com>
  */
 
@@ -264,8 +264,10 @@ void dasd_alias_disconnect_device_from_lcu(struct dasd_device *device)
 		spin_unlock_irqrestore(&lcu->lock, flags);
 		cancel_work_sync(&lcu->suc_data.worker);
 		spin_lock_irqsave(&lcu->lock, flags);
-		if (device == lcu->suc_data.device)
+		if (device == lcu->suc_data.device) {
+			dasd_put_device(device);
 			lcu->suc_data.device = NULL;
+		}
 	}
 	was_pending = 0;
 	if (device == lcu->ruac_data.device) {
@@ -273,8 +275,10 @@ void dasd_alias_disconnect_device_from_lcu(struct dasd_device *device)
 		was_pending = 1;
 		cancel_delayed_work_sync(&lcu->ruac_data.dwork);
 		spin_lock_irqsave(&lcu->lock, flags);
-		if (device == lcu->ruac_data.device)
+		if (device == lcu->ruac_data.device) {
+			dasd_put_device(device);
 			lcu->ruac_data.device = NULL;
+		}
 	}
 	private->lcu = NULL;
 	spin_unlock_irqrestore(&lcu->lock, flags);
@@ -384,6 +388,29 @@ static void _remove_device_from_lcu(struct alias_lcu *lcu,
 		group->next = NULL;
 };
 
+static int
+suborder_not_supported(struct dasd_ccw_req *cqr)
+{
+	char *sense;
+	char reason;
+	char msg_format;
+	char msg_no;
+
+	sense = dasd_get_sense(&cqr->irb);
+	if (!sense)
+		return 0;
+
+	reason = sense[0];
+	msg_format = (sense[7] & 0xF0);
+	msg_no = (sense[7] & 0x0F);
+
+	/* command reject, Format 0 MSG 4 - invalid parameter */
+	if ((reason == 0x80) && (msg_format == 0x00) && (msg_no == 0x04))
+		return 1;
+
+	return 0;
+}
+
 static int read_unit_address_configuration(struct dasd_device *device,
 					   struct alias_lcu *lcu)
 {
@@ -425,7 +452,7 @@ static int read_unit_address_configuration(struct dasd_device *device,
 	ccw->count = sizeof(*(lcu->uac));
 	ccw->cda = (__u32)(addr_t) lcu->uac;
 
-	cqr->buildclk = get_clock();
+	cqr->buildclk = get_tod_clock();
 	cqr->status = DASD_CQR_FILLED;
 
 	/* need to unset flag here to detect race with summary unit check */
@@ -435,6 +462,8 @@ static int read_unit_address_configuration(struct dasd_device *device,
 
 	do {
 		rc = dasd_sleep_on(cqr);
+		if (rc && suborder_not_supported(cqr))
+			return -EOPNOTSUPP;
 	} while (rc && (cqr->retries > 0));
 	if (rc) {
 		spin_lock_irqsave(&lcu->lock, flags);
@@ -521,11 +550,13 @@ static void lcu_update_work(struct work_struct *work)
 	 * processing the data
 	 */
 	spin_lock_irqsave(&lcu->lock, flags);
-	if (rc || (lcu->flags & NEED_UAC_UPDATE)) {
+	if ((rc && (rc != -EOPNOTSUPP)) || (lcu->flags & NEED_UAC_UPDATE)) {
 		DBF_DEV_EVENT(DBF_WARNING, device, "could not update"
 			    " alias data in lcu (rc = %d), retry later", rc);
-		schedule_delayed_work(&lcu->ruac_data.dwork, 30*HZ);
+		if (!schedule_delayed_work(&lcu->ruac_data.dwork, 30*HZ))
+			dasd_put_device(device);
 	} else {
+		dasd_put_device(device);
 		lcu->ruac_data.device = NULL;
 		lcu->flags &= ~UPDATE_PENDING;
 	}
@@ -568,8 +599,10 @@ static int _schedule_lcu_update(struct alias_lcu *lcu,
 	 */
 	if (!usedev)
 		return -EINVAL;
+	dasd_get_device(usedev);
 	lcu->ruac_data.device = usedev;
-	schedule_delayed_work(&lcu->ruac_data.dwork, 0);
+	if (!schedule_delayed_work(&lcu->ruac_data.dwork, 0))
+		dasd_put_device(usedev);
 	return 0;
 }
 
@@ -697,7 +730,7 @@ static int reset_summary_unit_check(struct alias_lcu *lcu,
 	ASCEBC((char *) &cqr->magic, 4);
 	ccw = cqr->cpaddr;
 	ccw->cmd_code = DASD_ECKD_CCW_RSCK;
-	ccw->flags = 0 ;
+	ccw->flags = CCW_FLAG_SLI;
 	ccw->count = 16;
 	ccw->cda = (__u32)(addr_t) cqr->data;
 	((char *)cqr->data)[0] = reason;
@@ -708,7 +741,7 @@ static int reset_summary_unit_check(struct alias_lcu *lcu,
 	cqr->memdev = device;
 	cqr->block = NULL;
 	cqr->expires = 5 * HZ;
-	cqr->buildclk = get_clock();
+	cqr->buildclk = get_tod_clock();
 	cqr->status = DASD_CQR_FILLED;
 
 	rc = dasd_sleep_on_immediatly(cqr);
@@ -901,6 +934,7 @@ static void summary_unit_check_handling_work(struct work_struct *work)
 	/* 3. read new alias configuration */
 	_schedule_lcu_update(lcu, device);
 	lcu->suc_data.device = NULL;
+	dasd_put_device(device);
 	spin_unlock_irqrestore(&lcu->lock, flags);
 }
 
@@ -960,6 +994,8 @@ void dasd_alias_handle_summary_unit_check(struct dasd_device *device,
 	}
 	lcu->suc_data.reason = reason;
 	lcu->suc_data.device = device;
+	dasd_get_device(device);
 	spin_unlock(&lcu->lock);
-	schedule_work(&lcu->suc_data.worker);
+	if (!schedule_work(&lcu->suc_data.worker))
+		dasd_put_device(device);
 };

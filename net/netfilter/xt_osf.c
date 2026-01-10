@@ -13,13 +13,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/module.h>
 #include <linux/kernel.h>
 
+#include <linux/capability.h>
 #include <linux/if.h>
 #include <linux/inetdevice.h>
 #include <linux/ip.h>
@@ -70,6 +70,9 @@ static int xt_osf_add_callback(struct sock *ctnl, struct sk_buff *skb,
 	struct xt_osf_finger *kf = NULL, *sf;
 	int err = 0;
 
+	if (!capable(CAP_NET_ADMIN))
+		return -EPERM;
+
 	if (!osf_attrs[OSF_ATTR_FINGER])
 		return -EINVAL;
 
@@ -112,6 +115,9 @@ static int xt_osf_remove_callback(struct sock *ctnl, struct sk_buff *skb,
 	struct xt_osf_user_finger *f;
 	struct xt_osf_finger *sf;
 	int err = -ENOENT;
+
+	if (!capable(CAP_NET_ADMIN))
+		return -EPERM;
 
 	if (!osf_attrs[OSF_ATTR_FINGER])
 		return -EINVAL;
@@ -201,6 +207,7 @@ xt_osf_match_packet(const struct sk_buff *skb, struct xt_action_param *p)
 	unsigned char opts[MAX_IPOPTLEN];
 	const struct xt_osf_finger *kf;
 	const struct xt_osf_user_finger *f;
+	struct net *net = dev_net(p->in ? p->in : p->out);
 
 	if (!info)
 		return false;
@@ -269,7 +276,7 @@ xt_osf_match_packet(const struct sk_buff *skb, struct xt_action_param *p)
 						mss <<= 8;
 						mss |= optp[2];
 
-						mss = ntohs(mss);
+						mss = ntohs((__force __be16)mss);
 						break;
 					case OSFOPT_TS:
 						loop_cont = 1;
@@ -325,7 +332,7 @@ xt_osf_match_packet(const struct sk_buff *skb, struct xt_action_param *p)
 			fcount++;
 
 			if (info->flags & XT_OSF_LOG)
-				nf_log_packet(p->family, p->hooknum, skb,
+				nf_log_packet(net, p->family, p->hooknum, skb,
 					p->in, p->out, NULL,
 					"%s [%s:%s] : %pI4:%d -> %pI4:%d hops=%d\n",
 					f->genre, f->version, f->subtype,
@@ -341,7 +348,8 @@ xt_osf_match_packet(const struct sk_buff *skb, struct xt_action_param *p)
 	rcu_read_unlock();
 
 	if (!fcount && (info->flags & XT_OSF_LOG))
-		nf_log_packet(p->family, p->hooknum, skb, p->in, p->out, NULL,
+		nf_log_packet(net, p->family, p->hooknum, skb, p->in,
+			      p->out, NULL,
 			"Remote OS is not known: %pI4:%u -> %pI4:%u\n",
 				&ip->saddr, ntohs(tcp->source),
 				&ip->daddr, ntohs(tcp->dest));
@@ -421,4 +429,6 @@ module_exit(xt_osf_fini);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
 MODULE_DESCRIPTION("Passive OS fingerprint matching.");
+MODULE_ALIAS("ipt_osf");
+MODULE_ALIAS("ip6t_osf");
 MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_OSF);

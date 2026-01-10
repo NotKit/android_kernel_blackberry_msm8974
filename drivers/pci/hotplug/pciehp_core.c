@@ -41,7 +41,11 @@
 bool pciehp_debug;
 bool pciehp_poll_mode;
 int pciehp_poll_time;
+<<<<<<< HEAD
 bool pciehp_force;
+=======
+static bool pciehp_force;
+>>>>>>> android-3.18
 
 #define DRIVER_VERSION	"0.4"
 #define DRIVER_AUTHOR	"Dan Zink <dan.zink@compaq.com>, Greg Kroah-Hartman <greg@kroah.com>, Dely Sy <dely.l.sy@intel.com>"
@@ -69,6 +73,7 @@ static int get_power_status	(struct hotplug_slot *slot, u8 *value);
 static int get_attention_status	(struct hotplug_slot *slot, u8 *value);
 static int get_latch_status	(struct hotplug_slot *slot, u8 *value);
 static int get_adapter_status	(struct hotplug_slot *slot, u8 *value);
+static int reset_slot		(struct hotplug_slot *slot, int probe);
 
 /**
  * release_slot - free up the memory used by a slot
@@ -80,6 +85,10 @@ static void release_slot(struct hotplug_slot *hotplug_slot)
 
 	ctrl_dbg(slot->ctrl, "%s: physical_slot = %s\n",
 		 __func__, hotplug_slot_name(hotplug_slot));
+
+	/* queued work needs hotplug_slot name */
+	cancel_delayed_work(&slot->work);
+	drain_workqueue(slot->wq);
 
 	kfree(hotplug_slot->ops);
 	kfree(hotplug_slot->info);
@@ -107,10 +116,12 @@ static int init_slot(struct controller *ctrl)
 	ops = kzalloc(sizeof(*ops), GFP_KERNEL);
 	if (!ops)
 		goto out;
+
 	ops->enable_slot = enable_slot;
 	ops->disable_slot = disable_slot;
 	ops->get_power_status = get_power_status;
 	ops->get_adapter_status = get_adapter_status;
+	ops->reset_slot = reset_slot;
 	if (MRL_SENS(ctrl))
 		ops->get_latch_status = get_latch_status;
 	if (ATTN_LED(ctrl)) {
@@ -158,7 +169,8 @@ static int set_attention_status(struct hotplug_slot *hotplug_slot, u8 status)
 	ctrl_dbg(slot->ctrl, "%s: physical_slot = %s\n",
 		  __func__, slot_name(slot));
 
-	return pciehp_set_attention_status(slot, status);
+	pciehp_set_attention_status(slot, status);
+	return 0;
 }
 
 
@@ -190,7 +202,8 @@ static int get_power_status(struct hotplug_slot *hotplug_slot, u8 *value)
 	ctrl_dbg(slot->ctrl, "%s: physical_slot = %s\n",
 		  __func__, slot_name(slot));
 
-	return pciehp_get_power_status(slot, value);
+	pciehp_get_power_status(slot, value);
+	return 0;
 }
 
 static int get_attention_status(struct hotplug_slot *hotplug_slot, u8 *value)
@@ -200,7 +213,8 @@ static int get_attention_status(struct hotplug_slot *hotplug_slot, u8 *value)
 	ctrl_dbg(slot->ctrl, "%s: physical_slot = %s\n",
 		  __func__, slot_name(slot));
 
-	return pciehp_get_attention_status(slot, value);
+	pciehp_get_attention_status(slot, value);
+	return 0;
 }
 
 static int get_latch_status(struct hotplug_slot *hotplug_slot, u8 *value)
@@ -210,7 +224,8 @@ static int get_latch_status(struct hotplug_slot *hotplug_slot, u8 *value)
 	ctrl_dbg(slot->ctrl, "%s: physical_slot = %s\n",
 		 __func__, slot_name(slot));
 
-	return pciehp_get_latch_status(slot, value);
+	pciehp_get_latch_status(slot, value);
+	return 0;
 }
 
 static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
@@ -220,7 +235,18 @@ static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
 	ctrl_dbg(slot->ctrl, "%s: physical_slot = %s\n",
 		 __func__, slot_name(slot));
 
-	return pciehp_get_adapter_status(slot, value);
+	pciehp_get_adapter_status(slot, value);
+	return 0;
+}
+
+static int reset_slot(struct hotplug_slot *hotplug_slot, int probe)
+{
+	struct slot *slot = hotplug_slot->private;
+
+	ctrl_dbg(slot->ctrl, "%s: physical_slot = %s\n",
+		 __func__, slot_name(slot));
+
+	return pciehp_reset_slot(slot, probe);
 }
 
 static int pciehp_probe(struct pcie_device *dev)
@@ -255,8 +281,7 @@ static int pciehp_probe(struct pcie_device *dev)
 	rc = init_slot(ctrl);
 	if (rc) {
 		if (rc == -EBUSY)
-			ctrl_warn(ctrl, "Slot already registered by another "
-				  "hotplug driver\n");
+			ctrl_warn(ctrl, "Slot already registered by another hotplug driver\n");
 		else
 			ctrl_err(ctrl, "Slot initialization failed\n");
 		goto err_out_release_ctlr;
@@ -273,8 +298,11 @@ static int pciehp_probe(struct pcie_device *dev)
 	slot = ctrl->slot;
 	pciehp_get_adapter_status(slot, &occupied);
 	pciehp_get_power_status(slot, &poweron);
-	if (occupied && pciehp_force)
+	if (occupied && pciehp_force) {
+		mutex_lock(&slot->hotplug_lock);
 		pciehp_enable_slot(slot);
+		mutex_unlock(&slot->hotplug_lock);
+	}
 	/* If empty slot's power status is on, turn power off */
 	if (!occupied && poweron && POWER_CTRL(ctrl))
 		pciehp_power_off_slot(slot);
@@ -293,37 +321,38 @@ static void pciehp_remove(struct pcie_device *dev)
 {
 	struct controller *ctrl = get_service_data(dev);
 
+	pcie_shutdown_notification(ctrl);
 	cleanup_slot(ctrl);
 	pciehp_release_ctrl(ctrl);
 }
 
 #ifdef CONFIG_PM
-static int pciehp_suspend (struct pcie_device *dev)
+static int pciehp_suspend(struct pcie_device *dev)
 {
-	dev_info(&dev->device, "%s ENTRY\n", __func__);
 	return 0;
 }
 
-static int pciehp_resume (struct pcie_device *dev)
+static int pciehp_resume(struct pcie_device *dev)
 {
-	dev_info(&dev->device, "%s ENTRY\n", __func__);
-	if (pciehp_force) {
-		struct controller *ctrl = get_service_data(dev);
-		struct slot *slot;
-		u8 status;
+	struct controller *ctrl;
+	struct slot *slot;
+	u8 status;
 
-		/* reinitialize the chipset's event detection logic */
-		pcie_enable_notification(ctrl);
+	ctrl = get_service_data(dev);
 
-		slot = ctrl->slot;
+	/* reinitialize the chipset's event detection logic */
+	pcie_reenable_notification(ctrl);
 
-		/* Check if slot is occupied */
-		pciehp_get_adapter_status(slot, &status);
-		if (status)
-			pciehp_enable_slot(slot);
-		else
-			pciehp_disable_slot(slot);
-	}
+	slot = ctrl->slot;
+
+	/* Check if slot is occupied */
+	pciehp_get_adapter_status(slot, &status);
+	mutex_lock(&slot->hotplug_lock);
+	if (status)
+		pciehp_enable_slot(slot);
+	else
+		pciehp_disable_slot(slot);
+	mutex_unlock(&slot->hotplug_lock);
 	return 0;
 }
 #endif /* PM */
@@ -348,8 +377,13 @@ static int __init pcied_init(void)
 
 	pciehp_firmware_init();
 	retval = pcie_port_service_register(&hpdriver_portdrv);
+<<<<<<< HEAD
  	dbg("pcie_port_service_register = %d\n", retval);
   	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
+=======
+	dbg("pcie_port_service_register = %d\n", retval);
+	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
+>>>>>>> android-3.18
 	if (retval)
 		dbg("Failure to register service\n");
 

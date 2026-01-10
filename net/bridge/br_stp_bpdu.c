@@ -140,7 +140,6 @@ void br_send_tcn_bpdu(struct net_bridge_port *p)
 void br_stp_rcv(const struct stp_proto *proto, struct sk_buff *skb,
 		struct net_device *dev)
 {
-	const unsigned char *dest = eth_hdr(skb)->h_dest;
 	struct net_bridge_port *p;
 	struct net_bridge *br;
 	const unsigned char *buf;
@@ -153,7 +152,7 @@ void br_stp_rcv(const struct stp_proto *proto, struct sk_buff *skb,
 	if (buf[0] != 0 || buf[1] != 0 || buf[2] != 0)
 		goto err;
 
-	p = br_port_get_rcu(dev);
+	p = br_port_get_check_rcu(dev);
 	if (!p)
 		goto err;
 
@@ -169,8 +168,15 @@ void br_stp_rcv(const struct stp_proto *proto, struct sk_buff *skb,
 	if (p->state == BR_STATE_DISABLED)
 		goto out;
 
-	if (compare_ether_addr(dest, br->group_addr) != 0)
+	if (!ether_addr_equal(eth_hdr(skb)->h_dest, br->group_addr))
 		goto out;
+
+	if (p->flags & BR_BPDU_GUARD) {
+		br_notice(br, "BPDU received on blocked port %u(%s)\n",
+			  (unsigned int) p->port_no, p->dev->name);
+		br_stp_disable_port(p);
+		goto out;
+	}
 
 	buf = skb_pull(skb, 3);
 

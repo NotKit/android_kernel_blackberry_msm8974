@@ -2,6 +2,10 @@
 #define LINUX_MMC_IOCTL_H
 
 #include <linux/types.h>
+<<<<<<< HEAD
+=======
+#include <linux/major.h>
+>>>>>>> android-3.18
 
 struct mmc_ioc_cmd {
 	/* Implies direction of data.  true = write, false = read */
@@ -47,6 +51,7 @@ struct mmc_ioc_cmd {
 
 #define MMC_IOC_CMD _IOWR(MMC_BLOCK_MAJOR, 0, struct mmc_ioc_cmd)
 
+<<<<<<< HEAD
 /**
  * There are four request types that are applicable for rpmb accesses- two
  * under read category and two under write. They are
@@ -101,6 +106,8 @@ struct mmc_ioc_rpmb {
  */
 #define MMC_IOC_RPMB_CMD _IOWR(MMC_BLOCK_MAJOR, 0, struct mmc_ioc_rpmb)
 
+=======
+>>>>>>> android-3.18
 /*
  * Since this ioctl is only meant to enhance (and not replace) normal access
  * to the mmc bus device, an upper data transfer limit of MMC_IOC_MAX_BYTES

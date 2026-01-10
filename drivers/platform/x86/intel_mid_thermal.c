@@ -416,25 +416,26 @@ static struct thermal_device_info *initialize_sensor(int index)
 	return td_info;
 }
 
+#ifdef CONFIG_PM_SLEEP
 /**
  * mid_thermal_resume - resume routine
- * @pdev: platform device structure
+ * @dev: device structure
  *
  * mid thermal resume: re-initializes the adc. Can sleep.
  */
-static int mid_thermal_resume(struct platform_device *pdev)
+static int mid_thermal_resume(struct device *dev)
 {
-	return mid_initialize_adc(&pdev->dev);
+	return mid_initialize_adc(dev);
 }
 
 /**
  * mid_thermal_suspend - suspend routine
- * @pdev: platform device structure
+ * @dev: device structure
  *
  * mid thermal suspend implements the suspend functionality
  * by stopping the ADC. Can sleep.
  */
-static int mid_thermal_suspend(struct platform_device *pdev, pm_message_t mesg)
+static int mid_thermal_suspend(struct device *dev)
 {
 	/*
 	 * This just stops the ADC and does not disable it.
@@ -443,6 +444,10 @@ static int mid_thermal_suspend(struct platform_device *pdev, pm_message_t mesg)
 	 */
 	return configure_adc(0);
 }
+#endif
+
+static SIMPLE_DEV_PM_OPS(mid_thermal_pm,
+			 mid_thermal_suspend, mid_thermal_resume);
 
 /**
  * read_curr_temp - reads the current temperature and stores in temp
@@ -478,7 +483,8 @@ static int mid_thermal_probe(struct platform_device *pdev)
 	int i;
 	struct platform_info *pinfo;
 
-	pinfo = kzalloc(sizeof(struct platform_info), GFP_KERNEL);
+	pinfo = devm_kzalloc(&pdev->dev, sizeof(struct platform_info),
+			     GFP_KERNEL);
 	if (!pinfo)
 		return -ENOMEM;
 
@@ -486,7 +492,6 @@ static int mid_thermal_probe(struct platform_device *pdev)
 	ret = mid_initialize_adc(&pdev->dev);
 	if (ret) {
 		dev_err(&pdev->dev, "ADC init failed");
-		kfree(pinfo);
 		return ret;
 	}
 
@@ -499,7 +504,7 @@ static int mid_thermal_probe(struct platform_device *pdev)
 			goto err;
 		}
 		pinfo->tzd[i] = thermal_zone_device_register(name[i],
-				0, td_info, &tzd_ops, 0, 0, 0, 0);
+				0, 0, td_info, &tzd_ops, NULL, 0, 0);
 		if (IS_ERR(pinfo->tzd[i])) {
 			kfree(td_info);
 			ret = PTR_ERR(pinfo->tzd[i]);
@@ -517,7 +522,6 @@ err:
 		thermal_zone_device_unregister(pinfo->tzd[i]);
 	}
 	configure_adc(0);
-	kfree(pinfo);
 	return ret;
 }
 
@@ -538,9 +542,6 @@ static int mid_thermal_remove(struct platform_device *pdev)
 		thermal_zone_device_unregister(pinfo->tzd[i]);
 	}
 
-	kfree(pinfo);
-	platform_set_drvdata(pdev, NULL);
-
 	/* Stop the ADC */
 	return configure_adc(0);
 }
@@ -552,16 +553,16 @@ static const struct platform_device_id therm_id_table[] = {
 	{ "msic_thermal", 1 },
 	{ }
 };
+MODULE_DEVICE_TABLE(platform, therm_id_table);
 
 static struct platform_driver mid_thermal_driver = {
 	.driver = {
 		.name = DRIVER_NAME,
 		.owner = THIS_MODULE,
+		.pm = &mid_thermal_pm,
 	},
 	.probe = mid_thermal_probe,
-	.suspend = mid_thermal_suspend,
-	.resume = mid_thermal_resume,
-	.remove = __devexit_p(mid_thermal_remove),
+	.remove = mid_thermal_remove,
 	.id_table = therm_id_table,
 };
 

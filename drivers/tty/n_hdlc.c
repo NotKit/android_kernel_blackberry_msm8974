@@ -598,6 +598,7 @@ static ssize_t n_hdlc_tty_read(struct tty_struct *tty, struct file *file,
 				/* too large for caller's buffer */
 				ret = -EOVERFLOW;
 			} else {
+				__set_current_state(TASK_RUNNING);
 				if (copy_to_user(buf, rbuf->buf, rbuf->count))
 					ret = -EFAULT;
 				else
@@ -836,12 +837,10 @@ static struct n_hdlc *n_hdlc_alloc(void)
 {
 	struct n_hdlc_buf *buf;
 	int i;
-	struct n_hdlc *n_hdlc = kmalloc(sizeof(*n_hdlc), GFP_KERNEL);
+	struct n_hdlc *n_hdlc = kzalloc(sizeof(*n_hdlc), GFP_KERNEL);
 
 	if (!n_hdlc)
 		return NULL;
-
-	memset(n_hdlc, 0, sizeof(*n_hdlc));
 
 	spin_lock_init(&n_hdlc->rx_free_buf_list.spinlock);
 	spin_lock_init(&n_hdlc->tx_free_buf_list.spinlock);
@@ -853,6 +852,19 @@ static struct n_hdlc *n_hdlc_alloc(void)
 	INIT_LIST_HEAD(&n_hdlc->rx_buf_list.list);
 	INIT_LIST_HEAD(&n_hdlc->tx_buf_list.list);
 
+<<<<<<< HEAD
+	spin_lock_init(&n_hdlc->rx_free_buf_list.spinlock);
+	spin_lock_init(&n_hdlc->tx_free_buf_list.spinlock);
+	spin_lock_init(&n_hdlc->rx_buf_list.spinlock);
+	spin_lock_init(&n_hdlc->tx_buf_list.spinlock);
+
+	INIT_LIST_HEAD(&n_hdlc->rx_free_buf_list.list);
+	INIT_LIST_HEAD(&n_hdlc->tx_free_buf_list.list);
+	INIT_LIST_HEAD(&n_hdlc->rx_buf_list.list);
+	INIT_LIST_HEAD(&n_hdlc->tx_buf_list.list);
+
+=======
+>>>>>>> android-3.18
 	/* allocate free rx buffer list */
 	for(i=0;i<DEFAULT_RX_BUF_COUNT;i++) {
 		buf = kmalloc(N_HDLC_BUF_SIZE, GFP_KERNEL);
@@ -947,8 +959,6 @@ static char hdlc_register_ok[] __initdata =
 	KERN_INFO "N_HDLC line discipline registered.\n";
 static char hdlc_register_fail[] __initdata =
 	KERN_ERR "error registering line discipline: %d\n";
-static char hdlc_init_fail[] __initdata =
-	KERN_INFO "N_HDLC: init failure %d\n";
 
 static int __init n_hdlc_init(void)
 {
@@ -968,8 +978,6 @@ static int __init n_hdlc_init(void)
 	else
 		printk(hdlc_register_fail, status);
 
-	if (status)
-		printk(hdlc_init_fail, status);
 	return status;
 	
 }	/* end of init_module() */

@@ -31,7 +31,7 @@
 
 static int setfl(int fd, struct file * filp, unsigned long arg)
 {
-	struct inode * inode = filp->f_path.dentry->d_inode;
+	struct inode * inode = file_inode(filp);
 	int error = 0;
 
 	/*
@@ -57,7 +57,7 @@ static int setfl(int fd, struct file * filp, unsigned long arg)
 				return -EINVAL;
 	}
 
-	if (filp->f_op && filp->f_op->check_flags)
+	if (filp->f_op->check_flags)
 		error = filp->f_op->check_flags(arg);
 	if (error)
 		return error;
@@ -65,8 +65,7 @@ static int setfl(int fd, struct file * filp, unsigned long arg)
 	/*
 	 * ->fasync() is responsible for setting the FASYNC bit.
 	 */
-	if (((arg ^ filp->f_flags) & FASYNC) && filp->f_op &&
-			filp->f_op->fasync) {
+	if (((arg ^ filp->f_flags) & FASYNC) && filp->f_op->fasync) {
 		error = filp->f_op->fasync(fd, filp, (arg & FASYNC) != 0);
 		if (error < 0)
 			goto out;
@@ -99,36 +98,32 @@ static void f_modown(struct file *filp, struct pid *pid, enum pid_type type,
 	write_unlock_irq(&filp->f_owner.lock);
 }
 
-int __f_setown(struct file *filp, struct pid *pid, enum pid_type type,
+void __f_setown(struct file *filp, struct pid *pid, enum pid_type type,
 		int force)
 {
-	int err;
-
-	err = security_file_set_fowner(filp);
-	if (err)
-		return err;
-
+	security_file_set_fowner(filp);
 	f_modown(filp, pid, type, force);
-	return 0;
 }
 EXPORT_SYMBOL(__f_setown);
 
-int f_setown(struct file *filp, unsigned long arg, int force)
+void f_setown(struct file *filp, unsigned long arg, int force)
 {
 	enum pid_type type;
 	struct pid *pid;
 	int who = arg;
-	int result;
 	type = PIDTYPE_PID;
 	if (who < 0) {
+		/* avoid overflow below */
+		if (who == INT_MIN)
+			return;
+
 		type = PIDTYPE_PGID;
 		who = -who;
 	}
 	rcu_read_lock();
 	pid = find_vpid(who);
-	result = __f_setown(filp, pid, type, force);
+	__f_setown(filp, pid, type, force);
 	rcu_read_unlock();
-	return result;
 }
 EXPORT_SYMBOL(f_setown);
 
@@ -150,7 +145,7 @@ pid_t f_getown(struct file *filp)
 
 static int f_setown_ex(struct file *filp, unsigned long arg)
 {
-	struct f_owner_ex * __user owner_p = (void * __user)arg;
+	struct f_owner_ex __user *owner_p = (void __user *)arg;
 	struct f_owner_ex owner;
 	struct pid *pid;
 	int type;
@@ -182,7 +177,7 @@ static int f_setown_ex(struct file *filp, unsigned long arg)
 	if (owner.pid && !pid)
 		ret = -ESRCH;
 	else
-		ret = __f_setown(filp, pid, type, 1);
+		 __f_setown(filp, pid, type, 1);
 	rcu_read_unlock();
 
 	return ret;
@@ -190,7 +185,7 @@ static int f_setown_ex(struct file *filp, unsigned long arg)
 
 static int f_getown_ex(struct file *filp, unsigned long arg)
 {
-	struct f_owner_ex * __user owner_p = (void * __user)arg;
+	struct f_owner_ex __user *owner_p = (void __user *)arg;
 	struct f_owner_ex owner;
 	int ret = 0;
 
@@ -224,6 +219,31 @@ static int f_getown_ex(struct file *filp, unsigned long arg)
 	return ret;
 }
 
+#ifdef CONFIG_CHECKPOINT_RESTORE
+static int f_getowner_uids(struct file *filp, unsigned long arg)
+{
+	struct user_namespace *user_ns = current_user_ns();
+	uid_t __user *dst = (void __user *)arg;
+	uid_t src[2];
+	int err;
+
+	read_lock(&filp->f_owner.lock);
+	src[0] = from_kuid(user_ns, filp->f_owner.uid);
+	src[1] = from_kuid(user_ns, filp->f_owner.euid);
+	read_unlock(&filp->f_owner.lock);
+
+	err  = put_user(src[0], &dst[0]);
+	err |= put_user(src[1], &dst[1]);
+
+	return err;
+}
+#else
+static int f_getowner_uids(struct file *filp, unsigned long arg)
+{
+	return -EINVAL;
+}
+#endif
+
 static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
 		struct file *filp)
 {
@@ -234,7 +254,7 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
 		err = f_dupfd(arg, filp, 0);
 		break;
 	case F_DUPFD_CLOEXEC:
-		err = f_dupfd(arg, filp, FD_CLOEXEC);
+		err = f_dupfd(arg, filp, O_CLOEXEC);
 		break;
 	case F_GETFD:
 		err = get_close_on_exec(fd) ? FD_CLOEXEC : 0;
@@ -278,13 +298,17 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
 		force_successful_syscall_return();
 		break;
 	case F_SETOWN:
-		err = f_setown(filp, arg, 1);
+		f_setown(filp, arg, 1);
+		err = 0;
 		break;
 	case F_GETOWN_EX:
 		err = f_getown_ex(filp, arg);
 		break;
 	case F_SETOWN_EX:
 		err = f_setown_ex(filp, arg);
+		break;
+	case F_GETOWNER_UIDS:
+		err = f_getowner_uids(filp, arg);
 		break;
 	case F_GETSIG:
 		err = filp->f_owner.signum;
@@ -335,29 +359,23 @@ static int check_fcntl_cmd(unsigned cmd)
 
 SYSCALL_DEFINE3(fcntl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
 {	
-	struct file *filp;
+	struct fd f = fdget_raw(fd);
 	long err = -EBADF;
 
-	filp = fget_raw(fd);
-	if (!filp)
+	if (!f.file)
 		goto out;
 
-	if (unlikely(filp->f_mode & FMODE_PATH)) {
-		if (!check_fcntl_cmd(cmd)) {
-			fput(filp);
-			goto out;
-		}
+	if (unlikely(f.file->f_mode & FMODE_PATH)) {
+		if (!check_fcntl_cmd(cmd))
+			goto out1;
 	}
 
-	err = security_file_fcntl(filp, cmd, arg);
-	if (err) {
-		fput(filp);
-		return err;
-	}
+	err = security_file_fcntl(f.file, cmd, arg);
+	if (!err)
+		err = do_fcntl(fd, cmd, arg, f.file);
 
-	err = do_fcntl(fd, cmd, arg, filp);
-
- 	fput(filp);
+out1:
+ 	fdput(f);
 out:
 	return err;
 }
@@ -366,45 +384,39 @@ out:
 SYSCALL_DEFINE3(fcntl64, unsigned int, fd, unsigned int, cmd,
 		unsigned long, arg)
 {	
-	struct file * filp;
-	long err;
+	struct fd f = fdget_raw(fd);
+	long err = -EBADF;
 
-	err = -EBADF;
-	filp = fget_raw(fd);
-	if (!filp)
+	if (!f.file)
 		goto out;
 
-	if (unlikely(filp->f_mode & FMODE_PATH)) {
-		if (!check_fcntl_cmd(cmd)) {
-			fput(filp);
-			goto out;
-		}
+	if (unlikely(f.file->f_mode & FMODE_PATH)) {
+		if (!check_fcntl_cmd(cmd))
+			goto out1;
 	}
 
-	err = security_file_fcntl(filp, cmd, arg);
-	if (err) {
-		fput(filp);
-		return err;
-	}
-	err = -EBADF;
+	err = security_file_fcntl(f.file, cmd, arg);
+	if (err)
+		goto out1;
 	
 	switch (cmd) {
 	case F_GETLK64:
 	case F_OFD_GETLK:
-		err = fcntl_getlk64(filp, cmd, (struct flock64 __user *) arg);
+		err = fcntl_getlk64(f.file, cmd, (struct flock64 __user *) arg);
 		break;
 	case F_SETLK64:
 	case F_SETLKW64:
 	case F_OFD_SETLK:
 	case F_OFD_SETLKW:
-		err = fcntl_setlk64(fd, filp, cmd,
+		err = fcntl_setlk64(fd, f.file, cmd,
 				(struct flock64 __user *) arg);
 		break;
 	default:
-		err = do_fcntl(fd, cmd, arg, filp);
+		err = do_fcntl(fd, cmd, arg, f.file);
 		break;
 	}
-	fput(filp);
+out1:
+	fdput(f);
 out:
 	return err;
 }
@@ -429,9 +441,9 @@ static inline int sigio_perm(struct task_struct *p,
 
 	rcu_read_lock();
 	cred = __task_cred(p);
-	ret = ((fown->euid == 0 ||
-		fown->euid == cred->suid || fown->euid == cred->uid ||
-		fown->uid  == cred->suid || fown->uid  == cred->uid) &&
+	ret = ((uid_eq(fown->euid, GLOBAL_ROOT_UID) ||
+		uid_eq(fown->euid, cred->suid) || uid_eq(fown->euid, cred->uid) ||
+		uid_eq(fown->uid,  cred->suid) || uid_eq(fown->uid,  cred->uid)) &&
 	       !security_file_send_sigiotask(p, fown, sig));
 	rcu_read_unlock();
 	return ret;
@@ -732,15 +744,10 @@ static int __init fcntl_init(void)
 	 * Exceptions: O_NONBLOCK is a two bit define on parisc; O_NDELAY
 	 * is defined as O_NONBLOCK on some platforms and not on others.
 	 */
-	BUILD_BUG_ON(20 - 1 /* for O_RDONLY being 0 */ != HWEIGHT32(
-		O_RDONLY	| O_WRONLY	| O_RDWR	|
-		O_CREAT		| O_EXCL	| O_NOCTTY	|
-		O_TRUNC		| O_APPEND	| /* O_NONBLOCK	| */
-		__O_SYNC	| O_DSYNC	| FASYNC	|
-		O_DIRECT	| O_LARGEFILE	| O_DIRECTORY	|
-		O_NOFOLLOW	| O_NOATIME	| O_CLOEXEC	|
-		__FMODE_EXEC	| O_PATH	| __O_TMPFILE
-		));
+	BUILD_BUG_ON(21 - 1 /* for O_RDONLY being 0 */ !=
+		HWEIGHT32(
+			(VALID_OPEN_FLAGS & ~(O_NONBLOCK | O_NDELAY)) |
+			__FMODE_EXEC | __FMODE_NONOTIFY));
 
 	fasync_cache = kmem_cache_create("fasync_cache",
 		sizeof(struct fasync_struct), 0, SLAB_PANIC, NULL);

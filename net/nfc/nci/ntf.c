@@ -2,6 +2,7 @@
  *  The NFC Controller Interface is the communication protocol between an
  *  NFC Controller (NFCC) and a Device Host (DH).
  *
+ *  Copyright (C) 2014 Marvell International Ltd.
  *  Copyright (C) 2011 Texas Instruments, Inc.
  *
  *  Written by Ilan Elias <ilane@ti.com>
@@ -20,8 +21,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -156,6 +156,24 @@ static __u8 *nci_extract_rf_params_nfcf_passive_poll(struct nci_dev *ndev,
 	return data;
 }
 
+static __u8 *nci_extract_rf_params_nfcv_passive_poll(struct nci_dev *ndev,
+			struct rf_tech_specific_params_nfcv_poll *nfcv_poll,
+						     __u8 *data)
+{
+	++data;
+	nfcv_poll->dsfid = *data++;
+	memcpy(nfcv_poll->uid, data, NFC_ISO15693_UID_MAXSIZE);
+	data += NFC_ISO15693_UID_MAXSIZE;
+	return data;
+}
+
+__u32 nci_get_prop_rf_protocol(struct nci_dev *ndev, __u8 rf_protocol)
+{
+	if (ndev->ops->get_rfprotocol)
+		return ndev->ops->get_rfprotocol(ndev, rf_protocol);
+	return 0;
+}
+
 static int nci_add_new_protocol(struct nci_dev *ndev,
 				struct nfc_target *target,
 				__u8 rf_protocol,
@@ -165,16 +183,26 @@ static int nci_add_new_protocol(struct nci_dev *ndev,
 	struct rf_tech_specific_params_nfca_poll *nfca_poll;
 	struct rf_tech_specific_params_nfcb_poll *nfcb_poll;
 	struct rf_tech_specific_params_nfcf_poll *nfcf_poll;
+	struct rf_tech_specific_params_nfcv_poll *nfcv_poll;
 	__u32 protocol;
 
-	if (rf_protocol == NCI_RF_PROTOCOL_T2T)
+	if (rf_protocol == NCI_RF_PROTOCOL_T1T)
+		protocol = NFC_PROTO_JEWEL_MASK;
+	else if (rf_protocol == NCI_RF_PROTOCOL_T2T)
 		protocol = NFC_PROTO_MIFARE_MASK;
 	else if (rf_protocol == NCI_RF_PROTOCOL_ISO_DEP)
-		protocol = NFC_PROTO_ISO14443_MASK;
+		if (rf_tech_and_mode == NCI_NFC_A_PASSIVE_POLL_MODE)
+			protocol = NFC_PROTO_ISO14443_MASK;
+		else
+			protocol = NFC_PROTO_ISO14443_B_MASK;
 	else if (rf_protocol == NCI_RF_PROTOCOL_T3T)
 		protocol = NFC_PROTO_FELICA_MASK;
+	else if (rf_protocol == NCI_RF_PROTOCOL_NFC_DEP)
+		protocol = NFC_PROTO_NFC_DEP_MASK;
+	else if (rf_protocol == NCI_RF_PROTOCOL_T5T)
+		protocol = NFC_PROTO_ISO15693_MASK;
 	else
-		protocol = 0;
+		protocol = nci_get_prop_rf_protocol(ndev, rf_protocol);
 
 	if (!(protocol & ndev->poll_prots)) {
 		pr_err("the target found does not have the desired protocol\n");
@@ -207,6 +235,12 @@ static int nci_add_new_protocol(struct nci_dev *ndev,
 			memcpy(target->sensf_res, nfcf_poll->sensf_res,
 			       target->sensf_res_len);
 		}
+	} else if (rf_tech_and_mode == NCI_NFC_V_PASSIVE_POLL_MODE) {
+		nfcv_poll = (struct rf_tech_specific_params_nfcv_poll *)params;
+
+		target->is_iso15693 = 1;
+		target->iso15693_dsfid = nfcv_poll->dsfid;
+		memcpy(target->iso15693_uid, nfcv_poll->uid, NFC_ISO15693_UID_MAXSIZE);
 	} else {
 		pr_err("unsupported rf_tech_and_mode 0x%x\n", rf_tech_and_mode);
 		return -EPROTO;
@@ -227,7 +261,7 @@ static void nci_add_new_target(struct nci_dev *ndev,
 
 	for (i = 0; i < ndev->n_targets; i++) {
 		target = &ndev->targets[i];
-		if (target->idx == ntf->rf_discovery_id) {
+		if (target->logical_idx == ntf->rf_discovery_id) {
 			/* This target already exists, add the new protocol */
 			nci_add_new_protocol(ndev, target, ntf->rf_protocol,
 					     ntf->rf_tech_and_mode,
@@ -248,10 +282,10 @@ static void nci_add_new_target(struct nci_dev *ndev,
 				  ntf->rf_tech_and_mode,
 				  &ntf->rf_tech_specific_params);
 	if (!rc) {
-		target->idx = ntf->rf_discovery_id;
+		target->logical_idx = ntf->rf_discovery_id;
 		ndev->n_targets++;
 
-		pr_debug("target_idx %d, n_targets %d\n", target->idx,
+		pr_debug("logical idx %d, n_targets %d\n", target->logical_idx,
 			 ndev->n_targets);
 	}
 }
@@ -297,6 +331,11 @@ static void nci_rf_discover_ntf_packet(struct nci_dev *ndev,
 		case NCI_NFC_F_PASSIVE_POLL_MODE:
 			data = nci_extract_rf_params_nfcf_passive_poll(ndev,
 				&(ntf.rf_tech_specific_params.nfcf_poll), data);
+			break;
+
+		case NCI_NFC_V_PASSIVE_POLL_MODE:
+			data = nci_extract_rf_params_nfcv_passive_poll(ndev,
+				&(ntf.rf_tech_specific_params.nfcv_poll), data);
 			break;
 
 		default:
@@ -358,6 +397,30 @@ static int nci_extract_activation_params_iso_dep(struct nci_dev *ndev,
 	return NCI_STATUS_OK;
 }
 
+static int nci_extract_activation_params_nfc_dep(struct nci_dev *ndev,
+			struct nci_rf_intf_activated_ntf *ntf, __u8 *data)
+{
+	struct activation_params_poll_nfc_dep *poll;
+
+	switch (ntf->activation_rf_tech_and_mode) {
+	case NCI_NFC_A_PASSIVE_POLL_MODE:
+	case NCI_NFC_F_PASSIVE_POLL_MODE:
+		poll = &ntf->activation_params.poll_nfc_dep;
+		poll->atr_res_len = min_t(__u8, *data++, 63);
+		pr_debug("atr_res_len %d\n", poll->atr_res_len);
+		if (poll->atr_res_len > 0)
+			memcpy(poll->atr_res, data, poll->atr_res_len);
+		break;
+
+	default:
+		pr_err("unsupported activation_rf_tech_and_mode 0x%x\n",
+		       ntf->activation_rf_tech_and_mode);
+		return NCI_STATUS_RF_PROTOCOL_ERROR;
+	}
+
+	return NCI_STATUS_OK;
+}
+
 static void nci_target_auto_activated(struct nci_dev *ndev,
 				      struct nci_rf_intf_activated_ntf *ntf)
 {
@@ -372,10 +435,11 @@ static void nci_target_auto_activated(struct nci_dev *ndev,
 	if (rc)
 		return;
 
-	target->idx = ntf->rf_discovery_id;
+	target->logical_idx = ntf->rf_discovery_id;
 	ndev->n_targets++;
 
-	pr_debug("target_idx %d, n_targets %d\n", target->idx, ndev->n_targets);
+	pr_debug("logical idx %d, n_targets %d\n",
+		 target->logical_idx, ndev->n_targets);
 
 	nfc_targets_found(ndev->nfc_dev, ndev->targets, ndev->n_targets);
 }
@@ -424,6 +488,11 @@ static void nci_rf_intf_activated_ntf_packet(struct nci_dev *ndev,
 				&(ntf.rf_tech_specific_params.nfcf_poll), data);
 			break;
 
+		case NCI_NFC_V_PASSIVE_POLL_MODE:
+			data = nci_extract_rf_params_nfcv_passive_poll(ndev,
+				&(ntf.rf_tech_specific_params.nfcv_poll), data);
+			break;
+
 		default:
 			pr_err("unsupported activation_rf_tech_and_mode 0x%x\n",
 			       ntf.activation_rf_tech_and_mode);
@@ -450,6 +519,11 @@ static void nci_rf_intf_activated_ntf_packet(struct nci_dev *ndev,
 								    &ntf, data);
 			break;
 
+		case NCI_RF_INTERFACE_NFC_DEP:
+			err = nci_extract_activation_params_nfc_dep(ndev,
+								    &ntf, data);
+			break;
+
 		case NCI_RF_INTERFACE_FRAME:
 			/* no activation params */
 			break;
@@ -469,6 +543,24 @@ exit:
 
 		/* set the available credits to initial value */
 		atomic_set(&ndev->credits_cnt, ndev->initial_num_credits);
+
+		/* store general bytes to be reported later in dep_link_up */
+		if (ntf.rf_interface == NCI_RF_INTERFACE_NFC_DEP) {
+			ndev->remote_gb_len = 0;
+
+			if (ntf.activation_params_len > 0) {
+				/* ATR_RES general bytes at offset 15 */
+				ndev->remote_gb_len = min_t(__u8,
+					(ntf.activation_params
+					.poll_nfc_dep.atr_res_len
+					- NFC_ATR_RES_GT_OFFSET),
+					NFC_MAX_GT_LEN);
+				memcpy(ndev->remote_gb,
+				       (ntf.activation_params.poll_nfc_dep
+				       .atr_res + NFC_ATR_RES_GT_OFFSET),
+				       ndev->remote_gb_len);
+			}
+		}
 	}
 
 	if (atomic_read(&ndev->state) == NCI_DISCOVERY) {
@@ -496,7 +588,7 @@ static void nci_rf_deactivate_ntf_packet(struct nci_dev *ndev,
 	/* drop partial rx data packet */
 	if (ndev->rx_data_reassembly) {
 		kfree_skb(ndev->rx_data_reassembly);
-		ndev->rx_data_reassembly = 0;
+		ndev->rx_data_reassembly = NULL;
 	}
 
 	/* complete the data exchange transaction, if exists */

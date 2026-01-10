@@ -2,15 +2,29 @@
 # SPMI driver configuration
 #
 menuconfig SPMI
+<<<<<<< HEAD
 	bool "SPMI support"
+=======
+	tristate "SPMI support"
+>>>>>>> android-3.18
 	help
 	  SPMI (System Power Management Interface) is a two-wire
 	  serial interface between baseband and application processors
 	  and Power Management Integrated Circuits (PMIC).
 
 if SPMI
+<<<<<<< HEAD
 config SPMI_MSM_PMIC_ARB
 	tristate "Qualcomm MSM SPMI Controller (PMIC Arbiter)"
+=======
+
+config SPMI_MSM_PMIC_ARB
+	tristate "Qualcomm MSM SPMI Controller (PMIC Arbiter)"
+	depends on ARM
+	depends on IRQ_DOMAIN
+	depends on ARCH_QCOM || COMPILE_TEST
+	default ARCH_QCOM
+>>>>>>> android-3.18
 	help
 	  If you say yes to this option, support will be included for the
 	  built-in SPMI PMIC Arbiter interface on Qualcomm MSM family
@@ -19,6 +33,7 @@ config SPMI_MSM_PMIC_ARB
 	  This is required for communicating with Qualcomm PMICs and
 	  other devices that have the SPMI interface.
 
+<<<<<<< HEAD
 config MSM_QPNP_INT
 	depends on SPARSE_IRQ
 	depends on SPMI
@@ -27,4 +42,6 @@ config MSM_QPNP_INT
 	help
 	  Say 'y' here to include support for the Qualcomm QPNP interrupt
 	  support. QPNP is a SPMI based PMIC implementation.
+=======
+>>>>>>> android-3.18
 endif

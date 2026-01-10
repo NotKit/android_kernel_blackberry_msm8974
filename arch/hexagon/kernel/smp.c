@@ -64,10 +64,6 @@ static inline void __handle_ipi(unsigned long *ops, struct ipi_data *ipi,
 			generic_smp_call_function_interrupt();
 			break;
 
-		case IPI_CALL_FUNC_SINGLE:
-			generic_smp_call_function_single_interrupt();
-			break;
-
 		case IPI_CPU_STOP:
 			/*
 			 * call vmstop()
@@ -146,7 +142,7 @@ void __init smp_prepare_boot_cpu(void)
  * to point to current thread info
  */
 
-void __cpuinit start_secondary(void)
+void start_secondary(void)
 {
 	unsigned int cpu;
 	unsigned long thread_ptr;
@@ -180,13 +176,11 @@ void __cpuinit start_secondary(void)
 
 	notify_cpu_starting(cpu);
 
-	ipi_call_lock();
 	set_cpu_online(cpu, true);
-	ipi_call_unlock();
 
 	local_irq_enable();
 
-	cpu_idle();
+	cpu_startup_entry(CPUHP_ONLINE);
 }
 
 
@@ -196,18 +190,15 @@ void __cpuinit start_secondary(void)
  * maintains control until "cpu_online(cpu)" is set.
  */
 
+<<<<<<< HEAD
 int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
+=======
+int __cpu_up(unsigned int cpu, struct task_struct *idle)
+>>>>>>> android-3.18
 {
-	struct task_struct *idle;
-	struct thread_info *thread;
+	struct thread_info *thread = (struct thread_info *)idle->stack;
 	void *stack_start;
 
-	/*  Create new init task for the CPU  */
-	idle = fork_idle(cpu);
-	if (IS_ERR(idle))
-		panic(KERN_ERR "fork_idle failed\n");
-
-	thread = (struct thread_info *)idle->stack;
 	thread->cpu = cpu;
 
 	/*  Boot to the head.  */
@@ -257,7 +248,7 @@ void smp_send_stop(void)
 
 void arch_send_call_function_single_ipi(int cpu)
 {
-	send_ipi(cpumask_of(cpu), IPI_CALL_FUNC_SINGLE);
+	send_ipi(cpumask_of(cpu), IPI_CALL_FUNC);
 }
 
 void arch_send_call_function_ipi_mask(const struct cpumask *mask)

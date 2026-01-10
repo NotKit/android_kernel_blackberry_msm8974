@@ -10,6 +10,8 @@
 #ifdef CONFIG_GPIOLIB
 
 #include <linux/compiler.h>
+#include <linux/gpio/driver.h>
+#include <linux/gpio/consumer.h>
 
 /* Platforms may implement their GPIO interface with library code,
  * at a small performance cost for non-inlined operations and some
@@ -25,7 +27,7 @@
  */
 
 #ifndef ARCH_NR_GPIOS
-#define ARCH_NR_GPIOS		256
+#define ARCH_NR_GPIOS		512
 #endif
 
 /*
@@ -47,7 +49,9 @@ struct gpio;
 struct seq_file;
 struct module;
 struct device_node;
+struct gpio_desc;
 
+<<<<<<< HEAD
 #ifdef CONFIG_PINCTRL
 /**
  * struct gpio_pin_range - pin range controlled by a gpio chip
@@ -176,6 +180,13 @@ extern struct gpio_chip *gpiochip_find(const void *data,
 					int (*match)(struct gpio_chip *chip,
 						     const void *data));
 
+=======
+/* caller holds gpio_lock *OR* gpio is marked as requested */
+static inline struct gpio_chip *gpio_to_chip(unsigned gpio)
+{
+	return gpiod_to_chip(gpio_to_desc(gpio));
+}
+>>>>>>> android-3.18
 
 /* Always use the library code for GPIO management calls,
  * or when sleeping may be involved.
@@ -183,47 +194,128 @@ extern struct gpio_chip *gpiochip_find(const void *data,
 extern int gpio_request(unsigned gpio, const char *label);
 extern void gpio_free(unsigned gpio);
 
-extern int gpio_direction_input(unsigned gpio);
-extern int gpio_direction_output(unsigned gpio, int value);
+static inline int gpio_direction_input(unsigned gpio)
+{
+	return gpiod_direction_input(gpio_to_desc(gpio));
+}
+static inline int gpio_direction_output(unsigned gpio, int value)
+{
+	return gpiod_direction_output_raw(gpio_to_desc(gpio), value);
+}
 
-extern int gpio_set_debounce(unsigned gpio, unsigned debounce);
+static inline int gpio_set_debounce(unsigned gpio, unsigned debounce)
+{
+	return gpiod_set_debounce(gpio_to_desc(gpio), debounce);
+}
 
-extern int gpio_get_value_cansleep(unsigned gpio);
-extern void gpio_set_value_cansleep(unsigned gpio, int value);
+static inline int gpio_get_value_cansleep(unsigned gpio)
+{
+	return gpiod_get_raw_value_cansleep(gpio_to_desc(gpio));
+}
+static inline void gpio_set_value_cansleep(unsigned gpio, int value)
+{
+	return gpiod_set_raw_value_cansleep(gpio_to_desc(gpio), value);
+}
 
 
 /* A platform's <asm/gpio.h> code may want to inline the I/O calls when
  * the GPIO is constant and refers to some always-present controller,
  * giving direct access to chip registers and tight bitbanging loops.
  */
-extern int __gpio_get_value(unsigned gpio);
-extern void __gpio_set_value(unsigned gpio, int value);
+static inline int __gpio_get_value(unsigned gpio)
+{
+	return gpiod_get_raw_value(gpio_to_desc(gpio));
+}
+static inline void __gpio_set_value(unsigned gpio, int value)
+{
+	return gpiod_set_raw_value(gpio_to_desc(gpio), value);
+}
 
-extern int __gpio_cansleep(unsigned gpio);
+static inline int __gpio_cansleep(unsigned gpio)
+{
+	return gpiod_cansleep(gpio_to_desc(gpio));
+}
 
-extern int __gpio_to_irq(unsigned gpio);
+static inline int __gpio_to_irq(unsigned gpio)
+{
+	return gpiod_to_irq(gpio_to_desc(gpio));
+}
 
 extern int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
 extern int gpio_request_array(const struct gpio *array, size_t num);
 extern void gpio_free_array(const struct gpio *array, size_t num);
 
-/* bindings for managed devices that want to request gpios */
-int devm_gpio_request(struct device *dev, unsigned gpio, const char *label);
-void devm_gpio_free(struct device *dev, unsigned int gpio);
-
-#ifdef CONFIG_GPIO_SYSFS
-
 /*
  * A sysfs interface can be exported by individual drivers if they want,
  * but more typically is configured entirely from userspace.
  */
-extern int gpio_export(unsigned gpio, bool direction_may_change);
-extern int gpio_export_link(struct device *dev, const char *name,
-			unsigned gpio);
-extern int gpio_sysfs_set_active_low(unsigned gpio, int value);
-extern void gpio_unexport(unsigned gpio);
+static inline int gpio_export(unsigned gpio, bool direction_may_change)
+{
+	return gpiod_export(gpio_to_desc(gpio), direction_may_change);
+}
 
-#endif	/* CONFIG_GPIO_SYSFS */
+static inline int gpio_export_link(struct device *dev, const char *name,
+				   unsigned gpio)
+{
+	return gpiod_export_link(dev, name, gpio_to_desc(gpio));
+}
+
+static inline int gpio_sysfs_set_active_low(unsigned gpio, int value)
+{
+	return gpiod_sysfs_set_active_low(gpio_to_desc(gpio), value);
+}
+
+static inline void gpio_unexport(unsigned gpio)
+{
+	gpiod_unexport(gpio_to_desc(gpio));
+}
+
+#ifdef CONFIG_PINCTRL
+
+/**
+ * struct gpio_pin_range - pin range controlled by a gpio chip
+ * @head: list for maintaining set of pin ranges, used internally
+ * @pctldev: pinctrl device which handles corresponding pins
+ * @range: actual range of pins controlled by a gpio controller
+ */
+
+struct gpio_pin_range {
+	struct list_head node;
+	struct pinctrl_dev *pctldev;
+	struct pinctrl_gpio_range range;
+};
+
+int gpiochip_add_pin_range(struct gpio_chip *chip, const char *pinctl_name,
+			   unsigned int gpio_offset, unsigned int pin_offset,
+			   unsigned int npins);
+int gpiochip_add_pingroup_range(struct gpio_chip *chip,
+			struct pinctrl_dev *pctldev,
+			unsigned int gpio_offset, const char *pin_group);
+void gpiochip_remove_pin_ranges(struct gpio_chip *chip);
+
+#else
+
+static inline int
+gpiochip_add_pin_range(struct gpio_chip *chip, const char *pinctl_name,
+		       unsigned int gpio_offset, unsigned int pin_offset,
+		       unsigned int npins)
+{
+	return 0;
+}
+static inline int
+gpiochip_add_pingroup_range(struct gpio_chip *chip,
+			struct pinctrl_dev *pctldev,
+			unsigned int gpio_offset, const char *pin_group)
+{
+	return 0;
+}
+
+static inline void
+gpiochip_remove_pin_ranges(struct gpio_chip *chip)
+{
+}
+
+#endif /* CONFIG_PINCTRL */
 
 #else	/* !CONFIG_GPIOLIB */
 
@@ -255,32 +347,5 @@ static inline void gpio_set_value_cansleep(unsigned gpio, int value)
 }
 
 #endif /* !CONFIG_GPIOLIB */
-
-#ifndef CONFIG_GPIO_SYSFS
-
-struct device;
-
-/* sysfs support is only available with gpiolib, where it's optional */
-
-static inline int gpio_export(unsigned gpio, bool direction_may_change)
-{
-	return -ENOSYS;
-}
-
-static inline int gpio_export_link(struct device *dev, const char *name,
-				unsigned gpio)
-{
-	return -ENOSYS;
-}
-
-static inline int gpio_sysfs_set_active_low(unsigned gpio, int value)
-{
-	return -ENOSYS;
-}
-
-static inline void gpio_unexport(unsigned gpio)
-{
-}
-#endif	/* CONFIG_GPIO_SYSFS */
 
 #endif /* _ASM_GENERIC_GPIO_H */

@@ -58,9 +58,14 @@ Mellon the rights to redistribute these changes without encumbrance.
 #ifndef _CODA_HEADER_
 #define _CODA_HEADER_
 
+<<<<<<< HEAD
 #if defined(__linux__)
 typedef unsigned long long u_quad_t;
 #else
 #endif
+=======
+typedef unsigned long long u_quad_t;
+
+>>>>>>> android-3.18
 #include <uapi/linux/coda.h>
 #endif 

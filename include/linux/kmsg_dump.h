@@ -55,12 +55,23 @@ struct kmsg_dumper {
 #ifdef CONFIG_PRINTK
 void kmsg_dump(enum kmsg_dump_reason reason);
 
+<<<<<<< HEAD
+=======
+bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper, bool syslog,
+			       char *line, size_t size, size_t *len);
+
+>>>>>>> android-3.18
 bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
 			char *line, size_t size, size_t *len);
 
 bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
 			  char *buf, size_t size, size_t *len);
 
+<<<<<<< HEAD
+=======
+void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper);
+
+>>>>>>> android-3.18
 void kmsg_dump_rewind(struct kmsg_dumper *dumper);
 
 int kmsg_dump_register(struct kmsg_dumper *dumper);
@@ -71,19 +82,44 @@ static inline void kmsg_dump(enum kmsg_dump_reason reason)
 {
 }
 
+<<<<<<< HEAD
 bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
 			  const char *line, size_t size, size_t *len)
+=======
+static inline bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper,
+					     bool syslog, const char *line,
+					     size_t size, size_t *len)
+>>>>>>> android-3.18
 {
 	return false;
 }
 
+<<<<<<< HEAD
 bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
 			    char *buf, size_t size, size_t *len)
+=======
+static inline bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
+				const char *line, size_t size, size_t *len)
+>>>>>>> android-3.18
 {
 	return false;
 }
 
+<<<<<<< HEAD
 void kmsg_dump_rewind(struct kmsg_dumper *dumper)
+=======
+static inline bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
+					char *buf, size_t size, size_t *len)
+{
+	return false;
+}
+
+static inline void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper)
+{
+}
+
+static inline void kmsg_dump_rewind(struct kmsg_dumper *dumper)
+>>>>>>> android-3.18
 {
 }
 

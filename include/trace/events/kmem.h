@@ -6,7 +6,7 @@
 
 #include <linux/types.h>
 #include <linux/tracepoint.h>
-#include "gfpflags.h"
+#include <trace/events/gfpflags.h>
 
 DECLARE_EVENT_CLASS(kmem_alloc,
 
@@ -303,6 +303,7 @@ TRACE_EVENT(mm_page_alloc_extfrag,
 		__entry->fallback_migratetype,
 		__entry->fallback_order < pageblock_order,
 		__entry->change_ownership)
+<<<<<<< HEAD
 );
 
 
@@ -412,6 +413,8 @@ DEFINE_EVENT(ion_alloc_error, ion_alloc_buffer_fallback,
 		 long error),
 
 	TP_ARGS(client_name, heap_name, len, mask, flags, error)
+=======
+>>>>>>> android-3.18
 );
 
 DEFINE_EVENT(ion_alloc_error, ion_alloc_buffer_fail,

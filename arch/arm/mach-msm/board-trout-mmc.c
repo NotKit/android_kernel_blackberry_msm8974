@@ -14,8 +14,13 @@
 #include <asm/io.h>
 
 #include <mach/vreg.h>
+<<<<<<< HEAD
 #include <mach/proc_comm.h>
 #include <mach/mmc.h>
+=======
+
+#include <linux/platform_data/mmc-msm_sdcc.h>
+>>>>>>> android-3.18
 
 #include "devices.h"
 

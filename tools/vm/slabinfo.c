@@ -29,8 +29,8 @@ struct slabinfo {
 	int alias;
 	int refs;
 	int aliases, align, cache_dma, cpu_slabs, destroy_by_rcu;
-	int hwcache_align, object_size, objs_per_slab;
-	int sanity_checks, slab_size, store_user, trace;
+	unsigned int hwcache_align, object_size, objs_per_slab;
+	unsigned int sanity_checks, slab_size, store_user, trace;
 	int order, poison, reclaim_account, red_zone;
 	unsigned long partial, objects, slabs, objects_partial, objects_total;
 	unsigned long alloc_fastpath, alloc_slowpath;
@@ -437,34 +437,34 @@ static void slab_stats(struct slabinfo *s)
 	printf("Fastpath             %8lu %8lu %3lu %3lu\n",
 		s->alloc_fastpath, s->free_fastpath,
 		s->alloc_fastpath * 100 / total_alloc,
-		s->free_fastpath * 100 / total_free);
+		total_free ? s->free_fastpath * 100 / total_free : 0);
 	printf("Slowpath             %8lu %8lu %3lu %3lu\n",
 		total_alloc - s->alloc_fastpath, s->free_slowpath,
 		(total_alloc - s->alloc_fastpath) * 100 / total_alloc,
-		s->free_slowpath * 100 / total_free);
+		total_free ? s->free_slowpath * 100 / total_free : 0);
 	printf("Page Alloc           %8lu %8lu %3lu %3lu\n",
 		s->alloc_slab, s->free_slab,
 		s->alloc_slab * 100 / total_alloc,
-		s->free_slab * 100 / total_free);
+		total_free ? s->free_slab * 100 / total_free : 0);
 	printf("Add partial          %8lu %8lu %3lu %3lu\n",
 		s->deactivate_to_head + s->deactivate_to_tail,
 		s->free_add_partial,
 		(s->deactivate_to_head + s->deactivate_to_tail) * 100 / total_alloc,
-		s->free_add_partial * 100 / total_free);
+		total_free ? s->free_add_partial * 100 / total_free : 0);
 	printf("Remove partial       %8lu %8lu %3lu %3lu\n",
 		s->alloc_from_partial, s->free_remove_partial,
 		s->alloc_from_partial * 100 / total_alloc,
-		s->free_remove_partial * 100 / total_free);
+		total_free ? s->free_remove_partial * 100 / total_free : 0);
 
 	printf("Cpu partial list     %8lu %8lu %3lu %3lu\n",
 		s->cpu_partial_alloc, s->cpu_partial_free,
 		s->cpu_partial_alloc * 100 / total_alloc,
-		s->cpu_partial_free * 100 / total_free);
+		total_free ? s->cpu_partial_free * 100 / total_free : 0);
 
 	printf("RemoteObj/SlabFrozen %8lu %8lu %3lu %3lu\n",
 		s->deactivate_remote_frees, s->free_frozen,
 		s->deactivate_remote_frees * 100 / total_alloc,
-		s->free_frozen * 100 / total_free);
+		total_free ? s->free_frozen * 100 / total_free : 0);
 
 	printf("Total                %8lu %8lu\n\n", total_alloc, total_free);
 
@@ -493,10 +493,11 @@ static void slab_stats(struct slabinfo *s)
 			s->alloc_node_mismatch, (s->alloc_node_mismatch * 100) / total);
 	}
 
-	if (s->cmpxchg_double_fail || s->cmpxchg_double_cpu_fail)
+	if (s->cmpxchg_double_fail || s->cmpxchg_double_cpu_fail) {
 		printf("\nCmpxchg_double Looping\n------------------------\n");
 		printf("Locked Cmpxchg Double redos   %lu\nUnlocked Cmpxchg Double redos %lu\n",
 			s->cmpxchg_double_fail, s->cmpxchg_double_cpu_fail);
+	}
 }
 
 static void report(struct slabinfo *s)

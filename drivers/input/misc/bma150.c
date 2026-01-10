@@ -170,6 +170,7 @@
 #define BMA150_RANGE_4G			1
 #define BMA150_RANGE_8G			2
 
+<<<<<<< HEAD
 #define BMA150_BW_25HZ		0
 #define BMA150_BW_50HZ		1
 #define BMA150_BW_100HZ		2
@@ -179,6 +180,36 @@
 #define BMA150_BW_1500HZ	6
 
 /* mode settings */
+=======
+#define BMA150_MODE_NORMAL	0
+#define BMA150_MODE_SLEEP	2
+#define BMA150_MODE_WAKE_UP	3
+
+/* Data register addresses */
+#define BMA150_DATA_0_REG	0x00
+#define BMA150_DATA_1_REG	0x01
+#define BMA150_DATA_2_REG	0x02
+
+/* Control register addresses */
+#define BMA150_CTRL_0_REG	0x0A
+#define BMA150_CTRL_1_REG	0x0B
+#define BMA150_CTRL_2_REG	0x14
+#define BMA150_CTRL_3_REG	0x15
+
+/* Configuration/Setting register addresses */
+#define BMA150_CFG_0_REG	0x0C
+#define BMA150_CFG_1_REG	0x0D
+#define BMA150_CFG_2_REG	0x0E
+#define BMA150_CFG_3_REG	0x0F
+#define BMA150_CFG_4_REG	0x10
+#define BMA150_CFG_5_REG	0x11
+
+#define BMA150_CHIP_ID		2
+#define BMA180_CHIP_ID		3
+#define BMA150_CHIP_ID_REG	BMA150_DATA_0_REG
+
+#define BMA150_ACC_X_LSB_REG	BMA150_DATA_2_REG
+>>>>>>> android-3.18
 
 #define BMA150_MODE_NORMAL      0
 #define BMA150_MODE_SLEEP       2
@@ -309,7 +340,30 @@ static int bma150_get_range(struct i2c_client *client, unsigned char *Range)
 
 		*Range = BMA150_GET_BITSLICE(data, BMA150_RANGE);
 
+<<<<<<< HEAD
 	}
+=======
+/*
+ * The settings for the given range, bandwidth and interrupt features
+ * are stated and verified by Bosch Sensortec where they are configured
+ * to provide a generic sensitivity performance.
+ */
+static struct bma150_cfg default_cfg = {
+	.any_motion_int = 1,
+	.hg_int = 1,
+	.lg_int = 1,
+	.any_motion_dur = 0,
+	.any_motion_thres = 0,
+	.hg_hyst = 0,
+	.hg_dur = 150,
+	.hg_thres = 160,
+	.lg_hyst = 0,
+	.lg_dur = 150,
+	.lg_thres = 20,
+	.range = BMA150_RANGE_2G,
+	.bandwidth = BMA150_BW_50HZ
+};
+>>>>>>> android-3.18
 
 	return comres;
 }
@@ -360,8 +414,12 @@ static int bma150_get_bandwidth(struct i2c_client *client, unsigned char *BW)
 	return comres;
 }
 
+<<<<<<< HEAD
 static int bma150_read_accel_xyz(struct i2c_client *client,
 		struct bma150acc *acc)
+=======
+static int bma150_soft_reset(struct bma150_data *bma150)
+>>>>>>> android-3.18
 {
 	int comres;
 	unsigned char data[6];
@@ -403,14 +461,31 @@ static int bma150_read_accel_xyz(struct i2c_client *client,
 	return comres;
 }
 
+<<<<<<< HEAD
 static void bma150_work_func(struct work_struct *work)
+=======
+static int bma150_set_range(struct bma150_data *bma150, u8 range)
+>>>>>>> android-3.18
 {
 	struct bma150_data *bma150 = container_of((struct delayed_work *)work,
 			struct bma150_data, work);
 	static struct bma150acc acc;
 	unsigned long delay = msecs_to_jiffies(atomic_read(&bma150->delay));
 
+<<<<<<< HEAD
 
+=======
+static int bma150_set_bandwidth(struct bma150_data *bma150, u8 bw)
+{
+	return bma150_set_reg_bits(bma150->client, bw, BMA150_BANDWIDTH_POS,
+				BMA150_BANDWIDTH_MSK, BMA150_BANDWIDTH_REG);
+}
+
+static int bma150_set_low_g_interrupt(struct bma150_data *bma150,
+					u8 enable, u8 hyst, u8 dur, u8 thres)
+{
+	int error;
+>>>>>>> android-3.18
 
 	bma150_read_accel_xyz(bma150->bma150_client, &acc);
 	input_report_abs(bma150->input, ABS_X, acc.x);
@@ -437,9 +512,14 @@ static ssize_t bma150_mode_show(struct device *dev,
 	return sprintf(buf, "%d\n", data);
 }
 
+<<<<<<< HEAD
 static ssize_t bma150_mode_store(struct device *dev,
 		struct device_attribute *attr,
 		const char *buf, size_t count)
+=======
+static int bma150_set_high_g_interrupt(struct bma150_data *bma150,
+					u8 enable, u8 hyst, u8 dur, u8 thres)
+>>>>>>> android-3.18
 {
 	unsigned long data;
 	int error;
@@ -468,9 +548,14 @@ static ssize_t bma150_range_show(struct device *dev,
 	return sprintf(buf, "%d\n", data);
 }
 
+<<<<<<< HEAD
 static ssize_t bma150_range_store(struct device *dev,
 		struct device_attribute *attr,
 		const char *buf, size_t count)
+=======
+static int bma150_set_any_motion_interrupt(struct bma150_data *bma150,
+						u8 enable, u8 dur, u8 thres)
+>>>>>>> android-3.18
 {
 	unsigned long data;
 	int error;
@@ -509,8 +594,13 @@ static ssize_t bma150_bandwidth_store(struct device *dev,
 	struct i2c_client *client = to_i2c_client(dev);
 	struct bma150_data *bma150 = i2c_get_clientdata(client);
 
+<<<<<<< HEAD
 	error = strict_strtoul(buf, 10, &data);
 	if (error)
+=======
+	error = pm_runtime_get_sync(&bma150->client->dev);
+	if (error < 0 && error != -ENOSYS)
+>>>>>>> android-3.18
 		return error;
 	if (bma150_set_bandwidth(bma150->bma150_client,
 				(unsigned char) data) < 0)
@@ -546,9 +636,14 @@ static ssize_t bma150_delay_show(struct device *dev,
 
 }
 
+<<<<<<< HEAD
 static ssize_t bma150_delay_store(struct device *dev,
 		struct device_attribute *attr,
 		const char *buf, size_t count)
+=======
+static int bma150_initialize(struct bma150_data *bma150,
+				       const struct bma150_cfg *cfg)
+>>>>>>> android-3.18
 {
 	unsigned long data;
 	int error;
@@ -562,6 +657,7 @@ static ssize_t bma150_delay_store(struct device *dev,
 		data = BMA150_MAX_DELAY;
 	atomic_set(&bma150->delay, (unsigned int) data);
 
+<<<<<<< HEAD
 	return count;
 }
 
@@ -584,6 +680,50 @@ static struct attribute *bma150_attributes[] = {
 	&dev_attr_delay.attr,
 	NULL
 };
+=======
+	if (bma150->client->irq) {
+		error = bma150_set_any_motion_interrupt(bma150,
+					cfg->any_motion_int,
+					cfg->any_motion_dur,
+					cfg->any_motion_thres);
+		if (error)
+			return error;
+
+		error = bma150_set_high_g_interrupt(bma150,
+					cfg->hg_int, cfg->hg_hyst,
+					cfg->hg_dur, cfg->hg_thres);
+		if (error)
+			return error;
+
+		error = bma150_set_low_g_interrupt(bma150,
+					cfg->lg_int, cfg->lg_hyst,
+					cfg->lg_dur, cfg->lg_thres);
+		if (error)
+			return error;
+	}
+
+	return bma150_set_mode(bma150, BMA150_MODE_SLEEP);
+}
+
+static void bma150_init_input_device(struct bma150_data *bma150,
+						struct input_dev *idev)
+{
+	idev->name = BMA150_DRIVER;
+	idev->phys = BMA150_DRIVER "/input0";
+	idev->id.bustype = BUS_I2C;
+	idev->dev.parent = &bma150->client->dev;
+
+	idev->evbit[0] = BIT_MASK(EV_ABS);
+	input_set_abs_params(idev, ABS_X, ABSMIN_ACC_VAL, ABSMAX_ACC_VAL, 0, 0);
+	input_set_abs_params(idev, ABS_Y, ABSMIN_ACC_VAL, ABSMAX_ACC_VAL, 0, 0);
+	input_set_abs_params(idev, ABS_Z, ABSMIN_ACC_VAL, ABSMAX_ACC_VAL, 0, 0);
+}
+
+static int bma150_register_input_device(struct bma150_data *bma150)
+{
+	struct input_dev *idev;
+	int error;
+>>>>>>> android-3.18
 
 static struct attribute_group bma150_attribute_group = {
 	.attrs = bma150_attributes
@@ -597,12 +737,26 @@ static int bma150_detect(struct i2c_client *client,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C))
 		return -ENODEV;
 
+<<<<<<< HEAD
 	strlcpy(info->type, SENSOR_NAME, I2C_NAME_SIZE);
+=======
+	bma150->input = idev;
+
+	error = input_register_device(idev);
+	if (error) {
+		input_free_device(idev);
+		return error;
+	}
+>>>>>>> android-3.18
 
 	return 0;
 }
 
+<<<<<<< HEAD
 static int bma150_input_init(struct bma150_data *bma150)
+=======
+static int bma150_register_polled_device(struct bma150_data *bma150)
+>>>>>>> android-3.18
 {
 	struct input_dev *dev;
 	int err;
@@ -610,6 +764,7 @@ static int bma150_input_init(struct bma150_data *bma150)
 	dev = input_allocate_device();
 	if (!dev)
 		return -ENOMEM;
+<<<<<<< HEAD
 	dev->name = SENSOR_NAME;
 	dev->id.bustype = BUS_I2C;
 
@@ -625,10 +780,32 @@ static int bma150_input_init(struct bma150_data *bma150)
 		return err;
 	}
 	bma150->input = dev;
+=======
+
+	ipoll_dev->private = bma150;
+	ipoll_dev->open = bma150_poll_open;
+	ipoll_dev->close = bma150_poll_close;
+	ipoll_dev->poll = bma150_poll;
+	ipoll_dev->poll_interval = BMA150_POLL_INTERVAL;
+	ipoll_dev->poll_interval_min = BMA150_POLL_MIN;
+	ipoll_dev->poll_interval_max = BMA150_POLL_MAX;
+
+	bma150_init_input_device(bma150, ipoll_dev->input);
+
+	bma150->input_polled = ipoll_dev;
+	bma150->input = ipoll_dev->input;
+
+	error = input_register_polled_device(ipoll_dev);
+	if (error) {
+		input_free_polled_device(ipoll_dev);
+		return error;
+	}
+>>>>>>> android-3.18
 
 	return 0;
 }
 
+<<<<<<< HEAD
 static void bma150_input_delete(struct bma150_data *bma150)
 {
 	struct input_dev *dev = bma150->input;
@@ -643,15 +820,34 @@ static int bma150_probe(struct i2c_client *client,
 	int err = 0;
 	int tempvalue;
 	struct bma150_data *data;
+=======
+static int bma150_probe(struct i2c_client *client,
+				  const struct i2c_device_id *id)
+{
+	const struct bma150_platform_data *pdata =
+			dev_get_platdata(&client->dev);
+	const struct bma150_cfg *cfg;
+	struct bma150_data *bma150;
+	int chip_id;
+	int error;
+>>>>>>> android-3.18
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		printk(KERN_INFO "i2c_check_functionality error\n");
 		goto exit;
 	}
+<<<<<<< HEAD
 	data = kzalloc(sizeof(struct bma150_data), GFP_KERNEL);
 	if (!data) {
 		err = -ENOMEM;
 		goto exit;
+=======
+
+	chip_id = i2c_smbus_read_byte_data(client, BMA150_CHIP_ID_REG);
+	if (chip_id != BMA150_CHIP_ID && chip_id != BMA180_CHIP_ID) {
+		dev_err(&client->dev, "BMA150 chip id error: %d\n", chip_id);
+		return -EINVAL;
+>>>>>>> android-3.18
 	}
 
 	i2c_set_clientdata(client, data);
@@ -707,7 +903,11 @@ exit:
 	return err;
 }
 
+<<<<<<< HEAD
 static int bma150_suspend(struct i2c_client *client, pm_message_t mesg)
+=======
+static int bma150_remove(struct i2c_client *client)
+>>>>>>> android-3.18
 {
 	struct bma150_data *data = i2c_get_clientdata(client);
 
@@ -754,7 +954,14 @@ static int bma150_remove(struct i2c_client *client)
 }
 
 static const struct i2c_device_id bma150_id[] = {
+<<<<<<< HEAD
 	{ SENSOR_NAME, 0 },
+=======
+	{ "bma150", 0 },
+	{ "bma180", 0 },
+	{ "smb380", 0 },
+	{ "bma023", 0 },
+>>>>>>> android-3.18
 	{ }
 };
 
@@ -769,9 +976,12 @@ static struct i2c_driver bma150_driver = {
 	.id_table	= bma150_id,
 	.probe		= bma150_probe,
 	.remove		= bma150_remove,
+<<<<<<< HEAD
 	.detect		= bma150_detect,
 	.suspend    = bma150_suspend,
 	.resume     = bma150_resume,
+=======
+>>>>>>> android-3.18
 };
 
 static int __init BMA150_init(void)

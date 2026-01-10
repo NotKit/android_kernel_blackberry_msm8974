@@ -1,1 +1,5 @@
 # UAPI Header export list
+<<<<<<< HEAD
+=======
+header-y += ioctl.h
+>>>>>>> android-3.18

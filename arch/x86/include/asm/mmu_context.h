@@ -3,9 +3,16 @@
 
 #include <asm/desc.h>
 #include <linux/atomic.h>
+#include <linux/mm_types.h>
+
+#include <trace/events/tlb.h>
+
 #include <asm/pgalloc.h>
 #include <asm/tlbflush.h>
 #include <asm/paravirt.h>
+
+extern atomic64_t last_mm_ctx_id;
+
 #ifndef CONFIG_PARAVIRT
 #include <asm-generic/mm_hooks.h>
 
@@ -34,9 +41,14 @@ static inline void load_mm_ldt(struct mm_struct *mm)
 {
 	struct ldt_struct *ldt;
 
+<<<<<<< HEAD
 	/* smp_read_barrier_depends synchronizes with barrier in install_ldt */
 	ldt = ACCESS_ONCE(mm->context.ldt);
 	smp_read_barrier_depends();
+=======
+	/* lockless_dereference synchronizes with smp_store_release */
+	ldt = lockless_dereference(mm->context.ldt);
+>>>>>>> android-3.18
 
 	/*
 	 * Any change to mm->context.ldt is followed by an IPI to all
@@ -70,23 +82,15 @@ void destroy_context(struct mm_struct *mm);
 static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
 {
 #ifdef CONFIG_SMP
-	if (percpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
-		percpu_write(cpu_tlbstate.state, TLBSTATE_LAZY);
+	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
+		this_cpu_write(cpu_tlbstate.state, TLBSTATE_LAZY);
 #endif
 }
 
-static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
-{
-	unsigned cpu = smp_processor_id();
+extern void switch_mm(struct mm_struct *prev, struct mm_struct *next,
+		      struct task_struct *tsk);
 
-	if (likely(prev != next)) {
-#ifdef CONFIG_SMP
-		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
-		percpu_write(cpu_tlbstate.active_mm, next);
-#endif
-		cpumask_set_cpu(cpu, mm_cpumask(next));
-
+<<<<<<< HEAD
 		/* Re-load page tables */
 		load_cr3(next->pgd);
 
@@ -115,6 +119,11 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	}
 #endif
 }
+=======
+extern void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
+			       struct task_struct *tsk);
+#define switch_mm_irqs_off switch_mm_irqs_off
+>>>>>>> android-3.18
 
 #define activate_mm(prev, next)			\
 do {						\

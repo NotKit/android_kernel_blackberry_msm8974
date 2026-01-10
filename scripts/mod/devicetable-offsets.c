@@ -159,6 +159,11 @@ int main(void)
 	DEVID_FIELD(isapnp_device_id, vendor);
 	DEVID_FIELD(isapnp_device_id, function);
 
+	DEVID(ipack_device_id);
+	DEVID_FIELD(ipack_device_id, format);
+	DEVID_FIELD(ipack_device_id, vendor);
+	DEVID_FIELD(ipack_device_id, device);
+
 	DEVID(amba_id);
 	DEVID_FIELD(amba_id, id);
 	DEVID_FIELD(amba_id, mask);
@@ -168,6 +173,18 @@ int main(void)
 	DEVID_FIELD(x86_cpu_id, family);
 	DEVID_FIELD(x86_cpu_id, model);
 	DEVID_FIELD(x86_cpu_id, vendor);
+
+	DEVID(cpu_feature);
+	DEVID_FIELD(cpu_feature, feature);
+
+	DEVID(mei_cl_device_id);
+	DEVID_FIELD(mei_cl_device_id, name);
+
+	DEVID(rio_device_id);
+	DEVID_FIELD(rio_device_id, did);
+	DEVID_FIELD(rio_device_id, vid);
+	DEVID_FIELD(rio_device_id, asm_did);
+	DEVID_FIELD(rio_device_id, asm_vid);
 
 	return 0;
 }

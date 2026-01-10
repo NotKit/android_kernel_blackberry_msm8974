@@ -6,7 +6,8 @@
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; only version 2 of the License.
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,8 +31,6 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/timer.h>
-
-#define STRING_LENGTH_OF_INT 12
 
 /*
  * fill ring buffer with silence
@@ -175,7 +174,7 @@ static void xrun(struct snd_pcm_substream *substream)
 	if (xrun_debug(substream, XRUN_DEBUG_BASIC)) {
 		char name[16];
 		snd_pcm_debug_name(substream, name, sizeof(name));
-		snd_printd(KERN_DEBUG "XRUN: %s\n", name);
+		pcm_warn(substream->pcm, "XRUN: %s\n", name);
 		dump_stack_on_xrun(substream);
 	}
 }
@@ -185,9 +184,7 @@ static void xrun(struct snd_pcm_substream *substream)
 	do {								\
 		if (xrun_debug(substream, XRUN_DEBUG_BASIC)) {		\
 			xrun_log_show(substream);			\
-			if (printk_ratelimit()) {			\
-				snd_printd("PCM: " fmt, ##args);	\
-			}						\
+			pr_err_ratelimited("ALSA: PCM: " fmt, ##args);	\
 			dump_stack_on_xrun(substream);			\
 		}							\
 	} while (0)
@@ -254,7 +251,7 @@ static void xrun_log_show(struct snd_pcm_substream *substream)
 		entry = &log->entries[idx];
 		if (entry->period_size == 0)
 			break;
-		snd_printd("hwptr log: %s: %sj=%lu, pos=%ld/%ld/%ld, "
+		pr_info("hwptr log: %s: %sj=%lu, pos=%ld/%ld/%ld, "
 			   "hwptr=%ld/%ld\n",
 			   name, entry->in_interrupt ? "[Q] " : "",
 			   entry->jiffies,
@@ -347,10 +344,10 @@ static int snd_pcm_update_hw_ptr0(struct snd_pcm_substream *substream,
 			char name[16];
 			snd_pcm_debug_name(substream, name, sizeof(name));
 			xrun_log_show(substream);
-			snd_printd(KERN_ERR  "BUG: %s, pos = %ld, "
-				   "buffer size = %ld, period size = %ld\n",
-				   name, pos, runtime->buffer_size,
-				   runtime->period_size);
+			pcm_err(substream->pcm,
+				"XRUN: %s, pos = %ld, buffer size = %ld, period size = %ld\n",
+				name, pos, runtime->buffer_size,
+				runtime->period_size);
 		}
 		pos = 0;
 	}
@@ -395,8 +392,8 @@ static int snd_pcm_update_hw_ptr0(struct snd_pcm_substream *substream,
 			XRUN_DEBUG_PERIODUPDATE : XRUN_DEBUG_HWPTRUPDATE)) {
 		char name[16];
 		snd_pcm_debug_name(substream, name, sizeof(name));
-		snd_printd("%s_update: %s: pos=%u/%u/%u, "
-			   "hwptr=%ld/%ld/%ld/%ld\n",
+		pcm_dbg(substream->pcm,
+			"%s_update: %s: pos=%u/%u/%u, hwptr=%ld/%ld/%ld/%ld\n",
 			   in_interrupt ? "period" : "hwptr",
 			   name,
 			   (unsigned int)pos,
@@ -504,8 +501,10 @@ static int snd_pcm_update_hw_ptr0(struct snd_pcm_substream *substream,
 	}
 
  no_delta_check:
-	if (runtime->status->hw_ptr == new_hw_ptr)
+	if (runtime->status->hw_ptr == new_hw_ptr) {
+		runtime->hw_ptr_jiffies = curr_jiffies;
 		return 0;
+	}
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK &&
 	    runtime->silence_size > 0)
@@ -569,7 +568,8 @@ int snd_pcm_update_hw_ptr(struct snd_pcm_substream *substream)
  *
  * Sets the given PCM operators to the pcm instance.
  */
-void snd_pcm_set_ops(struct snd_pcm *pcm, int direction, struct snd_pcm_ops *ops)
+void snd_pcm_set_ops(struct snd_pcm *pcm, int direction,
+		     const struct snd_pcm_ops *ops)
 {
 	struct snd_pcm_str *stream = &pcm->streams[direction];
 	struct snd_pcm_substream *substream;
@@ -646,7 +646,6 @@ static inline unsigned int muldiv32(unsigned int a, unsigned int b,
 {
 	u_int64_t n = (u_int64_t) a * b;
 	if (c == 0) {
-		snd_BUG_ON(!n);
 		*r = 0;
 		return UINT_MAX;
 	}
@@ -667,7 +666,8 @@ static inline unsigned int muldiv32(unsigned int a, unsigned int b,
  * The interval is changed to the range satisfying both intervals.
  * The interval status (min, max, integer, etc.) are evaluated.
  *
- * Returns non-zero if the value is changed, zero if not changed.
+ * Return: Positive if the value is changed, zero if it's not changed, or a
+ * negative error code.
  */
 int snd_interval_refine(struct snd_interval *i, const struct snd_interval *v)
 {
@@ -716,27 +716,33 @@ EXPORT_SYMBOL(snd_interval_refine);
 
 static int snd_interval_refine_first(struct snd_interval *i)
 {
+	const unsigned int last_max = i->max;
+
 	if (snd_BUG_ON(snd_interval_empty(i)))
 		return -EINVAL;
 	if (snd_interval_single(i))
 		return 0;
 	i->max = i->min;
-	i->openmax = i->openmin;
-	if (i->openmax)
+	if (i->openmin)
 		i->max++;
+	/* only exclude max value if also excluded before refine */
+	i->openmax = (i->openmax && i->max >= last_max);
 	return 1;
 }
 
 static int snd_interval_refine_last(struct snd_interval *i)
 {
+	const unsigned int last_min = i->min;
+
 	if (snd_BUG_ON(snd_interval_empty(i)))
 		return -EINVAL;
 	if (snd_interval_single(i))
 		return 0;
 	i->min = i->max;
-	i->openmin = i->openmax;
-	if (i->openmin)
+	if (i->openmax)
 		i->min--;
+	/* only exclude min value if also excluded before refine */
+	i->openmin = (i->openmin && i->min <= last_min);
 	return 1;
 }
 
@@ -866,7 +872,8 @@ void snd_interval_mulkdiv(const struct snd_interval *a, unsigned int k,
  * @nump: pointer to store the resultant numerator
  * @denp: pointer to store the resultant denominator
  *
- * Returns non-zero if the value is changed, zero if not changed.
+ * Return: Positive if the value is changed, zero if it's not changed, or a
+ * negative error code.
  */
 int snd_interval_ratnum(struct snd_interval *i,
 			unsigned int rats_count, struct snd_ratnum *rats,
@@ -984,7 +991,8 @@ EXPORT_SYMBOL(snd_interval_ratnum);
  * @nump: pointer to store the resultant numerator
  * @denp: pointer to store the resultant denominator
  *
- * Returns non-zero if the value is changed, zero if not changed.
+ * Return: Positive if the value is changed, zero if it's not changed, or a
+ * negative error code.
  */
 static int snd_interval_ratden(struct snd_interval *i,
 			       unsigned int rats_count, struct snd_ratden *rats,
@@ -1083,10 +1091,11 @@ static int snd_interval_ratden(struct snd_interval *i,
  * When mask is non-zero, only the elements corresponding to bit 1 are
  * evaluated.
  *
- * Returns non-zero if the value is changed, zero if not changed.
+ * Return: Positive if the value is changed, zero if it's not changed, or a
+ * negative error code.
  */
 int snd_interval_list(struct snd_interval *i, unsigned int count,
-		      unsigned int *list, unsigned int mask)
+		      const unsigned int *list, unsigned int mask)
 {
         unsigned int k;
 	struct snd_interval list_range;
@@ -1111,18 +1120,20 @@ int snd_interval_list(struct snd_interval *i, unsigned int count,
 
 EXPORT_SYMBOL(snd_interval_list);
 
-static int snd_interval_step(struct snd_interval *i, unsigned int min, unsigned int step)
+static int snd_interval_step(struct snd_interval *i, unsigned int step)
 {
 	unsigned int n;
 	int changed = 0;
-	n = (i->min - min) % step;
+	n = i->min % step;
 	if (n != 0 || i->openmin) {
 		i->min += step - n;
+		i->openmin = 0;
 		changed = 1;
 	}
-	n = (i->max - min) % step;
+	n = i->max % step;
 	if (n != 0 || i->openmax) {
 		i->max -= n;
+		i->openmax = 0;
 		changed = 1;
 	}
 	if (snd_interval_checkempty(i)) {
@@ -1143,7 +1154,7 @@ static int snd_interval_step(struct snd_interval *i, unsigned int min, unsigned 
  * @private: the private data pointer passed to function
  * @dep: the dependent variables
  *
- * Returns zero if successful, or a negative error code on failure.
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_rule_add(struct snd_pcm_runtime *runtime, unsigned int cond,
 			int var,
@@ -1201,6 +1212,8 @@ EXPORT_SYMBOL(snd_pcm_hw_rule_add);
  * @mask: the bitmap mask
  *
  * Apply the constraint of the given bitmap mask to a 32-bit mask parameter.
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_mask(struct snd_pcm_runtime *runtime, snd_pcm_hw_param_t var,
 			       u_int32_t mask)
@@ -1221,6 +1234,8 @@ int snd_pcm_hw_constraint_mask(struct snd_pcm_runtime *runtime, snd_pcm_hw_param
  * @mask: the 64bit bitmap mask
  *
  * Apply the constraint of the given bitmap mask to a 64-bit mask parameter.
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_mask64(struct snd_pcm_runtime *runtime, snd_pcm_hw_param_t var,
 				 u_int64_t mask)
@@ -1234,6 +1249,7 @@ int snd_pcm_hw_constraint_mask64(struct snd_pcm_runtime *runtime, snd_pcm_hw_par
 		return -EINVAL;
 	return 0;
 }
+EXPORT_SYMBOL(snd_pcm_hw_constraint_mask64);
 
 /**
  * snd_pcm_hw_constraint_integer - apply an integer constraint to an interval
@@ -1241,6 +1257,9 @@ int snd_pcm_hw_constraint_mask64(struct snd_pcm_runtime *runtime, snd_pcm_hw_par
  * @var: hw_params variable to apply the integer constraint
  *
  * Apply the constraint of integer to an interval parameter.
+ *
+ * Return: Positive if the value is changed, zero if it's not changed, or a
+ * negative error code.
  */
 int snd_pcm_hw_constraint_integer(struct snd_pcm_runtime *runtime, snd_pcm_hw_param_t var)
 {
@@ -1258,6 +1277,9 @@ EXPORT_SYMBOL(snd_pcm_hw_constraint_integer);
  * @max: the maximal value
  * 
  * Apply the min/max range constraint to an interval parameter.
+ *
+ * Return: Positive if the value is changed, zero if it's not changed, or a
+ * negative error code.
  */
 int snd_pcm_hw_constraint_minmax(struct snd_pcm_runtime *runtime, snd_pcm_hw_param_t var,
 				 unsigned int min, unsigned int max)
@@ -1289,14 +1311,16 @@ static int snd_pcm_hw_rule_list(struct snd_pcm_hw_params *params,
  * @l: list
  * 
  * Apply the list of constraints to an interval parameter.
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_list(struct snd_pcm_runtime *runtime,
 			       unsigned int cond,
 			       snd_pcm_hw_param_t var,
-			       struct snd_pcm_hw_constraint_list *l)
+			       const struct snd_pcm_hw_constraint_list *l)
 {
 	return snd_pcm_hw_rule_add(runtime, cond, var,
-				   snd_pcm_hw_rule_list, l,
+				   snd_pcm_hw_rule_list, (void *)l,
 				   var, -1);
 }
 
@@ -1323,6 +1347,8 @@ static int snd_pcm_hw_rule_ratnums(struct snd_pcm_hw_params *params,
  * @cond: condition bits
  * @var: hw_params variable to apply the ratnums constraint
  * @r: struct snd_ratnums constriants
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_ratnums(struct snd_pcm_runtime *runtime, 
 				  unsigned int cond,
@@ -1356,6 +1382,8 @@ static int snd_pcm_hw_rule_ratdens(struct snd_pcm_hw_params *params,
  * @cond: condition bits
  * @var: hw_params variable to apply the ratdens constraint
  * @r: struct snd_ratdens constriants
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_ratdens(struct snd_pcm_runtime *runtime, 
 				  unsigned int cond,
@@ -1387,6 +1415,8 @@ static int snd_pcm_hw_rule_msbits(struct snd_pcm_hw_params *params,
  * @cond: condition bits
  * @width: sample bits width
  * @msbits: msbits width
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_msbits(struct snd_pcm_runtime *runtime, 
 				 unsigned int cond,
@@ -1406,7 +1436,7 @@ static int snd_pcm_hw_rule_step(struct snd_pcm_hw_params *params,
 				struct snd_pcm_hw_rule *rule)
 {
 	unsigned long step = (unsigned long) rule->private;
-	return snd_interval_step(hw_param_interval(params, rule->var), 0, step);
+	return snd_interval_step(hw_param_interval(params, rule->var), step);
 }
 
 /**
@@ -1415,6 +1445,8 @@ static int snd_pcm_hw_rule_step(struct snd_pcm_hw_params *params,
  * @cond: condition bits
  * @var: hw_params variable to apply the step constraint
  * @step: step size
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_step(struct snd_pcm_runtime *runtime,
 			       unsigned int cond,
@@ -1445,6 +1477,8 @@ static int snd_pcm_hw_rule_pow2(struct snd_pcm_hw_params *params, struct snd_pcm
  * @runtime: PCM runtime instance
  * @cond: condition bits
  * @var: hw_params variable to apply the power-of-2 constraint
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_constraint_pow2(struct snd_pcm_runtime *runtime,
 			       unsigned int cond,
@@ -1471,6 +1505,8 @@ static int snd_pcm_hw_rule_noresample_func(struct snd_pcm_hw_params *params,
  * snd_pcm_hw_rule_noresample - add a rule to allow disabling hw resampling
  * @runtime: PCM runtime instance
  * @base_rate: the rate at which the hardware does not resample
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_rule_noresample(struct snd_pcm_runtime *runtime,
 			       unsigned int base_rate)
@@ -1520,8 +1556,8 @@ EXPORT_SYMBOL(_snd_pcm_hw_params_any);
  * @var: parameter to retrieve
  * @dir: pointer to the direction (-1,0,1) or %NULL
  *
- * Return the value for field @var if it's fixed in configuration space
- * defined by @params. Return -%EINVAL otherwise.
+ * Return: The value for field @var if it's fixed in configuration space
+ * defined by @params. -%EINVAL otherwise.
  */
 int snd_pcm_hw_param_value(const struct snd_pcm_hw_params *params,
 			   snd_pcm_hw_param_t var, int *dir)
@@ -1592,7 +1628,8 @@ static int _snd_pcm_hw_param_first(struct snd_pcm_hw_params *params,
  *
  * Inside configuration space defined by @params remove from @var all
  * values > minimum. Reduce configuration space accordingly.
- * Return the minimum.
+ *
+ * Return: The minimum, or a negative error code on failure.
  */
 int snd_pcm_hw_param_first(struct snd_pcm_substream *pcm, 
 			   struct snd_pcm_hw_params *params, 
@@ -1603,7 +1640,7 @@ int snd_pcm_hw_param_first(struct snd_pcm_substream *pcm,
 		return changed;
 	if (params->rmask) {
 		int err = snd_pcm_hw_refine(pcm, params);
-		if (snd_BUG_ON(err < 0))
+		if (err < 0)
 			return err;
 	}
 	return snd_pcm_hw_param_value(params, var, dir);
@@ -1638,7 +1675,8 @@ static int _snd_pcm_hw_param_last(struct snd_pcm_hw_params *params,
  *
  * Inside configuration space defined by @params remove from @var all
  * values < maximum. Reduce configuration space accordingly.
- * Return the maximum.
+ *
+ * Return: The maximum, or a negative error code on failure.
  */
 int snd_pcm_hw_param_last(struct snd_pcm_substream *pcm, 
 			  struct snd_pcm_hw_params *params,
@@ -1649,7 +1687,7 @@ int snd_pcm_hw_param_last(struct snd_pcm_substream *pcm,
 		return changed;
 	if (params->rmask) {
 		int err = snd_pcm_hw_refine(pcm, params);
-		if (snd_BUG_ON(err < 0))
+		if (err < 0)
 			return err;
 	}
 	return snd_pcm_hw_param_value(params, var, dir);
@@ -1666,6 +1704,8 @@ EXPORT_SYMBOL(snd_pcm_hw_param_last);
  * The configuration chosen is that obtained fixing in this order:
  * first access, first format, first subformat, min channels,
  * min rate, min period time, max buffer size, min tick time
+ *
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_hw_params_choose(struct snd_pcm_substream *pcm,
 			     struct snd_pcm_hw_params *params)
@@ -1728,11 +1768,6 @@ static int snd_pcm_lib_ioctl_channel_info(struct snd_pcm_substream *substream,
 	switch (runtime->access) {
 	case SNDRV_PCM_ACCESS_MMAP_INTERLEAVED:
 	case SNDRV_PCM_ACCESS_RW_INTERLEAVED:
-		if ((UINT_MAX/width) < info->channel) {
-			snd_printd("%s: integer overflow while multiply\n",
-				   __func__);
-			return -EINVAL;
-		}
 		info->first = info->channel * width;
 		info->step = runtime->channels * width;
 		break;
@@ -1740,12 +1775,6 @@ static int snd_pcm_lib_ioctl_channel_info(struct snd_pcm_substream *substream,
 	case SNDRV_PCM_ACCESS_RW_NONINTERLEAVED:
 	{
 		size_t size = runtime->dma_bytes / runtime->channels;
-
-		if ((size > 0) && ((UINT_MAX/(size * 8)) < info->channel)) {
-			snd_printd("%s: integer overflow while multiply\n",
-				   __func__);
-			return -EINVAL;
-		}
 		info->first = info->channel * size * 8;
 		info->step = width;
 		break;
@@ -1785,14 +1814,12 @@ static int snd_pcm_lib_ioctl_fifo_size(struct snd_pcm_substream *substream,
  * Processes the generic ioctl commands for PCM.
  * Can be passed as the ioctl callback for PCM ops.
  *
- * Returns zero if successful, or a negative error code on failure.
+ * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_pcm_lib_ioctl(struct snd_pcm_substream *substream,
 		      unsigned int cmd, void *arg)
 {
 	switch (cmd) {
-	case SNDRV_PCM_IOCTL1_INFO:
-		return 0;
 	case SNDRV_PCM_IOCTL1_RESET:
 		return snd_pcm_lib_ioctl_reset(substream, arg);
 	case SNDRV_PCM_IOCTL1_CHANNEL_INFO:
@@ -1821,14 +1848,14 @@ void snd_pcm_period_elapsed(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime;
 	unsigned long flags;
 
-	if (PCM_RUNTIME_CHECK(substream))
+	if (snd_BUG_ON(!substream))
 		return;
-	runtime = substream->runtime;
-
-	if (runtime->transfer_ack_begin)
-		runtime->transfer_ack_begin(substream);
 
 	snd_pcm_stream_lock_irqsave(substream, flags);
+	if (PCM_RUNTIME_CHECK(substream))
+		goto _unlock;
+	runtime = substream->runtime;
+
 	if (!snd_pcm_running(substream) ||
 	    snd_pcm_update_hw_ptr0(substream, 1) < 0)
 		goto _end;
@@ -1836,9 +1863,8 @@ void snd_pcm_period_elapsed(struct snd_pcm_substream *substream)
 	if (substream->timer_running)
 		snd_timer_interrupt(substream->timer, 1);
  _end:
-	if (runtime->transfer_ack_end)
-		runtime->transfer_ack_end(substream);
 	kill_fasync(&runtime->fasync, SIGIO, POLL_IN);
+ _unlock:
 	snd_pcm_stream_unlock_irqrestore(substream, flags);
 }
 
@@ -1922,8 +1948,9 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 			continue;
 		}
 		if (!tout) {
-			snd_printd("%s write error (DMA or IRQ trouble?)\n",
-				   is_playback ? "playback" : "capture");
+			pcm_dbg(substream->pcm,
+				"%s write error (DMA or IRQ trouble?)\n",
+				is_playback ? "playback" : "capture");
 			err = -EIO;
 			break;
 		}
@@ -2066,9 +2093,6 @@ static int pcm_sanity_check(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime;
 	if (PCM_RUNTIME_CHECK(substream))
 		return -ENXIO;
-	/* TODO: consider and -EINVAL here */
-	if (substream->hw_no_buffer)
-		snd_printd("%s: warning this PCM is host less\n", __func__);
 	runtime = substream->runtime;
 	if (snd_BUG_ON(!substream->ops->copy && !runtime->dma_area))
 		return -EINVAL;
@@ -2373,7 +2397,7 @@ EXPORT_SYMBOL(snd_pcm_lib_readv);
 /* default channel maps for multi-channel playbacks, up to 8 channels */
 const struct snd_pcm_chmap_elem snd_pcm_std_chmaps[] = {
 	{ .channels = 1,
-	  .map = { SNDRV_CHMAP_FC } },
+	  .map = { SNDRV_CHMAP_MONO } },
 	{ .channels = 2,
 	  .map = { SNDRV_CHMAP_FL, SNDRV_CHMAP_FR } },
 	{ .channels = 4,
@@ -2395,7 +2419,7 @@ EXPORT_SYMBOL_GPL(snd_pcm_std_chmaps);
 /* alternative channel maps with CLFE <-> surround swapped for 6/8 channels */
 const struct snd_pcm_chmap_elem snd_pcm_alt_chmaps[] = {
 	{ .channels = 1,
-	  .map = { SNDRV_CHMAP_FC } },
+	  .map = { SNDRV_CHMAP_MONO } },
 	{ .channels = 2,
 	  .map = { SNDRV_CHMAP_FL, SNDRV_CHMAP_FR } },
 	{ .channels = 4,
@@ -2519,23 +2543,6 @@ static void pcm_chmap_ctl_private_free(struct snd_kcontrol *kcontrol)
 	kfree(info);
 }
 
-static int pcm_volume_ctl_info(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_info *uinfo)
-{
-	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
-	uinfo->count = 1;
-	uinfo->value.integer.min = 0;
-	uinfo->value.integer.max = 0x2000;
-	return 0;
-}
-
-static void pcm_volume_ctl_private_free(struct snd_kcontrol *kcontrol)
-{
-	struct snd_pcm_volume *info = snd_kcontrol_chip(kcontrol);
-	info->pcm->streams[info->stream].vol_kctl = NULL;
-	kfree(info);
-}
-
 /**
  * snd_pcm_add_chmap_ctls - create channel-mapping control elements
  * @pcm: the assigned PCM instance
@@ -2546,7 +2553,7 @@ static void pcm_volume_ctl_private_free(struct snd_kcontrol *kcontrol)
  * @info_ret: store struct snd_pcm_chmap instance if non-NULL
  *
  * Create channel-mapping control elements assigned to the given PCM stream(s).
- * Returns zero if succeed, or a negative error value.
+ * Return: Zero if successful, or a negative error value.
  */
 int snd_pcm_add_chmap_ctls(struct snd_pcm *pcm, int stream,
 			   const struct snd_pcm_chmap_elem *chmap,
@@ -2595,74 +2602,3 @@ int snd_pcm_add_chmap_ctls(struct snd_pcm *pcm, int stream,
 	return 0;
 }
 EXPORT_SYMBOL_GPL(snd_pcm_add_chmap_ctls);
-
-/**
- * snd_pcm_add_volume_ctls - create volume control elements
- * @pcm: the assigned PCM instance
- * @stream: stream direction
- * @max_length: the max length of the volume parameter of stream
- * @private_value: the value passed to each kcontrol's private_value field
- * @info_ret: store struct snd_pcm_volume instance if non-NULL
- *
- * Create volume control elements assigned to the given PCM stream(s).
- * Returns zero if succeed, or a negative error value.
- */
-int snd_pcm_add_volume_ctls(struct snd_pcm *pcm, int stream,
-			   const struct snd_pcm_volume_elem *volume,
-			   int max_length,
-			   unsigned long private_value,
-			   struct snd_pcm_volume **info_ret)
-{
-	struct snd_pcm_volume *info;
-	struct snd_kcontrol_new knew = {
-		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-		.access = SNDRV_CTL_ELEM_ACCESS_TLV_READ |
-			SNDRV_CTL_ELEM_ACCESS_READWRITE,
-		.info = pcm_volume_ctl_info,
-	};
-	int err;
-	int size;
-
-	info = kzalloc(sizeof(*info), GFP_KERNEL);
-	if (!info)
-		return -ENOMEM;
-	info->pcm = pcm;
-	info->stream = stream;
-	info->volume = volume;
-	info->max_length = max_length;
-	size = sizeof("Playback ") + sizeof(" Volume") +
-		STRING_LENGTH_OF_INT*sizeof(char) + 1;
-	knew.name = kzalloc(size, GFP_KERNEL);
-	if (!knew.name) {
-		kfree(info);
-		return -ENOMEM;
-	}
-	if (stream == SNDRV_PCM_STREAM_PLAYBACK)
-		snprintf(knew.name, size, "%s %d %s",
-			"Playback", pcm->device, "Volume");
-	else
-		snprintf(knew.name, size, "%s %d %s",
-			"Capture", pcm->device, "Volume");
-	knew.device = pcm->device;
-	knew.count = pcm->streams[stream].substream_count;
-	knew.private_value = private_value;
-	info->kctl = snd_ctl_new1(&knew, info);
-	if (!info->kctl) {
-		kfree(info);
-		kfree(knew.name);
-		return -ENOMEM;
-	}
-	info->kctl->private_free = pcm_volume_ctl_private_free;
-	err = snd_ctl_add(pcm->card, info->kctl);
-	if (err < 0) {
-		kfree(info);
-		kfree(knew.name);
-		return -ENOMEM;
-	}
-	pcm->streams[stream].vol_kctl = info->kctl;
-	if (info_ret)
-		*info_ret = info;
-	kfree(knew.name);
-	return 0;
-}
-EXPORT_SYMBOL_GPL(snd_pcm_add_volume_ctls);

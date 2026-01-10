@@ -98,7 +98,7 @@ ENTRY(memcpy)
 	subq $0x20,	%rdx
 	/*
 	 * At most 3 ALU operations in one cycle,
-	 * so append NOPS in the same 16bytes trunk.
+	 * so append NOPS in the same 16 bytes trunk.
 	 */
 	.p2align 4
 .Lcopy_backward_loop:
@@ -200,7 +200,7 @@ ENDPROC(__memcpy)
 	 */
 	.section .altinstructions, "a"
 	altinstruction_entry memcpy,.Lmemcpy_c,X86_FEATURE_REP_GOOD,\
-			     .Lmemcpy_e-.Lmemcpy_c,.Lmemcpy_e-.Lmemcpy_c
+			     .Lmemcpy_e-.Lmemcpy_c,.Lmemcpy_e-.Lmemcpy_c,0
 	altinstruction_entry memcpy,.Lmemcpy_c_e,X86_FEATURE_ERMS, \
-			     .Lmemcpy_e_e-.Lmemcpy_c_e,.Lmemcpy_e_e-.Lmemcpy_c_e
+			     .Lmemcpy_e_e-.Lmemcpy_c_e,.Lmemcpy_e_e-.Lmemcpy_c_e,0
 	.previous

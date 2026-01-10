@@ -18,7 +18,6 @@
 #define __ASM_ARCH_MSM_DMA_H
 
 #include <linux/list.h>
-#include <mach/msm_iomap.h>
 
 #if defined(CONFIG_ARCH_FSM9XXX)
 #include <mach/dma-fsm9xxx.h>
@@ -50,25 +49,41 @@ void msm_dmov_enqueue_cmd(unsigned id, struct msm_dmov_cmd *cmd);
 void msm_dmov_enqueue_cmd_ext(unsigned id, struct msm_dmov_cmd *cmd);
 void msm_dmov_flush(unsigned int id, int graceful);
 int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
+<<<<<<< HEAD
 
 #define DMOV_CRCIS_PER_CONF 10
 
 #define DMOV_ADDR(off, ch) ((off) + ((ch) << 2))
 
 #define DMOV_CMD_PTR(ch)      DMOV_ADDR(0x000, ch)
+=======
+#else
+static inline
+void msm_dmov_enqueue_cmd(unsigned id, struct msm_dmov_cmd *cmd) { }
+static inline
+void msm_dmov_stop_cmd(unsigned id, struct msm_dmov_cmd *cmd, int graceful) { }
+static inline
+int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr) { return -EIO; }
+#endif
+
+>>>>>>> android-3.18
 #define DMOV_CMD_LIST         (0 << 29) /* does not work */
 #define DMOV_CMD_PTR_LIST     (1 << 29) /* works */
 #define DMOV_CMD_INPUT_CFG    (2 << 29) /* untested */
 #define DMOV_CMD_OUTPUT_CFG   (3 << 29) /* untested */
 #define DMOV_CMD_ADDR(addr)   ((addr) >> 3)
 
+<<<<<<< HEAD
 #define DMOV_RSLT(ch)         DMOV_ADDR(0x040, ch)
+=======
+>>>>>>> android-3.18
 #define DMOV_RSLT_VALID       (1 << 31) /* 0 == host has empties result fifo */
 #define DMOV_RSLT_ERROR       (1 << 3)
 #define DMOV_RSLT_FLUSH       (1 << 2)
 #define DMOV_RSLT_DONE        (1 << 1)  /* top pointer done */
 #define DMOV_RSLT_USER        (1 << 0)  /* command with FR force result */
 
+<<<<<<< HEAD
 #define DMOV_FLUSH0(ch)       DMOV_ADDR(0x080, ch)
 #define DMOV_FLUSH1(ch)       DMOV_ADDR(0x0C0, ch)
 #define DMOV_FLUSH2(ch)       DMOV_ADDR(0x100, ch)
@@ -78,11 +93,14 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_FLUSH_TYPE       (1 << 31)
 
 #define DMOV_STATUS(ch)       DMOV_ADDR(0x200, ch)
+=======
+>>>>>>> android-3.18
 #define DMOV_STATUS_RSLT_COUNT(n)    (((n) >> 29))
 #define DMOV_STATUS_CMD_COUNT(n)     (((n) >> 27) & 3)
 #define DMOV_STATUS_RSLT_VALID       (1 << 1)
 #define DMOV_STATUS_CMD_PTR_RDY      (1 << 0)
 
+<<<<<<< HEAD
 #define DMOV_CONF(ch)         DMOV_ADDR(0x240, ch)
 #define DMOV_CONF_SD(sd)      (((sd & 4) << 11) | ((sd & 3) << 4))
 #define DMOV_CONF_IRQ_EN             (1 << 6)
@@ -116,6 +134,11 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_CRCI_CTL_BLK_SZ(n)        ((n) << 0)
 #define DMOV_CRCI_CTL_RST              (1 << 17)
 #define DMOV_CRCI_MUX                  (1 << 18)
+=======
+#define DMOV_CONFIG_FORCE_TOP_PTR_RSLT (1 << 2)
+#define DMOV_CONFIG_FORCE_FLUSH_RSLT   (1 << 1)
+#define DMOV_CONFIG_IRQ_EN             (1 << 0)
+>>>>>>> android-3.18
 
 /* channel assignments */
 

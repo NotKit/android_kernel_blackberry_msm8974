@@ -108,7 +108,7 @@ static void vx2_outb(struct vx_core *chip, int offset, unsigned char val)
 {
 	outb(val, vx2_reg_addr(chip, offset));
 	/*
-	printk(KERN_DEBUG "outb: %x -> %x\n", val, vx2_reg_addr(chip, offset));
+	dev_dbg(chip->card->dev, "outb: %x -> %x\n", val, vx2_reg_addr(chip, offset));
 	*/
 }
 
@@ -129,7 +129,7 @@ static unsigned int vx2_inl(struct vx_core *chip, int offset)
 static void vx2_outl(struct vx_core *chip, int offset, unsigned int val)
 {
 	/*
-	printk(KERN_DEBUG "outl: %x -> %x\n", val, vx2_reg_addr(chip, offset));
+	dev_dbg(chip->card->dev, "outl: %x -> %x\n", val, vx2_reg_addr(chip, offset));
 	*/
 	outl(val, vx2_reg_addr(chip, offset));
 }
@@ -173,7 +173,7 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 	struct snd_vx222 *chip = (struct snd_vx222 *)_chip;
 	unsigned int data;
 
-	snd_printdd("testing xilinx...\n");
+	dev_dbg(_chip->card->dev, "testing xilinx...\n");
 	/* This test uses several write/read sequences on TEST0 and TEST1 bits
 	 * to figure out whever or not the xilinx was correctly loaded
 	 */
@@ -183,7 +183,7 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 	vx_inl(chip, ISR);
 	data = vx_inl(chip, STATUS);
 	if ((data & VX_STATUS_VAL_TEST0_MASK) == VX_STATUS_VAL_TEST0_MASK) {
-		snd_printdd("bad!\n");
+		dev_dbg(_chip->card->dev, "bad!\n");
 		return -ENODEV;
 	}
 
@@ -192,7 +192,7 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 	vx_inl(chip, ISR);
 	data = vx_inl(chip, STATUS);
 	if (! (data & VX_STATUS_VAL_TEST0_MASK)) {
-		snd_printdd("bad! #2\n");
+		dev_dbg(_chip->card->dev, "bad! #2\n");
 		return -ENODEV;
 	}
 
@@ -203,7 +203,7 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 		vx_inl(chip, ISR);
 		data = vx_inl(chip, STATUS);
 		if ((data & VX_STATUS_VAL_TEST1_MASK) == VX_STATUS_VAL_TEST1_MASK) {
-			snd_printdd("bad! #3\n");
+			dev_dbg(_chip->card->dev, "bad! #3\n");
 			return -ENODEV;
 		}
 
@@ -212,11 +212,11 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 		vx_inl(chip, ISR);
 		data = vx_inl(chip, STATUS);
 		if (! (data & VX_STATUS_VAL_TEST1_MASK)) {
-			snd_printdd("bad! #4\n");
+			dev_dbg(_chip->card->dev, "bad! #4\n");
 			return -ENODEV;
 		}
 	}
-	snd_printdd("ok, xilinx fine.\n");
+	dev_dbg(_chip->card->dev, "ok, xilinx fine.\n");
 	return 0;
 }
 
@@ -264,13 +264,13 @@ static void vx2_dma_write(struct vx_core *chip, struct snd_pcm_runtime *runtime,
 
 	/* Transfer using pseudo-dma.
 	 */
-	if (offset + count > pipe->buffer_bytes) {
+	if (offset + count >= pipe->buffer_bytes) {
 		int length = pipe->buffer_bytes - offset;
 		count -= length;
 		length >>= 2; /* in 32bit words */
 		/* Transfer using pseudo-dma. */
-		while (length-- > 0) {
-			outl(cpu_to_le32(*addr), port);
+		for (; length > 0; length--) {
+			outl(*addr, port);
 			addr++;
 		}
 		addr = (u32 *)runtime->dma_area;
@@ -279,8 +279,8 @@ static void vx2_dma_write(struct vx_core *chip, struct snd_pcm_runtime *runtime,
 	pipe->hw_ptr += count;
 	count >>= 2; /* in 32bit words */
 	/* Transfer using pseudo-dma. */
-	while (count-- > 0) {
-		outl(cpu_to_le32(*addr), port);
+	for (; count > 0; count--) {
+		outl(*addr, port);
 		addr++;
 	}
 
@@ -302,21 +302,21 @@ static void vx2_dma_read(struct vx_core *chip, struct snd_pcm_runtime *runtime,
 	vx2_setup_pseudo_dma(chip, 0);
 	/* Transfer using pseudo-dma.
 	 */
-	if (offset + count > pipe->buffer_bytes) {
+	if (offset + count >= pipe->buffer_bytes) {
 		int length = pipe->buffer_bytes - offset;
 		count -= length;
 		length >>= 2; /* in 32bit words */
 		/* Transfer using pseudo-dma. */
-		while (length-- > 0)
-			*addr++ = le32_to_cpu(inl(port));
+		for (; length > 0; length--)
+			*addr++ = inl(port);
 		addr = (u32 *)runtime->dma_area;
 		pipe->hw_ptr = 0;
 	}
 	pipe->hw_ptr += count;
 	count >>= 2; /* in 32bit words */
 	/* Transfer using pseudo-dma. */
-	while (count-- > 0)
-		*addr++ = le32_to_cpu(inl(port));
+	for (; count > 0; count--)
+		*addr++ = inl(port);
 
 	vx2_release_pseudo_dma(chip);
 }
@@ -397,7 +397,8 @@ static int vx2_load_xilinx_binary(struct vx_core *chip, const struct firmware *x
 		i = vx_inl(chip, GPIOC);
 		if (i & 0x0100)
 			return 0;
-		snd_printk(KERN_ERR "vx222: xilinx test failed after load, GPIOC=0x%x\n", i);
+		dev_err(chip->card->dev,
+			"xilinx test failed after load, GPIOC=0x%x\n", i);
 		return -EINVAL;
 	}
 

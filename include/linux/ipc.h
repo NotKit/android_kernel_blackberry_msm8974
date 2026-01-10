@@ -11,13 +11,13 @@
 struct kern_ipc_perm
 {
 	spinlock_t	lock;
-	int		deleted;
+	bool		deleted;
 	int		id;
 	key_t		key;
-	uid_t		uid;
-	gid_t		gid;
-	uid_t		cuid;
-	gid_t		cgid;
+	kuid_t		uid;
+	kgid_t		gid;
+	kuid_t		cuid;
+	kgid_t		cgid;
 	umode_t		mode; 
 	unsigned long	seq;
 	void		*security;

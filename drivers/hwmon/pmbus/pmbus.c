@@ -117,6 +117,8 @@ static int pmbus_identify(struct i2c_client *client,
 		} else {
 			info->pages = 1;
 		}
+
+		pmbus_clear_faults(client);
 	}
 
 	if (pmbus_check_byte_register(client, 0, PMBUS_VOUT_MODE)) {
@@ -193,7 +195,6 @@ static const struct i2c_device_id pmbus_id[] = {
 	{"pdt012", 1},
 	{"pmbus", 0},
 	{"tps40400", 1},
-	{"tps40422", 2},
 	{"udt020", 1},
 	{}
 };

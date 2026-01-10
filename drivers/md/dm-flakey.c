@@ -39,6 +39,10 @@ enum feature_flag_bits {
 	DROP_WRITES
 };
 
+struct per_bio_data {
+	bool bio_submitted;
+};
+
 static int parse_features(struct dm_arg_set *as, struct flakey_c *fc,
 			  struct dm_target *ti)
 {
@@ -64,6 +68,11 @@ static int parse_features(struct dm_arg_set *as, struct flakey_c *fc,
 	while (argc) {
 		arg_name = dm_shift_arg(as);
 		argc--;
+
+		if (!arg_name) {
+			ti->error = "Insufficient feature arguments";
+			return -EINVAL;
+		}
 
 		/*
 		 * drop_writes
@@ -172,7 +181,7 @@ static int flakey_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 
 	fc = kzalloc(sizeof(*fc), GFP_KERNEL);
 	if (!fc) {
-		ti->error = "Cannot allocate linear context";
+		ti->error = "Cannot allocate context";
 		return -ENOMEM;
 	}
 	fc->start_time = jiffies;
@@ -195,11 +204,13 @@ static int flakey_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 
 	if (!(fc->up_interval + fc->down_interval)) {
 		ti->error = "Total (up + down) interval is zero";
+		r = -EINVAL;
 		goto bad;
 	}
 
 	if (fc->up_interval + fc->down_interval < fc->up_interval) {
 		ti->error = "Interval overflow";
+		r = -EINVAL;
 		goto bad;
 	}
 
@@ -212,8 +223,9 @@ static int flakey_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 		goto bad;
 	}
 
-	ti->num_flush_requests = 1;
-	ti->num_discard_requests = 1;
+	ti->num_flush_bios = 1;
+	ti->num_discard_bios = 1;
+	ti->per_bio_data_size = sizeof(struct per_bio_data);
 	ti->private = fc;
 	return 0;
 
@@ -243,7 +255,8 @@ static void flakey_map_bio(struct dm_target *ti, struct bio *bio)
 
 	bio->bi_bdev = fc->dev->bdev;
 	if (bio_sectors(bio))
-		bio->bi_sector = flakey_map_sector(ti, bio->bi_sector);
+		bio->bi_iter.bi_sector =
+			flakey_map_sector(ti, bio->bi_iter.bi_sector);
 }
 
 static void corrupt_bio_data(struct bio *bio, struct flakey_c *fc)
@@ -260,16 +273,17 @@ static void corrupt_bio_data(struct bio *bio, struct flakey_c *fc)
 		DMDEBUG("Corrupting data bio=%p by writing %u to byte %u "
 			"(rw=%c bi_rw=%lu bi_sector=%llu cur_bytes=%u)\n",
 			bio, fc->corrupt_bio_value, fc->corrupt_bio_byte,
-			(bio_data_dir(bio) == WRITE) ? 'w' : 'r',
-			bio->bi_rw, (unsigned long long)bio->bi_sector, bio_bytes);
+			(bio_data_dir(bio) == WRITE) ? 'w' : 'r', bio->bi_rw,
+			(unsigned long long)bio->bi_iter.bi_sector, bio_bytes);
 	}
 }
 
-static int flakey_map(struct dm_target *ti, struct bio *bio,
-		      union map_info *map_context)
+static int flakey_map(struct dm_target *ti, struct bio *bio)
 {
 	struct flakey_c *fc = ti->private;
 	unsigned elapsed;
+	struct per_bio_data *pb = dm_per_bio_data(bio, sizeof(struct per_bio_data));
+	pb->bio_submitted = false;
 
 	/* Are we alive ? */
 	elapsed = (jiffies - fc->start_time) / HZ;
@@ -277,13 +291,17 @@ static int flakey_map(struct dm_target *ti, struct bio *bio,
 		/*
 		 * Flag this bio as submitted while down.
 		 */
-		map_context->ll = 1;
+		pb->bio_submitted = true;
 
 		/*
-		 * Map reads as normal.
+		 * Error reads if neither corrupt_bio_byte or drop_writes are set.
+		 * Otherwise, flakey_end_io() will decide if the reads should be modified.
 		 */
-		if (bio_data_dir(bio) == READ)
+		if (bio_data_dir(bio) == READ) {
+			if (!fc->corrupt_bio_byte && !test_bit(DROP_WRITES, &fc->flags))
+				return -EIO;
 			goto map_bio;
+		}
 
 		/*
 		 * Drop writes?
@@ -314,26 +332,37 @@ map_bio:
 	return DM_MAPIO_REMAPPED;
 }
 
-static int flakey_end_io(struct dm_target *ti, struct bio *bio,
-			 int error, union map_info *map_context)
+static int flakey_end_io(struct dm_target *ti, struct bio *bio, int error)
 {
 	struct flakey_c *fc = ti->private;
-	unsigned bio_submitted_while_down = map_context->ll;
+	struct per_bio_data *pb = dm_per_bio_data(bio, sizeof(struct per_bio_data));
 
-	/*
-	 * Corrupt successful READs while in down state.
-	 * If flags were specified, only corrupt those that match.
-	 */
-	if (fc->corrupt_bio_byte && !error && bio_submitted_while_down &&
-	    (bio_data_dir(bio) == READ) && (fc->corrupt_bio_rw == READ) &&
-	    all_corrupt_bio_flags_match(bio, fc))
-		corrupt_bio_data(bio, fc);
+	if (!error && pb->bio_submitted && (bio_data_dir(bio) == READ)) {
+		if (fc->corrupt_bio_byte && (fc->corrupt_bio_rw == READ) &&
+		    all_corrupt_bio_flags_match(bio, fc)) {
+			/*
+			 * Corrupt successful matching READs while in down state.
+			 */
+			corrupt_bio_data(bio, fc);
+
+		} else if (!test_bit(DROP_WRITES, &fc->flags)) {
+			/*
+			 * Error read during the down_interval if drop_writes
+			 * wasn't configured.
+			 */
+			return -EIO;
+		}
+	}
 
 	return error;
 }
 
 static void flakey_status(struct dm_target *ti, status_type_t type,
+<<<<<<< HEAD
 			  char *result, unsigned int maxlen)
+=======
+			  unsigned status_flags, char *result, unsigned maxlen)
+>>>>>>> android-3.18
 {
 	unsigned sz = 0;
 	struct flakey_c *fc = ti->private;
@@ -405,7 +434,7 @@ static int flakey_iterate_devices(struct dm_target *ti, iterate_devices_callout_
 
 static struct target_type flakey_target = {
 	.name   = "flakey",
-	.version = {1, 2, 0},
+	.version = {1, 3, 1},
 	.module = THIS_MODULE,
 	.ctr    = flakey_ctr,
 	.dtr    = flakey_dtr,

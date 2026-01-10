@@ -8,13 +8,18 @@
  * LGPL2
  */
 
-#include "crush.h"
+#include <linux/crush/crush.h>
 
 extern int crush_find_rule(const struct crush_map *map, int ruleset, int type, int size);
 extern int crush_do_rule(const struct crush_map *map,
 			 int ruleno,
 			 int x, int *result, int result_max,
+<<<<<<< HEAD
 			 int forcefeed,    /* -1 for none */
 			 const __u32 *weights);
+=======
+			 const __u32 *weights, int weight_max,
+			 int *scratch);
+>>>>>>> android-3.18
 
 #endif

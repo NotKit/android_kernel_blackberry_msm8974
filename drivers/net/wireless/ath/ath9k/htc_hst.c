@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include "htc.h"
 
 static int htc_issue_send(struct htc_target *target, struct sk_buff* skb,
@@ -112,6 +114,9 @@ static void htc_process_conn_rsp(struct htc_target *target,
 
 	if (svc_rspmsg->status == HTC_SERVICE_SUCCESS) {
 		epid = svc_rspmsg->endpoint_id;
+		if (epid < 0 || epid >= ENDPOINT_MAX)
+			return;
+
 		service_id = be16_to_cpu(svc_rspmsg->service_id);
 		max_msglen = be16_to_cpu(svc_rspmsg->max_msg_len);
 		endpoint = &target->endpoint[epid];
@@ -169,6 +174,7 @@ static int htc_config_pipe_credits(struct htc_target *target)
 	time_left = wait_for_completion_timeout(&target->cmd_wait, HZ);
 	if (!time_left) {
 		dev_err(target->dev, "HTC credit config timeout\n");
+		kfree_skb(skb);
 		return -ETIMEDOUT;
 	}
 
@@ -204,6 +210,7 @@ static int htc_setup_complete(struct htc_target *target)
 	time_left = wait_for_completion_timeout(&target->cmd_wait, HZ);
 	if (!time_left) {
 		dev_err(target->dev, "HTC start timeout\n");
+		kfree_skb(skb);
 		return -ETIMEDOUT;
 	}
 
@@ -276,6 +283,7 @@ int htc_connect_service(struct htc_target *target,
 	if (!time_left) {
 		dev_err(target->dev, "Service connection timeout for: %d\n",
 			service_connreq->service_id);
+		kfree_skb(skb);
 		return -ETIMEDOUT;
 	}
 
@@ -335,6 +343,8 @@ void ath9k_htc_txcompletion_cb(struct htc_target *htc_handle,
 
 	if (skb) {
 		htc_hdr = (struct htc_frame_hdr *) skb->data;
+		if (htc_hdr->endpoint_id >= ARRAY_SIZE(htc_handle->endpoint))
+			goto ret;
 		endpoint = &htc_handle->endpoint[htc_hdr->endpoint_id];
 		skb_pull(skb, sizeof(struct htc_frame_hdr));
 
@@ -354,6 +364,36 @@ ret:
 		dev_kfree_skb_any(skb);
 	else
 		kfree_skb(skb);
+}
+
+static void ath9k_htc_fw_panic_report(struct htc_target *htc_handle,
+				      struct sk_buff *skb)
+{
+	uint32_t *pattern = (uint32_t *)skb->data;
+
+	switch (*pattern) {
+	case 0x33221199:
+		{
+		struct htc_panic_bad_vaddr *htc_panic;
+		htc_panic = (struct htc_panic_bad_vaddr *) skb->data;
+		dev_err(htc_handle->dev, "ath: firmware panic! "
+			"exccause: 0x%08x; pc: 0x%08x; badvaddr: 0x%08x.\n",
+			htc_panic->exccause, htc_panic->pc,
+			htc_panic->badvaddr);
+		break;
+		}
+	case 0x33221299:
+		{
+		struct htc_panic_bad_epid *htc_panic;
+		htc_panic = (struct htc_panic_bad_epid *) skb->data;
+		dev_err(htc_handle->dev, "ath: firmware panic! "
+			"bad epid: 0x%08x\n", htc_panic->epid);
+		break;
+		}
+	default:
+		dev_err(htc_handle->dev, "ath: uknown panic pattern!\n");
+		break;
+	}
 }
 
 /*
@@ -377,7 +417,13 @@ void ath9k_htc_rx_msg(struct htc_target *htc_handle,
 	htc_hdr = (struct htc_frame_hdr *) skb->data;
 	epid = htc_hdr->endpoint_id;
 
-	if (epid >= ENDPOINT_MAX) {
+	if (epid == 0x99) {
+		ath9k_htc_fw_panic_report(htc_handle, skb);
+		kfree_skb(skb);
+		return;
+	}
+
+	if (epid < 0 || epid >= ENDPOINT_MAX) {
 		if (pipe_id != USB_REG_IN_PIPE)
 			dev_kfree_skb_any(skb);
 		else
@@ -463,7 +509,7 @@ int ath9k_htc_hw_init(struct htc_target *target,
 		      char *product, u32 drv_info)
 {
 	if (ath9k_htc_probe_device(target, dev, devid, product, drv_info)) {
-		printk(KERN_ERR "Failed to initialize the device\n");
+		pr_err("Failed to initialize the device\n");
 		return -ENODEV;
 	}
 

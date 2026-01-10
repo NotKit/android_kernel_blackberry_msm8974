@@ -12,4 +12,8 @@ header-y += video/
 header-y += drm/
 header-y += xen/
 header-y += scsi/
+<<<<<<< HEAD
 header-y += media/
+=======
+header-y += misc/
+>>>>>>> android-3.18

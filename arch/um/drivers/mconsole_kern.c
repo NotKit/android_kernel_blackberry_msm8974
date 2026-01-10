@@ -27,13 +27,13 @@
 #include <asm/uaccess.h>
 #include <asm/switch_to.h>
 
-#include "init.h"
-#include "irq_kern.h"
-#include "irq_user.h"
-#include "kern_util.h"
+#include <init.h>
+#include <irq_kern.h>
+#include <irq_user.h>
+#include <kern_util.h>
 #include "mconsole.h"
 #include "mconsole_kern.h"
-#include "os.h"
+#include <os.h>
 
 static int do_unlink_socket(struct notifier_block *notifier,
 			    unsigned long what, void *data)
@@ -123,7 +123,7 @@ void mconsole_log(struct mc_request *req)
 
 void mconsole_proc(struct mc_request *req)
 {
-	struct vfsmount *mnt = current->nsproxy->pid_ns->proc_mnt;
+	struct vfsmount *mnt = task_active_pid_ns(current)->proc_mnt;
 	char *buf;
 	int len;
 	struct file *file;
@@ -133,7 +133,7 @@ void mconsole_proc(struct mc_request *req)
 	ptr += strlen("proc");
 	ptr = skip_spaces(ptr);
 
-	file = file_open_root(mnt->mnt_root, mnt, ptr, O_RDONLY);
+	file = file_open_root(mnt->mnt_root, mnt, ptr, O_RDONLY, 0);
 	if (IS_ERR(file)) {
 		mconsole_reply(req, "Failed to open file", 1, 0);
 		printk(KERN_ERR "open /proc/%s: %ld\n", ptr, PTR_ERR(file));
@@ -147,7 +147,7 @@ void mconsole_proc(struct mc_request *req)
 	}
 
 	do {
-		loff_t pos;
+		loff_t pos = file->f_pos;
 		mm_segment_t old_fs = get_fs();
 		set_fs(KERNEL_DS);
 		len = vfs_read(file, buf, PAGE_SIZE - 1, &pos);
@@ -645,10 +645,9 @@ void mconsole_sysrq(struct mc_request *req)
 
 static void stack_proc(void *arg)
 {
-	struct task_struct *from = current, *to = arg;
+	struct task_struct *task = arg;
 
-	to->thread.saved_task = from;
-	switch_to(from, to, from);
+	show_stack(task, NULL);
 }
 
 /*
@@ -717,8 +716,7 @@ static int __init mconsole_init(void)
 	register_reboot_notifier(&reboot_notifier);
 
 	err = um_request_irq(MCONSOLE_IRQ, sock, IRQ_READ, mconsole_interrupt,
-			     IRQF_SHARED | IRQF_SAMPLE_RANDOM,
-			     "mconsole", (void *)sock);
+			     IRQF_SHARED, "mconsole", (void *)sock);
 	if (err) {
 		printk(KERN_ERR "Failed to get IRQ for management console\n");
 		goto out;
@@ -782,8 +780,7 @@ static int create_proc_mconsole(void)
 
 	ent = proc_create("mconsole", 0200, NULL, &mconsole_proc_fops);
 	if (ent == NULL) {
-		printk(KERN_INFO "create_proc_mconsole : create_proc_entry "
-		       "failed\n");
+		printk(KERN_INFO "create_proc_mconsole : proc_create failed\n");
 		return 0;
 	}
 	return 0;

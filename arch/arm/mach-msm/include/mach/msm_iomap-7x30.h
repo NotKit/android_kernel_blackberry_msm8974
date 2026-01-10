@@ -83,8 +83,4 @@
 #define MSM7X30_AD5_PHYS		0xA7000000
 #define MSM7X30_AD5_SIZE		(SZ_1M*13)
 
-#ifndef __ASSEMBLY__
-extern void msm_map_msm7x30_io(void);
-#endif
-
 #endif

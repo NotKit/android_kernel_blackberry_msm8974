@@ -31,7 +31,6 @@ struct clock_data {
 
 static struct hrtimer sched_clock_timer;
 static int irqtime = -1;
-static int initialized;
 
 core_param(irqtime, irqtime, int, 0400);
 
@@ -68,7 +67,7 @@ unsigned long long notrace sched_clock(void)
 		return cd.epoch_ns;
 
 	do {
-		seq = read_seqcount_begin(&cd.seq);
+		seq = raw_read_seqcount_begin(&cd.seq);
 		epoch_cyc = cd.epoch_cyc;
 		epoch_ns = cd.epoch_ns;
 	} while (read_seqcount_retry(&cd.seq, seq));
@@ -93,10 +92,10 @@ static void notrace update_sched_clock(void)
 			  cd.mult, cd.shift);
 
 	raw_local_irq_save(flags);
-	write_seqcount_begin(&cd.seq);
+	raw_write_seqcount_begin(&cd.seq);
 	cd.epoch_ns = ns;
 	cd.epoch_cyc = cyc;
-	write_seqcount_end(&cd.seq);
+	raw_write_seqcount_end(&cd.seq);
 	raw_local_irq_restore(flags);
 }
 
@@ -136,7 +135,7 @@ void __init sched_clock_register(u64 (*read)(void), int bits,
 	ns = cd.epoch_ns + cyc_to_ns((cyc - cd.epoch_cyc) & sched_clock_mask,
 			  cd.mult, cd.shift);
 
-	write_seqcount_begin(&cd.seq);
+	raw_write_seqcount_begin(&cd.seq);
 	read_sched_clock = read;
 	sched_clock_mask = new_mask;
 	cd.rate = rate;
@@ -145,7 +144,12 @@ void __init sched_clock_register(u64 (*read)(void), int bits,
 	cd.shift = new_shift;
 	cd.epoch_cyc = new_epoch;
 	cd.epoch_ns = ns;
-	write_seqcount_end(&cd.seq);
+	raw_write_seqcount_end(&cd.seq);
+
+	if (sched_clock_timer.function != NULL) {
+		/* update timeout for clock wrap */
+		hrtimer_start(&sched_clock_timer, cd.wrap_kt, HRTIMER_MODE_REL);
+	}
 
 	r = rate;
 	if (r >= 4000000) {
@@ -170,11 +174,6 @@ void __init sched_clock_register(u64 (*read)(void), int bits,
 	pr_debug("Registered %pF as sched_clock source\n", read);
 }
 
-int sched_clock_initialized(void)
-{
-	return initialized;
-}
-
 void __init sched_clock_postinit(void)
 {
 	/*
@@ -193,8 +192,6 @@ void __init sched_clock_postinit(void)
 	hrtimer_init(&sched_clock_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	sched_clock_timer.function = sched_clock_poll;
 	hrtimer_start(&sched_clock_timer, cd.wrap_kt, HRTIMER_MODE_REL);
-
-	initialized = 1;
 }
 
 static int sched_clock_suspend(void)

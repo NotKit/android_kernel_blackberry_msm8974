@@ -16,6 +16,7 @@
 
 #include <linux/types.h>
 
+<<<<<<< HEAD
 /* Orient */
 #define MXT_NORMAL		0x0
 #define MXT_DIAGONAL		0x1
@@ -83,6 +84,13 @@ struct mxt_platform_data {
 	u8(*read_chg) (void);
 	int (*init_hw) (bool);
 	int (*power_on) (bool);
+=======
+/* The platform data for the Atmel maXTouch touchscreen driver */
+struct mxt_platform_data {
+	unsigned long irqflags;
+	u8 t19_num_keys;
+	const unsigned int *t19_keymap;
+>>>>>>> android-3.18
 };
 
 #endif /* __LINUX_ATMEL_MXT_TS_H */

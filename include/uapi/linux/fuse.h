@@ -1,9 +1,42 @@
 /*
+<<<<<<< HEAD
     FUSE: Filesystem in Userspace
+=======
+    This file defines the kernel interface of FUSE
+>>>>>>> android-3.18
     Copyright (C) 2001-2008  Miklos Szeredi <miklos@szeredi.hu>
 
     This program can be distributed under the terms of the GNU GPL.
     See the file COPYING.
+<<<<<<< HEAD
+=======
+
+    This -- and only this -- header file may also be distributed under
+    the terms of the BSD Licence as follows:
+
+    Copyright (C) 2001-2007 Miklos Szeredi. All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL AUTHOR OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+    OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+    SUCH DAMAGE.
+>>>>>>> android-3.18
 */
 
 /*
@@ -54,12 +87,45 @@
  * 7.18
  *  - add FUSE_IOCTL_DIR flag
  *  - add FUSE_NOTIFY_DELETE
+<<<<<<< HEAD
+=======
+ *
+ * 7.19
+ *  - add FUSE_FALLOCATE
+ *
+ * 7.20
+ *  - add FUSE_AUTO_INVAL_DATA
+ *
+ * 7.21
+ *  - add FUSE_READDIRPLUS
+ *  - send the requested events in POLL request
+ *
+ * 7.22
+ *  - add FUSE_ASYNC_DIO
+ *
+ * 7.23
+ *  - add FUSE_WRITEBACK_CACHE
+ *  - add time_gran to fuse_init_out
+ *  - add reserved space to fuse_init_out
+ *  - add FATTR_CTIME
+ *  - add ctime and ctimensec to fuse_setattr_in
+ *  - add FUSE_RENAME2 request
+ *  - add FUSE_NO_OPEN_SUPPORT flag
+>>>>>>> android-3.18
  */
 
 #ifndef _LINUX_FUSE_H
 #define _LINUX_FUSE_H
 
+<<<<<<< HEAD
 #include <linux/types.h>
+=======
+#ifdef __KERNEL__
+#include <linux/types.h>
+#else
+#include <stdint.h>
+#endif
+>>>>>>> android-3.18
 
 /*
  * Version negotiation:
@@ -85,7 +151,11 @@
 #define FUSE_KERNEL_VERSION 7
 
 /** Minor version number of this interface */
+<<<<<<< HEAD
 #define FUSE_KERNEL_MINOR_VERSION 18
+=======
+#define FUSE_KERNEL_MINOR_VERSION 23
+>>>>>>> android-3.18
 
 /** The node ID of the root inode */
 #define FUSE_ROOT_ID 1
@@ -94,6 +164,7 @@
    userspace works under 64bit kernels */
 
 struct fuse_attr {
+<<<<<<< HEAD
 	__u64	ino;
 	__u64	size;
 	__u64	blocks;
@@ -130,6 +201,44 @@ struct fuse_file_lock {
 	__u64	end;
 	__u32	type;
 	__u32	pid; /* tgid */
+=======
+	uint64_t	ino;
+	uint64_t	size;
+	uint64_t	blocks;
+	uint64_t	atime;
+	uint64_t	mtime;
+	uint64_t	ctime;
+	uint32_t	atimensec;
+	uint32_t	mtimensec;
+	uint32_t	ctimensec;
+	uint32_t	mode;
+	uint32_t	nlink;
+	uint32_t	uid;
+	uint32_t	gid;
+	uint32_t	rdev;
+	uint32_t	blksize;
+	uint32_t	padding;
+};
+
+struct fuse_kstatfs {
+	uint64_t	blocks;
+	uint64_t	bfree;
+	uint64_t	bavail;
+	uint64_t	files;
+	uint64_t	ffree;
+	uint32_t	bsize;
+	uint32_t	namelen;
+	uint32_t	frsize;
+	uint32_t	padding;
+	uint32_t	spare[6];
+};
+
+struct fuse_file_lock {
+	uint64_t	start;
+	uint64_t	end;
+	uint32_t	type;
+	uint32_t	pid; /* tgid */
+>>>>>>> android-3.18
 };
 
 /**
@@ -145,6 +254,10 @@ struct fuse_file_lock {
 #define FATTR_ATIME_NOW	(1 << 7)
 #define FATTR_MTIME_NOW	(1 << 8)
 #define FATTR_LOCKOWNER	(1 << 9)
+<<<<<<< HEAD
+=======
+#define FATTR_CTIME	(1 << 10)
+>>>>>>> android-3.18
 
 /**
  * Flags returned by the OPEN request
@@ -152,18 +265,47 @@ struct fuse_file_lock {
  * FOPEN_DIRECT_IO: bypass page cache for this open file
  * FOPEN_KEEP_CACHE: don't invalidate the data cache on open
  * FOPEN_NONSEEKABLE: the file is not seekable
+<<<<<<< HEAD
+=======
+ * FOPEN_STREAM: the file is stream-like (no file position at all)
+>>>>>>> android-3.18
  */
 #define FOPEN_DIRECT_IO		(1 << 0)
 #define FOPEN_KEEP_CACHE	(1 << 1)
 #define FOPEN_NONSEEKABLE	(1 << 2)
+<<<<<<< HEAD
+=======
+#define FOPEN_STREAM		(1 << 4)
+>>>>>>> android-3.18
 
 /**
  * INIT request/reply flags
  *
+<<<<<<< HEAD
  * FUSE_POSIX_LOCKS: remote locking for POSIX file locks
  * FUSE_EXPORT_SUPPORT: filesystem handles lookups of "." and ".."
  * FUSE_DONT_MASK: don't apply umask to file mode on create operations
  * FUSE_FLOCK_LOCKS: remote locking for BSD style file locks
+=======
+ * FUSE_ASYNC_READ: asynchronous read requests
+ * FUSE_POSIX_LOCKS: remote locking for POSIX file locks
+ * FUSE_FILE_OPS: kernel sends file handle for fstat, etc... (not yet supported)
+ * FUSE_ATOMIC_O_TRUNC: handles the O_TRUNC open flag in the filesystem
+ * FUSE_EXPORT_SUPPORT: filesystem handles lookups of "." and ".."
+ * FUSE_BIG_WRITES: filesystem can handle write size larger than 4kB
+ * FUSE_DONT_MASK: don't apply umask to file mode on create operations
+ * FUSE_SPLICE_WRITE: kernel supports splice write on the device
+ * FUSE_SPLICE_MOVE: kernel supports splice move on the device
+ * FUSE_SPLICE_READ: kernel supports splice read on the device
+ * FUSE_FLOCK_LOCKS: remote locking for BSD style file locks
+ * FUSE_HAS_IOCTL_DIR: kernel supports ioctl on directories
+ * FUSE_AUTO_INVAL_DATA: automatically invalidate cached pages
+ * FUSE_DO_READDIRPLUS: do READDIRPLUS (READDIR+LOOKUP in one)
+ * FUSE_READDIRPLUS_AUTO: adaptive readdirplus
+ * FUSE_ASYNC_DIO: asynchronous direct I/O submission
+ * FUSE_WRITEBACK_CACHE: use writeback cache for buffered writes
+ * FUSE_NO_OPEN_SUPPORT: kernel supports zero-message opens
+>>>>>>> android-3.18
  */
 #define FUSE_ASYNC_READ		(1 << 0)
 #define FUSE_POSIX_LOCKS	(1 << 1)
@@ -172,9 +314,23 @@ struct fuse_file_lock {
 #define FUSE_EXPORT_SUPPORT	(1 << 4)
 #define FUSE_BIG_WRITES		(1 << 5)
 #define FUSE_DONT_MASK		(1 << 6)
+<<<<<<< HEAD
 #define FUSE_FLOCK_LOCKS	(1 << 10)
 
 #define FUSE_SHORTCIRCUIT	(1 << 31)
+=======
+#define FUSE_SPLICE_WRITE	(1 << 7)
+#define FUSE_SPLICE_MOVE	(1 << 8)
+#define FUSE_SPLICE_READ	(1 << 9)
+#define FUSE_FLOCK_LOCKS	(1 << 10)
+#define FUSE_HAS_IOCTL_DIR	(1 << 11)
+#define FUSE_AUTO_INVAL_DATA	(1 << 12)
+#define FUSE_DO_READDIRPLUS	(1 << 13)
+#define FUSE_READDIRPLUS_AUTO	(1 << 14)
+#define FUSE_ASYNC_DIO		(1 << 15)
+#define FUSE_WRITEBACK_CACHE	(1 << 16)
+#define FUSE_NO_OPEN_SUPPORT	(1 << 17)
+>>>>>>> android-3.18
 
 /**
  * CUSE INIT request/reply flags
@@ -280,6 +436,12 @@ enum fuse_opcode {
 	FUSE_POLL          = 40,
 	FUSE_NOTIFY_REPLY  = 41,
 	FUSE_BATCH_FORGET  = 42,
+<<<<<<< HEAD
+=======
+	FUSE_FALLOCATE     = 43,
+	FUSE_READDIRPLUS   = 44,
+	FUSE_RENAME2       = 45,
+>>>>>>> android-3.18
 	FUSE_CANONICAL_PATH= 2016,
 
 	/* CUSE specific operations */
@@ -302,6 +464,7 @@ enum fuse_notify_code {
 #define FUSE_COMPAT_ENTRY_OUT_SIZE 120
 
 struct fuse_entry_out {
+<<<<<<< HEAD
 	__u64	nodeid;		/* Inode ID */
 	__u64	generation;	/* Inode generation: nodeid:gen must
 				   be unique for the fs's lifetime */
@@ -309,10 +472,20 @@ struct fuse_entry_out {
 	__u64	attr_valid;	/* Cache timeout for the attributes */
 	__u32	entry_valid_nsec;
 	__u32	attr_valid_nsec;
+=======
+	uint64_t	nodeid;		/* Inode ID */
+	uint64_t	generation;	/* Inode generation: nodeid:gen must
+					   be unique for the fs's lifetime */
+	uint64_t	entry_valid;	/* Cache timeout for the name */
+	uint64_t	attr_valid;	/* Cache timeout for the attributes */
+	uint32_t	entry_valid_nsec;
+	uint32_t	attr_valid_nsec;
+>>>>>>> android-3.18
 	struct fuse_attr attr;
 };
 
 struct fuse_forget_in {
+<<<<<<< HEAD
 	__u64	nlookup;
 };
 
@@ -330,20 +503,46 @@ struct fuse_getattr_in {
 	__u32	getattr_flags;
 	__u32	dummy;
 	__u64	fh;
+=======
+	uint64_t	nlookup;
+};
+
+struct fuse_forget_one {
+	uint64_t	nodeid;
+	uint64_t	nlookup;
+};
+
+struct fuse_batch_forget_in {
+	uint32_t	count;
+	uint32_t	dummy;
+};
+
+struct fuse_getattr_in {
+	uint32_t	getattr_flags;
+	uint32_t	dummy;
+	uint64_t	fh;
+>>>>>>> android-3.18
 };
 
 #define FUSE_COMPAT_ATTR_OUT_SIZE 96
 
 struct fuse_attr_out {
+<<<<<<< HEAD
 	__u64	attr_valid;	/* Cache timeout for the attributes */
 	__u32	attr_valid_nsec;
 	__u32	dummy;
+=======
+	uint64_t	attr_valid;	/* Cache timeout for the attributes */
+	uint32_t	attr_valid_nsec;
+	uint32_t	dummy;
+>>>>>>> android-3.18
 	struct fuse_attr attr;
 };
 
 #define FUSE_COMPAT_MKNOD_IN_SIZE 8
 
 struct fuse_mknod_in {
+<<<<<<< HEAD
 	__u32	mode;
 	__u32	rdev;
 	__u32	umask;
@@ -422,11 +621,98 @@ struct fuse_read_in {
 	__u64	lock_owner;
 	__u32	flags;
 	__u32	padding;
+=======
+	uint32_t	mode;
+	uint32_t	rdev;
+	uint32_t	umask;
+	uint32_t	padding;
+};
+
+struct fuse_mkdir_in {
+	uint32_t	mode;
+	uint32_t	umask;
+};
+
+struct fuse_rename_in {
+	uint64_t	newdir;
+};
+
+struct fuse_rename2_in {
+	uint64_t	newdir;
+	uint32_t	flags;
+	uint32_t	padding;
+};
+
+struct fuse_link_in {
+	uint64_t	oldnodeid;
+};
+
+struct fuse_setattr_in {
+	uint32_t	valid;
+	uint32_t	padding;
+	uint64_t	fh;
+	uint64_t	size;
+	uint64_t	lock_owner;
+	uint64_t	atime;
+	uint64_t	mtime;
+	uint64_t	ctime;
+	uint32_t	atimensec;
+	uint32_t	mtimensec;
+	uint32_t	ctimensec;
+	uint32_t	mode;
+	uint32_t	unused4;
+	uint32_t	uid;
+	uint32_t	gid;
+	uint32_t	unused5;
+};
+
+struct fuse_open_in {
+	uint32_t	flags;
+	uint32_t	unused;
+};
+
+struct fuse_create_in {
+	uint32_t	flags;
+	uint32_t	mode;
+	uint32_t	umask;
+	uint32_t	padding;
+};
+
+struct fuse_open_out {
+	uint64_t	fh;
+	uint32_t	open_flags;
+	uint32_t	padding;
+};
+
+struct fuse_release_in {
+	uint64_t	fh;
+	uint32_t	flags;
+	uint32_t	release_flags;
+	uint64_t	lock_owner;
+};
+
+struct fuse_flush_in {
+	uint64_t	fh;
+	uint32_t	unused;
+	uint32_t	padding;
+	uint64_t	lock_owner;
+};
+
+struct fuse_read_in {
+	uint64_t	fh;
+	uint64_t	offset;
+	uint32_t	size;
+	uint32_t	read_flags;
+	uint64_t	lock_owner;
+	uint32_t	flags;
+	uint32_t	padding;
+>>>>>>> android-3.18
 };
 
 #define FUSE_COMPAT_WRITE_IN_SIZE 24
 
 struct fuse_write_in {
+<<<<<<< HEAD
 	__u64	fh;
 	__u64	offset;
 	__u32	size;
@@ -439,6 +725,20 @@ struct fuse_write_in {
 struct fuse_write_out {
 	__u32	size;
 	__u32	padding;
+=======
+	uint64_t	fh;
+	uint64_t	offset;
+	uint32_t	size;
+	uint32_t	write_flags;
+	uint64_t	lock_owner;
+	uint32_t	flags;
+	uint32_t	padding;
+};
+
+struct fuse_write_out {
+	uint32_t	size;
+	uint32_t	padding;
+>>>>>>> android-3.18
 };
 
 #define FUSE_COMPAT_STATFS_SIZE 48
@@ -448,6 +748,7 @@ struct fuse_statfs_out {
 };
 
 struct fuse_fsync_in {
+<<<<<<< HEAD
 	__u64	fh;
 	__u32	fsync_flags;
 	__u32	padding;
@@ -474,6 +775,34 @@ struct fuse_lk_in {
 	struct fuse_file_lock lk;
 	__u32	lk_flags;
 	__u32	padding;
+=======
+	uint64_t	fh;
+	uint32_t	fsync_flags;
+	uint32_t	padding;
+};
+
+struct fuse_setxattr_in {
+	uint32_t	size;
+	uint32_t	flags;
+};
+
+struct fuse_getxattr_in {
+	uint32_t	size;
+	uint32_t	padding;
+};
+
+struct fuse_getxattr_out {
+	uint32_t	size;
+	uint32_t	padding;
+};
+
+struct fuse_lk_in {
+	uint64_t	fh;
+	uint64_t	owner;
+	struct fuse_file_lock lk;
+	uint32_t	lk_flags;
+	uint32_t	padding;
+>>>>>>> android-3.18
 };
 
 struct fuse_lk_out {
@@ -481,6 +810,7 @@ struct fuse_lk_out {
 };
 
 struct fuse_access_in {
+<<<<<<< HEAD
 	__u32	mask;
 	__u32	padding;
 };
@@ -500,11 +830,38 @@ struct fuse_init_out {
 	__u16   max_background;
 	__u16   congestion_threshold;
 	__u32	max_write;
+=======
+	uint32_t	mask;
+	uint32_t	padding;
+};
+
+struct fuse_init_in {
+	uint32_t	major;
+	uint32_t	minor;
+	uint32_t	max_readahead;
+	uint32_t	flags;
+};
+
+#define FUSE_COMPAT_INIT_OUT_SIZE 8
+#define FUSE_COMPAT_22_INIT_OUT_SIZE 24
+
+struct fuse_init_out {
+	uint32_t	major;
+	uint32_t	minor;
+	uint32_t	max_readahead;
+	uint32_t	flags;
+	uint16_t	max_background;
+	uint16_t	congestion_threshold;
+	uint32_t	max_write;
+	uint32_t	time_gran;
+	uint32_t	unused[9];
+>>>>>>> android-3.18
 };
 
 #define CUSE_INIT_INFO_MAX 4096
 
 struct cuse_init_in {
+<<<<<<< HEAD
 	__u32	major;
 	__u32	minor;
 	__u32	unused;
@@ -596,10 +953,112 @@ struct fuse_dirent {
 	__u64	off;
 	__u32	namelen;
 	__u32	type;
+=======
+	uint32_t	major;
+	uint32_t	minor;
+	uint32_t	unused;
+	uint32_t	flags;
+};
+
+struct cuse_init_out {
+	uint32_t	major;
+	uint32_t	minor;
+	uint32_t	unused;
+	uint32_t	flags;
+	uint32_t	max_read;
+	uint32_t	max_write;
+	uint32_t	dev_major;		/* chardev major */
+	uint32_t	dev_minor;		/* chardev minor */
+	uint32_t	spare[10];
+};
+
+struct fuse_interrupt_in {
+	uint64_t	unique;
+};
+
+struct fuse_bmap_in {
+	uint64_t	block;
+	uint32_t	blocksize;
+	uint32_t	padding;
+};
+
+struct fuse_bmap_out {
+	uint64_t	block;
+};
+
+struct fuse_ioctl_in {
+	uint64_t	fh;
+	uint32_t	flags;
+	uint32_t	cmd;
+	uint64_t	arg;
+	uint32_t	in_size;
+	uint32_t	out_size;
+};
+
+struct fuse_ioctl_iovec {
+	uint64_t	base;
+	uint64_t	len;
+};
+
+struct fuse_ioctl_out {
+	int32_t		result;
+	uint32_t	flags;
+	uint32_t	in_iovs;
+	uint32_t	out_iovs;
+};
+
+struct fuse_poll_in {
+	uint64_t	fh;
+	uint64_t	kh;
+	uint32_t	flags;
+	uint32_t	events;
+};
+
+struct fuse_poll_out {
+	uint32_t	revents;
+	uint32_t	padding;
+};
+
+struct fuse_notify_poll_wakeup_out {
+	uint64_t	kh;
+};
+
+struct fuse_fallocate_in {
+	uint64_t	fh;
+	uint64_t	offset;
+	uint64_t	length;
+	uint32_t	mode;
+	uint32_t	padding;
+};
+
+struct fuse_in_header {
+	uint32_t	len;
+	uint32_t	opcode;
+	uint64_t	unique;
+	uint64_t	nodeid;
+	uint32_t	uid;
+	uint32_t	gid;
+	uint32_t	pid;
+	uint32_t	padding;
+};
+
+struct fuse_out_header {
+	uint32_t	len;
+	int32_t		error;
+	uint64_t	unique;
+};
+
+struct fuse_dirent {
+	uint64_t	ino;
+	uint64_t	off;
+	uint32_t	namelen;
+	uint32_t	type;
+>>>>>>> android-3.18
 	char name[];
 };
 
 #define FUSE_NAME_OFFSET offsetof(struct fuse_dirent, name)
+<<<<<<< HEAD
 #define FUSE_DIRENT_ALIGN(x) (((x) + sizeof(__u64) - 1) & ~(sizeof(__u64) - 1))
 #define FUSE_DIRENT_SIZE(d) \
 	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET + (d)->namelen)
@@ -636,16 +1095,74 @@ struct fuse_notify_retrieve_out {
 	__u64	offset;
 	__u32	size;
 	__u32	padding;
+=======
+#define FUSE_DIRENT_ALIGN(x) \
+	(((x) + sizeof(uint64_t) - 1) & ~(sizeof(uint64_t) - 1))
+#define FUSE_DIRENT_SIZE(d) \
+	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET + (d)->namelen)
+
+struct fuse_direntplus {
+	struct fuse_entry_out entry_out;
+	struct fuse_dirent dirent;
+};
+
+#define FUSE_NAME_OFFSET_DIRENTPLUS \
+	offsetof(struct fuse_direntplus, dirent.name)
+#define FUSE_DIRENTPLUS_SIZE(d) \
+	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET_DIRENTPLUS + (d)->dirent.namelen)
+
+struct fuse_notify_inval_inode_out {
+	uint64_t	ino;
+	int64_t		off;
+	int64_t		len;
+};
+
+struct fuse_notify_inval_entry_out {
+	uint64_t	parent;
+	uint32_t	namelen;
+	uint32_t	padding;
+};
+
+struct fuse_notify_delete_out {
+	uint64_t	parent;
+	uint64_t	child;
+	uint32_t	namelen;
+	uint32_t	padding;
+};
+
+struct fuse_notify_store_out {
+	uint64_t	nodeid;
+	uint64_t	offset;
+	uint32_t	size;
+	uint32_t	padding;
+};
+
+struct fuse_notify_retrieve_out {
+	uint64_t	notify_unique;
+	uint64_t	nodeid;
+	uint64_t	offset;
+	uint32_t	size;
+	uint32_t	padding;
+>>>>>>> android-3.18
 };
 
 /* Matches the size of fuse_write_in */
 struct fuse_notify_retrieve_in {
+<<<<<<< HEAD
 	__u64	dummy1;
 	__u64	offset;
 	__u32	size;
 	__u32	dummy2;
 	__u64	dummy3;
 	__u64	dummy4;
+=======
+	uint64_t	dummy1;
+	uint64_t	offset;
+	uint32_t	size;
+	uint32_t	dummy2;
+	uint64_t	dummy3;
+	uint64_t	dummy4;
+>>>>>>> android-3.18
 };
 
 #endif /* _LINUX_FUSE_H */

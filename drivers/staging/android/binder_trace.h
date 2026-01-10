@@ -23,7 +23,12 @@
 struct binder_buffer;
 struct binder_node;
 struct binder_proc;
+<<<<<<< HEAD
 struct binder_ref;
+=======
+struct binder_alloc;
+struct binder_ref_data;
+>>>>>>> android-3.18
 struct binder_thread;
 struct binder_transaction;
 
@@ -84,6 +89,33 @@ DEFINE_BINDER_FUNCTION_RETURN_EVENT(binder_ioctl_done);
 DEFINE_BINDER_FUNCTION_RETURN_EVENT(binder_write_done);
 DEFINE_BINDER_FUNCTION_RETURN_EVENT(binder_read_done);
 
+<<<<<<< HEAD
+=======
+TRACE_EVENT(binder_set_priority,
+	TP_PROTO(int proc, int thread, unsigned int old_prio,
+		 unsigned int desired_prio, unsigned int new_prio),
+	TP_ARGS(proc, thread, old_prio, new_prio, desired_prio),
+
+	TP_STRUCT__entry(
+		__field(int, proc)
+		__field(int, thread)
+		__field(unsigned int, old_prio)
+		__field(unsigned int, new_prio)
+		__field(unsigned int, desired_prio)
+	),
+	TP_fast_assign(
+		__entry->proc = proc;
+		__entry->thread = thread;
+		__entry->old_prio = old_prio;
+		__entry->new_prio = new_prio;
+		__entry->desired_prio = desired_prio;
+	),
+	TP_printk("proc=%d thread=%d old=%d => new=%d desired=%d",
+		  __entry->proc, __entry->thread, __entry->old_prio,
+		  __entry->new_prio, __entry->desired_prio)
+);
+
+>>>>>>> android-3.18
 TRACE_EVENT(binder_wait_for_work,
 	TP_PROTO(bool proc_work, bool transaction_stack, bool thread_todo),
 	TP_ARGS(proc_work, transaction_stack, thread_todo),
@@ -146,8 +178,13 @@ TRACE_EVENT(binder_transaction_received,
 
 TRACE_EVENT(binder_transaction_node_to_ref,
 	TP_PROTO(struct binder_transaction *t, struct binder_node *node,
+<<<<<<< HEAD
 		 struct binder_ref *ref),
 	TP_ARGS(t, node, ref),
+=======
+		 struct binder_ref_data *rdata),
+	TP_ARGS(t, node, rdata),
+>>>>>>> android-3.18
 
 	TP_STRUCT__entry(
 		__field(int, debug_id)
@@ -160,8 +197,13 @@ TRACE_EVENT(binder_transaction_node_to_ref,
 		__entry->debug_id = t->debug_id;
 		__entry->node_debug_id = node->debug_id;
 		__entry->node_ptr = node->ptr;
+<<<<<<< HEAD
 		__entry->ref_debug_id = ref->debug_id;
 		__entry->ref_desc = ref->desc;
+=======
+		__entry->ref_debug_id = rdata->debug_id;
+		__entry->ref_desc = rdata->desc;
+>>>>>>> android-3.18
 	),
 	TP_printk("transaction=%d node=%d src_ptr=0x%016llx ==> dest_ref=%d dest_desc=%d",
 		  __entry->debug_id, __entry->node_debug_id,
@@ -170,8 +212,14 @@ TRACE_EVENT(binder_transaction_node_to_ref,
 );
 
 TRACE_EVENT(binder_transaction_ref_to_node,
+<<<<<<< HEAD
 	TP_PROTO(struct binder_transaction *t, struct binder_ref *ref),
 	TP_ARGS(t, ref),
+=======
+	TP_PROTO(struct binder_transaction *t, struct binder_node *node,
+		 struct binder_ref_data *rdata),
+	TP_ARGS(t, node, rdata),
+>>>>>>> android-3.18
 
 	TP_STRUCT__entry(
 		__field(int, debug_id)
@@ -182,10 +230,17 @@ TRACE_EVENT(binder_transaction_ref_to_node,
 	),
 	TP_fast_assign(
 		__entry->debug_id = t->debug_id;
+<<<<<<< HEAD
 		__entry->ref_debug_id = ref->debug_id;
 		__entry->ref_desc = ref->desc;
 		__entry->node_debug_id = ref->node->debug_id;
 		__entry->node_ptr = ref->node->ptr;
+=======
+		__entry->ref_debug_id = rdata->debug_id;
+		__entry->ref_desc = rdata->desc;
+		__entry->node_debug_id = node->debug_id;
+		__entry->node_ptr = node->ptr;
+>>>>>>> android-3.18
 	),
 	TP_printk("transaction=%d node=%d src_ref=%d src_desc=%d ==> dest_ptr=0x%016llx",
 		  __entry->debug_id, __entry->node_debug_id,
@@ -194,9 +249,16 @@ TRACE_EVENT(binder_transaction_ref_to_node,
 );
 
 TRACE_EVENT(binder_transaction_ref_to_ref,
+<<<<<<< HEAD
 	TP_PROTO(struct binder_transaction *t, struct binder_ref *src_ref,
 		 struct binder_ref *dest_ref),
 	TP_ARGS(t, src_ref, dest_ref),
+=======
+	TP_PROTO(struct binder_transaction *t, struct binder_node *node,
+		 struct binder_ref_data *src_ref,
+		 struct binder_ref_data *dest_ref),
+	TP_ARGS(t, node, src_ref, dest_ref),
+>>>>>>> android-3.18
 
 	TP_STRUCT__entry(
 		__field(int, debug_id)
@@ -208,7 +270,11 @@ TRACE_EVENT(binder_transaction_ref_to_ref,
 	),
 	TP_fast_assign(
 		__entry->debug_id = t->debug_id;
+<<<<<<< HEAD
 		__entry->node_debug_id = src_ref->node->debug_id;
+=======
+		__entry->node_debug_id = node->debug_id;
+>>>>>>> android-3.18
 		__entry->src_ref_debug_id = src_ref->debug_id;
 		__entry->src_ref_desc = src_ref->desc;
 		__entry->dest_ref_debug_id = dest_ref->debug_id;
@@ -268,9 +334,15 @@ DEFINE_EVENT(binder_buffer_class, binder_transaction_failed_buffer_release,
 	TP_ARGS(buffer));
 
 TRACE_EVENT(binder_update_page_range,
+<<<<<<< HEAD
 	TP_PROTO(struct binder_proc *proc, bool allocate,
 		 void *start, void *end),
 	TP_ARGS(proc, allocate, start, end),
+=======
+	TP_PROTO(struct binder_alloc *alloc, bool allocate,
+		 void *start, void *end),
+	TP_ARGS(alloc, allocate, start, end),
+>>>>>>> android-3.18
 	TP_STRUCT__entry(
 		__field(int, proc)
 		__field(bool, allocate)
@@ -278,9 +350,15 @@ TRACE_EVENT(binder_update_page_range,
 		__field(size_t, size)
 	),
 	TP_fast_assign(
+<<<<<<< HEAD
 		__entry->proc = proc->pid;
 		__entry->allocate = allocate;
 		__entry->offset = start - proc->buffer;
+=======
+		__entry->proc = alloc->pid;
+		__entry->allocate = allocate;
+		__entry->offset = start - alloc->buffer;
+>>>>>>> android-3.18
 		__entry->size = end - start;
 	),
 	TP_printk("proc=%d allocate=%d offset=%zu size=%zu",
@@ -288,6 +366,64 @@ TRACE_EVENT(binder_update_page_range,
 		  __entry->offset, __entry->size)
 );
 
+<<<<<<< HEAD
+=======
+DECLARE_EVENT_CLASS(binder_lru_page_class,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index),
+	TP_STRUCT__entry(
+		__field(int, proc)
+		__field(size_t, page_index)
+	),
+	TP_fast_assign(
+		__entry->proc = alloc->pid;
+		__entry->page_index = page_index;
+	),
+	TP_printk("proc=%d page_index=%zu",
+		  __entry->proc, __entry->page_index)
+);
+
+DEFINE_EVENT(binder_lru_page_class, binder_alloc_lru_start,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_alloc_lru_end,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_free_lru_start,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_free_lru_end,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_alloc_page_start,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_alloc_page_end,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_unmap_user_start,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_unmap_user_end,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_unmap_kernel_start,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+DEFINE_EVENT(binder_lru_page_class, binder_unmap_kernel_end,
+	TP_PROTO(const struct binder_alloc *alloc, size_t page_index),
+	TP_ARGS(alloc, page_index));
+
+>>>>>>> android-3.18
 TRACE_EVENT(binder_command,
 	TP_PROTO(uint32_t cmd),
 	TP_ARGS(cmd),

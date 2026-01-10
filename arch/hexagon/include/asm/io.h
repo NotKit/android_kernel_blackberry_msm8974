@@ -1,7 +1,11 @@
 /*
  * IO definitions for the Hexagon architecture
  *
+<<<<<<< HEAD
  * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
+=======
+ * Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+>>>>>>> android-3.18
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -24,14 +28,9 @@
 #ifdef __KERNEL__
 
 #include <linux/types.h>
-#include <linux/delay.h>
-#include <linux/vmalloc.h>
-#include <asm/string.h>
-#include <asm/mem-layout.h>
 #include <asm/iomap.h>
 #include <asm/page.h>
 #include <asm/cacheflush.h>
-#include <asm/tlbflush.h>
 
 /*
  * We don't have PCI yet.
@@ -39,6 +38,8 @@
  */
 #define IO_SPACE_LIMIT 0xffff
 #define _IO_BASE ((void __iomem *)0xfe000000)
+
+#define IOMEM(x)        ((void __force __iomem *)(x))
 
 extern int remap_area_pages(unsigned long start, unsigned long phys_addr,
 				unsigned long end, unsigned long flags);
@@ -176,6 +177,20 @@ static inline void writel(u32 data, volatile void __iomem *addr)
 #define __raw_readl readl
 
 /*
+ * http://comments.gmane.org/gmane.linux.ports.arm.kernel/117626
+ */
+
+#define readb_relaxed __raw_readb
+#define readw_relaxed __raw_readw
+#define readl_relaxed __raw_readl
+
+#define writeb_relaxed __raw_writeb
+#define writew_relaxed __raw_writew
+#define writel_relaxed __raw_writel
+
+#define mmiowb()
+
+/*
  * Need an mtype somewhere in here, for cache type deals?
  * This is probably too long for an inline.
  */
@@ -203,6 +218,12 @@ static inline void memcpy_toio(volatile void __iomem *dst, const void *src,
 	int count)
 {
 	memcpy((void *) dst, src, count);
+}
+
+static inline void memset_io(volatile void __iomem *addr, int value,
+			     size_t size)
+{
+	memset((void __force *)addr, value, size);
 }
 
 #define PCI_IO_ADDR	(volatile void __iomem *)

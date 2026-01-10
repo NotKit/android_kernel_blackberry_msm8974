@@ -18,6 +18,7 @@
 #ifndef __LINUX_USB_F_MTP_H
 #define __LINUX_USB_F_MTP_H
 
+<<<<<<< HEAD
 #include <linux/ioctl.h>
 
 #ifdef __KERNEL__
@@ -71,5 +72,8 @@ struct mtp_event {
  * with a 12 byte MTP data packet header at the beginning.
  */
 #define MTP_SEND_FILE_WITH_HEADER  _IOW('M', 4, struct mtp_file_range)
+=======
+#include <uapi/linux/usb/f_mtp.h>
+>>>>>>> android-3.18
 
 #endif /* __LINUX_USB_F_MTP_H */

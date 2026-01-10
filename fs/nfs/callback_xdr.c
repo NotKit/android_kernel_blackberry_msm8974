@@ -16,6 +16,7 @@
 #include "nfs4_fs.h"
 #include "callback.h"
 #include "internal.h"
+#include "nfs4session.h"
 
 #define CB_OP_TAGLEN_MAXSZ	(512)
 #define CB_OP_HDR_RES_MAXSZ	(2 + CB_OP_TAGLEN_MAXSZ)
@@ -165,9 +166,9 @@ static __be32 decode_compound_hdr_arg(struct xdr_stream *xdr, struct cb_compound
 	if (unlikely(p == NULL))
 		return htonl(NFS4ERR_RESOURCE);
 	hdr->minorversion = ntohl(*p++);
-	/* Check minor version is zero or one. */
-	if (hdr->minorversion <= 1) {
-		hdr->cb_ident = ntohl(*p++); /* ignored by v4.1 */
+	/* Check for minor version support */
+	if (hdr->minorversion <= NFS4_MAX_MINOR_VERSION) {
+		hdr->cb_ident = ntohl(*p++); /* ignored by v4.1 and v4.2 */
 	} else {
 		pr_warn_ratelimited("NFS: %s: NFSv4 server callback with "
 			"illegal minor version %u!\n",
@@ -522,7 +523,7 @@ static __be32 decode_recallslot_args(struct svc_rqst *rqstp,
 	p = read_buf(xdr, 4);
 	if (unlikely(p == NULL))
 		return htonl(NFS4ERR_BADXDR);
-	args->crsa_target_max_slots = ntohl(*p++);
+	args->crsa_target_highest_slotid = ntohl(*p++);
 	return 0;
 }
 
@@ -698,7 +699,7 @@ static __be32 encode_cb_sequence_res(struct svc_rqst *rqstp,
 				       const struct cb_sequenceres *res)
 {
 	__be32 *p;
-	unsigned status = res->csr_status;
+	__be32 status = res->csr_status;
 
 	if (unlikely(status != 0))
 		goto out;
@@ -764,7 +765,7 @@ static void nfs4_callback_free_slot(struct nfs4_session *session)
 	 * A single slot, so highest used slotid is either 0 or -1
 	 */
 	tbl->highest_used_slotid = NFS4_NO_SLOT;
-	nfs4_check_drain_bc_complete(session);
+	nfs4_slot_tbl_drain_complete(tbl);
 	spin_unlock(&tbl->slot_tbl_lock);
 }
 
@@ -787,6 +788,26 @@ static void nfs4_cb_free_slot(struct cb_process_state *cps)
 }
 #endif /* CONFIG_NFS_V4_1 */
 
+#ifdef CONFIG_NFS_V4_2
+static __be32
+preprocess_nfs42_op(int nop, unsigned int op_nr, struct callback_op **op)
+{
+	__be32 status = preprocess_nfs41_op(nop, op_nr, op);
+	if (status != htonl(NFS4ERR_OP_ILLEGAL))
+		return status;
+
+	if (op_nr == OP_CB_OFFLOAD)
+		return htonl(NFS4ERR_NOTSUPP);
+	return htonl(NFS4ERR_OP_ILLEGAL);
+}
+#else /* CONFIG_NFS_V4_2 */
+static __be32
+preprocess_nfs42_op(int nop, unsigned int op_nr, struct callback_op **op)
+{
+	return htonl(NFS4ERR_MINOR_VERS_MISMATCH);
+}
+#endif /* CONFIG_NFS_V4_2 */
+
 static __be32
 preprocess_nfs4_op(unsigned int op_nr, struct callback_op **op)
 {
@@ -802,8 +823,7 @@ preprocess_nfs4_op(unsigned int op_nr, struct callback_op **op)
 	return htonl(NFS_OK);
 }
 
-static __be32 process_op(uint32_t minorversion, int nop,
-		struct svc_rqst *rqstp,
+static __be32 process_op(int nop, struct svc_rqst *rqstp,
 		struct xdr_stream *xdr_in, void *argp,
 		struct xdr_stream *xdr_out, void *resp,
 		struct cb_process_state *cps)
@@ -820,10 +840,22 @@ static __be32 process_op(uint32_t minorversion, int nop,
 		return status;
 
 	dprintk("%s: minorversion=%d nop=%d op_nr=%u\n",
-		__func__, minorversion, nop, op_nr);
+		__func__, cps->minorversion, nop, op_nr);
 
-	status = minorversion ? preprocess_nfs41_op(nop, op_nr, &op) :
-				preprocess_nfs4_op(op_nr, &op);
+	switch (cps->minorversion) {
+	case 0:
+		status = preprocess_nfs4_op(op_nr, &op);
+		break;
+	case 1:
+		status = preprocess_nfs41_op(nop, op_nr, &op);
+		break;
+	case 2:
+		status = preprocess_nfs42_op(nop, op_nr, &op);
+		break;
+	default:
+		status = htonl(NFS4ERR_MINOR_VERS_MISMATCH);
+	}
+
 	if (status == htonl(NFS4ERR_OP_ILLEGAL))
 		op_nr = OP_CB_ILLEGAL;
 	if (status)
@@ -865,7 +897,7 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *r
 		.drc_status = 0,
 		.clp = NULL,
 		.slotid = NFS4_NO_SLOT,
-		.net = rqstp->rq_xprt->xpt_net,
+		.net = SVC_NET(rqstp),
 	};
 	unsigned int nops = 0;
 
@@ -881,19 +913,25 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *r
 		return rpc_garbage_args;
 
 	if (hdr_arg.minorversion == 0) {
-		cps.clp = nfs4_find_client_ident(rqstp->rq_xprt->xpt_net, hdr_arg.cb_ident);
-		if (!cps.clp || !check_gss_callback_principal(cps.clp, rqstp))
-			return rpc_drop_reply;
+		cps.clp = nfs4_find_client_ident(SVC_NET(rqstp), hdr_arg.cb_ident);
+		if (!cps.clp || !check_gss_callback_principal(cps.clp, rqstp)) {
+			if (cps.clp)
+				nfs_put_client(cps.clp);
+			goto out_invalidcred;
+		}
 	}
 
+	cps.minorversion = hdr_arg.minorversion;
 	hdr_res.taglen = hdr_arg.taglen;
 	hdr_res.tag = hdr_arg.tag;
-	if (encode_compound_hdr_res(&xdr_out, &hdr_res) != 0)
+	if (encode_compound_hdr_res(&xdr_out, &hdr_res) != 0) {
+		if (cps.clp)
+			nfs_put_client(cps.clp);
 		return rpc_system_err;
-
+	}
 	while (status == 0 && nops != hdr_arg.nops) {
-		status = process_op(hdr_arg.minorversion, nops, rqstp,
-				    &xdr_in, argp, &xdr_out, resp, &cps);
+		status = process_op(nops, rqstp, &xdr_in,
+				    argp, &xdr_out, resp, &cps);
 		nops++;
 	}
 
@@ -910,6 +948,10 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *r
 	nfs_put_client(cps.clp);
 	dprintk("%s: done, status = %u\n", __func__, ntohl(status));
 	return rpc_success;
+
+out_invalidcred:
+	pr_warn_ratelimited("NFS: NFSv4 callback contains invalid cred\n");
+	return rpc_autherr_badcred;
 }
 
 /*

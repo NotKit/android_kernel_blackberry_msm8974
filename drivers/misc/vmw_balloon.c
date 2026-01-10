@@ -17,7 +17,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Maintained by: Dmitry Torokhov <dtor@vmware.com>
+ * Maintained by:	Xavier Deguillard <xdeguillard@vmware.com>
+ *			Philip Moltmann <moltmann@vmware.com>
  */
 
 /*
@@ -41,6 +42,7 @@
 #include <linux/workqueue.h>
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
+#include <linux/io.h>
 #include <asm/hypervisor.h>
 
 MODULE_AUTHOR("VMware, Inc.");
@@ -133,7 +135,7 @@ MODULE_LICENSE("GPL");
 #define VMWARE_BALLOON_CMD(cmd, data, result)		\
 ({							\
 	unsigned long __stat, __dummy1, __dummy2;	\
-	__asm__ __volatile__ ("inl (%%dx)" :		\
+	__asm__ __volatile__ ("inl %%dx" :		\
 		"=a"(__stat),				\
 		"=c"(__dummy1),				\
 		"=d"(__dummy2),				\
@@ -819,7 +821,14 @@ static int __init vmballoon_init(void)
 
 	return 0;
 }
-module_init(vmballoon_init);
+
+/*
+ * Using late_initcall() instead of module_init() allows the balloon to use the
+ * VMCI doorbell even when the balloon is built into the kernel. Otherwise the
+ * VMCI is probed only after the balloon is initialized. If the balloon is used
+ * as a module, late_initcall() is equivalent to module_init().
+ */
+late_initcall(vmballoon_init);
 
 static void __exit vmballoon_exit(void)
 {

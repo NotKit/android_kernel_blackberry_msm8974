@@ -2,8 +2,14 @@
 #include <linux/consolemap.h>
 #include <linux/interrupt.h>
 #include <linux/sched.h>
+#include <linux/device.h> /* for dev_warn */
 #include <linux/selection.h>
 #include <linux/workqueue.h>
+<<<<<<< HEAD
+=======
+#include <linux/tty.h>
+#include <linux/tty_flip.h>
+>>>>>>> android-3.18
 #include <asm/cmpxchg.h>
 
 #include "speakup.h"
@@ -15,7 +21,7 @@
 unsigned short spk_xs, spk_ys, spk_xe, spk_ye; /* our region points */
 
 /* Variables for selection control. */
-/* must not be disallocated */
+/* must not be deallocated */
 struct vc_data *spk_sel_cons;
 /* cleared by clear_selection */
 static int sel_start = -1;
@@ -63,6 +69,7 @@ int speakup_set_selection(struct tty_struct *tty)
 	if (ps > pe) {
 		/* make sel_start <= sel_end */
 		int tmp = ps;
+
 		ps = pe;
 		pe = tmp;
 	}
@@ -70,7 +77,7 @@ int speakup_set_selection(struct tty_struct *tty)
 	if (spk_sel_cons != vc_cons[fg_console].d) {
 		speakup_clear_selection();
 		spk_sel_cons = vc_cons[fg_console].d;
-		printk(KERN_WARNING
+		dev_warn(tty->dev,
 			"Selection: mark console not the same as cut\n");
 		return -EINVAL;
 	}
@@ -97,7 +104,6 @@ int speakup_set_selection(struct tty_struct *tty)
 	/* Allocate a new buffer before freeing the old one ... */
 	bp = kmalloc((sel_end-sel_start)/2+1, GFP_ATOMIC);
 	if (!bp) {
-		printk(KERN_WARNING "selection: kmalloc() failed\n");
 		speakup_clear_selection();
 		return -ENOMEM;
 	}
@@ -135,8 +141,17 @@ static void __speakup_paste_selection(struct work_struct *work)
 	struct tty_struct *tty = xchg(&spw->tty, NULL);
 	struct vc_data *vc = (struct vc_data *) tty->driver_data;
 	int pasted = 0, count;
+	struct tty_ldisc *ld;
 	DECLARE_WAITQUEUE(wait, current);
 
+<<<<<<< HEAD
+=======
+	ld = tty_ldisc_ref(tty);
+	if (!ld)
+		goto tty_unref;
+	tty_buffer_lock_exclusive(&vc->port);
+
+>>>>>>> android-3.18
 	add_wait_queue(&vc->paste_wait, &wait);
 	while (sel_buffer && sel_buffer_lth > pasted) {
 		set_current_state(TASK_INTERRUPTIBLE);
@@ -145,13 +160,19 @@ static void __speakup_paste_selection(struct work_struct *work)
 			continue;
 		}
 		count = sel_buffer_lth - pasted;
-		count = min_t(int, count, tty->receive_room);
-		tty->ldisc->ops->receive_buf(tty, sel_buffer + pasted,
-			0, count);
+		count = tty_ldisc_receive_buf(ld, sel_buffer + pasted, NULL,
+					      count);
 		pasted += count;
 	}
 	remove_wait_queue(&vc->paste_wait, &wait);
 	current->state = TASK_RUNNING;
+<<<<<<< HEAD
+=======
+
+	tty_buffer_unlock_exclusive(&vc->port);
+	tty_ldisc_deref(ld);
+tty_unref:
+>>>>>>> android-3.18
 	tty_kref_put(tty);
 }
 

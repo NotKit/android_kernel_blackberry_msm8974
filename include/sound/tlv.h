@@ -43,6 +43,14 @@
 #define TLV_LENGTH(...) \
 	((unsigned int)sizeof((const unsigned int[]) { __VA_ARGS__ }))
 
+<<<<<<< HEAD
+=======
+#define TLV_CONTAINER_ITEM(...) \
+	TLV_ITEM(SNDRV_CTL_TLVT_CONTAINER, __VA_ARGS__)
+#define DECLARE_TLV_CONTAINER(name, ...) \
+	unsigned int name[] = { TLV_CONTAINER_ITEM(__VA_ARGS__) }
+
+>>>>>>> android-3.18
 #define TLV_DB_SCALE_MASK	0xffff
 #define TLV_DB_SCALE_MUTE	0x10000
 #define TLV_DB_SCALE_ITEM(min, step, mute)			\
@@ -69,7 +77,11 @@
 #define DECLARE_TLV_DB_LINEAR(name, min_dB, max_dB)	\
 	unsigned int name[] = { TLV_DB_LINEAR_ITEM(min_dB, max_dB) }
 
-/* dB range container */
+/* dB range container:
+ * Items in dB range container must be ordered by their values and by their
+ * dB values. This implies that larger values must correspond with larger
+ * dB values (which is also required for all other mixer controls).
+ */
 /* Each item is: <min> <max> <TLV> */
 #define TLV_DB_RANGE_ITEM(...) \
 	TLV_ITEM(SNDRV_CTL_TLVT_DB_RANGE, __VA_ARGS__)
