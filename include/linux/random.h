@@ -7,10 +7,6 @@
 #define _LINUX_RANDOM_H
 
 #include <uapi/linux/random.h>
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 
 extern void add_device_randomness(const void *, unsigned int);
 extern void add_input_randomness(unsigned int type, unsigned int code,
@@ -30,51 +26,12 @@ unsigned int get_random_int(void);
 unsigned long get_random_long(void);
 unsigned long randomize_range(unsigned long start, unsigned long end, unsigned long len);
 
-<<<<<<< HEAD
-u32 prandom_u32(void);
-void prandom_bytes(void *buf, int nbytes);
-void prandom_seed(u32 seed);
-void prandom_reseed_late(void);
-
-/*
- * These macros are preserved for backward compatibility and should be
- * removed as soon as a transition is finished.
- */
-#define random32() prandom_u32()
-#define srandom32(seed) prandom_seed(seed)
-
-u32 prandom_u32_state(struct rnd_state *);
-void prandom_bytes_state(struct rnd_state *state, void *buf, int nbytes);
-
-/*
- * Handle minimum values for seeds
- */
-static inline u32 __seed(u32 x, u32 m)
-{
-	return (x < m) ? x + m : x;
-}
-
-/**
- * prandom_seed_state - set seed for prandom_u32_state().
- * @state: pointer to state structure to receive the seed.
- * @seed: arbitrary 64-bit value to use as a seed.
- */
-static inline void prandom_seed_state(struct rnd_state *state, u64 seed)
-{
-	u32 i = (seed >> 32) ^ (seed << 10) ^ seed;
-
-	state->s1 = __seed(i, 2);
-	state->s2 = __seed(i, 8);
-	state->s3 = __seed(i, 16);
-}
-=======
 /*
  * This is designed to be standalone for just prandom
  * users, but for now we include it from <linux/random.h>
  * for legacy reasons.
  */
 #include <linux/prandom.h>
->>>>>>> android-3.18
 
 #ifdef CONFIG_ARCH_RANDOM
 # include <asm/archrandom.h>

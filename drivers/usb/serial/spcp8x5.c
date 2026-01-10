@@ -154,14 +154,6 @@ static int spcp8x5_probe(struct usb_serial *serial,
 	return 0;
 }
 
-<<<<<<< HEAD
-struct spcp8x5_private {
-	spinlock_t 	lock;
-	enum spcp8x5_type	type;
-	u8 			line_control;
-	u8 			line_status;
-};
-=======
 static int spcp8x5_attach(struct usb_serial *serial)
 {
 	unsigned char num_ports = serial->num_ports;
@@ -171,7 +163,6 @@ static int spcp8x5_attach(struct usb_serial *serial)
 		dev_err(&serial->interface->dev, "missing endpoints\n");
 		return -ENODEV;
 	}
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -180,34 +171,6 @@ static int spcp8x5_port_probe(struct usb_serial_port *port)
 {
 	const struct usb_device_id *id = usb_get_serial_data(port->serial);
 	struct spcp8x5_private *priv;
-<<<<<<< HEAD
-	int i;
-	enum spcp8x5_type type = SPCP825_007_TYPE;
-	u16 product = le16_to_cpu(serial->dev->descriptor.idProduct);
-
-	if (product == 0x0201)
-		type = SPCP825_007_TYPE;
-	else if (product == 0x0231)
-		type = SPCP835_TYPE;
-	else if (product == 0x0235)
-		type = SPCP825_008_TYPE;
-	else if (product == 0x0204)
-		type = SPCP825_INTERMATIC_TYPE;
-	else if (product == 0x0471 &&
-		 serial->dev->descriptor.idVendor == cpu_to_le16(0x081e))
-		type = SPCP825_PHILIP_TYPE;
-	dev_dbg(&serial->dev->dev, "device type = %d\n", (int)type);
-
-	for (i = 0; i < serial->num_ports; ++i) {
-		priv = kzalloc(sizeof(struct spcp8x5_private), GFP_KERNEL);
-		if (!priv)
-			goto cleanup;
-
-		spin_lock_init(&priv->lock);
-		priv->type = type;
-		usb_set_serial_port_data(serial->port[i] , priv);
-	}
-=======
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv)
@@ -219,7 +182,6 @@ static int spcp8x5_port_probe(struct usb_serial_port *port)
 	usb_set_serial_port_data(port, priv);
 
 	port->port.drain_delay = 256;
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -269,16 +231,6 @@ static int spcp8x5_get_msr(struct usb_serial_port *port, u8 *status)
 
 	ret = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
 			      GET_UART_STATUS, GET_UART_STATUS_TYPE,
-<<<<<<< HEAD
-			      0, GET_UART_STATUS_MSR, status_buffer, 1, 100);
-	if (ret < 0)
-		dev_dbg(&dev->dev, "Get MSR = 0x%pK failed (error = %d)",
-			status_buffer, ret);
-
-	dev_dbg(&dev->dev, "0xc0:0x22:0:6  %d - 0x%pK ", ret, status_buffer);
-	status[0] = status_buffer[0];
-	kfree(status_buffer);
-=======
 			      0, GET_UART_STATUS_MSR, buf, 1, 100);
 	if (ret < 1) {
 		dev_err(&port->dev, "failed to get modem status: %d\n", ret);
@@ -292,7 +244,6 @@ static int spcp8x5_get_msr(struct usb_serial_port *port, u8 *status)
 	ret = 0;
 out:
 	kfree(buf);
->>>>>>> android-3.18
 
 	return ret;
 }
@@ -359,11 +310,7 @@ static void spcp8x5_set_termios(struct tty_struct *tty,
 	struct usb_serial *serial = port->serial;
 	struct spcp8x5_private *priv = usb_get_serial_port_data(port);
 	unsigned long flags;
-<<<<<<< HEAD
-	unsigned int cflag = tty->termios->c_cflag;
-=======
 	unsigned int cflag = tty->termios.c_cflag;
->>>>>>> android-3.18
 	unsigned short uartdata;
 	unsigned char buf[2] = {0, 0};
 	int baud;
@@ -371,11 +318,7 @@ static void spcp8x5_set_termios(struct tty_struct *tty,
 	u8 control;
 
 	/* check that they really want us to change something */
-<<<<<<< HEAD
-	if (old_termios && !tty_termios_hw_change(tty->termios, old_termios))
-=======
 	if (old_termios && !tty_termios_hw_change(&tty->termios, old_termios))
->>>>>>> android-3.18
 		return;
 
 	/* set DTR/RTS active */
@@ -484,139 +427,10 @@ static int spcp8x5_open(struct tty_struct *tty, struct usb_serial_port *port)
 
 	if (tty)
 		spcp8x5_set_termios(tty, port, NULL);
-<<<<<<< HEAD
-
-	spcp8x5_get_msr(serial->dev, &status, priv->type);
-
-	/* may be we should update uart status here but now we did not do */
-	spin_lock_irqsave(&priv->lock, flags);
-	priv->line_status = status & 0xf0 ;
-	spin_unlock_irqrestore(&priv->lock, flags);
-
-	port->port.drain_delay = 256;
-=======
->>>>>>> android-3.18
 
 	return usb_serial_generic_open(tty, port);
 }
 
-<<<<<<< HEAD
-static void spcp8x5_process_read_urb(struct urb *urb)
-{
-	struct usb_serial_port *port = urb->context;
-	struct spcp8x5_private *priv = usb_get_serial_port_data(port);
-	struct tty_struct *tty;
-	unsigned char *data = urb->transfer_buffer;
-	unsigned long flags;
-	u8 status;
-	char tty_flag;
-
-	/* get tty_flag from status */
-	tty_flag = TTY_NORMAL;
-
-	spin_lock_irqsave(&priv->lock, flags);
-	status = priv->line_status;
-	priv->line_status &= ~UART_STATE_TRANSIENT_MASK;
-	spin_unlock_irqrestore(&priv->lock, flags);
-	/* wake up the wait for termios */
-	wake_up_interruptible(&port->delta_msr_wait);
-
-	if (!urb->actual_length)
-		return;
-
-	tty = tty_port_tty_get(&port->port);
-	if (!tty)
-		return;
-
-	if (status & UART_STATE_TRANSIENT_MASK) {
-		/* break takes precedence over parity, which takes precedence
-		 * over framing errors */
-		if (status & UART_BREAK_ERROR)
-			tty_flag = TTY_BREAK;
-		else if (status & UART_PARITY_ERROR)
-			tty_flag = TTY_PARITY;
-		else if (status & UART_FRAME_ERROR)
-			tty_flag = TTY_FRAME;
-		dev_dbg(&port->dev, "tty_flag = %d\n", tty_flag);
-
-		/* overrun is special, not associated with a char */
-		if (status & UART_OVERRUN_ERROR)
-			tty_insert_flip_char(tty, 0, TTY_OVERRUN);
-
-		if (status & UART_DCD)
-			usb_serial_handle_dcd_change(port, tty,
-				   priv->line_status & MSR_STATUS_LINE_DCD);
-	}
-
-	tty_insert_flip_string_fixed_flag(tty, data, tty_flag,
-							urb->actual_length);
-	tty_flip_buffer_push(tty);
-	tty_kref_put(tty);
-}
-
-static int spcp8x5_wait_modem_info(struct usb_serial_port *port,
-				   unsigned int arg)
-{
-	struct spcp8x5_private *priv = usb_get_serial_port_data(port);
-	unsigned long flags;
-	unsigned int prevstatus;
-	unsigned int status;
-	unsigned int changed;
-
-	spin_lock_irqsave(&priv->lock, flags);
-	prevstatus = priv->line_status;
-	spin_unlock_irqrestore(&priv->lock, flags);
-
-	while (1) {
-		/* wake up in bulk read */
-		interruptible_sleep_on(&port->delta_msr_wait);
-
-		/* see if a signal did it */
-		if (signal_pending(current))
-			return -ERESTARTSYS;
-
-		if (port->serial->disconnected)
-			return -EIO;
-
-		spin_lock_irqsave(&priv->lock, flags);
-		status = priv->line_status;
-		spin_unlock_irqrestore(&priv->lock, flags);
-
-		changed = prevstatus^status;
-
-		if (((arg & TIOCM_RNG) && (changed & MSR_STATUS_LINE_RI)) ||
-		    ((arg & TIOCM_DSR) && (changed & MSR_STATUS_LINE_DSR)) ||
-		    ((arg & TIOCM_CD)  && (changed & MSR_STATUS_LINE_DCD)) ||
-		    ((arg & TIOCM_CTS) && (changed & MSR_STATUS_LINE_CTS)))
-			return 0;
-
-		prevstatus = status;
-	}
-	/* NOTREACHED */
-	return 0;
-}
-
-static int spcp8x5_ioctl(struct tty_struct *tty,
-			 unsigned int cmd, unsigned long arg)
-{
-	struct usb_serial_port *port = tty->driver_data;
-	dbg("%s (%d) cmd = 0x%04x", __func__, port->number, cmd);
-
-	switch (cmd) {
-	case TIOCMIWAIT:
-		dbg("%s (%d) TIOCMIWAIT", __func__,  port->number);
-		return spcp8x5_wait_modem_info(port, arg);
-
-	default:
-		dbg("%s not supported = 0x%04x", __func__, cmd);
-		break;
-	}
-
-	return -ENOIOCTLCMD;
-}
-
-=======
->>>>>>> android-3.18
 static int spcp8x5_tiocmset(struct tty_struct *tty,
 			    unsigned int set, unsigned int clear)
 {

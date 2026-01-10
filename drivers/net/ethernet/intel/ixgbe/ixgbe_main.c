@@ -1766,14 +1766,6 @@ static bool ixgbe_cleanup_headers(struct ixgbe_ring *rx_ring,
 	if (ixgbe_rx_is_fcoe(rx_ring, rx_desc))
 		return false;
 
-<<<<<<< HEAD
-#ifdef IXGBE_FCOE
-	/* do not attempt to pad FCoE Frames as this will disrupt DDP */
-	if (ixgbe_rx_is_fcoe(rx_ring, rx_desc))
-		return false;
-
-=======
->>>>>>> android-3.18
 #endif
 	/* if skb_pad returns an error the skb was freed */
 	if (unlikely(skb->len < 60)) {
@@ -8329,15 +8321,6 @@ skip_sriov:
 						pdev->subsystem_device);
 	if (hw->wol_enabled)
 		adapter->wol = IXGBE_WUFC_MAG;
-<<<<<<< HEAD
-		break;
-	case IXGBE_DEV_ID_X540T:
-	case IXGBE_DEV_ID_X540T1:
-		/* Check eeprom to see if it is enabled */
-		hw->eeprom.ops.read(hw, 0x2c, &adapter->eeprom_cap);
-		wol_cap = adapter->eeprom_cap & IXGBE_DEVICE_CAPS_WOL_MASK;
-=======
->>>>>>> android-3.18
 
 	device_set_wakeup_enable(&adapter->pdev->dev, adapter->wol);
 
@@ -8768,11 +8751,6 @@ static int __init ixgbe_init_module(void)
 	pr_info("%s - version %s\n", ixgbe_driver_string, ixgbe_driver_version);
 	pr_info("%s\n", ixgbe_copyright);
 
-<<<<<<< HEAD
-	ret = pci_register_driver(&ixgbe_driver);
-	if (ret)
-		return ret;
-=======
 	ixgbe_dbg_init();
 
 	ret = pci_register_driver(&ixgbe_driver);
@@ -8780,7 +8758,6 @@ static int __init ixgbe_init_module(void)
 		ixgbe_dbg_exit();
 		return ret;
 	}
->>>>>>> android-3.18
 
 #ifdef CONFIG_IXGBE_DCA
 	dca_register_notify(&dca_notifier);

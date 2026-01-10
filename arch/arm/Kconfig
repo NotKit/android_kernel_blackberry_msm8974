@@ -575,11 +575,7 @@ config ARCH_IXP4XX
 	select ARCH_SUPPORTS_BIG_ENDIAN
 	select CLKSRC_MMIO
 	select CPU_XSCALE
-<<<<<<< HEAD
-	select ARCH_REQUIRE_GPIOLIB
-=======
 	select DMABOUNCE if PCI
->>>>>>> android-3.18
 	select GENERIC_CLOCKEVENTS
 	select MIGHT_HAVE_PCI
 	select NEED_MACH_IO_H
@@ -1445,13 +1441,7 @@ config SMP
 	depends on CPU_V6K || CPU_V7
 	depends on GENERIC_CLOCKEVENTS
 	depends on HAVE_SMP
-<<<<<<< HEAD
-	depends on MMU
-	select USE_GENERIC_SMP_HELPERS
-	select HAVE_ARM_SCU
-=======
 	depends on MMU || ARM_MPU
->>>>>>> android-3.18
 	help
 	  This enables support for systems with more than one CPU. If you have
 	  a system with only one CPU, say N. If you have a system with more
@@ -1511,23 +1501,6 @@ config HAVE_ARM_SCU
 	help
 	  This option enables support for the ARM system coherency unit
 
-<<<<<<< HEAD
-config ARM_ARCH_TIMER
-	bool "Architected timer support"
-	depends on CPU_V7
-	select TICK_ONESHOT
-	help
-	  This option enables support for the ARM architected timer
-
-config ARM_ARCH_TIMER_VCT_ACCESS
-	bool "Support for ARM architected timer virtual counter access in userspace"
-	default n
-	depends on ARM_ARCH_TIMER
-	help
-	  This option enables support for reading the ARM architected timer's
-	  virtual counter in userspace.
-
-=======
 config HAVE_ARM_ARCH_TIMER
 	bool "Architected timer support"
 	depends on CPU_V7
@@ -1536,7 +1509,6 @@ config HAVE_ARM_ARCH_TIMER
 	help
 	  This option enables support for the ARM architected timer
 
->>>>>>> android-3.18
 config HAVE_ARM_TWD
 	bool
 	depends on SMP
@@ -1624,17 +1596,9 @@ config HOTPLUG_CPU
 	  Say Y here to experiment with turning CPUs off and on.  CPUs
 	  can be controlled through /sys/devices/system/cpu.
 
-<<<<<<< HEAD
-config LOCAL_TIMERS
-	bool "Use local timer interrupts"
-	depends on SMP
-	default y
-	select HAVE_ARM_TWD if (!MSM_SMP && !EXYNOS4_MCT)
-=======
 config ARM_PSCI
 	bool "Support for the ARM Power State Coordination Interface (PSCI)"
 	depends on CPU_V7
->>>>>>> android-3.18
 	help
 	  Say Y here if you want Linux to communicate with system firmware
 	  implementing the PSCI specification for CPU-centric power
@@ -1663,9 +1627,6 @@ config ARCH_NR_GPIO
 
 source kernel/Kconfig.preempt
 
-<<<<<<< HEAD
-source kernel/Kconfig.hz
-=======
 config HZ_FIXED
 	int
 	default 200 if ARCH_EBSA110 || ARCH_S3C24XX || \
@@ -1710,7 +1671,6 @@ config HZ
 
 config SCHED_HRTICK
 	def_bool HIGH_RES_TIMERS
->>>>>>> android-3.18
 
 config THUMB2_KERNEL
 	bool "Compile the kernel in Thumb-2 mode" if !CPU_THUMBONLY
@@ -1777,12 +1737,7 @@ config AEABI
 
 config OABI_COMPAT
 	bool "Allow old ABI binaries to run with this kernel (EXPERIMENTAL)"
-<<<<<<< HEAD
-	depends on AEABI && EXPERIMENTAL && !THUMB2_KERNEL
-	default y if !SMP
-=======
 	depends on AEABI && !THUMB2_KERNEL
->>>>>>> android-3.18
 	help
 	  This option preserves the old syscall interface along with the
 	  new (ARM EABI) one. It also provides a compatibility layer to
@@ -2036,8 +1991,6 @@ config USE_OF
 	help
 	  Include support for flattened device tree machine descriptions.
 
-<<<<<<< HEAD
-=======
 config ATAGS
 	bool "Support for the traditional ATAGS boot data passing" if USE_OF
 	default y
@@ -2055,7 +2008,6 @@ config DEPRECATED_PARAM_STRUCT
 	  This was deprecated in 2001 and announced to live on for 5 years.
 	  Some old boot loaders still use this way.
 
->>>>>>> android-3.18
 config BUILD_ARM_APPENDED_DTB_IMAGE
 	bool "Build a concatenated zImage/dtb by default"
 	depends on OF

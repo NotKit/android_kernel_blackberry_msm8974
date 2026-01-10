@@ -12,10 +12,7 @@
 #include <linux/string.h>
 #include <linux/mm.h>
 #include <linux/smp.h>
-<<<<<<< HEAD
-=======
 #include <linux/syscalls.h>
->>>>>>> android-3.18
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/uaccess.h>
@@ -62,11 +59,7 @@ static struct ldt_struct *alloc_ldt_struct(int size)
 	if (alloc_size > PAGE_SIZE)
 		new_ldt->entries = vzalloc(alloc_size);
 	else
-<<<<<<< HEAD
-		new_ldt->entries = kzalloc(PAGE_SIZE, GFP_KERNEL);
-=======
 		new_ldt->entries = (void *)get_zeroed_page(GFP_KERNEL);
->>>>>>> android-3.18
 
 	if (!new_ldt->entries) {
 		kfree(new_ldt);
@@ -87,24 +80,11 @@ static void finalize_ldt_struct(struct ldt_struct *ldt)
 static void install_ldt(struct mm_struct *current_mm,
 			struct ldt_struct *ldt)
 {
-<<<<<<< HEAD
-	/* Synchronizes with smp_read_barrier_depends in load_mm_ldt. */
-        barrier();
-        ACCESS_ONCE(current_mm->context.ldt) = ldt;
-
-	/* Activate the LDT for all CPUs using current_mm. */
-	smp_call_function_many(mm_cpumask(current_mm), flush_ldt, current_mm,
-			       true);
-	local_irq_disable();
-	flush_ldt(current_mm);
-	local_irq_enable();
-=======
 	/* Synchronizes with lockless_dereference in load_mm_ldt. */
 	smp_store_release(&current_mm->context.ldt, ldt);
 
 	/* Activate the LDT for all CPUs using current_mm. */
 	on_each_cpu_mask(mm_cpumask(current_mm), flush_ldt, current_mm, true);
->>>>>>> android-3.18
 }
 
 static void free_ldt_struct(struct ldt_struct *ldt)
@@ -116,11 +96,7 @@ static void free_ldt_struct(struct ldt_struct *ldt)
 	if (ldt->size * LDT_ENTRY_SIZE > PAGE_SIZE)
 		vfree(ldt->entries);
 	else
-<<<<<<< HEAD
-		kfree(ldt->entries);
-=======
 		free_page((unsigned long)ldt->entries);
->>>>>>> android-3.18
 	kfree(ldt);
 }
 

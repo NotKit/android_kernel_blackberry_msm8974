@@ -693,11 +693,7 @@ void dmaengine_get(void)
 				break;
 			} else if (err)
 				pr_debug("%s: failed to get %s: (%d)\n",
-<<<<<<< HEAD
-					__func__, dma_chan_name(chan), err);
-=======
 				       __func__, dma_chan_name(chan), err);
->>>>>>> android-3.18
 		}
 	}
 

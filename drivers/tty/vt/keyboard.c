@@ -1018,21 +1018,13 @@ static int kbd_update_leds_helper(struct input_handle *handle, void *data)
  */
 int vt_get_leds(int console, int flag)
 {
-<<<<<<< HEAD
-	struct kbd_struct * kbd = kbd_table + console;
-=======
 	struct kbd_struct *kb = kbd_table + console;
->>>>>>> android-3.18
 	int ret;
 	unsigned long flags;
 
-<<<<<<< HEAD
-	ret = vc_kbd_led(kbd, flag);
-=======
 	spin_lock_irqsave(&led_lock, flags);
 	ret = vc_kbd_led(kb, flag);
 	spin_unlock_irqrestore(&led_lock, flags);
->>>>>>> android-3.18
 
 	return ret;
 }

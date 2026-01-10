@@ -2893,32 +2893,15 @@ func_start	serial_init,%d0/%d1/%a0/%a1
 
 #ifdef CONFIG_MAC
 	is_not_mac(L(serial_init_not_mac))
-<<<<<<< HEAD
-
-#ifdef SERIAL_DEBUG
-
-/* You may define either or both of these. */
-#define MAC_USE_SCC_A /* Modem port */
-#define MAC_USE_SCC_B /* Printer port */
-
-=======
 #if defined(MAC_USE_SCC_A) || defined(MAC_USE_SCC_B)
->>>>>>> android-3.18
 #define mac_scc_cha_b_ctrl_offset	0x0
 #define mac_scc_cha_a_ctrl_offset	0x2
 #define mac_scc_cha_b_data_offset	0x4
 #define mac_scc_cha_a_data_offset	0x6
-<<<<<<< HEAD
-
-#if defined(MAC_USE_SCC_A) || defined(MAC_USE_SCC_B)
-	movel	%pc@(L(mac_sccbase)),%a0
-	/* Reset SCC device */
-=======
 	movel	%pc@(L(mac_sccbase)),%a0
 	/* Reset SCC register pointer */
 	moveb	%a0@(mac_scc_cha_a_ctrl_offset),%d0
 	/* Reset SCC device: write register pointer then register value */
->>>>>>> android-3.18
 	moveb	#9,%a0@(mac_scc_cha_a_ctrl_offset)
 	moveb	#0xc0,%a0@(mac_scc_cha_a_ctrl_offset)
 	/* Wait for 5 PCLK cycles, which is about 68 CPU cycles */
@@ -2928,10 +2911,6 @@ func_start	serial_init,%d0/%d1/%a0/%a1
 	subq	#1,%d0
 	jne	5b
 #endif
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 #ifdef MAC_USE_SCC_A
 	/* Initialize channel A */
 	lea	%pc@(L(scc_initable_mac)),%a1
@@ -2952,12 +2931,6 @@ func_start	serial_init,%d0/%d1/%a0/%a1
 	jra	7b
 8:
 #endif	/* MAC_USE_SCC_B */
-<<<<<<< HEAD
-
-#endif	/* SERIAL_DEBUG */
-
-=======
->>>>>>> android-3.18
 	jra	L(serial_init_done)
 L(serial_init_not_mac):
 #endif	/* CONFIG_MAC */
@@ -3035,19 +3008,9 @@ func_start	serial_putc,%d0/%d1/%a0/%a1
 
 #ifdef CONFIG_MAC
 	is_not_mac(5f)
-<<<<<<< HEAD
-
-#ifdef SERIAL_DEBUG
-
 #if defined(MAC_USE_SCC_A) || defined(MAC_USE_SCC_B)
 	movel	%pc@(L(mac_sccbase)),%a1
 #endif
-
-=======
-#if defined(MAC_USE_SCC_A) || defined(MAC_USE_SCC_B)
-	movel	%pc@(L(mac_sccbase)),%a1
-#endif
->>>>>>> android-3.18
 #ifdef MAC_USE_SCC_A
 3:	btst	#2,%a1@(mac_scc_cha_a_ctrl_offset)
 	jeq	3b

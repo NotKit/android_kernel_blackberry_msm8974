@@ -2203,17 +2203,11 @@ static void unmap_region(sector_t lba, unsigned int len)
 	while (lba < end) {
 		unsigned long index = lba_to_map_index(lba);
 
-<<<<<<< HEAD
-		if (rem == 0 && lba + granularity < end && block < map_size) {
-			clear_bit(block, map_storep);
-			if (scsi_debug_lbprz)
-=======
 		if (lba == map_index_to_lba(index) &&
 		    lba + scsi_debug_unmap_granularity <= end &&
 		    index < map_size) {
 			clear_bit(index, map_storep);
 			if (scsi_debug_lbprz) {
->>>>>>> android-3.18
 				memset(fake_storep +
 				       lba * scsi_debug_sector_size, 0,
 				       scsi_debug_sector_size *

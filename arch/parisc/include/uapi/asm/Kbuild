@@ -1,8 +1,6 @@
 # UAPI Header export list
 include include/uapi/asm-generic/Kbuild.asm
 
-<<<<<<< HEAD
-=======
 generic-y += resource.h
 
 header-y += bitsperlong.h
@@ -32,4 +30,3 @@ header-y += termbits.h
 header-y += termios.h
 header-y += types.h
 header-y += unistd.h
->>>>>>> android-3.18

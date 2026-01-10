@@ -270,14 +270,7 @@ int iscsit_deaccess_np(struct iscsi_np *np, struct iscsi_portal_group *tpg,
 	return 0;
 }
 
-<<<<<<< HEAD
-/*
- * Called with mutex np_lock held
- */
-static struct iscsi_np *iscsit_get_np(
-=======
 bool iscsit_check_np_match(
->>>>>>> android-3.18
 	struct __kernel_sockaddr_storage *sockaddr,
 	struct iscsi_np *np,
 	int network_transport)
@@ -287,18 +280,9 @@ bool iscsit_check_np_match(
 	bool ip_match = false;
 	u16 port;
 
-<<<<<<< HEAD
-	list_for_each_entry(np, &g_np_list, np_list) {
-		spin_lock_bh(&np->np_thread_lock);
-		if (np->np_thread_state != ISCSI_NP_THREAD_ACTIVE) {
-			spin_unlock_bh(&np->np_thread_lock);
-			continue;
-		}
-=======
 	if (sockaddr->ss_family == AF_INET6) {
 		sock_in6 = (struct sockaddr_in6 *)sockaddr;
 		sock_in6_e = (struct sockaddr_in6 *)&np->np_sockaddr;
->>>>>>> android-3.18
 
 		if (!memcmp(&sock_in6->sin6_addr.in6_u,
 			    &sock_in6_e->sin6_addr.in6_u,
@@ -454,22 +438,12 @@ int iscsit_reset_np_thread(
 	}
 	spin_unlock_bh(&np->np_thread_lock);
 
-<<<<<<< HEAD
-	return 0;
-}
-
-int iscsit_del_np_comm(struct iscsi_np *np)
-{
-	if (np->np_socket)
-		sock_release(np->np_socket);
-=======
 	if (tpg_np && shutdown) {
 		kref_put(&tpg_np->tpg_np_kref, iscsit_login_kref_put);
 
 		wait_for_completion(&tpg_np->tpg_np_comp);
 	}
 
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -501,11 +475,8 @@ int iscsit_del_np(struct iscsi_np *np)
 		np->np_thread = NULL;
 	}
 
-<<<<<<< HEAD
-=======
 	np->np_transport->iscsit_free_np(np);
 
->>>>>>> android-3.18
 	mutex_lock(&np_lock);
 	list_del(&np->np_list);
 	mutex_unlock(&np_lock);
@@ -1043,24 +1014,6 @@ int iscsit_setup_scsi_cmd(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
 
 		goto attach_cmd;
 	}
-<<<<<<< HEAD
-
-	transport_ret = target_setup_cmd_from_cdb(&cmd->se_cmd, hdr->cdb);
-	if (transport_ret == -ENOMEM) {
-		return iscsit_add_reject_from_cmd(
-				ISCSI_REASON_BOOKMARK_NO_RESOURCES,
-				1, 1, buf, cmd);
-	} else if (transport_ret < 0) {
-		/*
-		 * Unsupported SAM Opcode.  CHECK_CONDITION will be sent
-		 * in iscsit_execute_cmd() during the CmdSN OOO Execution
-		 * Mechinism.
-		 */
-		send_check_condition = 1;
-	} else {
-		cmd->data_length = cmd->se_cmd.data_length;
-=======
->>>>>>> android-3.18
 
 	if (iscsit_build_pdu_and_seq_lists(cmd, payload_length) < 0) {
 		return iscsit_add_reject_cmd(cmd,
@@ -2563,11 +2516,7 @@ static void iscsit_build_conn_drop_async_message(struct iscsi_conn *conn)
 	if (!found)
 		return;
 
-<<<<<<< HEAD
-	cmd = iscsit_allocate_cmd(conn_p, GFP_ATOMIC);
-=======
 	cmd = iscsit_allocate_cmd(conn_p, TASK_RUNNING);
->>>>>>> android-3.18
 	if (!cmd) {
 		iscsit_dec_conn_usage_count(conn_p);
 		return;
@@ -3483,18 +3432,9 @@ iscsit_build_sendtargets_response(struct iscsi_cmd *cmd,
 
 	spin_lock(&tiqn_lock);
 	list_for_each_entry(tiqn, &g_tiqn_list, tiqn_list) {
-<<<<<<< HEAD
-		len = sprintf(buf, "TargetName=%s", tiqn->tiqn);
-		len += 1;
-
-		if ((len + payload_len) > buffer_len) {
-			end_of_buf = 1;
-			goto eob;
-=======
 		if ((cmd->cmd_flags & IFC_SENDTARGETS_SINGLE) &&
 		     strcmp(tiqn->tiqn, text_ptr)) {
 			continue;
->>>>>>> android-3.18
 		}
 
 		target_name_printed = 0;
@@ -3685,11 +3625,7 @@ iscsit_build_reject(struct iscsi_cmd *cmd, struct iscsi_conn *conn,
 	hdr->reason		= cmd->reject_reason;
 	hdr->flags		|= ISCSI_FLAG_CMD_FINAL;
 	hton24(hdr->dlength, ISCSI_HDR_LEN);
-<<<<<<< HEAD
-	hdr->ffffffff		= 0xffffffff;
-=======
 	hdr->ffffffff		= cpu_to_be32(0xffffffff);
->>>>>>> android-3.18
 	cmd->stat_sn		= conn->stat_sn++;
 	hdr->statsn		= cpu_to_be32(cmd->stat_sn);
 	hdr->exp_cmdsn		= cpu_to_be32(conn->sess->exp_cmd_sn);
@@ -4019,12 +3955,7 @@ int iscsi_target_tx_thread(void *arg)
 		iscsit_thread_check_cpumask(conn, current, 1);
 
 		wait_event_interruptible(conn->queues_wq,
-<<<<<<< HEAD
-					 !iscsit_conn_all_queues_empty(conn) ||
-					 ts->status == ISCSI_THREAD_SET_RESET);
-=======
 					 !iscsit_conn_all_queues_empty(conn));
->>>>>>> android-3.18
 
 		if (signal_pending(current))
 			goto transport_err;
@@ -4466,15 +4397,12 @@ int iscsit_close_connection(
 
 	if (conn->sock)
 		sock_release(conn->sock);
-<<<<<<< HEAD
-=======
 
 	if (conn->conn_transport->iscsit_free_conn)
 		conn->conn_transport->iscsit_free_conn(conn);
 
 	iscsit_put_transport(conn->conn_transport);
 
->>>>>>> android-3.18
 	conn->thread_set = NULL;
 
 	pr_debug("Moving to TARG_CONN_STATE_FREE.\n");

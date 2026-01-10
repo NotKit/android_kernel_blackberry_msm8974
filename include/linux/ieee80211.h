@@ -1371,19 +1371,13 @@ struct ieee80211_ht_operation {
  *	STA can receive. Rate expressed in units of 1 Mbps.
  *	If this field is 0 this value should not be used to
  *	consider the highest RX data rate supported.
-<<<<<<< HEAD
-=======
  *	The top 3 bits of this field are reserved.
->>>>>>> android-3.18
  * @tx_mcs_map: TX MCS map 2 bits for each stream, total 8 streams
  * @tx_highest: Indicates highest long GI VHT PPDU data rate
  *	STA can transmit. Rate expressed in units of 1 Mbps.
  *	If this field is 0 this value should not be used to
  *	consider the highest TX data rate supported.
-<<<<<<< HEAD
-=======
  *	The top 3 bits of this field are reserved.
->>>>>>> android-3.18
  */
 struct ieee80211_vht_mcs_info {
 	__le16 rx_mcs_map;
@@ -1393,8 +1387,6 @@ struct ieee80211_vht_mcs_info {
 } __packed;
 
 /**
-<<<<<<< HEAD
-=======
  * enum ieee80211_vht_mcs_support - VHT MCS support definitions
  * @IEEE80211_VHT_MCS_SUPPORT_0_7: MCSes 0-7 are supported for the
  *	number of streams
@@ -1416,7 +1408,6 @@ enum ieee80211_vht_mcs_support {
 };
 
 /**
->>>>>>> android-3.18
  * struct ieee80211_vht_cap - VHT capabilities
  *
  * This structure is the "VHT capabilities element" as
@@ -1430,8 +1421,6 @@ struct ieee80211_vht_cap {
 } __packed;
 
 /**
-<<<<<<< HEAD
-=======
  * enum ieee80211_vht_chanwidth - VHT channel width
  * @IEEE80211_VHT_CHANWIDTH_USE_HT: use the HT operation IE to
  *	determine the channel width (20 or 40 MHz)
@@ -1447,7 +1436,6 @@ enum ieee80211_vht_chanwidth {
 };
 
 /**
->>>>>>> android-3.18
  * struct ieee80211_vht_operation - VHT operation IE
  *
  * This structure is the "VHT operation element" as
@@ -1465,40 +1453,6 @@ struct ieee80211_vht_operation {
 } __packed;
 
 
-<<<<<<< HEAD
-#define IEEE80211_VHT_MCS_ZERO_TO_SEVEN_SUPPORT 0
-#define IEEE80211_VHT_MCS_ZERO_TO_EIGHT_SUPPORT 1
-#define IEEE80211_VHT_MCS_ZERO_TO_NINE_SUPPORT  2
-#define IEEE80211_VHT_MCS_NOT_SUPPORTED 3
-
-/* 802.11ac VHT Capabilities */
-#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_3895                0x00000000
-#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_7991                0x00000001
-#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_11454               0x00000002
-#define IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160MHZ              0x00000004
-#define IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160_80PLUS80MHZ     0x00000008
-#define IEEE80211_VHT_CAP_RXLDPC                              0x00000010
-#define IEEE80211_VHT_CAP_SHORT_GI_80                         0x00000020
-#define IEEE80211_VHT_CAP_SHORT_GI_160                        0x00000040
-#define IEEE80211_VHT_CAP_TXSTBC                              0x00000080
-#define IEEE80211_VHT_CAP_RXSTBC_1                            0x00000100
-#define IEEE80211_VHT_CAP_RXSTBC_2                            0x00000200
-#define IEEE80211_VHT_CAP_RXSTBC_3                            0x00000300
-#define IEEE80211_VHT_CAP_RXSTBC_4                            0x00000400
-#define IEEE80211_VHT_CAP_SU_BEAMFORMER_CAPABLE               0x00000800
-#define IEEE80211_VHT_CAP_SU_BEAMFORMEE_CAPABLE               0x00001000
-#define IEEE80211_VHT_CAP_BEAMFORMER_ANTENNAS_MAX             0x00006000
-#define IEEE80211_VHT_CAP_SOUNDING_DIMENTION_MAX              0x00030000
-#define IEEE80211_VHT_CAP_MU_BEAMFORMER_CAPABLE               0x00080000
-#define IEEE80211_VHT_CAP_MU_BEAMFORMEE_CAPABLE               0x00100000
-#define IEEE80211_VHT_CAP_VHT_TXOP_PS                         0x00200000
-#define IEEE80211_VHT_CAP_HTC_VHT                             0x00400000
-#define IEEE80211_VHT_CAP_MAX_A_MPDU_LENGTH_EXPONENT          0x00800000
-#define IEEE80211_VHT_CAP_VHT_LINK_ADAPTATION_VHT_UNSOL_MFB   0x08000000
-#define IEEE80211_VHT_CAP_VHT_LINK_ADAPTATION_VHT_MRQ_MFB     0x0c000000
-#define IEEE80211_VHT_CAP_RX_ANTENNA_PATTERN                  0x10000000
-#define IEEE80211_VHT_CAP_TX_ANTENNA_PATTERN                  0x20000000
-=======
 /* 802.11ac VHT Capabilities */
 #define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_3895			0x00000000
 #define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_7991			0x00000001
@@ -1534,7 +1488,6 @@ struct ieee80211_vht_operation {
 #define IEEE80211_VHT_CAP_VHT_LINK_ADAPTATION_VHT_MRQ_MFB	0x0c000000
 #define IEEE80211_VHT_CAP_RX_ANTENNA_PATTERN			0x10000000
 #define IEEE80211_VHT_CAP_TX_ANTENNA_PATTERN			0x20000000
->>>>>>> android-3.18
 
 /* Authentication algorithms */
 #define WLAN_AUTH_OPEN 0
@@ -1924,17 +1877,8 @@ enum ieee80211_eid {
 	WLAN_EID_QUIET_CHANNEL = 198,
 	WLAN_EID_OPMODE_NOTIF = 199,
 
-<<<<<<< HEAD
-	WLAN_EID_DSE_REGISTERED_LOCATION = 58,
-	WLAN_EID_SUPPORTED_REGULATORY_CLASSES = 59,
-	WLAN_EID_EXT_CHANSWITCH_ANN = 60,
-
-	WLAN_EID_VHT_CAPABILITY = 191,
-	WLAN_EID_VHT_OPERATION = 192,
-=======
 	WLAN_EID_VENDOR_SPECIFIC = 221,
 	WLAN_EID_QOS_PARAMETER = 222,
->>>>>>> android-3.18
 };
 
 /* Action category code */
@@ -2022,16 +1966,12 @@ enum ieee80211_key_len {
 	WLAN_KEY_LEN_CCMP_256 = 32,
 	WLAN_KEY_LEN_TKIP = 32,
 	WLAN_KEY_LEN_AES_CMAC = 16,
-<<<<<<< HEAD
-	WLAN_KEY_LEN_WAPI_SMS4 = 32,
-=======
 	WLAN_KEY_LEN_SMS4 = 32,
 	WLAN_KEY_LEN_GCMP = 16,
 	WLAN_KEY_LEN_GCMP_256 = 32,
 	WLAN_KEY_LEN_BIP_CMAC_256 = 32,
 	WLAN_KEY_LEN_BIP_GMAC_128 = 16,
 	WLAN_KEY_LEN_BIP_GMAC_256 = 32,
->>>>>>> android-3.18
 };
 
 #define IEEE80211_WEP_IV_LEN		4
@@ -2257,16 +2197,12 @@ enum ieee80211_sa_query_action {
 #define WLAN_CIPHER_SUITE_CCMP		0x000FAC04
 #define WLAN_CIPHER_SUITE_WEP104	0x000FAC05
 #define WLAN_CIPHER_SUITE_AES_CMAC	0x000FAC06
-<<<<<<< HEAD
-#define WLAN_CIPHER_SUITE_SMS4		0x00147201
-=======
 #define WLAN_CIPHER_SUITE_GCMP		0x000FAC08
 #define WLAN_CIPHER_SUITE_GCMP_256	0x000FAC09
 #define WLAN_CIPHER_SUITE_CCMP_256	0x000FAC0A
 #define WLAN_CIPHER_SUITE_BIP_GMAC_128	0x000FAC0B
 #define WLAN_CIPHER_SUITE_BIP_GMAC_256	0x000FAC0C
 #define WLAN_CIPHER_SUITE_BIP_CMAC_256	0x000FAC0D
->>>>>>> android-3.18
 
 #define WLAN_CIPHER_SUITE_SMS4		0x00147201
 
@@ -2480,8 +2416,6 @@ static inline bool ieee80211_check_tim(const struct ieee80211_tim_ie *tim,
 	return !!(tim->virtual_map[index] & mask);
 }
 
-<<<<<<< HEAD
-=======
 /* convert time units */
 #define TU_TO_JIFFIES(x)	(usecs_to_jiffies((x) * 1024))
 #define TU_TO_EXP_TIME(x)	(jiffies + TU_TO_JIFFIES(x))
@@ -2533,7 +2467,6 @@ static inline bool ieee80211_action_contains_tpc(struct sk_buff *skb)
 	return true;
 }
 
->>>>>>> android-3.18
 struct element {
 	u8 id;
 	u8 datalen;

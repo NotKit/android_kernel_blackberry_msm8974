@@ -1300,10 +1300,6 @@ static const struct pv_cpu_ops xen_cpu_ops __initconst = {
 	.read_msr = native_read_msr_safe,
 	.rdmsr_regs = native_rdmsr_safe_regs,
 	.write_msr = xen_write_msr_safe,
-<<<<<<< HEAD
-	.wrmsr_regs = native_wrmsr_safe_regs,
-=======
->>>>>>> android-3.18
 
 	.read_tsc = native_read_tsc,
 	.read_pmc = native_read_pmc,
@@ -1684,11 +1680,6 @@ asmlinkage __visible void __init xen_start_kernel(void)
 	 */
 	pat_enabled = 0;
 #endif
-<<<<<<< HEAD
-	pgd = (pgd_t *)xen_start_info->pt_base;
-
-=======
->>>>>>> android-3.18
 	/* Don't do the full vcpu_info placement stuff until we have a
 	   possible map and a non-dummy shared_info. */
 	per_cpu(xen_vcpu, 0) = &HYPERVISOR_shared_info->vcpu_info[0];
@@ -1773,11 +1764,6 @@ asmlinkage __visible void __init xen_start_kernel(void)
 		/* Make sure ACS will be enabled */
 		pci_request_acs();
 
-<<<<<<< HEAD
-		/* Avoid searching for BIOS MP tables */
-		x86_init.mpparse.find_smp_config = x86_init_noop;
-		x86_init.mpparse.get_smp_config = x86_init_uint_noop;
-=======
 		xen_acpi_sleep_register();
 
 		/* Avoid searching for BIOS MP tables */
@@ -1785,7 +1771,6 @@ asmlinkage __visible void __init xen_start_kernel(void)
 		x86_init.mpparse.get_smp_config = x86_init_uint_noop;
 
 		xen_boot_params_init_edd();
->>>>>>> android-3.18
 	}
 #ifdef CONFIG_PCI
 	/* PCI BIOS service won't work from a PV guest. */
@@ -1874,10 +1859,6 @@ static int xen_hvm_cpu_notify(struct notifier_block *self, unsigned long action,
 	case CPU_UP_PREPARE:
 		xen_vcpu_setup(cpu);
 		if (xen_have_vector_callback) {
-<<<<<<< HEAD
-			xen_init_lock_cpu(cpu);
-=======
->>>>>>> android-3.18
 			if (xen_feature(XENFEAT_hvm_safe_pvclock))
 				xen_setup_timer(cpu);
 		}

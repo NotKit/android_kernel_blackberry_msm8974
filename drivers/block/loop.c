@@ -1289,21 +1289,7 @@ loop_get_status64(struct loop_device *lo, struct loop_info64 __user *arg) {
 static int loop_set_capacity(struct loop_device *lo, struct block_device *bdev)
 {
 	if (unlikely(lo->lo_state != Lo_bound))
-<<<<<<< HEAD
-		goto out;
-	err = figure_loop_size(lo, lo->lo_offset, lo->lo_sizelimit);
-	if (unlikely(err))
-		goto out;
-	sec = get_capacity(lo->lo_disk);
-	/* the width of sector_t may be narrow for bit-shift */
-	sz = sec;
-	sz <<= 9;
-	bd_set_size(bdev, sz);
-	/* let user-space know about the new size */
-	kobject_uevent(&disk_to_dev(bdev->bd_disk)->kobj, KOBJ_CHANGE);
-=======
 		return -ENXIO;
->>>>>>> android-3.18
 
 	return figure_loop_size(lo, lo->lo_offset, lo->lo_sizelimit);
 }
@@ -1535,11 +1521,7 @@ out:
 	return err;
 }
 
-<<<<<<< HEAD
-static int __lo_release(struct loop_device *lo)
-=======
 static void __lo_release(struct loop_device *lo)
->>>>>>> android-3.18
 {
 	int err;
 
@@ -1672,15 +1654,12 @@ static int loop_add(struct loop_device **l, int i)
 	lo->lo_queue = blk_alloc_queue(GFP_KERNEL);
 	if (!lo->lo_queue)
 		goto out_free_idr;
-<<<<<<< HEAD
-=======
 
 	/*
 	 * set queue make_request_fn
 	 */
 	blk_queue_make_request(lo->lo_queue, loop_make_request);
 	lo->lo_queue->queuedata = lo;
->>>>>>> android-3.18
 
 	disk = lo->lo_disk = alloc_disk(1 << part_shift);
 	if (!disk)

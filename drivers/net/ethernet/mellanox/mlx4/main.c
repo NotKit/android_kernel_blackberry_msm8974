@@ -99,10 +99,6 @@ MODULE_PARM_DESC(log_num_mgm_entry_size, "log mgm size, that defines the num"
 					 " To activate device managed"
 					 " flow steering when available, set to -1");
 
-<<<<<<< HEAD
-#define HCA_GLOBAL_CAP_MASK            0
-#define PF_CONTEXT_BEHAVIOUR_MASK      0
-=======
 static bool enable_64b_cqe_eqe = true;
 module_param(enable_64b_cqe_eqe, bool, 0444);
 MODULE_PARM_DESC(enable_64b_cqe_eqe,
@@ -110,7 +106,6 @@ MODULE_PARM_DESC(enable_64b_cqe_eqe,
 
 #define PF_CONTEXT_BEHAVIOUR_MASK	(MLX4_FUNC_CAP_64B_EQE_CQE | \
 					 MLX4_FUNC_CAP_EQE_CQE_STRIDE)
->>>>>>> android-3.18
 
 static char mlx4_version[] =
 	DRV_NAME ": Mellanox ConnectX core driver v"
@@ -2262,12 +2257,8 @@ static void mlx4_free_ownership(struct mlx4_dev *dev)
 	iounmap(owner);
 }
 
-<<<<<<< HEAD
-static int __mlx4_init_one(struct pci_dev *pdev, int pci_dev_data)
-=======
 static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
 			 int total_vfs, int *nvfs, struct mlx4_priv *priv)
->>>>>>> android-3.18
 {
 	struct mlx4_dev *dev;
 	unsigned sum = 0;
@@ -2276,76 +2267,8 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
 	int i;
 	int existing_vfs = 0;
 
-<<<<<<< HEAD
-	pr_info(DRV_NAME ": Initializing %s\n", pci_name(pdev));
-
-	err = pci_enable_device(pdev);
-	if (err) {
-		dev_err(&pdev->dev, "Cannot enable PCI device, "
-			"aborting.\n");
-		return err;
-	}
-	if (num_vfs > MLX4_MAX_NUM_VF) {
-		printk(KERN_ERR "There are more VF's (%d) than allowed(%d)\n",
-		       num_vfs, MLX4_MAX_NUM_VF);
-		return -EINVAL;
-	}
-	/*
-	 * Check for BARs.
-	 */
-	if (!(pci_dev_data & MLX4_PCI_DEV_IS_VF) &&
-	    !(pci_resource_flags(pdev, 0) & IORESOURCE_MEM)) {
-		dev_err(&pdev->dev, "Missing DCS, aborting."
-			"(driver_data: 0x%x, pci_resource_flags(pdev, 0):0x%lx)\n",
-			pci_dev_data, pci_resource_flags(pdev, 0));
-		err = -ENODEV;
-		goto err_disable_pdev;
-	}
-	if (!(pci_resource_flags(pdev, 2) & IORESOURCE_MEM)) {
-		dev_err(&pdev->dev, "Missing UAR, aborting.\n");
-		err = -ENODEV;
-		goto err_disable_pdev;
-	}
-
-	err = pci_request_regions(pdev, DRV_NAME);
-	if (err) {
-		dev_err(&pdev->dev, "Couldn't get PCI resources, aborting\n");
-		goto err_disable_pdev;
-	}
-
-	pci_set_master(pdev);
-
-	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
-	if (err) {
-		dev_warn(&pdev->dev, "Warning: couldn't set 64-bit PCI DMA mask.\n");
-		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-		if (err) {
-			dev_err(&pdev->dev, "Can't set PCI DMA mask, aborting.\n");
-			goto err_release_regions;
-		}
-	}
-	err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
-	if (err) {
-		dev_warn(&pdev->dev, "Warning: couldn't set 64-bit "
-			 "consistent PCI DMA mask.\n");
-		err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
-		if (err) {
-			dev_err(&pdev->dev, "Can't set consistent PCI DMA mask, "
-				"aborting.\n");
-			goto err_release_regions;
-		}
-	}
-
-	/* Allow large DMA segments, up to the firmware limit of 1 GB */
-	dma_set_max_seg_size(&pdev->dev, 1024 * 1024 * 1024);
-
-	dev       = pci_get_drvdata(pdev);
-	priv      = mlx4_priv(dev);
-	dev->pdev = pdev;
-=======
 	dev = &priv->dev;
 
->>>>>>> android-3.18
 	INIT_LIST_HEAD(&priv->ctx_list);
 	spin_lock_init(&priv->ctx_lock);
 
@@ -2362,17 +2285,6 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
 
 	/* Detect if this device is a virtual function */
 	if (pci_dev_data & MLX4_PCI_DEV_IS_VF) {
-<<<<<<< HEAD
-		/* When acting as pf, we normally skip vfs unless explicitly
-		 * requested to probe them. */
-		if (num_vfs && extended_func_num(pdev) > probe_vf) {
-			mlx4_warn(dev, "Skipping virtual function:%d\n",
-						extended_func_num(pdev));
-			err = -ENODEV;
-			goto err_free_dev;
-		}
-=======
->>>>>>> android-3.18
 		mlx4_warn(dev, "Detected virtual function - running in slave mode\n");
 		dev->flags |= MLX4_FLAG_SLAVE;
 	} else {
@@ -2578,12 +2490,9 @@ slave_start:
 	mlx4_start_sense(dev);
 
 	priv->removed = 0;
-<<<<<<< HEAD
-=======
 
 	if (mlx4_is_master(dev) && dev->num_vfs)
 		atomic_dec(&pf_loading);
->>>>>>> android-3.18
 
 	return 0;
 
@@ -2799,10 +2708,7 @@ static int mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
 	struct mlx4_priv *priv;
 	struct mlx4_dev *dev;
-<<<<<<< HEAD
-=======
 	int ret;
->>>>>>> android-3.18
 
 	printk_once(KERN_INFO "%s", mlx4_version);
 
@@ -2811,15 +2717,6 @@ static int mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 		return -ENOMEM;
 
 	dev       = &priv->dev;
-<<<<<<< HEAD
-	pci_set_drvdata(pdev, dev);
-	priv->pci_dev_data = id->driver_data;
-
-	return __mlx4_init_one(pdev, id->driver_data);
-}
-
-static void __mlx4_remove_one(struct pci_dev *pdev)
-=======
 	dev->pdev = pdev;
 	pci_set_drvdata(pdev, dev);
 	priv->pci_dev_data = id->driver_data;
@@ -2832,7 +2729,6 @@ static void __mlx4_remove_one(struct pci_dev *pdev)
 }
 
 static void mlx4_unload_one(struct pci_dev *pdev)
->>>>>>> android-3.18
 {
 	struct mlx4_dev  *dev  = pci_get_drvdata(pdev);
 	struct mlx4_priv *priv = mlx4_priv(dev);
@@ -2844,36 +2740,6 @@ static void mlx4_unload_one(struct pci_dev *pdev)
 		return;
 
 	pci_dev_data = priv->pci_dev_data;
-<<<<<<< HEAD
-
-	/* in SRIOV it is not allowed to unload the pf's
-	 * driver while there are alive vf's */
-	if (mlx4_is_master(dev)) {
-		if (mlx4_how_many_lives_vf(dev))
-			printk(KERN_ERR "Removing PF when there are assigned VF's !!!\n");
-	}
-	mlx4_stop_sense(dev);
-	mlx4_unregister_device(dev);
-
-	for (p = 1; p <= dev->caps.num_ports; p++) {
-		mlx4_cleanup_port_info(&priv->port[p]);
-		mlx4_CLOSE_PORT(dev, p);
-	}
-
-	mlx4_cleanup_counters_table(dev);
-	mlx4_cleanup_mcg_table(dev);
-	mlx4_cleanup_qp_table(dev);
-	mlx4_cleanup_srq_table(dev);
-	mlx4_cleanup_cq_table(dev);
-	mlx4_cmd_use_polling(dev);
-	mlx4_cleanup_eq_table(dev);
-	mlx4_cleanup_mr_table(dev);
-	mlx4_cleanup_xrcd_table(dev);
-	mlx4_cleanup_pd_table(dev);
-
-	if (mlx4_is_master(dev))
-		mlx4_free_resource_tracker(dev);
-=======
 
 	/* Disabling SR-IOV is not allowed while there are active vf's */
 	if (mlx4_is_master(dev)) {
@@ -2909,7 +2775,6 @@ static void mlx4_unload_one(struct pci_dev *pdev)
 	if (mlx4_is_master(dev))
 		mlx4_free_resource_tracker(dev,
 					   RES_TR_FREE_STRUCTS_ONLY);
->>>>>>> android-3.18
 
 	iounmap(priv->kar);
 	mlx4_uar_free(dev, &priv->driver_uar);
@@ -2926,25 +2791,15 @@ static void mlx4_unload_one(struct pci_dev *pdev)
 
 	if (dev->flags & MLX4_FLAG_MSI_X)
 		pci_disable_msix(pdev);
-<<<<<<< HEAD
-	if (num_vfs && (dev->flags & MLX4_FLAG_SRIOV)) {
-		mlx4_warn(dev, "Disabling sriov\n");
-		pci_disable_sriov(pdev);
-=======
 	if (dev->flags & MLX4_FLAG_SRIOV && !active_vfs) {
 		mlx4_warn(dev, "Disabling SR-IOV\n");
 		pci_disable_sriov(pdev);
 		dev->num_vfs = 0;
->>>>>>> android-3.18
 	}
 
 	if (!mlx4_is_slave(dev))
 		mlx4_free_ownership(dev);
 
-<<<<<<< HEAD
-	pci_release_regions(pdev);
-	pci_disable_device(pdev);
-=======
 	kfree(dev->caps.qp0_qkey);
 	kfree(dev->caps.qp0_tunnel);
 	kfree(dev->caps.qp0_proxy);
@@ -2952,7 +2807,6 @@ static void mlx4_unload_one(struct pci_dev *pdev)
 	kfree(dev->caps.qp1_proxy);
 	kfree(dev->dev_vfs);
 
->>>>>>> android-3.18
 	memset(priv, 0, sizeof(*priv));
 	priv->pci_dev_data = pci_dev_data;
 	priv->removed = 1;
@@ -2963,13 +2817,9 @@ static void mlx4_remove_one(struct pci_dev *pdev)
 	struct mlx4_dev  *dev  = pci_get_drvdata(pdev);
 	struct mlx4_priv *priv = mlx4_priv(dev);
 
-<<<<<<< HEAD
-	__mlx4_remove_one(pdev);
-=======
 	mlx4_unload_one(pdev);
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
->>>>>>> android-3.18
 	kfree(priv);
 	pci_set_drvdata(pdev, NULL);
 }
@@ -2978,13 +2828,6 @@ int mlx4_restart_one(struct pci_dev *pdev)
 {
 	struct mlx4_dev	 *dev  = pci_get_drvdata(pdev);
 	struct mlx4_priv *priv = mlx4_priv(dev);
-<<<<<<< HEAD
-	int		  pci_dev_data;
-
-	pci_dev_data = priv->pci_dev_data;
-	__mlx4_remove_one(pdev);
-	return __mlx4_init_one(pdev, pci_dev_data);
-=======
 	int nvfs[MLX4_MAX_PORTS + 1] = {0, 0, 0};
 	int pci_dev_data, err, total_vfs;
 
@@ -3001,7 +2844,6 @@ int mlx4_restart_one(struct pci_dev *pdev)
 	}
 
 	return err;
->>>>>>> android-3.18
 }
 
 static const struct pci_device_id mlx4_pci_table[] = {

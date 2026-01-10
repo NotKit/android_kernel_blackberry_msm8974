@@ -2256,13 +2256,10 @@ static int dw_mci_init_slot(struct dw_mci *host, unsigned int id)
 	if (host->pdata->caps2)
 		mmc->caps2 = host->pdata->caps2;
 
-<<<<<<< HEAD
-=======
 	ret = mmc_of_parse(mmc);
 	if (ret)
 		goto err_host_allocated;
 
->>>>>>> android-3.18
 	if (host->pdata->blk_settings) {
 		mmc->max_segs = host->pdata->blk_settings->max_segs;
 		mmc->max_blk_size = host->pdata->blk_settings->max_blk_size;

@@ -36,37 +36,15 @@
 #include <linux/clocksource.h>
 #include <linux/clockchips.h>
 #include <linux/slab.h>
-<<<<<<< HEAD
-=======
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 #include <linux/platform_device.h>
 #include <linux/platform_data/dmtimer-omap.h>
->>>>>>> android-3.18
 #include <linux/sched_clock.h>
 
 #include <asm/mach/time.h>
 #include <asm/smp_twd.h>
-<<<<<<< HEAD
-
-#include "common.h"
-#include <plat/omap_hwmod.h>
-#include <plat/omap_device.h>
-#include <plat/omap-pm.h>
-
-#include "powerdomain.h"
-
-/* Parent clocks, eventually these will come from the clock framework */
-
-#define OMAP2_MPU_SOURCE	"sys_ck"
-#define OMAP3_MPU_SOURCE	OMAP2_MPU_SOURCE
-#define OMAP4_MPU_SOURCE	"sys_clkin_ck"
-#define OMAP2_32K_SOURCE	"func_32k_ck"
-#define OMAP3_32K_SOURCE	"omap_32k_fck"
-#define OMAP4_32K_SOURCE	"sys_32k_ck"
-=======
->>>>>>> android-3.18
 
 #include "omap_hwmod.h"
 #include "omap_device.h"

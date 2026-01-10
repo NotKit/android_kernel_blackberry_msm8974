@@ -16,39 +16,6 @@
 #include <linux/types.h>
 #include <linux/if_ether.h>
 
-<<<<<<< HEAD
-/* This should work for both 32 and 64 bit userland. */
-struct ethtool_cmd {
-	__u32	cmd;
-	__u32	supported;	/* Features this interface supports */
-	__u32	advertising;	/* Features this interface advertises */
-	__u16	speed;	        /* The forced speed (lower bits) in
-				 * Mbps. Please use
-				 * ethtool_cmd_speed()/_set() to
-				 * access it */
-	__u8	duplex;		/* Duplex, half or full */
-	__u8	port;		/* Which connector port */
-	__u8	phy_address;	/* MDIO PHY address (PRTAD for clause 45).
-				 * May be read-only or read-write
-				 * depending on the driver.
-				 */
-	__u8	transceiver;	/* Which transceiver to use */
-	__u8	autoneg;	/* Enable or disable autonegotiation */
-	__u8	mdio_support;	/* MDIO protocols supported.  Read-only.
-				 * Not set by all drivers.
-				 */
-	__u32	maxtxpkt;	/* Tx pkts before generating tx int */
-	__u32	maxrxpkt;	/* Rx pkts before generating rx int */
-	__u16	speed_hi;       /* The forced speed (upper
-				 * bits) in Mbps. Please use
-				 * ethtool_cmd_speed()/_set() to
-				 * access it */
-	__u8	eth_tp_mdix;	/* twisted pair MDI-X status */
-	__u8    eth_tp_mdix_ctrl; /* twisted pair MDI-X control, when set,
-				   * link should be renegotiated if necessary
-				   */
-	__u32	lp_advertising;	/* Features the link partner advertises */
-=======
 /* All structures exposed to userland should be defined such that they
  * have the same layout for 32-bit and 64-bit userland.
  */
@@ -140,7 +107,6 @@ struct ethtool_cmd {
 	__u8	eth_tp_mdix;
 	__u8	eth_tp_mdix_ctrl;
 	__u32	lp_advertising;
->>>>>>> android-3.18
 	__u32	reserved[2];
 };
 
@@ -173,34 +139,6 @@ static inline __u32 ethtool_cmd_speed(const struct ethtool_cmd *ep)
 
 #define ETHTOOL_FWVERS_LEN	32
 #define ETHTOOL_BUSINFO_LEN	32
-<<<<<<< HEAD
-/* these strings are set to whatever the driver author decides... */
-struct ethtool_drvinfo {
-	__u32	cmd;
-	char	driver[32];	/* driver short name, "tulip", "eepro100" */
-	char	version[32];	/* driver version string */
-	char	fw_version[ETHTOOL_FWVERS_LEN];	/* firmware version string */
-	char	bus_info[ETHTOOL_BUSINFO_LEN];	/* Bus info for this IF. */
-				/* For PCI devices, use pci_name(pci_dev). */
-	char	reserved1[32];
-	char	reserved2[12];
-				/*
-				 * Some struct members below are filled in
-				 * using ops->get_sset_count().  Obtaining
-				 * this info from ethtool_drvinfo is now
-				 * deprecated; Use ETHTOOL_GSSET_INFO
-				 * instead.
-				 */
-	__u32	n_priv_flags;	/* number of flags valid in ETHTOOL_GPFLAGS */
-	__u32	n_stats;	/* number of u64's from ETHTOOL_GSTATS */
-	__u32	testinfo_len;
-	__u32	eedump_len;	/* Size of data from ETHTOOL_GEEPROM (bytes) */
-	__u32	regdump_len;	/* Size of data from ETHTOOL_GREGS (bytes) */
-};
-
-#define SOPASS_MAX	6
-/* wake-on-lan settings */
-=======
 
 /**
  * struct ethtool_drvinfo - general driver and device information
@@ -258,16 +196,11 @@ struct ethtool_drvinfo {
  * @sopass: SecureOn(tm) password; meaningful only if %WAKE_MAGICSECURE
  *	is set in @wolopts.
  */
->>>>>>> android-3.18
 struct ethtool_wolinfo {
 	__u32	cmd;
 	__u32	supported;
 	__u32	wolopts;
-<<<<<<< HEAD
-	__u8	sopass[SOPASS_MAX]; /* SecureOn(tm) password */
-=======
 	__u8	sopass[SOPASS_MAX];
->>>>>>> android-3.18
 };
 
 /* for passing single values */
@@ -276,22 +209,6 @@ struct ethtool_value {
 	__u32	data;
 };
 
-<<<<<<< HEAD
-/* for passing big chunks of data */
-struct ethtool_regs {
-	__u32	cmd;
-	__u32	version; /* driver-specific, indicates different chips/revs */
-	__u32	len; /* bytes */
-	__u8	data[0];
-};
-
-/* for passing EEPROM chunks */
-struct ethtool_eeprom {
-	__u32	cmd;
-	__u32	magic;
-	__u32	offset; /* in bytes */
-	__u32	len; /* in bytes */
-=======
 enum tunable_id {
 	ETHTOOL_ID_UNSPEC,
 	ETHTOOL_RX_COPYBREAK,
@@ -364,7 +281,6 @@ struct ethtool_eeprom {
 	__u32	magic;
 	__u32	offset;
 	__u32	len;
->>>>>>> android-3.18
 	__u8	data[0];
 };
 
@@ -462,30 +378,18 @@ struct ethtool_modinfo {
  * @rate_sample_interval: How often to do adaptive coalescing packet rate
  *	sampling, measured in seconds.  Must not be zero.
  *
-<<<<<<< HEAD
- * Each pair of (usecs, max_frames) fields specifies this exit
- * condition for interrupt coalescing:
- *	(usecs > 0 && time_since_first_completion >= usecs) ||
- *	(max_frames > 0 && completed_frames >= max_frames)
-=======
  * Each pair of (usecs, max_frames) fields specifies that interrupts
  * should be coalesced until
  *	(usecs > 0 && time_since_first_completion >= usecs) ||
  *	(max_frames > 0 && completed_frames >= max_frames)
  *
->>>>>>> android-3.18
  * It is illegal to set both usecs and max_frames to zero as this
  * would cause interrupts to never be generated.  To disable
  * coalescing, set usecs = 0 and max_frames = 1.
  *
  * Some implementations ignore the value of max_frames and use the
-<<<<<<< HEAD
- * condition:
- *	time_since_first_completion >= usecs
-=======
  * condition time_since_first_completion >= usecs
  *
->>>>>>> android-3.18
  * This is deprecated.  Drivers for hardware that does not support
  * counting completions should validate that max_frames == !rx_usecs.
  *
@@ -525,16 +429,6 @@ struct ethtool_coalesce {
 	__u32	rate_sample_interval;
 };
 
-<<<<<<< HEAD
-/* for configuring RX/TX ring parameters */
-struct ethtool_ringparam {
-	__u32	cmd;	/* ETHTOOL_{G,S}RINGPARAM */
-
-	/* Read only attributes.  These indicate the maximum number
-	 * of pending RX/TX ring entries the driver will allow the
-	 * user to set.
-	 */
-=======
 /**
  * struct ethtool_ringparam - RX/TX ring parameters
  * @cmd: Command number = %ETHTOOL_GRINGPARAM or %ETHTOOL_SRINGPARAM
@@ -562,18 +456,10 @@ struct ethtool_ringparam {
  */
 struct ethtool_ringparam {
 	__u32	cmd;
->>>>>>> android-3.18
 	__u32	rx_max_pending;
 	__u32	rx_mini_max_pending;
 	__u32	rx_jumbo_max_pending;
 	__u32	tx_max_pending;
-<<<<<<< HEAD
-
-	/* Values changeable by the user.  The valid values are
-	 * in the range 1 to the "*_max_pending" counterpart above.
-	 */
-=======
->>>>>>> android-3.18
 	__u32	rx_pending;
 	__u32	rx_mini_pending;
 	__u32	rx_jumbo_pending;
@@ -608,22 +494,6 @@ struct ethtool_channels {
 	__u32	combined_count;
 };
 
-<<<<<<< HEAD
-/* for configuring link flow control parameters */
-struct ethtool_pauseparam {
-	__u32	cmd;	/* ETHTOOL_{G,S}PAUSEPARAM */
-
-	/* If the link is being auto-negotiated (via ethtool_cmd.autoneg
-	 * being true) the user may set 'autoneg' here non-zero to have the
-	 * pause parameters be auto-negotiated too.  In such a case, the
-	 * {rx,tx}_pause values below determine what capabilities are
-	 * advertised.
-	 *
-	 * If 'autoneg' is zero or the link is not being auto-negotiated,
-	 * then {rx,tx}_pause force the driver to use/not-use pause
-	 * flow control.
-	 */
-=======
 /**
  * struct ethtool_pauseparam - Ethernet pause (flow control) parameters
  * @cmd: Command number = %ETHTOOL_GPAUSEPARAM or %ETHTOOL_SPAUSEPARAM
@@ -648,15 +518,12 @@ struct ethtool_pauseparam {
  */
 struct ethtool_pauseparam {
 	__u32	cmd;
->>>>>>> android-3.18
 	__u32	autoneg;
 	__u32	rx_pause;
 	__u32	tx_pause;
 };
 
 #define ETH_GSTRING_LEN		32
-<<<<<<< HEAD
-=======
 
 /**
  * enum ethtool_stringset - string set ID
@@ -668,34 +535,10 @@ struct ethtool_pauseparam {
  *	now deprecated
  * @ETH_SS_FEATURES: Device feature names
  */
->>>>>>> android-3.18
 enum ethtool_stringset {
 	ETH_SS_TEST		= 0,
 	ETH_SS_STATS,
 	ETH_SS_PRIV_FLAGS,
-<<<<<<< HEAD
-	ETH_SS_NTUPLE_FILTERS,	/* Do not use, GRXNTUPLE is now deprecated */
-	ETH_SS_FEATURES,
-};
-
-/* for passing string sets for data tagging */
-struct ethtool_gstrings {
-	__u32	cmd;		/* ETHTOOL_GSTRINGS */
-	__u32	string_set;	/* string set id e.c. ETH_SS_TEST, etc*/
-	__u32	len;		/* number of strings in the string set */
-	__u8	data[0];
-};
-
-struct ethtool_sset_info {
-	__u32	cmd;		/* ETHTOOL_GSSET_INFO */
-	__u32	reserved;
-	__u64	sset_mask;	/* input: each bit selects an sset to query */
-				/* output: each bit a returned sset */
-	__u32	data[0];	/* ETH_SS_xxx count, in order, based on bits
-				   in sset_mask.  One bit implies one
-				   __u32, two bits implies two
-				   __u32's, etc. */
-=======
 	ETH_SS_NTUPLE_FILTERS,
 	ETH_SS_FEATURES,
 };
@@ -741,7 +584,6 @@ struct ethtool_sset_info {
 	__u32	reserved;
 	__u64	sset_mask;
 	__u32	data[0];
->>>>>>> android-3.18
 };
 
 /**
@@ -761,26 +603,6 @@ enum ethtool_test_flags {
 	ETH_TEST_FL_EXTERNAL_LB_DONE	= (1 << 3),
 };
 
-<<<<<<< HEAD
-/* for requesting NIC test and getting results*/
-struct ethtool_test {
-	__u32	cmd;		/* ETHTOOL_TEST */
-	__u32	flags;		/* ETH_TEST_FL_xxx */
-	__u32	reserved;
-	__u32	len;		/* result length, in number of u64 elements */
-	__u64	data[0];
-};
-
-/* for dumping NIC-specific statistics */
-struct ethtool_stats {
-	__u32	cmd;		/* ETHTOOL_GSTATS */
-	__u32	n_stats;	/* number of u64's being returned */
-	__u64	data[0];
-};
-
-struct ethtool_perm_addr {
-	__u32	cmd;		/* ETHTOOL_GPERMADDR */
-=======
 /**
  * struct ethtool_test - device self-test invocation
  * @cmd: Command number = %ETHTOOL_TEST
@@ -833,7 +655,6 @@ struct ethtool_stats {
  */
 struct ethtool_perm_addr {
 	__u32	cmd;
->>>>>>> android-3.18
 	__u32	size;
 	__u8	data[0];
 };
@@ -923,15 +744,6 @@ union ethtool_flow_union {
 	struct ethtool_ah_espip4_spec		esp_ip4_spec;
 	struct ethtool_usrip4_spec		usr_ip4_spec;
 	struct ethhdr				ether_spec;
-<<<<<<< HEAD
-	__u8					hdata[60];
-};
-
-struct ethtool_flow_ext {
-	__be16	vlan_etype;
-	__be16	vlan_tci;
-	__be32	data[2];
-=======
 	__u8					hdata[52];
 };
 
@@ -952,7 +764,6 @@ struct ethtool_flow_ext {
 	__be16		vlan_etype;
 	__be16		vlan_tci;
 	__be32		data[2];
->>>>>>> android-3.18
 };
 
 /**
@@ -963,12 +774,8 @@ struct ethtool_flow_ext {
  * @m_u: Masks for flow field bits to be matched
  * @m_ext: Masks for additional field bits to be matched
  *	Note, all additional fields must be ignored unless @flow_type
-<<<<<<< HEAD
- *	includes the %FLOW_EXT flag.
-=======
  *	includes the %FLOW_EXT or %FLOW_MAC_EXT flag
  *	(see &struct ethtool_flow_ext description).
->>>>>>> android-3.18
  * @ring_cookie: RX ring/queue index to deliver to, or %RX_CLS_FLOW_DISC
  *	if packets should be discarded
  * @location: Location of rule in the table.  Locations must be
@@ -1030,11 +837,7 @@ struct ethtool_rx_flow_spec {
  * %ETHTOOL_SRXCLSRLINS may add the rule at any suitable unused
  * location, and may remove a rule at a later location (lower
  * priority) that matches exactly the same set of flows.  The special
-<<<<<<< HEAD
- * values are: %RX_CLS_LOC_ANY, selecting any location;
-=======
  * values are %RX_CLS_LOC_ANY, selecting any location;
->>>>>>> android-3.18
  * %RX_CLS_LOC_FIRST, selecting the first suitable location (maximum
  * priority); and %RX_CLS_LOC_LAST, selecting the last suitable
  * location (minimum priority).  Additional special values may be
@@ -1071,8 +874,6 @@ struct ethtool_rxfh_indir {
 };
 
 /**
-<<<<<<< HEAD
-=======
  * struct ethtool_rxfh - command to get/set RX flow hash indir or/and hash key.
  * @cmd: Specific command number - %ETHTOOL_GRSSH or %ETHTOOL_SRSSH
  * @rss_context: RSS context identifier.
@@ -1105,7 +906,6 @@ struct ethtool_rxfh {
 #define ETH_RXFH_INDIR_NO_CHANGE	0xffffffff
 
 /**
->>>>>>> android-3.18
  * struct ethtool_rx_ntuple_flow_spec - specification for RX flow filter
  * @flow_type: Type of match to perform, e.g. %TCP_V4_FLOW
  * @h_u: Flow field values to match (dependent on @flow_type)
@@ -1180,12 +980,6 @@ struct ethtool_flash {
  * 	 for %ETHTOOL_GET_DUMP_FLAG command
  * @data: data collected for get dump data operation
  */
-<<<<<<< HEAD
-
-#define ETH_FW_DUMP_DISABLE 0
-
-=======
->>>>>>> android-3.18
 struct ethtool_dump {
 	__u32	cmd;
 	__u32	version;
@@ -1194,11 +988,8 @@ struct ethtool_dump {
 	__u8	data[0];
 };
 
-<<<<<<< HEAD
-=======
 #define ETH_FW_DUMP_DISABLE 0
 
->>>>>>> android-3.18
 /* for returning and changing feature sets */
 
 /**
@@ -1218,14 +1009,9 @@ struct ethtool_get_features_block {
 /**
  * struct ethtool_gfeatures - command to get state of device's features
  * @cmd: command number = %ETHTOOL_GFEATURES
-<<<<<<< HEAD
- * @size: in: number of elements in the features[] array;
- *       out: number of elements in features[] needed to hold all features
-=======
  * @size: On entry, the number of elements in the features[] array;
  *	on return, the number of elements in features[] needed to hold
  *	all features
->>>>>>> android-3.18
  * @features: state of features
  */
 struct ethtool_gfeatures {
@@ -1391,22 +1177,15 @@ enum ethtool_sfeatures_retval_bits {
 #define ETHTOOL_GEEE		0x00000044 /* Get EEE settings */
 #define ETHTOOL_SEEE		0x00000045 /* Set EEE settings */
 
-<<<<<<< HEAD
-=======
 #define ETHTOOL_GRSSH		0x00000046 /* Get RX flow hash configuration */
 #define ETHTOOL_SRSSH		0x00000047 /* Set RX flow hash configuration */
 #define ETHTOOL_GTUNABLE	0x00000048 /* Get tunable configuration */
 #define ETHTOOL_STUNABLE	0x00000049 /* Set tunable configuration */
 
->>>>>>> android-3.18
 /* compatibility with older code */
 #define SPARC_ETH_GSET		ETHTOOL_GSET
 #define SPARC_ETH_SSET		ETHTOOL_SSET
 
-<<<<<<< HEAD
-/* Indicates what features are supported by the interface. */
-=======
->>>>>>> android-3.18
 #define SUPPORTED_10baseT_Half		(1 << 0)
 #define SUPPORTED_10baseT_Full		(1 << 1)
 #define SUPPORTED_100baseT_Half		(1 << 2)
@@ -1435,10 +1214,6 @@ enum ethtool_sfeatures_retval_bits {
 #define SUPPORTED_40000baseSR4_Full	(1 << 25)
 #define SUPPORTED_40000baseLR4_Full	(1 << 26)
 
-<<<<<<< HEAD
-/* Indicates what features are advertised by the interface. */
-=======
->>>>>>> android-3.18
 #define ADVERTISED_10baseT_Half		(1 << 0)
 #define ADVERTISED_10baseT_Full		(1 << 1)
 #define ADVERTISED_100baseT_Half	(1 << 2)
@@ -1497,24 +1272,13 @@ enum ethtool_sfeatures_retval_bits {
 #define PORT_OTHER		0xff
 
 /* Which transceiver to use. */
-<<<<<<< HEAD
-#define XCVR_INTERNAL		0x00
-#define XCVR_EXTERNAL		0x01
-=======
 #define XCVR_INTERNAL		0x00 /* PHY and MAC are in the same package */
 #define XCVR_EXTERNAL		0x01 /* PHY and MAC are in different packages */
->>>>>>> android-3.18
 #define XCVR_DUMMY1		0x02
 #define XCVR_DUMMY2		0x03
 #define XCVR_DUMMY3		0x04
 
-<<<<<<< HEAD
-/* Enable or disable autonegotiation.  If this is set to enable,
- * the forced link modes above are completely ignored.
- */
-=======
 /* Enable or disable autonegotiation. */
->>>>>>> android-3.18
 #define AUTONEG_DISABLE		0x00
 #define AUTONEG_ENABLE		0x01
 
@@ -1554,10 +1318,7 @@ enum ethtool_sfeatures_retval_bits {
 #define	ETHER_FLOW	0x12	/* spec only (ether_spec) */
 /* Flag to enable additional fields in struct ethtool_rx_flow_spec */
 #define	FLOW_EXT	0x80000000
-<<<<<<< HEAD
-=======
 #define	FLOW_MAC_EXT	0x40000000
->>>>>>> android-3.18
 
 /* L3-L4 network traffic flow hash options */
 #define	RXH_L2DA	(1 << 1)

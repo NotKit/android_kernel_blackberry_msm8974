@@ -124,42 +124,20 @@ enum {
 }
 
 #define __cpu_notifier(fn, pri) {				\
-<<<<<<< HEAD
-	static struct notifier_block fn##_nb __cpuinitdata =	\
-		{ .notifier_call = fn, .priority = pri };	\
-	__register_cpu_notifier(&fn##_nb);			\
-}
-#else /* #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
-#define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-#define __cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-#endif /* #else #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
-
-#ifdef CONFIG_HOTPLUG_CPU
-=======
 	static struct notifier_block fn##_nb =			\
 		{ .notifier_call = fn, .priority = pri };	\
 	__register_cpu_notifier(&fn##_nb);			\
 }
 
->>>>>>> android-3.18
 extern int register_cpu_notifier(struct notifier_block *nb);
 extern int __register_cpu_notifier(struct notifier_block *nb);
 extern void unregister_cpu_notifier(struct notifier_block *nb);
 extern void __unregister_cpu_notifier(struct notifier_block *nb);
-<<<<<<< HEAD
-#else
-
-#ifndef MODULE
-extern int register_cpu_notifier(struct notifier_block *nb);
-extern int __register_cpu_notifier(struct notifier_block *nb);
-#else
-=======
 
 #else /* #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
 #define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
 #define __cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
 
->>>>>>> android-3.18
 static inline int register_cpu_notifier(struct notifier_block *nb)
 {
 	return 0;
@@ -169,10 +147,6 @@ static inline int __register_cpu_notifier(struct notifier_block *nb)
 {
 	return 0;
 }
-<<<<<<< HEAD
-#endif
-=======
->>>>>>> android-3.18
 
 static inline void unregister_cpu_notifier(struct notifier_block *nb)
 {
@@ -249,10 +223,7 @@ extern void cpu_hotplug_enable(void);
 #define __register_hotcpu_notifier(nb)	__register_cpu_notifier(nb)
 #define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
 #define __unregister_hotcpu_notifier(nb)	__unregister_cpu_notifier(nb)
-<<<<<<< HEAD
-=======
 void clear_tasks_mm_cpumask(int cpu);
->>>>>>> android-3.18
 int cpu_down(unsigned int cpu);
 
 #else		/* CONFIG_HOTPLUG_CPU */
@@ -281,8 +252,6 @@ static inline int disable_nonboot_cpus(void) { return 0; }
 static inline void enable_nonboot_cpus(void) {}
 #endif /* !CONFIG_PM_SLEEP_SMP */
 
-<<<<<<< HEAD
-=======
 enum cpuhp_state {
 	CPUHP_OFFLINE,
 	CPUHP_ONLINE,
@@ -298,7 +267,6 @@ void arch_cpu_idle_enter(void);
 void arch_cpu_idle_exit(void);
 void arch_cpu_idle_dead(void);
 
->>>>>>> android-3.18
 #define IDLE_START 1
 #define IDLE_END 2
 

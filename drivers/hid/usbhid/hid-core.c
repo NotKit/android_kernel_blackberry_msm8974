@@ -462,19 +462,12 @@ static void hid_irq_out(struct urb *urb)
 	} else {
 		usbhid->outtail = (usbhid->outtail + 1) & (HID_OUTPUT_FIFO_SIZE - 1);
 
-<<<<<<< HEAD
-	if (!irq_out_pump_restart(hid)) {
-		/* Successfully submitted next urb in queue */
-		spin_unlock_irqrestore(&usbhid->lock, flags);
-		return;
-=======
 		if (usbhid->outhead != usbhid->outtail &&
 				hid_submit_out(hid) == 0) {
 			/* Successfully submitted next urb in queue */
 			spin_unlock_irqrestore(&usbhid->lock, flags);
 			return;
 		}
->>>>>>> android-3.18
 	}
 
 	clear_bit(HID_OUT_RUNNING, &usbhid->iofl);
@@ -528,19 +521,12 @@ static void hid_ctrl(struct urb *urb)
 	} else {
 		usbhid->ctrltail = (usbhid->ctrltail + 1) & (HID_CONTROL_FIFO_SIZE - 1);
 
-<<<<<<< HEAD
-	if (!ctrl_pump_restart(hid)) {
-		/* Successfully submitted next urb in queue */
-		spin_unlock(&usbhid->lock);
-		return;
-=======
 		if (usbhid->ctrlhead != usbhid->ctrltail &&
 				hid_submit_ctrl(hid) == 0) {
 			/* Successfully submitted next urb in queue */
 			spin_unlock(&usbhid->lock);
 			return;
 		}
->>>>>>> android-3.18
 	}
 
 	clear_bit(HID_CTRL_RUNNING, &usbhid->iofl);
@@ -585,32 +571,6 @@ static void __usbhid_submit_report(struct hid_device *hid, struct hid_report *re
 			usb_autopm_get_interface_no_resume(usbhid->intf);
 
 			/*
-<<<<<<< HEAD
-			 * the queue is known to run
-			 * but an earlier request may be stuck
-			 * we may need to time out
-			 * no race because the URB is blocked under
-			 * spinlock
-			 */
-			if (time_after(jiffies, usbhid->last_out + HZ * 5)) {
-				usb_block_urb(usbhid->urbout);
-				/* drop lock to not deadlock if the callback is called */
-				spin_unlock(&usbhid->lock);
-				usb_unlink_urb(usbhid->urbout);
-				spin_lock(&usbhid->lock);
-				usb_unblock_urb(usbhid->urbout);
-				/*
-				 * if the unlinking has already completed
-				 * the pump will have been stopped
-				 * it must be restarted now
-				 */
-				if (!test_bit(HID_OUT_RUNNING, &usbhid->iofl))
-					if (!irq_out_pump_restart(hid))
-						set_bit(HID_OUT_RUNNING, &usbhid->iofl);
-
-
-			}
-=======
 			 * Prevent resubmission in case the URB completes
 			 * before we can unlink it.  We don't want to cancel
 			 * the wrong transfer!
@@ -630,7 +590,6 @@ static void __usbhid_submit_report(struct hid_device *hid, struct hid_report *re
 
 			/* Now we can allow autosuspend again */
 			usb_autopm_put_interface_async(usbhid->intf);
->>>>>>> android-3.18
 		}
 		return;
 	}
@@ -663,38 +622,11 @@ static void __usbhid_submit_report(struct hid_device *hid, struct hid_report *re
 		usb_autopm_get_interface_no_resume(usbhid->intf);
 
 		/*
-<<<<<<< HEAD
-		 * the queue is known to run
-		 * but an earlier request may be stuck
-		 * we may need to time out
-		 * no race because the URB is blocked under
-		 * spinlock
-		 */
-		if (time_after(jiffies, usbhid->last_ctrl + HZ * 5)) {
-			usb_block_urb(usbhid->urbctrl);
-			/* drop lock to not deadlock if the callback is called */
-			spin_unlock(&usbhid->lock);
-			usb_unlink_urb(usbhid->urbctrl);
-			spin_lock(&usbhid->lock);
-			usb_unblock_urb(usbhid->urbctrl);
-			/*
-			 * if the unlinking has already completed
-			 * the pump will have been stopped
-			 * it must be restarted now
-			 */
-			if (!test_bit(HID_CTRL_RUNNING, &usbhid->iofl))
-				if (!ctrl_pump_restart(hid))
-					set_bit(HID_CTRL_RUNNING, &usbhid->iofl);
-		}
-	}
-}
-=======
 		 * Prevent resubmission in case the URB completes
 		 * before we can unlink it.  We don't want to cancel
 		 * the wrong transfer!
 		 */
 		usb_block_urb(usbhid->urbctrl);
->>>>>>> android-3.18
 
 		/* Drop lock to avoid deadlock if the callback runs */
 		spin_unlock(&usbhid->lock);

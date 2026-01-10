@@ -1,15 +1,10 @@
 #ifndef _LINUX_FUTEX_H
 #define _LINUX_FUTEX_H
 
-<<<<<<< HEAD
-#include <uapi/linux/futex.h>
-
-=======
 #include <linux/sched.h>
 
 #include <uapi/linux/futex.h>
 
->>>>>>> android-3.18
 struct inode;
 struct mm_struct;
 struct task_struct;
@@ -72,8 +67,6 @@ static inline void futex_init_task(struct task_struct *tsk)
 #ifdef CONFIG_COMPAT
 	tsk->compat_robust_list = NULL;
 #endif
-<<<<<<< HEAD
-=======
 	INIT_LIST_HEAD(&tsk->pi_state_list);
 	tsk->pi_state_cache = NULL;
 	tsk->futex_state = FUTEX_STATE_OK;
@@ -92,5 +85,4 @@ static inline void futex_exit_recursive(struct task_struct *tsk) { }
 static inline void futex_exit_release(struct task_struct *tsk) { }
 static inline void futex_exec_release(struct task_struct *tsk) { }
 #endif
->>>>>>> android-3.18
 #endif

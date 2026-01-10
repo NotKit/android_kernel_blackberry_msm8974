@@ -22,13 +22,7 @@
  * the best guess is to add 0.5s.
  */
 
-<<<<<<< HEAD
-int rtc_hctosys_ret = -ENODEV;
-
-int rtc_hctosys(void)
-=======
 static int __init rtc_hctosys(void)
->>>>>>> android-3.18
 {
 	int err = -ENODEV;
 	struct rtc_time tm;

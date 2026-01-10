@@ -647,12 +647,7 @@ ath_regd_init_wiphy(struct ath_regulatory *reg,
 		 * saved on the wiphy orig_* parameters
 		 */
 		regd = ath_world_regdomain(reg);
-<<<<<<< HEAD
-		wiphy->flags |= WIPHY_FLAG_CUSTOM_REGULATORY;
-		wiphy->country_ie_pref = NL80211_COUNTRY_IE_FOLLOW_POWER;
-=======
 		wiphy->regulatory_flags |= REGULATORY_COUNTRY_IE_FOLLOW_POWER;
->>>>>>> android-3.18
 	} else {
 		/*
 		 * This gets applied in the case of the absence of CRDA,

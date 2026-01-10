@@ -100,23 +100,12 @@ enum {
 	CSS_RELEASED	= (1 << 2), /* refcnt reached zero, released */
 };
 
-<<<<<<< HEAD
-/*
- * Call css_get() to hold a reference on the css; it can be used
- * for a reference obtained via:
- * - an existing ref-counted reference to the css
- * - task->cgroups for a locked task
- */
-
-extern void __css_get(struct cgroup_subsys_state *css, int count);
-=======
 /**
  * css_get - obtain a reference on the specified css
  * @css: target css
  *
  * The caller must already have a reference.
  */
->>>>>>> android-3.18
 static inline void css_get(struct cgroup_subsys_state *css)
 {
 	if (!(css->flags & CSS_NO_REF))
@@ -172,13 +161,6 @@ static inline void css_put(struct cgroup_subsys_state *css)
 
 /* bits in struct cgroup flags field */
 enum {
-<<<<<<< HEAD
-	/* Control Group is dead */
-	CGRP_REMOVED,
-	/* Control Group has ever had a child cgroup or a task */
-	CGRP_RELEASABLE,
-=======
->>>>>>> android-3.18
 	/* Control Group requires release notifications to userspace */
 	CGRP_NOTIFY_ON_RELEASE,
 	/*
@@ -351,19 +333,12 @@ struct css_set {
 	 */
 	struct cgroup_subsys_state *subsys[CGROUP_SUBSYS_COUNT];
 
-<<<<<<< HEAD
-	/* For RCU-protected deletion */
-	struct rcu_head rcu_head;
-	struct work_struct work;
-};
-=======
 	/*
 	 * List of csets participating in the on-going migration either as
 	 * source or destination.  Protected by cgroup_mutex.
 	 */
 	struct list_head mg_preload_node;
 	struct list_head mg_node;
->>>>>>> android-3.18
 
 	/*
 	 * If this cset is acting as the source of migration the following
@@ -634,15 +609,6 @@ struct task_struct *cgroup_taskset_next(struct cgroup_taskset *tset);
  */
 
 struct cgroup_subsys {
-<<<<<<< HEAD
-	struct cgroup_subsys_state *(*create)(struct cgroup *cgrp);
-	int (*pre_destroy)(struct cgroup *cgrp);
-	void (*destroy)(struct cgroup *cgrp);
-	int (*allow_attach)(struct cgroup *cgrp, struct cgroup_taskset *tset);
-	int (*can_attach)(struct cgroup *cgrp, struct cgroup_taskset *tset);
-	void (*cancel_attach)(struct cgroup *cgrp, struct cgroup_taskset *tset);
-	void (*attach)(struct cgroup *cgrp, struct cgroup_taskset *tset);
-=======
 	struct cgroup_subsys_state *(*css_alloc)(struct cgroup_subsys_state *parent_css);
 	int (*css_online)(struct cgroup_subsys_state *css);
 	void (*css_offline)(struct cgroup_subsys_state *css);
@@ -655,7 +621,6 @@ struct cgroup_subsys {
 			      struct cgroup_taskset *tset);
 	void (*attach)(struct cgroup_subsys_state *css,
 		       struct cgroup_taskset *tset);
->>>>>>> android-3.18
 	void (*fork)(struct task_struct *task);
 	void (*exit)(struct cgroup_subsys_state *css,
 		     struct cgroup_subsys_state *old_css,
@@ -768,57 +733,6 @@ static inline struct css_set *task_css_set(struct task_struct *task)
 }
 
 /**
-<<<<<<< HEAD
- * task_css_set_check - obtain a task's css_set with extra access conditions
- * @task: the task to obtain css_set for
- * @__c: extra condition expression to be passed to rcu_dereference_check()
- *
- * A task's css_set is RCU protected, initialized and exited while holding
- * task_lock(), and can only be modified while holding both cgroup_mutex
- * and task_lock() while the task is alive.  This macro verifies that the
- * caller is inside proper critical section and returns @task's css_set.
- *
- * The caller can also specify additional allowed conditions via @__c, such
- * as locks used during the cgroup_subsys::attach() methods.
- */
-#define task_css_set_check(task, __c)					\
-	rcu_dereference_check((task)->cgroups,				\
-		lockdep_is_held(&(task)->alloc_lock) ||			\
-		cgroup_lock_is_held() || (__c))
-
-/**
- * task_subsys_state_check - obtain css for (task, subsys) w/ extra access conds
- * @task: the target task
- * @subsys_id: the target subsystem ID
- * @__c: extra condition expression to be passed to rcu_dereference_check()
- *
- * Return the cgroup_subsys_state for the (@task, @subsys_id) pair.  The
- * synchronization rules are the same as task_css_set_check().
- */
-#define task_subsys_state_check(task, subsys_id, __c)			\
-	task_css_set_check((task), (__c))->subsys[(subsys_id)]
-
-/**
- * task_css_set - obtain a task's css_set
- * @task: the task to obtain css_set for
- *
- * See task_css_set_check().
- */
-static inline struct css_set *task_css_set(struct task_struct *task)
-{
-	return task_css_set_check(task, false);
-}
-
-/**
- * task_subsys_state - obtain css for (task, subsys)
- * @task: the target task
- * @subsys_id: the target subsystem ID
- *
- * See task_subsys_state_check().
- */
-static inline struct cgroup_subsys_state *
-task_subsys_state(struct task_struct *task, int subsys_id)
-=======
  * task_css - obtain css for (task, subsys)
  * @task: the target task
  * @subsys_id: the target subsystem ID
@@ -840,7 +754,6 @@ static inline struct cgroup_subsys_state *task_css(struct task_struct *task,
  * May be invoked in any context.
  */
 static inline bool task_css_is_root(struct task_struct *task, int subsys_id)
->>>>>>> android-3.18
 {
 	return task_css_check(task, subsys_id, true) ==
 		init_css_set.subsys[subsys_id];

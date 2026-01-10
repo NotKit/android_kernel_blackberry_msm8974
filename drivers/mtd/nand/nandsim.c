@@ -653,13 +653,7 @@ static void free_device(struct nandsim *ns)
 
 static char *get_partition_name(int i)
 {
-<<<<<<< HEAD
-	char buf[64];
-	sprintf(buf, "NAND simulator partition %d", i);
-	return kstrdup(buf, GFP_KERNEL);
-=======
 	return kasprintf(GFP_KERNEL, "NAND simulator partition %d", i);
->>>>>>> android-3.18
 }
 
 /*
@@ -1019,11 +1013,6 @@ static int setup_wear_reporting(struct mtd_info *mtd)
 {
 	size_t mem;
 
-<<<<<<< HEAD
-	if (!rptwear)
-		return 0;
-=======
->>>>>>> android-3.18
 	wear_eb_count = div_u64(mtd->size, mtd->erasesize);
 	mem = wear_eb_count * sizeof(unsigned long);
 	if (mem / sizeof(unsigned long) != wear_eb_count) {

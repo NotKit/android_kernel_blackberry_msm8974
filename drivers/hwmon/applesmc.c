@@ -239,13 +239,6 @@ static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
 	}
 
 	/* This has no effect on newer (2012) SMCs */
-<<<<<<< HEAD
-	outb(len, APPLESMC_DATA_PORT);
-
-	for (i = 0; i < len; i++) {
-		if (__wait_status(0x05)) {
-			pr_warn("%.4s: read data fail\n", key);
-=======
 	if (send_byte(len, APPLESMC_DATA_PORT)) {
 		pr_warn("%.4s: read len fail\n", key);
 		return -EIO;
@@ -254,7 +247,6 @@ static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
 	for (i = 0; i < len; i++) {
 		if (wait_read()) {
 			pr_warn("%.4s: read data[%d] fail\n", key, i);
->>>>>>> android-3.18
 			return -EIO;
 		}
 		buffer[i] = inb(APPLESMC_DATA_PORT);

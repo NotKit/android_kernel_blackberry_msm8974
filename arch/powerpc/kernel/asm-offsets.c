@@ -78,10 +78,7 @@ int main(void)
 	DEFINE(NMI_MASK, NMI_MASK);
 	DEFINE(THREAD_DSCR, offsetof(struct thread_struct, dscr));
 	DEFINE(THREAD_DSCR_INHERIT, offsetof(struct thread_struct, dscr_inherit));
-<<<<<<< HEAD
-=======
 	DEFINE(TASKTHREADPPR, offsetof(struct task_struct, thread.ppr));
->>>>>>> android-3.18
 #else
 	DEFINE(THREAD_INFO, offsetof(struct task_struct, stack));
 	DEFINE(THREAD_INFO_GAP, _ALIGN_UP(sizeof(struct thread_info), 16));

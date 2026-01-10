@@ -7,13 +7,10 @@ enum cntl_msg_types {
 	IPCTNL_MSG_CT_GET,
 	IPCTNL_MSG_CT_DELETE,
 	IPCTNL_MSG_CT_GET_CTRZERO,
-<<<<<<< HEAD
-=======
 	IPCTNL_MSG_CT_GET_STATS_CPU,
 	IPCTNL_MSG_CT_GET_STATS,
 	IPCTNL_MSG_CT_GET_DYING,
 	IPCTNL_MSG_CT_GET_UNCONFIRMED,
->>>>>>> android-3.18
 
 	IPCTNL_MSG_MAX
 };
@@ -22,10 +19,7 @@ enum ctnl_exp_msg_types {
 	IPCTNL_MSG_EXP_NEW,
 	IPCTNL_MSG_EXP_GET,
 	IPCTNL_MSG_EXP_DELETE,
-<<<<<<< HEAD
-=======
 	IPCTNL_MSG_EXP_GET_STATS_CPU,
->>>>>>> android-3.18
 
 	IPCTNL_MSG_EXP_MAX
 };
@@ -48,25 +42,17 @@ enum ctattr_type {
 	CTA_ID,
 	CTA_NAT_DST,
 	CTA_TUPLE_MASTER,
-<<<<<<< HEAD
-	CTA_NAT_SEQ_ADJ_ORIG,
-	CTA_NAT_SEQ_ADJ_REPLY,
-=======
 	CTA_SEQ_ADJ_ORIG,
 	CTA_NAT_SEQ_ADJ_ORIG	= CTA_SEQ_ADJ_ORIG,
 	CTA_SEQ_ADJ_REPLY,
 	CTA_NAT_SEQ_ADJ_REPLY	= CTA_SEQ_ADJ_REPLY,
->>>>>>> android-3.18
 	CTA_SECMARK,		/* obsolete */
 	CTA_ZONE,
 	CTA_SECCTX,
 	CTA_TIMESTAMP,
 	CTA_MARK_MASK,
-<<<<<<< HEAD
-=======
 	CTA_LABELS,
 	CTA_LABELS_MASK,
->>>>>>> android-3.18
 	__CTA_MAX
 };
 #define CTA_MAX (__CTA_MAX - 1)
@@ -181,8 +167,6 @@ enum ctattr_protonat {
 };
 #define CTA_PROTONAT_MAX (__CTA_PROTONAT_MAX - 1)
 
-<<<<<<< HEAD
-=======
 enum ctattr_seqadj {
 	CTA_SEQADJ_UNSPEC,
 	CTA_SEQADJ_CORRECTION_POS,
@@ -192,7 +176,6 @@ enum ctattr_seqadj {
 };
 #define CTA_SEQADJ_MAX (__CTA_SEQADJ_MAX - 1)
 
->>>>>>> android-3.18
 enum ctattr_natseq {
 	CTA_NAT_SEQ_UNSPEC,
 	CTA_NAT_SEQ_CORRECTION_POS,
@@ -242,8 +225,6 @@ enum ctattr_secctx {
 };
 #define CTA_SECCTX_MAX (__CTA_SECCTX_MAX - 1)
 
-<<<<<<< HEAD
-=======
 enum ctattr_stats_cpu {
 	CTA_STATS_UNSPEC,
 	CTA_STATS_SEARCHED,
@@ -279,5 +260,4 @@ enum ctattr_expect_stats {
 };
 #define CTA_STATS_EXP_MAX (__CTA_STATS_EXP_MAX - 1)
 
->>>>>>> android-3.18
 #endif /* _IPCONNTRACK_NETLINK_H */

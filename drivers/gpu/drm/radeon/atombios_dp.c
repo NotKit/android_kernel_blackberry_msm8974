@@ -512,25 +512,6 @@ int radeon_dp_mode_valid_helper(struct drm_connector *connector,
 	return MODE_OK;
 }
 
-<<<<<<< HEAD
-static bool radeon_dp_get_link_status(struct radeon_connector *radeon_connector,
-				      u8 link_status[DP_LINK_STATUS_SIZE])
-{
-	int ret;
-	ret = radeon_dp_aux_native_read(radeon_connector, DP_LANE0_1_STATUS,
-					link_status, DP_LINK_STATUS_SIZE, 100);
-	if (ret <= 0) {
-		return false;
-	}
-
-	DRM_DEBUG_KMS("link status %02x %02x %02x %02x %02x %02x\n",
-		  link_status[0], link_status[1], link_status[2],
-		  link_status[3], link_status[4], link_status[5]);
-	return true;
-}
-
-=======
->>>>>>> android-3.18
 bool radeon_dp_needs_link_train(struct radeon_connector *radeon_connector)
 {
 	u8 link_status[DP_LINK_STATUS_SIZE];
@@ -645,11 +626,7 @@ static int radeon_dp_link_train_init(struct radeon_dp_link_train_info *dp_info)
 				   DP_DOWNSPREAD_CTRL, 0);
 
 	if (dig->panel_mode == DP_PANEL_MODE_INTERNAL_DP2_MODE)
-<<<<<<< HEAD
-		radeon_write_dpcd_reg(dp_info->radeon_connector, DP_EDP_CONFIGURATION_SET, 1);
-=======
 		drm_dp_dpcd_writeb(dp_info->aux, DP_EDP_CONFIGURATION_SET, 1);
->>>>>>> android-3.18
 
 	/* set the lane count on the sink */
 	tmp = dp_info->dp_lane_count;
@@ -716,12 +693,8 @@ static int radeon_dp_link_train_cr(struct radeon_dp_link_train_info *dp_info)
 	while (1) {
 		drm_dp_link_train_clock_recovery_delay(dp_info->dpcd);
 
-<<<<<<< HEAD
-		if (!radeon_dp_get_link_status(dp_info->radeon_connector, dp_info->link_status)) {
-=======
 		if (drm_dp_dpcd_read_link_status(dp_info->aux,
 						 dp_info->link_status) <= 0) {
->>>>>>> android-3.18
 			DRM_ERROR("displayport link status failed\n");
 			break;
 		}
@@ -783,12 +756,8 @@ static int radeon_dp_link_train_ce(struct radeon_dp_link_train_info *dp_info)
 	while (1) {
 		drm_dp_link_train_channel_eq_delay(dp_info->dpcd);
 
-<<<<<<< HEAD
-		if (!radeon_dp_get_link_status(dp_info->radeon_connector, dp_info->link_status)) {
-=======
 		if (drm_dp_dpcd_read_link_status(dp_info->aux,
 						 dp_info->link_status) <= 0) {
->>>>>>> android-3.18
 			DRM_ERROR("displayport link status failed\n");
 			break;
 		}

@@ -189,17 +189,6 @@
  *	MAC_CSR19_DIRx: GPIO direction: 0 = input; 1 = output
  */
 #define MAC_CSR19			0x0426
-<<<<<<< HEAD
-#define MAC_CSR19_BIT0			FIELD16(0x0001)
-#define MAC_CSR19_BIT1			FIELD16(0x0002)
-#define MAC_CSR19_BIT2			FIELD16(0x0004)
-#define MAC_CSR19_BIT3			FIELD16(0x0008)
-#define MAC_CSR19_BIT4			FIELD16(0x0010)
-#define MAC_CSR19_BIT5			FIELD16(0x0020)
-#define MAC_CSR19_BIT6			FIELD16(0x0040)
-#define MAC_CSR19_BIT7			FIELD16(0x0080)
-#define MAC_CSR19_BIT8			FIELD16(0x0100)
-=======
 #define MAC_CSR19_VAL0			FIELD16(0x0001)
 #define MAC_CSR19_VAL1			FIELD16(0x0002)
 #define MAC_CSR19_VAL2			FIELD16(0x0004)
@@ -216,7 +205,6 @@
 #define MAC_CSR19_DIR5			FIELD16(0x2000)
 #define MAC_CSR19_DIR6			FIELD16(0x4000)
 #define MAC_CSR19_DIR7			FIELD16(0x8000)
->>>>>>> android-3.18
 
 /*
  * MAC_CSR20: LED control register.

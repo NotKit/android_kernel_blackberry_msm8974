@@ -420,16 +420,10 @@ static int kaweth_download_firmware(struct kaweth_device *kaweth,
 	netdev_dbg(kaweth->net, "High: %i, Low:%i\n", kaweth->firmware_buf[3],
 		   kaweth->firmware_buf[2]);
 
-<<<<<<< HEAD
-	dbg("Downloading firmware at %pK to kaweth device at %pK",
-	    fw->data, kaweth);
-	dbg("Firmware length: %d", data_len);
-=======
 	netdev_dbg(kaweth->net,
 		   "Downloading firmware at %p to kaweth device at %p\n",
 		   kaweth->firmware_buf, kaweth);
 	netdev_dbg(kaweth->net, "Firmware length: %d\n", data_len);
->>>>>>> android-3.18
 
 	return kaweth_control(kaweth,
 		              usb_sndctrlpipe(kaweth->dev, 0),
@@ -477,11 +471,7 @@ static int kaweth_reset(struct kaweth_device *kaweth)
 {
 	int result;
 
-<<<<<<< HEAD
-	dbg("kaweth_reset(%pK)", kaweth);
-=======
 	netdev_dbg(kaweth->net, "kaweth_reset(%p)\n", kaweth);
->>>>>>> android-3.18
 	result = usb_reset_configuration(kaweth->dev);
 	mdelay(10);
 
@@ -1021,11 +1011,7 @@ static int kaweth_probe(
 		le16_to_cpu(udev->descriptor.idProduct),
 		le16_to_cpu(udev->descriptor.bcdDevice));
 
-<<<<<<< HEAD
-	dbg("Device at %pK", dev);
-=======
 	dev_dbg(dev, "Device at %p\n", udev);
->>>>>>> android-3.18
 
 	dev_dbg(dev, "Descriptor length: %x type: %x\n",
 		(int)udev->descriptor.bLength,

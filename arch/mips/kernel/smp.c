@@ -123,11 +123,7 @@ asmlinkage void start_secondary(void)
 	unsigned int cpu;
 
 	cpu_probe();
-<<<<<<< HEAD
-	per_cpu_trap_init();
-=======
 	per_cpu_trap_init(false);
->>>>>>> android-3.18
 	mips_clockevent_init();
 	mp_ops->init_secondary();
 	cpu_report();
@@ -217,34 +213,7 @@ void smp_prepare_boot_cpu(void)
 	cpu_set(0, cpu_callin_map);
 }
 
-<<<<<<< HEAD
-/*
- * Called once for each "cpu_possible(cpu)".  Needs to spin up the cpu
- * and keep control until "cpu_online(cpu)" is set.  Note: cpu is
- * physical, not logical.
- */
-static struct task_struct *cpu_idle_thread[NR_CPUS];
-
-struct create_idle {
-	struct work_struct work;
-	struct task_struct *idle;
-	struct completion done;
-	int cpu;
-};
-
-static void __cpuinit do_fork_idle(struct work_struct *work)
-{
-	struct create_idle *c_idle =
-		container_of(work, struct create_idle, work);
-
-	c_idle->idle = fork_idle(c_idle->cpu);
-	complete(&c_idle->done);
-}
-
-int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
-=======
 int __cpu_up(unsigned int cpu, struct task_struct *tidle)
->>>>>>> android-3.18
 {
 	mp_ops->boot_secondary(cpu, tidle);
 

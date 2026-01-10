@@ -63,63 +63,7 @@ void siena_finish_flush(struct efx_nic *efx)
 		efx_mcdi_set_mac(efx);
 }
 
-<<<<<<< HEAD
-/* This call is responsible for hooking in the MAC and PHY operations */
-static int siena_probe_port(struct efx_nic *efx)
-{
-	int rc;
-
-	/* Hook in PHY operations table */
-	efx->phy_op = &efx_mcdi_phy_ops;
-
-	/* Set up MDIO structure for PHY */
-	efx->mdio.mode_support = MDIO_SUPPORTS_C45 | MDIO_EMULATE_C22;
-	efx->mdio.mdio_read = siena_mdio_read;
-	efx->mdio.mdio_write = siena_mdio_write;
-
-	/* Fill out MDIO structure, loopback modes, and initial link state */
-	rc = efx->phy_op->probe(efx);
-	if (rc != 0)
-		return rc;
-
-	/* Allocate buffer for stats */
-	rc = efx_nic_alloc_buffer(efx, &efx->stats_buffer,
-				  MC_CMD_MAC_NSTATS * sizeof(u64));
-	if (rc)
-		return rc;
-	netif_dbg(efx, probe, efx->net_dev,
-		  "stats buffer at %llx (virt %p phys %llx)\n",
-		  (u64)efx->stats_buffer.dma_addr,
-		  efx->stats_buffer.addr,
-		  (u64)virt_to_phys(efx->stats_buffer.addr));
-
-	efx_mcdi_mac_stats(efx, efx->stats_buffer.dma_addr, 0, 0, 1);
-
-	return 0;
-}
-
-static void siena_remove_port(struct efx_nic *efx)
-{
-	efx->phy_op->remove(efx);
-	efx_nic_free_buffer(efx, &efx->stats_buffer);
-}
-
-void siena_prepare_flush(struct efx_nic *efx)
-{
-	if (efx->fc_disable++ == 0)
-		efx_mcdi_set_mac(efx);
-}
-
-void siena_finish_flush(struct efx_nic *efx)
-{
-	if (--efx->fc_disable == 0)
-		efx_mcdi_set_mac(efx);
-}
-
-static const struct efx_nic_register_test siena_register_tests[] = {
-=======
 static const struct efx_farch_register_test siena_register_tests[] = {
->>>>>>> android-3.18
 	{ FR_AZ_ADR_REGION,
 	  EFX_OWORD32(0x0003FFFF, 0x0003FFFF, 0x0003FFFF, 0x0003FFFF) },
 	{ FR_CZ_USR_EV_CFG,
@@ -158,28 +102,16 @@ static int siena_test_chip(struct efx_nic *efx, struct efx_self_tests *tests)
 	/* Reset the chip immediately so that it is completely
 	 * quiescent regardless of what any VF driver does.
 	 */
-<<<<<<< HEAD
-	rc = siena_reset_hw(efx, reset_method);
-=======
 	rc = efx_mcdi_reset(efx, reset_method);
->>>>>>> android-3.18
 	if (rc)
 		goto out;
 
 	tests->registers =
-<<<<<<< HEAD
-		efx_nic_test_registers(efx, siena_register_tests,
-				       ARRAY_SIZE(siena_register_tests))
-		? -1 : 1;
-
-	rc = siena_reset_hw(efx, reset_method);
-=======
 		efx_farch_test_registers(efx, siena_register_tests,
 					 ARRAY_SIZE(siena_register_tests))
 		? -1 : 1;
 
 	rc = efx_mcdi_reset(efx, reset_method);
->>>>>>> android-3.18
 out:
 	rc2 = efx_reset_up(efx, reset_method, rc == 0);
 	return rc ? rc : rc2;
@@ -991,13 +923,6 @@ const struct efx_nic_type siena_a0_nic_type = {
 #endif
 	.map_reset_reason = efx_mcdi_map_reset_reason,
 	.map_reset_flags = siena_map_reset_flags,
-<<<<<<< HEAD
-	.reset = siena_reset_hw,
-	.probe_port = siena_probe_port,
-	.remove_port = siena_remove_port,
-	.prepare_flush = siena_prepare_flush,
-	.finish_flush = siena_finish_flush,
-=======
 	.reset = efx_mcdi_reset,
 	.probe_port = efx_mcdi_port_probe,
 	.remove_port = efx_mcdi_port_remove,
@@ -1007,7 +932,6 @@ const struct efx_nic_type siena_a0_nic_type = {
 	.prepare_flr = efx_port_dummy_op_void,
 	.finish_flr = efx_farch_finish_flr,
 	.describe_stats = siena_describe_nic_stats,
->>>>>>> android-3.18
 	.update_stats = siena_update_nic_stats,
 	.start_stats = efx_mcdi_mac_start_stats,
 	.pull_stats = efx_mcdi_mac_pull_stats,

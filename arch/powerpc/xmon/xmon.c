@@ -994,11 +994,7 @@ static int cpu_cmd(void)
 	if (!scanhex(&cpu)) {
 		/* print cpus waiting or in xmon */
 		printf("cpus stopped:");
-<<<<<<< HEAD
-		count = 0;
-=======
 		last_cpu = first_cpu = NR_CPUS;
->>>>>>> android-3.18
 		for_each_possible_cpu(cpu) {
 			if (cpumask_test_cpu(cpu, &cpus_in_xmon)) {
 				if (cpu == last_cpu + 1) {

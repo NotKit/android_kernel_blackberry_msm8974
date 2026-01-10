@@ -174,11 +174,8 @@ config MD_FAULTY
 
 	  In unsure, say N.
 
-<<<<<<< HEAD
-=======
 source "drivers/md/bcache/Kconfig"
 
->>>>>>> android-3.18
 config BLK_DEV_DM_BUILTIN
 	boolean
 

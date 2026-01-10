@@ -832,73 +832,6 @@ int __init pSeries_nvram_init(void)
 	return 0;
 }
 
-<<<<<<< HEAD
-/*
- * Are we using the ibm,rtas-log for oops/panic reports?  And if so,
- * would logging this oops/panic overwrite an RTAS event that rtas_errd
- * hasn't had a chance to read and process?  Return 1 if so, else 0.
- *
- * We assume that if rtas_errd hasn't read the RTAS event in
- * NVRAM_RTAS_READ_TIMEOUT seconds, it's probably not going to.
- */
-static int clobbering_unread_rtas_event(void)
-{
-	return (oops_log_partition.index == rtas_log_partition.index
-		&& last_unread_rtas_event
-		&& get_seconds() - last_unread_rtas_event <=
-						NVRAM_RTAS_READ_TIMEOUT);
-}
-
-/* Derived from logfs_compress() */
-static int nvram_compress(const void *in, void *out, size_t inlen,
-							size_t outlen)
-{
-	int err, ret;
-
-	ret = -EIO;
-	err = zlib_deflateInit2(&stream, COMPR_LEVEL, Z_DEFLATED, WINDOW_BITS,
-						MEM_LEVEL, Z_DEFAULT_STRATEGY);
-	if (err != Z_OK)
-		goto error;
-
-	stream.next_in = in;
-	stream.avail_in = inlen;
-	stream.total_in = 0;
-	stream.next_out = out;
-	stream.avail_out = outlen;
-	stream.total_out = 0;
-
-	err = zlib_deflate(&stream, Z_FINISH);
-	if (err != Z_STREAM_END)
-		goto error;
-
-	err = zlib_deflateEnd(&stream);
-	if (err != Z_OK)
-		goto error;
-
-	if (stream.total_out >= stream.total_in)
-		goto error;
-
-	ret = stream.total_out;
-error:
-	return ret;
-}
-
-/* Compress the text from big_oops_buf into oops_buf. */
-static int zip_oops(size_t text_len)
-{
-	int zipped_len = nvram_compress(big_oops_buf, oops_data, text_len,
-								oops_data_sz);
-	if (zipped_len < 0) {
-		pr_err("nvram: compression failed; returned %d\n", zipped_len);
-		pr_err("nvram: logging uncompressed oops/panic report\n");
-		return -1;
-	}
-	*oops_len = (u16) zipped_len;
-	return 0;
-}
-=======
->>>>>>> android-3.18
 
 /*
  * This is our kmsg_dump callback, called after an oops or panic report
@@ -954,11 +887,7 @@ static void oops_to_nvram(struct kmsg_dumper *dumper,
 	}
 	if (rc != 0) {
 		kmsg_dump_rewind(dumper);
-<<<<<<< HEAD
-		kmsg_dump_get_buffer(dumper, true,
-=======
 		kmsg_dump_get_buffer(dumper, false,
->>>>>>> android-3.18
 				     oops_data, oops_data_sz, &text_len);
 		err_type = ERR_TYPE_KERNEL_PANIC;
 		oops_hdr->version = cpu_to_be16(OOPS_HDR_VERSION);

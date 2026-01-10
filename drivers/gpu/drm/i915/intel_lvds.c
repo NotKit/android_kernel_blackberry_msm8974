@@ -334,37 +334,6 @@ static bool intel_lvds_compute_config(struct intel_encoder *intel_encoder,
 	return true;
 }
 
-<<<<<<< HEAD
-static void intel_lvds_prepare(struct drm_encoder *encoder)
-{
-	struct intel_lvds *intel_lvds = to_intel_lvds(encoder);
-
-	intel_lvds_disable(intel_lvds);
-}
-
-static void intel_lvds_commit(struct drm_encoder *encoder)
-{
-	struct intel_lvds *intel_lvds = to_intel_lvds(encoder);
-
-	/* Always do a full power on as we do not know what state
-	 * we were left in.
-	 */
-	intel_lvds_enable(intel_lvds);
-}
-
-static void intel_lvds_mode_set(struct drm_encoder *encoder,
-				struct drm_display_mode *mode,
-				struct drm_display_mode *adjusted_mode)
-{
-	/*
-	 * The LVDS pin pair will already have been turned on in the
-	 * intel_crtc_mode_set since it has a large impact on the DPLL
-	 * settings.
-	 */
-}
-
-=======
->>>>>>> android-3.18
 /**
  * Detect the LVDS connection.
  *
@@ -486,14 +455,7 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
 		drm_modeset_unlock_all(dev);
 	}
 
-<<<<<<< HEAD
-	mutex_lock(&dev->mode_config.mutex);
-	drm_helper_resume_force_mode(dev);
-	i915_redisable_vga(dev);
-	mutex_unlock(&dev->mode_config.mutex);
-=======
 	dev_priv->modeset_restore = MODESET_DONE;
->>>>>>> android-3.18
 
 exit:
 	mutex_unlock(&dev_priv->modeset_restore_lock);
@@ -512,11 +474,6 @@ static void intel_lvds_destroy(struct drm_connector *connector)
 	struct intel_lvds_connector *lvds_connector =
 		to_lvds_connector(connector);
 
-<<<<<<< HEAD
-	if (dev_priv->lid_notifier.notifier_call)
-		acpi_lid_notifier_unregister(&dev_priv->lid_notifier);
-	drm_sysfs_connector_remove(connector);
-=======
 	if (lvds_connector->lid_notifier.notifier_call)
 		acpi_lid_notifier_unregister(&lvds_connector->lid_notifier);
 
@@ -525,7 +482,6 @@ static void intel_lvds_destroy(struct drm_connector *connector)
 
 	intel_panel_fini(&lvds_connector->base.panel);
 
->>>>>>> android-3.18
 	drm_connector_cleanup(connector);
 	kfree(connector);
 }
@@ -757,8 +713,6 @@ static const struct dmi_system_id intel_no_lvds[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "ESPRIMO Q900"),
 		},
 	},
-<<<<<<< HEAD
-=======
 	{
 		.callback = intel_no_lvds_dmi_callback,
 		.ident = "Intel D410PT",
@@ -799,7 +753,6 @@ static const struct dmi_system_id intel_no_lvds[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "P845"),
 		},
 	},
->>>>>>> android-3.18
 
 	{ }	/* terminating entry */
 };
@@ -1170,42 +1123,17 @@ void intel_lvds_init(struct drm_device *dev)
 		goto failed;
 
 out:
-<<<<<<< HEAD
-	if (HAS_PCH_SPLIT(dev) &&
-	    !(dev_priv->quirks & QUIRK_NO_PCH_PWM_ENABLE)) {
-		u32 pwm;
-=======
 	mutex_unlock(&dev->mode_config.mutex);
->>>>>>> android-3.18
 
 	lvds_encoder->is_dual_link = compute_is_dual_link_lvds(lvds_encoder);
 	DRM_DEBUG_KMS("detected %s-link lvds configuration\n",
 		      lvds_encoder->is_dual_link ? "dual" : "single");
 
-<<<<<<< HEAD
-		/* make sure PWM is enabled and locked to the LVDS pipe */
-		pwm = I915_READ(BLC_PWM_CPU_CTL2);
-		if (pipe == 0 && (pwm & PWM_PIPE_B))
-			I915_WRITE(BLC_PWM_CPU_CTL2, pwm & ~PWM_ENABLE);
-		if (pipe)
-			pwm |= PWM_PIPE_B;
-		else
-			pwm &= ~PWM_PIPE_B;
-		I915_WRITE(BLC_PWM_CPU_CTL2, pwm | PWM_ENABLE);
-
-		pwm = I915_READ(BLC_PWM_PCH_CTL1);
-		pwm |= PWM_PCH_ENABLE;
-		I915_WRITE(BLC_PWM_PCH_CTL1, pwm);
-	}
-	dev_priv->lid_notifier.notifier_call = intel_lid_notify;
-	if (acpi_lid_notifier_register(&dev_priv->lid_notifier)) {
-=======
 	lvds_encoder->a3_power = I915_READ(lvds_encoder->reg) &
 				 LVDS_A3_POWER_MASK;
 
 	lvds_connector->lid_notifier.notifier_call = intel_lid_notify;
 	if (acpi_lid_notifier_register(&lvds_connector->lid_notifier)) {
->>>>>>> android-3.18
 		DRM_DEBUG_KMS("lid notifier registration failed\n");
 		lvds_connector->lid_notifier.notifier_call = NULL;
 	}

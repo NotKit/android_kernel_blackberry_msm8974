@@ -613,10 +613,7 @@ sg_new_read(Sg_fd * sfp, char __user *buf, size_t count, Sg_request * srp)
 	}
 err_out:
 	err2 = sg_finish_rem_req(srp);
-<<<<<<< HEAD
-=======
 	sg_remove_request(sfp, srp);
->>>>>>> android-3.18
 	return err ? : err2 ? : count;
 }
 
@@ -632,17 +629,11 @@ sg_write(struct file *filp, const char __user *buf, size_t count, loff_t * ppos)
 	struct sg_header old_hdr;
 	sg_io_hdr_t *hp;
 	unsigned char cmnd[SG_MAX_CDB_SIZE];
-<<<<<<< HEAD
-
-	if (unlikely(segment_eq(get_fs(), KERNEL_DS)))
-		return -EINVAL;
-=======
 	int retval;
 
 	retval = sg_check_file_access(filp, __func__);
 	if (retval)
 		return retval;
->>>>>>> android-3.18
 
 	if ((!(sfp = (Sg_fd *) filp->private_data)) || (!(sdp = sfp->parentdp)))
 		return -ENXIO;
@@ -845,11 +836,7 @@ sg_common_write(Sg_fd * sfp, Sg_request * srp,
 		sg_remove_request(sfp, srp);
 		return k;	/* probably out of space --> ENOMEM */
 	}
-<<<<<<< HEAD
-	if (sdp->detached) {
-=======
 	if (atomic_read(&sdp->detaching)) {
->>>>>>> android-3.18
 		if (srp->bio) {
 			if (srp->rq->cmd != srp->rq->__cmd)
 				kfree(srp->rq->cmd);
@@ -1802,17 +1789,6 @@ sg_start_req(Sg_request *srp, unsigned char *cmd)
 		if (!long_cmdp)
 			return -ENOMEM;
 	}
-<<<<<<< HEAD
-
-	rq = blk_get_request(q, rw, GFP_ATOMIC);
-	if (!rq) {
-		kfree(long_cmdp);
-		return -ENOMEM;
-	}
-
-	blk_rq_set_block_pc(rq);
-
-=======
 
 	/*
 	 * NOTE
@@ -1837,7 +1813,6 @@ sg_start_req(Sg_request *srp, unsigned char *cmd)
 
 	blk_rq_set_block_pc(rq);
 
->>>>>>> android-3.18
 	if (hp->cmd_len > BLK_MAX_CDB)
 		rq->cmd = long_cmdp;
 	memcpy(rq->cmd, cmd, hp->cmd_len);
@@ -1941,10 +1916,7 @@ sg_finish_rem_req(Sg_request *srp)
 	if (srp->bio)
 		ret = blk_rq_unmap_user(srp->bio);
 
-<<<<<<< HEAD
-=======
 	if (srp->rq) {
->>>>>>> android-3.18
 		if (srp->rq->cmd != srp->rq->__cmd)
 			kfree(srp->rq->cmd);
 		blk_put_request(srp->rq);

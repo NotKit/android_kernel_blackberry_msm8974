@@ -439,12 +439,6 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
 
 	drm_modeset_unlock(&dev->mode_config.connection_mutex);
 
-<<<<<<< HEAD
-	max = intel_panel_get_max_backlight(dev);
-	intel_panel_set_backlight(dev, bclp * max / 255);
-	asle->cblv = DIV_ROUND_UP(bclp * 100, 255) | ASLE_CBLV_VALID;
-=======
->>>>>>> android-3.18
 
 	return 0;
 }

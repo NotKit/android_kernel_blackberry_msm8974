@@ -409,11 +409,7 @@ static int tegra_i2c_init(struct tegra_i2c_dev *i2c_dev)
 	int err = 0;
 	u32 clk_divisor;
 
-<<<<<<< HEAD
-	err = clk_enable(i2c_dev->clk);
-=======
 	err = tegra_i2c_clock_enable(i2c_dev);
->>>>>>> android-3.18
 	if (err < 0) {
 		dev_err(i2c_dev->dev, "Clock enable failed %d\n", err);
 		return err;
@@ -631,11 +627,7 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 	if (i2c_dev->is_suspended)
 		return -EBUSY;
 
-<<<<<<< HEAD
-	ret = clk_enable(i2c_dev->clk);
-=======
 	ret = tegra_i2c_clock_enable(i2c_dev);
->>>>>>> android-3.18
 	if (ret < 0) {
 		dev_err(i2c_dev->dev, "Clock enable failed %d\n", ret);
 		return ret;

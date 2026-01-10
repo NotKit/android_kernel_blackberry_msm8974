@@ -245,14 +245,9 @@ static ssize_t set_temp_min(struct device *dev,
 	data->temp_min[index] = clamp_val(temp/1000, -128, 127);
 	ret = i2c_smbus_write_byte_data(client,
 					MAX1668_REG_LIML_WR(index),
-<<<<<<< HEAD
-					data->temp_min[index]))
-		count = -EIO;
-=======
 					data->temp_min[index]);
 	if (ret < 0)
 		count = ret;
->>>>>>> android-3.18
 	mutex_unlock(&data->update_lock);
 
 	return count;

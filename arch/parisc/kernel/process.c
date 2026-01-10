@@ -49,10 +49,7 @@
 #include <linux/kallsyms.h>
 #include <linux/uaccess.h>
 #include <linux/rcupdate.h>
-<<<<<<< HEAD
-=======
 #include <linux/random.h>
->>>>>>> android-3.18
 
 #include <asm/io.h>
 #include <asm/asm-offsets.h>
@@ -63,31 +60,6 @@
 #include <asm/unwind.h>
 #include <asm/sections.h>
 
-<<<<<<< HEAD
-/*
- * The idle thread. There's no useful work to be
- * done, so just try to conserve power and have a
- * low exit latency (ie sit in a loop waiting for
- * somebody to say that they'd like to reschedule)
- */
-void cpu_idle(void)
-{
-	set_thread_flag(TIF_POLLING_NRFLAG);
-
-	/* endless idle loop with no priority at all */
-	while (1) {
-		rcu_idle_enter();
-		while (!need_resched())
-			barrier();
-		rcu_idle_exit();
-		schedule_preempt_disabled();
-		check_pgt_cache();
-	}
-}
-
-
-=======
->>>>>>> android-3.18
 #define COMMAND_GLOBAL  F_EXTEND(0xfffe0030)
 #define CMD_RESET       5       /* reset any module */
 
@@ -279,42 +251,6 @@ unsigned long thread_saved_pc(struct task_struct *t)
 	return t->thread.regs.kpc;
 }
 
-<<<<<<< HEAD
-/*
- * sys_execve() executes a new program.
- */
-
-asmlinkage int sys_execve(struct pt_regs *regs)
-{
-	int error;
-	struct filename *filename;
-
-	filename = getname((const char __user *) regs->gr[26]);
-	error = PTR_ERR(filename);
-	if (IS_ERR(filename))
-		goto out;
-	error = do_execve(filename->name,
-			  (const char __user *const __user *) regs->gr[25],
-			  (const char __user *const __user *) regs->gr[24],
-			  regs);
-	putname(filename);
-out:
-
-	return error;
-}
-
-extern int __execve(const char *filename,
-		    const char *const argv[],
-		    const char *const envp[], struct task_struct *task);
-int kernel_execve(const char *filename,
-		  const char *const argv[],
-		  const char *const envp[])
-{
-	return __execve(filename, argv, envp, current);
-}
-
-=======
->>>>>>> android-3.18
 unsigned long
 get_wchan(struct task_struct *p)
 {

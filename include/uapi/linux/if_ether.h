@@ -29,10 +29,7 @@
  */
 
 #define ETH_ALEN	6		/* Octets in one ethernet addr	 */
-<<<<<<< HEAD
-=======
 #define ETH_TLEN	2		/* Octets in ethernet type field */
->>>>>>> android-3.18
 #define ETH_HLEN	14		/* Total octets in header.	 */
 #define ETH_ZLEN	60		/* Min. octets in frame sans FCS */
 #define ETH_DATA_LEN	1500		/* Max. octets in payload	 */
@@ -52,10 +49,7 @@
 #define	ETH_P_BPQ	0x08FF		/* G8BPQ AX.25 Ethernet Packet	[ NOT AN OFFICIALLY REGISTERED ID ] */
 #define ETH_P_IEEEPUP	0x0a00		/* Xerox IEEE802.3 PUP packet */
 #define ETH_P_IEEEPUPAT	0x0a01		/* Xerox IEEE802.3 PUP Addr Trans packet */
-<<<<<<< HEAD
-=======
 #define ETH_P_BATMAN	0x4305		/* B.A.T.M.A.N.-Advanced packet [ NOT AN OFFICIALLY REGISTERED ID ] */
->>>>>>> android-3.18
 #define ETH_P_DEC       0x6000          /* DEC Assigned proto           */
 #define ETH_P_DNA_DL    0x6001          /* DEC DNA Dump/Load            */
 #define ETH_P_DNA_RC    0x6002          /* DEC DNA Remote Console       */
@@ -75,19 +69,11 @@
 #define ETH_P_SLOW	0x8809		/* Slow Protocol. See 802.3ad 43B */
 #define ETH_P_WCCP	0x883E		/* Web-cache coordination protocol
 					 * defined in draft-wilson-wrec-wccp-v2-00.txt */
-<<<<<<< HEAD
-#define ETH_P_PPP_DISC	0x8863		/* PPPoE discovery messages     */
-#define ETH_P_PPP_SES	0x8864		/* PPPoE session messages	*/
-#define ETH_P_MPLS_UC	0x8847		/* MPLS Unicast traffic		*/
-#define ETH_P_MPLS_MC	0x8848		/* MPLS Multicast traffic	*/
-#define ETH_P_ATMMPOA	0x884c		/* MultiProtocol Over ATM	*/
-=======
 #define ETH_P_MPLS_UC	0x8847		/* MPLS Unicast traffic		*/
 #define ETH_P_MPLS_MC	0x8848		/* MPLS Multicast traffic	*/
 #define ETH_P_ATMMPOA	0x884c		/* MultiProtocol Over ATM	*/
 #define ETH_P_PPP_DISC	0x8863		/* PPPoE discovery messages     */
 #define ETH_P_PPP_SES	0x8864		/* PPPoE session messages	*/
->>>>>>> android-3.18
 #define ETH_P_LINK_CTL	0x886c		/* HPNA, wlan link local tunnel */
 #define ETH_P_ATMFATE	0x8884		/* Frame-based ATM Transport
 					 * over Ethernet
@@ -98,12 +84,6 @@
 #define ETH_P_802_EX1	0x88B5		/* 802.1 Local Experimental 1.  */
 #define ETH_P_TIPC	0x88CA		/* TIPC 			*/
 #define ETH_P_8021AH	0x88E7          /* 802.1ah Backbone Service Tag */
-<<<<<<< HEAD
-#define ETH_P_1588	0x88F7		/* IEEE 1588 Timesync */
-#define ETH_P_FCOE	0x8906		/* Fibre Channel over Ethernet  */
-#define ETH_P_TDLS	0x890D          /* TDLS */
-#define ETH_P_FIP	0x8914		/* FCoE Initialization Protocol */
-=======
 #define ETH_P_MVRP	0x88F5          /* 802.1Q MVRP                  */
 #define ETH_P_1588	0x88F7		/* IEEE 1588 Timesync */
 #define ETH_P_PRP	0x88FB		/* IEC 62439-3 PRP/HSRv0	*/
@@ -112,19 +92,15 @@
 #define ETH_P_FIP	0x8914		/* FCoE Initialization Protocol */
 #define ETH_P_80221	0x8917		/* IEEE 802.21 Media Independent Handover Protocol */
 #define ETH_P_LOOPBACK	0x9000		/* Ethernet loopback packet, per IEEE 802.3 */
->>>>>>> android-3.18
 #define ETH_P_QINQ1	0x9100		/* deprecated QinQ VLAN [ NOT AN OFFICIALLY REGISTERED ID ] */
 #define ETH_P_QINQ2	0x9200		/* deprecated QinQ VLAN [ NOT AN OFFICIALLY REGISTERED ID ] */
 #define ETH_P_QINQ3	0x9300		/* deprecated QinQ VLAN [ NOT AN OFFICIALLY REGISTERED ID ] */
 #define ETH_P_EDSA	0xDADA		/* Ethertype DSA [ NOT AN OFFICIALLY REGISTERED ID ] */
 #define ETH_P_AF_IUCV   0xFBFB		/* IBM af_iucv [ NOT AN OFFICIALLY REGISTERED ID ] */
 
-<<<<<<< HEAD
-=======
 #define ETH_P_802_3_MIN	0x0600		/* If the value in the ethernet type is less than this value
 					 * then the frame is Ethernet II. Else it is 802.3 */
 
->>>>>>> android-3.18
 /*
  *	Non DIX types. Won't clash for 1500 types.
  */
@@ -153,33 +129,24 @@
 #define ETH_P_PHONET	0x00F5		/* Nokia Phonet frames          */
 #define ETH_P_IEEE802154 0x00F6		/* IEEE802.15.4 frame		*/
 #define ETH_P_CAIF	0x00F7		/* ST-Ericsson CAIF protocol	*/
-<<<<<<< HEAD
-=======
 #define ETH_P_XDSA	0x00F8		/* Multiplexed DSA protocol	*/
->>>>>>> android-3.18
 
 /*
  *	This is an Ethernet frame header.
  */
 
-<<<<<<< HEAD
-=======
 /* allow libcs like musl to deactivate this, glibc does not implement this. */
 #ifndef __UAPI_DEF_ETHHDR
 #define __UAPI_DEF_ETHHDR		1
 #endif
 
 #if __UAPI_DEF_ETHHDR
->>>>>>> android-3.18
 struct ethhdr {
 	unsigned char	h_dest[ETH_ALEN];	/* destination eth addr	*/
 	unsigned char	h_source[ETH_ALEN];	/* source ether addr	*/
 	__be16		h_proto;		/* packet type ID field	*/
 } __attribute__((packed));
-<<<<<<< HEAD
-=======
 #endif
->>>>>>> android-3.18
 
 
 #endif /* _UAPI_LINUX_IF_ETHER_H */

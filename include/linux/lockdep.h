@@ -416,10 +416,7 @@ struct lock_class_key { };
 #define lockdep_depth(tsk)	(0)
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
-<<<<<<< HEAD
-=======
 #define lockdep_assert_held_once(l)		do { (void)(l); } while (0)
->>>>>>> android-3.18
 
 #define lockdep_recursing(tsk)			(0)
 

@@ -435,39 +435,6 @@ static int wiimote_cmd_init_ext(struct wiimote_data *wdata)
 static __u8 wiimote_cmd_read_ext(struct wiimote_data *wdata, __u8 *rmem)
 {
 	int ret;
-<<<<<<< HEAD
-
-	/* read extension ID */
-	ret = wiimote_cmd_read(wdata, 0xa400fa, rmem, 6);
-	if (ret != 6)
-		return WIIMOTE_EXT_NONE;
-
-	hid_dbg(wdata->hdev, "extension ID: %02x:%02x %02x:%02x %02x:%02x\n",
-		rmem[0], rmem[1], rmem[2], rmem[3], rmem[4], rmem[5]);
-
-	if (rmem[0] == 0xff && rmem[1] == 0xff && rmem[2] == 0xff &&
-	    rmem[3] == 0xff && rmem[4] == 0xff && rmem[5] == 0xff)
-		return WIIMOTE_EXT_NONE;
-
-	if (rmem[4] == 0x00 && rmem[5] == 0x00)
-		return WIIMOTE_EXT_NUNCHUK;
-	if (rmem[4] == 0x01 && rmem[5] == 0x01)
-		return WIIMOTE_EXT_CLASSIC_CONTROLLER;
-	if (rmem[4] == 0x04 && rmem[5] == 0x02)
-		return WIIMOTE_EXT_BALANCE_BOARD;
-	if (rmem[4] == 0x01 && rmem[5] == 0x20)
-		return WIIMOTE_EXT_PRO_CONTROLLER;
-
-	return WIIMOTE_EXT_UNKNOWN;
-}
-
-/* requires the cmd-mutex to be held */
-static int wiimote_cmd_init_mp(struct wiimote_data *wdata)
-{
-	__u8 wmem;
-	int ret;
-
-=======
 
 	/* read extension ID */
 	ret = wiimote_cmd_read(wdata, 0xa400fa, rmem, 6);
@@ -498,7 +465,6 @@ static int wiimote_cmd_init_mp(struct wiimote_data *wdata)
 	__u8 wmem;
 	int ret;
 
->>>>>>> android-3.18
 	/* initialize MP */
 	wmem = 0x55;
 	ret = wiimote_cmd_write(wdata, 0xa600f0, &wmem, sizeof(wmem));
@@ -545,22 +511,12 @@ static bool wiimote_cmd_read_mp(struct wiimote_data *wdata, __u8 *rmem)
 	if (ret != 6)
 		return false;
 
-<<<<<<< HEAD
-	hid_dbg(wdata->hdev, "motion plus ID: %02x:%02x %02x:%02x %02x:%02x\n",
-		rmem[0], rmem[1], rmem[2], rmem[3], rmem[4], rmem[5]);
-=======
 	hid_dbg(wdata->hdev, "motion plus ID: %6phC\n", rmem);
->>>>>>> android-3.18
 
 	if (rmem[5] == 0x05)
 		return true;
 
-<<<<<<< HEAD
-	hid_info(wdata->hdev, "unknown motion plus ID: %02x:%02x %02x:%02x %02x:%02x\n",
-		 rmem[0], rmem[1], rmem[2], rmem[3], rmem[4], rmem[5]);
-=======
 	hid_info(wdata->hdev, "unknown motion plus ID: %6phC\n", rmem);
->>>>>>> android-3.18
 
 	return false;
 }
@@ -576,12 +532,7 @@ static __u8 wiimote_cmd_read_mp_mapped(struct wiimote_data *wdata)
 	if (ret != 6)
 		return WIIMOTE_MP_NONE;
 
-<<<<<<< HEAD
-	hid_dbg(wdata->hdev, "mapped motion plus ID: %02x:%02x %02x:%02x %02x:%02x\n",
-		rmem[0], rmem[1], rmem[2], rmem[3], rmem[4], rmem[5]);
-=======
 	hid_dbg(wdata->hdev, "mapped motion plus ID: %6phC\n", rmem);
->>>>>>> android-3.18
 
 	if (rmem[0] == 0xff && rmem[1] == 0xff && rmem[2] == 0xff &&
 	    rmem[3] == 0xff && rmem[4] == 0xff && rmem[5] == 0xff)
@@ -987,11 +938,7 @@ static bool wiimote_init_check(struct wiimote_data *wdata)
 {
 	__u32 flags;
 	__u8 type, data[6];
-<<<<<<< HEAD
-	bool ret, poll_mp = false;
-=======
 	bool ret, poll_mp;
->>>>>>> android-3.18
 
 	spin_lock_irq(&wdata->state.lock);
 	flags = wdata->state.flags;
@@ -1177,14 +1124,8 @@ static void wiimote_init_hotplug(struct wiimote_data *wdata)
 		wiimote_ext_unload(wdata);
 
 		if (exttype == WIIMOTE_EXT_UNKNOWN) {
-<<<<<<< HEAD
-			hid_info(wdata->hdev, "cannot detect extension; %02x:%02x %02x:%02x %02x:%02x\n",
-				 extdata[0], extdata[1], extdata[2],
-				 extdata[3], extdata[4], extdata[5]);
-=======
 			hid_info(wdata->hdev, "cannot detect extension; %6phC\n",
 				 extdata);
->>>>>>> android-3.18
 		} else if (exttype == WIIMOTE_EXT_NONE) {
 			spin_lock_irq(&wdata->state.lock);
 			wdata->state.exttype = WIIMOTE_EXT_NONE;
@@ -1253,7 +1194,6 @@ static void wiimote_init_hotplug(struct wiimote_data *wdata)
 }
 
 static void wiimote_init_worker(struct work_struct *work)
-<<<<<<< HEAD
 {
 	struct wiimote_data *wdata = container_of(work, struct wiimote_data,
 						  init_worker);
@@ -1300,54 +1240,6 @@ static void handler_keys(struct wiimote_data *wdata, const __u8 *payload)
 	const __u8 *iter, *mods;
 	const struct wiimod_ops *ops;
 
-=======
-{
-	struct wiimote_data *wdata = container_of(work, struct wiimote_data,
-						  init_worker);
-	bool changed = false;
-
-	if (wdata->state.devtype == WIIMOTE_DEV_PENDING) {
-		wiimote_init_detect(wdata);
-		changed = true;
-	}
-
-	if (changed || !wiimote_init_check(wdata))
-		wiimote_init_hotplug(wdata);
-
-	if (changed)
-		kobject_uevent(&wdata->hdev->dev.kobj, KOBJ_CHANGE);
-}
-
-void __wiimote_schedule(struct wiimote_data *wdata)
-{
-	if (!(wdata->state.flags & WIIPROTO_FLAG_EXITING))
-		schedule_work(&wdata->init_worker);
-}
-
-static void wiimote_schedule(struct wiimote_data *wdata)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&wdata->state.lock, flags);
-	__wiimote_schedule(wdata);
-	spin_unlock_irqrestore(&wdata->state.lock, flags);
-}
-
-static void wiimote_init_timeout(unsigned long arg)
-{
-	struct wiimote_data *wdata = (void*)arg;
-
-	wiimote_schedule(wdata);
-}
-
-/* protocol handlers */
-
-static void handler_keys(struct wiimote_data *wdata, const __u8 *payload)
-{
-	const __u8 *iter, *mods;
-	const struct wiimod_ops *ops;
-
->>>>>>> android-3.18
 	ops = wiimod_ext_table[wdata->state.exttype];
 	if (ops->in_keys) {
 		ops->in_keys(wdata, payload);
@@ -1435,7 +1327,6 @@ static void handler_ext(struct wiimote_data *wdata, const __u8 *payload,
 				__wiimote_schedule(wdata);
 			}
 		}
-<<<<<<< HEAD
 
 		/* detect MP data that is sent interleaved with EXT data */
 		is_mp = payload[5] & 0x02;
@@ -1443,15 +1334,6 @@ static void handler_ext(struct wiimote_data *wdata, const __u8 *payload,
 		is_mp = false;
 	}
 
-=======
-
-		/* detect MP data that is sent interleaved with EXT data */
-		is_mp = payload[5] & 0x02;
-	} else {
-		is_mp = false;
-	}
-
->>>>>>> android-3.18
 	/* ignore EXT events if no extension is active */
 	if (!(wdata->state.flags & WIIPROTO_FLAG_EXT_ACTIVE) && !is_mp)
 		return;
@@ -1923,7 +1805,6 @@ static int wiimote_hid_probe(struct hid_device *hdev,
 	}
 
 	ret = device_create_file(&hdev->dev, &dev_attr_extension);
-<<<<<<< HEAD
 	if (ret) {
 		hid_err(hdev, "cannot create sysfs attribute\n");
 		goto err_close;
@@ -1935,19 +1816,6 @@ static int wiimote_hid_probe(struct hid_device *hdev,
 		goto err_ext;
 	}
 
-=======
-	if (ret) {
-		hid_err(hdev, "cannot create sysfs attribute\n");
-		goto err_close;
-	}
-
-	ret = device_create_file(&hdev->dev, &dev_attr_devtype);
-	if (ret) {
-		hid_err(hdev, "cannot create sysfs attribute\n");
-		goto err_ext;
-	}
-
->>>>>>> android-3.18
 	ret = wiidebug_init(wdata);
 	if (ret)
 		goto err_free;

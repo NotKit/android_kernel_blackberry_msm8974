@@ -10,11 +10,8 @@
 #include <linux/dma-mapping.h>
 #include <linux/export.h>
 #include <linux/gfp.h>
-<<<<<<< HEAD
-=======
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
->>>>>>> android-3.18
 #include <asm-generic/dma-coherent.h>
 
 /*
@@ -272,8 +269,6 @@ int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
 	return ret;
 }
 EXPORT_SYMBOL(dma_common_mmap);
-<<<<<<< HEAD
-=======
 
 #ifdef CONFIG_MMU
 /*
@@ -344,4 +339,3 @@ void dma_common_free_remap(void *cpu_addr, size_t size, unsigned long vm_flags)
 	vunmap(cpu_addr);
 }
 #endif
->>>>>>> android-3.18

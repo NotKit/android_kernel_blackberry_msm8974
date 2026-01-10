@@ -274,18 +274,6 @@ static int do_jit(struct bpf_prog *bpf_prog, int *addrs, u8 *image,
 				    offsetof(struct sk_buff, data));
 	}
 
-<<<<<<< HEAD
-	/* JITed image shrinks with every pass and the loop iterates
-	 * until the image stops shrinking. Very large bpf programs
-	 * may converge on the last pass. In such case do one more
-	 * pass to emit the final image
-	 */
-	for (pass = 0; pass < 10 || image; pass++) {
-		u8 seen_or_pass0 = (pass == 0) ? (SEEN_XREG | SEEN_DATAREF | SEEN_MEM) : seen;
-		/* no prologue/epilogue for trivial filters (RET something) */
-		proglen = 0;
-		prog = temp;
-=======
 	for (i = 0; i < insn_cnt; i++, insn++) {
 		const s32 imm32 = insn->imm;
 		u32 dst_reg = insn->dst_reg;
@@ -295,7 +283,6 @@ static int do_jit(struct bpf_prog *bpf_prog, int *addrs, u8 *image,
 		u8 jmp_cond;
 		int ilen;
 		u8 *func;
->>>>>>> android-3.18
 
 		switch (insn->code) {
 			/* ALU */

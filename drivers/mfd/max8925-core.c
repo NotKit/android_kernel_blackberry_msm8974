@@ -22,26 +22,9 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 
-<<<<<<< HEAD
-static struct resource io_parent = {
-	.start = 0,
-	.end   = 0xffffffff,
-	.flags = IORESOURCE_IO,
-};
-
-static struct resource backlight_resources[] = {
-	{
-		.name	= "max8925-backlight",
-		.start	= MAX8925_WLED_MODE_CNTL,
-		.end	= MAX8925_WLED_CNTL,
-		.flags	= IORESOURCE_IO,
-		.parent = &io_parent,
-	},
-=======
 static struct resource bk_resources[] = {
 	{ 0x84, 0x84, "mode control", IORESOURCE_REG, },
 	{ 0x85, 0x85, "control",      IORESOURCE_REG, },
->>>>>>> android-3.18
 };
 
 static struct mfd_cell bk_devs[] = {
@@ -58,12 +41,7 @@ static struct resource touch_resources[] = {
 		.name	= "max8925-tsc",
 		.start	= MAX8925_TSC_IRQ,
 		.end	= MAX8925_ADC_RES_END,
-<<<<<<< HEAD
-		.flags	= IORESOURCE_IO,
-		.parent = &io_parent,
-=======
 		.flags	= IORESOURCE_REG,
->>>>>>> android-3.18
 	},
 };
 
@@ -81,12 +59,7 @@ static struct resource power_supply_resources[] = {
 		.name	= "max8925-power",
 		.start	= MAX8925_CHG_IRQ1,
 		.end	= MAX8925_CHG_IRQ1_MASK,
-<<<<<<< HEAD
-		.flags	= IORESOURCE_IO,
-		.parent = &io_parent,
-=======
 		.flags	= IORESOURCE_REG,
->>>>>>> android-3.18
 	},
 };
 
@@ -140,19 +113,9 @@ static const struct mfd_cell onkey_devs[] = {
 	},
 };
 
-<<<<<<< HEAD
-#define MAX8925_REG_RESOURCE(_start, _end)	\
-{						\
-	.start	= MAX8925_##_start,		\
-	.end	= MAX8925_##_end,		\
-	.flags	= IORESOURCE_IO,		\
-	.parent = &io_parent,			\
-}
-=======
 static struct resource sd1_resources[] = {
 	{0x06, 0x06, "sdv", IORESOURCE_REG, },
 };
->>>>>>> android-3.18
 
 static struct resource sd2_resources[] = {
 	{0x09, 0x09, "sdv", IORESOURCE_REG, },

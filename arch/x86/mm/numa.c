@@ -194,31 +194,11 @@ static void __init alloc_node_data(int nid)
 	int tnid;
 
 	/*
-<<<<<<< HEAD
-	 * Don't confuse VM with a node that doesn't have the
-	 * minimum amount of memory:
-	 */
-	if (end && (end - start) < NODE_MIN_SIZE)
-		return;
-
-	start = roundup(start, ZONE_ALIGN);
-
-	printk(KERN_INFO "Initmem setup node %d %016Lx-%016Lx\n",
-	       nid, start, end);
-
-	/*
-=======
->>>>>>> android-3.18
 	 * Allocate node data.  Try node-local memory and then any node.
 	 * Never allocate in DMA zone.
 	 */
 	nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES, nid);
 	if (!nd_pa) {
-<<<<<<< HEAD
-		pr_err("Cannot find %zu bytes in node %d\n",
-		       nd_size, nid);
-		return;
-=======
 		nd_pa = __memblock_alloc_base(nd_size, SMP_CACHE_BYTES,
 					      MEMBLOCK_ALLOC_ACCESSIBLE);
 		if (!nd_pa) {
@@ -226,16 +206,11 @@ static void __init alloc_node_data(int nid)
 			       nd_size, nid);
 			return;
 		}
->>>>>>> android-3.18
 	}
 	nd = __va(nd_pa);
 
 	/* report and initialize */
-<<<<<<< HEAD
-	printk(KERN_INFO "  NODE_DATA [mem %#010Lx-%#010Lx]\n",
-=======
 	printk(KERN_INFO "NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
->>>>>>> android-3.18
 	       nd_pa, nd_pa + nd_size - 1);
 	tnid = early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
 	if (tnid != nid)

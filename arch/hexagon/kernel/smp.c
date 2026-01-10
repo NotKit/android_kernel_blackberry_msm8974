@@ -190,11 +190,7 @@ void start_secondary(void)
  * maintains control until "cpu_online(cpu)" is set.
  */
 
-<<<<<<< HEAD
-int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
-=======
 int __cpu_up(unsigned int cpu, struct task_struct *idle)
->>>>>>> android-3.18
 {
 	struct thread_info *thread = (struct thread_info *)idle->stack;
 	void *stack_start;

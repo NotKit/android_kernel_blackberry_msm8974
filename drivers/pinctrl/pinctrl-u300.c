@@ -860,11 +860,7 @@ static void u300_pin_dbg_show(struct pinctrl_dev *pctldev, struct seq_file *s,
 	seq_printf(s, " " DRIVER_NAME);
 }
 
-<<<<<<< HEAD
-static struct pinctrl_ops u300_pctrl_ops = {
-=======
 static const struct pinctrl_ops u300_pctrl_ops = {
->>>>>>> android-3.18
 	.get_groups_count = u300_get_groups_count,
 	.get_group_name = u300_get_group_name,
 	.get_group_pins = u300_get_group_pins,
@@ -976,21 +972,6 @@ static int u300_pmx_set_mux(struct pinctrl_dev *pctldev, unsigned selector,
 
 static int u300_pmx_get_funcs_count(struct pinctrl_dev *pctldev)
 {
-<<<<<<< HEAD
-	struct u300_pmx *upmx;
-
-	/* There is nothing to do with the power pins */
-	if (selector == 0)
-		return;
-
-	upmx = pinctrl_dev_get_drvdata(pctldev);
-	u300_pmx_endisable(upmx, selector, false);
-}
-
-static int u300_pmx_get_funcs_count(struct pinctrl_dev *pctldev)
-{
-=======
->>>>>>> android-3.18
 	return ARRAY_SIZE(u300_pmx_functions);
 }
 
@@ -1009,11 +990,7 @@ static int u300_pmx_get_groups(struct pinctrl_dev *pctldev, unsigned selector,
 	return 0;
 }
 
-<<<<<<< HEAD
-static struct pinmux_ops u300_pmx_ops = {
-=======
 static const struct pinmux_ops u300_pmx_ops = {
->>>>>>> android-3.18
 	.get_functions_count = u300_pmx_get_funcs_count,
 	.get_function_name = u300_pmx_get_func_name,
 	.get_function_groups = u300_pmx_get_groups,

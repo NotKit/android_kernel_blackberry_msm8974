@@ -2073,21 +2073,6 @@ static int omap_nand_remove(struct platform_device *pdev)
 	struct nand_chip *nand_chip = mtd->priv;
 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
 							mtd);
-<<<<<<< HEAD
-
-	platform_set_drvdata(pdev, NULL);
-	if (info->dma_ch != -1)
-		omap_free_dma(info->dma_ch);
-
-	if (info->gpmc_irq)
-		free_irq(info->gpmc_irq, info);
-
-	/* Release NAND device, its internal structures and partitions */
-	nand_release(&info->mtd);
-	iounmap(info->nand.IO_ADDR_R);
-	release_mem_region(info->phys_base, NAND_IO_SIZE);
-	kfree(info);
-=======
 	if (nand_chip->ecc.priv) {
 		nand_bch_free(nand_chip->ecc.priv);
 		nand_chip->ecc.priv = NULL;
@@ -2095,7 +2080,6 @@ static int omap_nand_remove(struct platform_device *pdev)
 	if (info->dma)
 		dma_release_channel(info->dma);
 	nand_release(mtd);
->>>>>>> android-3.18
 	return 0;
 }
 

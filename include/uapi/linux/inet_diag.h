@@ -72,11 +72,8 @@ enum {
 	INET_DIAG_BC_AUTO,
 	INET_DIAG_BC_S_COND,
 	INET_DIAG_BC_D_COND,
-<<<<<<< HEAD
-=======
 	INET_DIAG_BC_DEV_COND,   /* u32 ifindex */
 	INET_DIAG_BC_MARK_COND,
->>>>>>> android-3.18
 };
 
 struct inet_diag_hostcond {
@@ -86,14 +83,11 @@ struct inet_diag_hostcond {
 	__be32	addr[0];
 };
 
-<<<<<<< HEAD
-=======
 struct inet_diag_markcond {
 	__u32 mark;
 	__u32 mask;
 };
 
->>>>>>> android-3.18
 /* Base info structure. It contains socket identity (addrs/ports/cookie)
  * and, alas, the information shown by netstat. */
 struct inet_diag_msg {
@@ -122,12 +116,6 @@ enum {
 	INET_DIAG_TOS,
 	INET_DIAG_TCLASS,
 	INET_DIAG_SKMEMINFO,
-<<<<<<< HEAD
-};
-
-#define INET_DIAG_MAX INET_DIAG_SKMEMINFO
-
-=======
 	INET_DIAG_SHUTDOWN,
 	INET_DIAG_DCTCPINFO,
 	INET_DIAG_PROTOCOL,  /* response attribute only */
@@ -139,7 +127,6 @@ enum {
 };
 
 #define INET_DIAG_MAX INET_DIAG_MARK
->>>>>>> android-3.18
 
 /* INET_DIAG_MEM */
 
@@ -159,8 +146,6 @@ struct tcpvegas_info {
 	__u32	tcpv_minrtt;
 };
 
-<<<<<<< HEAD
-=======
 /* INET_DIAG_DCTCPINFO */
 
 struct tcp_dctcp_info {
@@ -170,6 +155,5 @@ struct tcp_dctcp_info {
 	__u32	dctcp_ab_ecn;
 	__u32	dctcp_ab_tot;
 };
->>>>>>> android-3.18
 
 #endif /* _UAPI_INET_DIAG_H_ */

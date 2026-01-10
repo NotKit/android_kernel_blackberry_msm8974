@@ -32,11 +32,8 @@
 #define VMW_PPN_SIZE (sizeof(unsigned long))
 /* A future safe maximum remap size. */
 #define VMW_PPN_PER_REMAP ((31 * 1024) / VMW_PPN_SIZE)
-<<<<<<< HEAD
-=======
 #define DMA_ADDR_INVALID ((dma_addr_t) 0)
 #define DMA_PAGE_INVALID 0UL
->>>>>>> android-3.18
 
 static int vmw_gmr2_bind(struct vmw_private *dev_priv,
 			 struct vmw_piter *iter,
@@ -76,23 +73,6 @@ static int vmw_gmr2_bind(struct vmw_private *dev_priv,
 
 	while (num_pages > 0) {
 		unsigned long nr = min(num_pages, (unsigned long)VMW_PPN_PER_REMAP);
-<<<<<<< HEAD
-
-		remap_cmd.offsetPages = remap_pos;
-		remap_cmd.numPages = nr;
-
-		*cmd++ = SVGA_CMD_REMAP_GMR2;
-		memcpy(cmd, &remap_cmd, sizeof(remap_cmd));
-		cmd += sizeof(remap_cmd) / sizeof(*cmd);
-
-		for (i = 0; i < nr; ++i) {
-			if (VMW_PPN_SIZE <= 4)
-				*cmd = page_to_pfn(*pages++);
-			else
-				*((uint64_t *)cmd) = page_to_pfn(*pages++);
-
-			cmd += VMW_PPN_SIZE / sizeof(*cmd);
-=======
 
 		remap_cmd.offsetPages = remap_pos;
 		remap_cmd.numPages = nr;
@@ -110,7 +90,6 @@ static int vmw_gmr2_bind(struct vmw_private *dev_priv,
 
 			cmd += VMW_PPN_SIZE / sizeof(*cmd);
 			vmw_piter_next(iter);
->>>>>>> android-3.18
 		}
 
 		num_pages -= nr;

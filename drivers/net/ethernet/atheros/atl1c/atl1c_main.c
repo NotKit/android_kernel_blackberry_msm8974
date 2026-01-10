@@ -266,19 +266,11 @@ static void atl1c_check_link_status(struct atl1c_adapter *adapter)
 		hw->hibernate = true;
 		if (atl1c_reset_mac(hw) != 0)
 			if (netif_msg_hw(adapter))
-<<<<<<< HEAD
-				dev_warn(&pdev->dev, "stop mac failed\n");
-		atl1c_set_aspm(hw, false);
-		netif_carrier_off(netdev);
-		atl1c_phy_reset(hw);
-		atl1c_phy_init(&adapter->hw);
-=======
 				dev_warn(&pdev->dev, "reset mac failed\n");
 		atl1c_set_aspm(hw, SPEED_0);
 		atl1c_post_phy_linkchg(hw, SPEED_0);
 		atl1c_reset_dma_ring(adapter);
 		atl1c_configure(adapter);
->>>>>>> android-3.18
 	} else {
 		/* Link Up */
 		hw->hibernate = false;

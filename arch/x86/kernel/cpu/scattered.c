@@ -30,16 +30,7 @@ void init_scattered_cpuid_features(struct cpuinfo_x86 *c)
 	u32 regs[4];
 	const struct cpuid_bit *cb;
 
-<<<<<<< HEAD
-	static const struct cpuid_bit __cpuinitconst cpuid_bits[] = {
-		{ X86_FEATURE_DTHERM,		CR_EAX, 0, 0x00000006, 0 },
-		{ X86_FEATURE_IDA,		CR_EAX, 1, 0x00000006, 0 },
-		{ X86_FEATURE_ARAT,		CR_EAX, 2, 0x00000006, 0 },
-		{ X86_FEATURE_PLN,		CR_EAX, 4, 0x00000006, 0 },
-		{ X86_FEATURE_PTS,		CR_EAX, 6, 0x00000006, 0 },
-=======
 	static const struct cpuid_bit cpuid_bits[] = {
->>>>>>> android-3.18
 		{ X86_FEATURE_APERFMPERF,	CR_ECX, 0, 0x00000006, 0 },
 		{ X86_FEATURE_EPB,		CR_ECX, 3, 0x00000006, 0 },
 		{ X86_FEATURE_HW_PSTATE,	CR_EDX, 7, 0x80000007, 0 },

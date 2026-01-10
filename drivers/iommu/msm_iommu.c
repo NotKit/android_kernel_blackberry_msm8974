@@ -18,9 +18,6 @@
 #include <linux/platform_device.h>
 #include <linux/export.h>
 #include <linux/iommu.h>
-<<<<<<< HEAD
-#include <mach/iommu.h>
-=======
 #include <linux/clk.h>
 
 #include <asm/cacheflush.h>
@@ -28,7 +25,6 @@
 
 #include "msm_iommu_hw-8xxx.h"
 #include "msm_iommu.h"
->>>>>>> android-3.18
 
 static DEFINE_MUTEX(iommu_list_lock);
 static LIST_HEAD(iommu_list);
@@ -73,9 +69,6 @@ static int find_iommu_ctx(struct device *dev, void *data)
 	if (!c || !c->name)
 		return 0;
 
-<<<<<<< HEAD
-	return !strcmp(data, c->name);
-=======
 	INIT_LIST_HEAD(&priv->list_attached);
 	priv->pgtable = (unsigned long *)__get_free_pages(GFP_KERNEL,
 							  get_order(SZ_16K));
@@ -95,7 +88,6 @@ static int find_iommu_ctx(struct device *dev, void *data)
 fail_nomem:
 	kfree(priv);
 	return -ENOMEM;
->>>>>>> android-3.18
 }
 
 static struct device *find_context(struct device *dev, const char *name)
@@ -127,8 +119,6 @@ struct device *msm_iommu_get_ctx(const char *ctx_name)
 }
 EXPORT_SYMBOL(msm_iommu_get_ctx);
 
-<<<<<<< HEAD
-=======
 static int msm_iommu_map(struct iommu_domain *domain, unsigned long va,
 			 phys_addr_t pa, size_t len, int prot)
 {
@@ -504,4 +494,3 @@ subsys_initcall(msm_iommu_init);
 
 MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR("Stepan Moskovchenko <stepanm@codeaurora.org>");
->>>>>>> android-3.18

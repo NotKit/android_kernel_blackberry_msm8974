@@ -685,10 +685,6 @@ static void gsm_data_kick(struct gsm_mux *gsm, struct gsm_dlci *dlci)
 {
 	struct gsm_msg *msg, *nmsg;
 	int len;
-<<<<<<< HEAD
-	int skip_sof = 0;
-=======
->>>>>>> android-3.18
 
 	list_for_each_entry_safe(msg, nmsg, &gsm->tx_list, list) {
 		if (gsm->constipated && msg->addr)
@@ -714,14 +710,6 @@ static void gsm_data_kick(struct gsm_mux *gsm, struct gsm_dlci *dlci)
 			break;
 		/* FIXME: Can eliminate one SOF in many more cases */
 		gsm->tx_bytes -= msg->len;
-<<<<<<< HEAD
-		/* For a burst of frames skip the extra SOF within the
-		   burst */
-		skip_sof = 1;
-
-		list_del(&msg->list);
-		kfree(msg);
-=======
 
 		list_del(&msg->list);
 		kfree(msg);
@@ -735,7 +723,6 @@ static void gsm_data_kick(struct gsm_mux *gsm, struct gsm_dlci *dlci)
 				if (gsm->dlci[i])
 					tty_port_tty_wakeup(&gsm->dlci[i]->port);
 		}
->>>>>>> android-3.18
 	}
 }
 
@@ -1002,11 +989,7 @@ static void gsm_dlci_data_kick(struct gsm_dlci *dlci)
 			gsm_dlci_data_output(dlci->gsm, dlci);
 	}
 	if (sweep)
-<<<<<<< HEAD
- 		gsm_dlci_data_sweep(dlci->gsm);
-=======
 		gsm_dlci_data_sweep(dlci->gsm);
->>>>>>> android-3.18
 	spin_unlock_irqrestore(&dlci->gsm->tx_lock, flags);
 }
 
@@ -1252,11 +1235,7 @@ static void gsm_control_message(struct gsm_mux *gsm, unsigned int command,
 		gsm_control_reply(gsm, CMD_FCON, NULL, 0);
 		/* Kick the link in case it is idling */
 		spin_lock_irqsave(&gsm->tx_lock, flags);
-<<<<<<< HEAD
-		gsm_data_kick(gsm);
-=======
 		gsm_data_kick(gsm, NULL);
->>>>>>> android-3.18
 		spin_unlock_irqrestore(&gsm->tx_lock, flags);
 		break;
 	case CMD_FCOFF:
@@ -1762,16 +1741,8 @@ static void gsm_dlci_release(struct gsm_dlci *dlci)
 		gsm_destroy_network(dlci);
 		mutex_unlock(&dlci->mutex);
 
-<<<<<<< HEAD
-		/* tty_vhangup needs the tty_lock, so unlock and
-		   relock after doing the hangup. */
-		tty_unlock();
-		tty_vhangup(tty);
-		tty_lock();
-=======
 		tty_vhangup(tty);
 
->>>>>>> android-3.18
 		tty_port_tty_set(&dlci->port, NULL);
 		tty_kref_put(tty);
 	}
@@ -2463,11 +2434,7 @@ static void gsmld_write_wakeup(struct tty_struct *tty)
 	/* Queue poll */
 	clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
 	spin_lock_irqsave(&gsm->tx_lock, flags);
-<<<<<<< HEAD
-	gsm_data_kick(gsm);
-=======
 	gsm_data_kick(gsm, NULL);
->>>>>>> android-3.18
 	if (gsm->tx_bytes < TX_THRESH_LO) {
 		gsm_dlci_data_sweep(gsm);
 	}
@@ -2989,12 +2956,6 @@ static int gsmtty_install(struct tty_driver *driver, struct tty_struct *tty)
 	gsm = gsm_mux[mux];
 	if (gsm->dead)
 		return -EL2HLT;
-<<<<<<< HEAD
-	/* If DLCI 0 is not yet fully open return an error. This is ok from a locking
-	   perspective as we don't have to worry about this if DLCI0 is lost */
-	if (gsm->dlci[0] && gsm->dlci[0]->state != DLCI_OPEN)
-		return -EL2NSYNC;
-=======
 	/* If DLCI 0 is not yet fully open return an error.
 	This is ok from a locking
 	perspective as we don't have to worry about this
@@ -3004,7 +2965,6 @@ static int gsmtty_install(struct tty_driver *driver, struct tty_struct *tty)
 		mutex_unlock(&gsm->mutex);
 		return -EL2NSYNC;
 	}
->>>>>>> android-3.18
 	dlci = gsm->dlci[line];
 	if (dlci == NULL) {
 		alloc = true;
@@ -3211,11 +3171,7 @@ static void gsmtty_throttle(struct tty_struct *tty)
 	struct gsm_dlci *dlci = tty->driver_data;
 	if (dlci->state == DLCI_CLOSED)
 		return;
-<<<<<<< HEAD
-	if (tty->termios->c_cflag & CRTSCTS)
-=======
 	if (tty->termios.c_cflag & CRTSCTS)
->>>>>>> android-3.18
 		dlci->modem_tx &= ~TIOCM_DTR;
 	dlci->throttled = 1;
 	/* Send an MSC with DTR cleared */
@@ -3227,11 +3183,7 @@ static void gsmtty_unthrottle(struct tty_struct *tty)
 	struct gsm_dlci *dlci = tty->driver_data;
 	if (dlci->state == DLCI_CLOSED)
 		return;
-<<<<<<< HEAD
-	if (tty->termios->c_cflag & CRTSCTS)
-=======
 	if (tty->termios.c_cflag & CRTSCTS)
->>>>>>> android-3.18
 		dlci->modem_tx |= TIOCM_DTR;
 	dlci->throttled = 0;
 	/* Send an MSC with DTR set */

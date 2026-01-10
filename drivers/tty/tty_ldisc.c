@@ -426,24 +426,14 @@ EXPORT_SYMBOL_GPL(tty_ldisc_flush);
  *	prevent the ldisc driver from re-using stale information for
  *	the new ldisc instance.
  *
-<<<<<<< HEAD
- *	Locking: takes termios_mutex
-=======
  *	Locking: takes termios_rwsem
->>>>>>> android-3.18
  */
 
 static void tty_set_termios_ldisc(struct tty_struct *tty, int num)
 {
-<<<<<<< HEAD
-	mutex_lock(&tty->termios_mutex);
-	tty->termios->c_line = num;
-	mutex_unlock(&tty->termios_mutex);
-=======
 	down_write(&tty->termios_rwsem);
 	tty->termios.c_line = num;
 	up_write(&tty->termios_rwsem);
->>>>>>> android-3.18
 
 	tty->disc_data = NULL;
 	tty->receive_room = 0;

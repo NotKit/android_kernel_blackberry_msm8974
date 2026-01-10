@@ -196,11 +196,7 @@ static int softsynth_close(struct inode *inode, struct file *fp)
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
 	synth_soft.alive = 0;
 	init_pos = 0;
-<<<<<<< HEAD
-	spk_unlock(flags);
-=======
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 	/* Make sure we let applications go before leaving */
 	speakup_start_ttys();
 	return 0;

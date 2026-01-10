@@ -1,18 +1,9 @@
 /*
-<<<<<<< HEAD
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
- * Copyright (C) 2013 Google, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 and
- * only version 2 as published by the Free Software Foundation.
-=======
  * Copyright (C) 2013 Google, Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
->>>>>>> android-3.18
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,27 +22,6 @@
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/core.h>
 
-<<<<<<< HEAD
-TRACE_EVENT(mmc_clk,
-		TP_PROTO(char *print_info),
-
-		TP_ARGS(print_info),
-
-		TP_STRUCT__entry(
-			__string(print_info, print_info)
-		),
-
-		TP_fast_assign(
-			__assign_str(print_info, print_info);
-		),
-
-		TP_printk("%s",
-			__get_str(print_info)
-		)
-);
-
-=======
->>>>>>> android-3.18
 /*
  * Unconditional logging of mmc block erase operations,
  * including cmd, address, size

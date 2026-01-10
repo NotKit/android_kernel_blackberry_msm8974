@@ -77,12 +77,8 @@ static void pasemi_msi_teardown_msi_irqs(struct pci_dev *pdev)
 		hwirq = virq_to_hw(entry->irq);
 		irq_set_msi_desc(entry->irq, NULL);
 		irq_dispose_mapping(entry->irq);
-<<<<<<< HEAD
-		msi_bitmap_free_hwirqs(&msi_mpic->msi_bitmap, hwirq, ALLOC_CHUNK);
-=======
 		msi_bitmap_free_hwirqs(&msi_mpic->msi_bitmap,
 				       hwirq, ALLOC_CHUNK);
->>>>>>> android-3.18
 	}
 
 	return;

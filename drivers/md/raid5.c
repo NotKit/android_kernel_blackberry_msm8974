@@ -248,21 +248,6 @@ static int stripe_operations_active(struct stripe_head *sh)
 
 static void raid5_wakeup_stripe_thread(struct stripe_head *sh)
 {
-<<<<<<< HEAD
-	if (atomic_dec_and_test(&sh->count)) {
-		BUG_ON(!list_empty(&sh->lru));
-		BUG_ON(atomic_read(&conf->active_stripes)==0);
-		if (test_bit(STRIPE_HANDLE, &sh->state)) {
-			if (test_bit(STRIPE_DELAYED, &sh->state) &&
-			    !test_bit(STRIPE_PREREAD_ACTIVE, &sh->state))
-				list_add_tail(&sh->lru, &conf->delayed_list);
-			else if (test_bit(STRIPE_BIT_DELAY, &sh->state) &&
-				   sh->bm_seq - conf->seq_write > 0)
-				list_add_tail(&sh->lru, &conf->bitmap_list);
-			else {
-				clear_bit(STRIPE_DELAYED, &sh->state);
-				clear_bit(STRIPE_BIT_DELAY, &sh->state);
-=======
 	struct r5conf *conf = sh->raid_conf;
 	struct r5worker_group *group;
 	int thread_cnt;
@@ -323,7 +308,6 @@ static void do_release_stripe(struct r5conf *conf, struct stripe_head *sh,
 			clear_bit(STRIPE_DELAYED, &sh->state);
 			clear_bit(STRIPE_BIT_DELAY, &sh->state);
 			if (conf->worker_cnt_per_group == 0) {
->>>>>>> android-3.18
 				list_add_tail(&sh->lru, &conf->handle_list);
 			} else {
 				raid5_wakeup_stripe_thread(sh);
@@ -1957,11 +1941,6 @@ static int resize_stripes(struct r5conf *conf, int newsize)
 	}
 	/* critical section pass, GFP_NOIO no longer needed */
 
-<<<<<<< HEAD
-	conf->slab_cache = sc;
-	conf->active_name = 1-conf->active_name;
-=======
->>>>>>> android-3.18
 	if (!err)
 		conf->pool_size = newsize;
 	return err;
@@ -3791,12 +3770,6 @@ static void handle_stripe(struct stripe_head *sh)
 		return;
 	}
 
-<<<<<<< HEAD
-	if (test_and_clear_bit(STRIPE_SYNC_REQUESTED, &sh->state)) {
-		set_bit(STRIPE_SYNCING, &sh->state);
-		clear_bit(STRIPE_INSYNC, &sh->state);
-		clear_bit(STRIPE_REPLACED, &sh->state);
-=======
 	if (test_bit(STRIPE_SYNC_REQUESTED, &sh->state)) {
 		spin_lock(&sh->stripe_lock);
 		/* Cannot process 'sync' concurrently with 'discard' */
@@ -3807,7 +3780,6 @@ static void handle_stripe(struct stripe_head *sh)
 			clear_bit(STRIPE_REPLACED, &sh->state);
 		}
 		spin_unlock(&sh->stripe_lock);
->>>>>>> android-3.18
 	}
 	clear_bit(STRIPE_DELAYED, &sh->state);
 
@@ -4357,11 +4329,7 @@ static int chunk_aligned_read(struct mddev *mddev, struct bio * raid_bio)
 		rcu_read_unlock();
 		raid_bio->bi_next = (void*)rdev;
 		align_bi->bi_bdev =  rdev->bdev;
-<<<<<<< HEAD
-		align_bi->bi_flags &= ~(1 << BIO_SEG_VALID);
-=======
 		__clear_bit(BIO_SEG_VALID, &align_bi->bi_flags);
->>>>>>> android-3.18
 
 		if (!bio_fits_rdev(align_bi) ||
 		    is_badblock(rdev, align_bi->bi_iter.bi_sector,
@@ -4374,11 +4342,7 @@ static int chunk_aligned_read(struct mddev *mddev, struct bio * raid_bio)
 		}
 
 		/* No reshape active, so we can trust rdev->data_offset */
-<<<<<<< HEAD
-		align_bi->bi_sector += rdev->data_offset;
-=======
 		align_bi->bi_iter.bi_sector += rdev->data_offset;
->>>>>>> android-3.18
 
 		spin_lock_irq(&conf->device_lock);
 		wait_event_lock_irq(conf->wait_for_stripe,

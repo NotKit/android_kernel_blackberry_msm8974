@@ -12,12 +12,8 @@
 #include <linux/kernel.h>
 #include <linux/smp.h>
 
-<<<<<<< HEAD
-#include <asm/cp15.h>
-=======
 #include <soc/tegra/common.h>
 #include <soc/tegra/fuse.h>
->>>>>>> android-3.18
 
 #include <asm/smp_plat.h>
 

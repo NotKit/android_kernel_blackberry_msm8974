@@ -108,15 +108,6 @@ static struct ad5933_platform_data ad5933_default_pdata  = {
 	.vref_mv = 3300,
 };
 
-<<<<<<< HEAD
-static struct iio_chan_spec ad5933_channels[] = {
-	{
-		.type = IIO_TEMP,
-		.indexed = 1,
-		.processed_val = 1,
-		.channel = 0,
-		.address = AD5933_REG_TEMP_DATA,
-=======
 static const struct iio_chan_spec ad5933_channels[] = {
 	{
 		.type = IIO_TEMP,
@@ -125,7 +116,6 @@ static const struct iio_chan_spec ad5933_channels[] = {
 		.info_mask_separate = BIT(IIO_CHAN_INFO_PROCESSED),
 		.address = AD5933_REG_TEMP_DATA,
 		.scan_index = -1,
->>>>>>> android-3.18
 		.scan_type = {
 			.sign = 's',
 			.realbits = 14,
@@ -136,10 +126,6 @@ static const struct iio_chan_spec ad5933_channels[] = {
 		.indexed = 1,
 		.channel = 0,
 		.extend_name = "real",
-<<<<<<< HEAD
-		.info_mask = IIO_CHAN_INFO_SCALE_SEPARATE_BIT,
-=======
->>>>>>> android-3.18
 		.address = AD5933_REG_REAL_DATA,
 		.scan_index = 0,
 		.scan_type = {
@@ -152,10 +138,6 @@ static const struct iio_chan_spec ad5933_channels[] = {
 		.indexed = 1,
 		.channel = 0,
 		.extend_name = "imag",
-<<<<<<< HEAD
-		.info_mask = IIO_CHAN_INFO_SCALE_SEPARATE_BIT,
-=======
->>>>>>> android-3.18
 		.address = AD5933_REG_IMAG_DATA,
 		.scan_index = 1,
 		.scan_type = {

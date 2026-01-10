@@ -247,69 +247,6 @@ fail:
 
 int brcmf_c_preinit_dcmds(struct brcmf_if *ifp)
 {
-<<<<<<< HEAD
-	char iovbuf[32];
-	int retcode;
-	__le32 arp_mode_le;
-
-	arp_mode_le = cpu_to_le32(arp_mode);
-	brcmf_c_mkiovar("arp_ol", (char *)&arp_mode_le, 4, iovbuf,
-			sizeof(iovbuf));
-	retcode = brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_VAR,
-				   iovbuf, sizeof(iovbuf));
-	retcode = retcode >= 0 ? 0 : retcode;
-	if (retcode)
-		brcmf_dbg(TRACE, "failed to set ARP offload mode to 0x%x, retcode = %d\n",
-			  arp_mode, retcode);
-	else
-		brcmf_dbg(TRACE, "successfully set ARP offload mode to 0x%x\n",
-			  arp_mode);
-}
-
-static void brcmf_c_arp_offload_enable(struct brcmf_pub *drvr, int arp_enable)
-{
-	char iovbuf[32];
-	int retcode;
-	__le32 arp_enable_le;
-
-	arp_enable_le = cpu_to_le32(arp_enable);
-
-	brcmf_c_mkiovar("arpoe", (char *)&arp_enable_le, 4,
-			iovbuf, sizeof(iovbuf));
-	retcode = brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_VAR,
-				   iovbuf, sizeof(iovbuf));
-	retcode = retcode >= 0 ? 0 : retcode;
-	if (retcode)
-		brcmf_dbg(TRACE, "failed to enable ARP offload to %d, retcode = %d\n",
-			  arp_enable, retcode);
-	else
-		brcmf_dbg(TRACE, "successfully enabled ARP offload to %d\n",
-			  arp_enable);
-}
-
-int brcmf_c_preinit_dcmds(struct brcmf_pub *drvr)
-{
-	char iovbuf[BRCMF_EVENTING_MASK_LEN + 12];	/*  Room for
-				 "event_msgs" + '\0' + bitvec  */
-	uint up = 0;
-	char buf[128], *ptr;
-	u32 dongle_align = drvr->bus_if->align;
-	u32 glom = 0;
-	__le32 roaming_le = cpu_to_le32(1);
-	__le32 bcn_timeout_le = cpu_to_le32(3);
-	__le32 scan_assoc_time_le = cpu_to_le32(40);
-	__le32 scan_unassoc_time_le = cpu_to_le32(40);
-	int i;
-
-	mutex_lock(&drvr->proto_block);
-
-	/* Set Country code */
-	if (drvr->country_code[0] != 0) {
-		if (brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_COUNTRY,
-					      drvr->country_code,
-					      sizeof(drvr->country_code)) < 0)
-			brcmf_dbg(ERROR, "country code setting failed\n");
-=======
 	s8 eventmask[BRCMF_EVENTING_MASK_LEN];
 	u8 buf[BRCMF_DCMD_SMLEN];
 	struct brcmf_join_pref_params join_pref_params[2];
@@ -323,7 +260,6 @@ int brcmf_c_preinit_dcmds(struct brcmf_pub *drvr)
 		brcmf_err("Retreiving cur_etheraddr failed, %d\n",
 			  err);
 		goto done;
->>>>>>> android-3.18
 	}
 	memcpy(ifp->drvr->mac, ifp->mac_addr, sizeof(ifp->drvr->mac));
 
@@ -340,58 +276,6 @@ int brcmf_c_preinit_dcmds(struct brcmf_pub *drvr)
 	strsep(&ptr, "\n");
 
 	/* Print fw version info */
-<<<<<<< HEAD
-	brcmf_dbg(ERROR, "Firmware version = %s\n", buf);
-
-	/* Match Host and Dongle rx alignment */
-	brcmf_c_mkiovar("bus:txglomalign", (char *)&dongle_align, 4, iovbuf,
-		    sizeof(iovbuf));
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_VAR, iovbuf,
-				  sizeof(iovbuf));
-
-	/* disable glom option per default */
-	brcmf_c_mkiovar("bus:txglom", (char *)&glom, 4, iovbuf, sizeof(iovbuf));
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_VAR, iovbuf,
-				  sizeof(iovbuf));
-
-	/* Setup timeout if Beacons are lost and roam is off to report
-		 link down */
-	brcmf_c_mkiovar("bcn_timeout", (char *)&bcn_timeout_le, 4, iovbuf,
-		    sizeof(iovbuf));
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_VAR, iovbuf,
-				  sizeof(iovbuf));
-
-	/* Enable/Disable build-in roaming to allowed ext supplicant to take
-		 of romaing */
-	brcmf_c_mkiovar("roam_off", (char *)&roaming_le, 4,
-		      iovbuf, sizeof(iovbuf));
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_VAR, iovbuf,
-				  sizeof(iovbuf));
-
-	/* Force STA UP */
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_UP, (char *)&up, sizeof(up));
-
-	/* Setup event_msgs */
-	brcmf_c_mkiovar("event_msgs", drvr->eventmask, BRCMF_EVENTING_MASK_LEN,
-		      iovbuf, sizeof(iovbuf));
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_VAR, iovbuf,
-				  sizeof(iovbuf));
-
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_SCAN_CHANNEL_TIME,
-		 (char *)&scan_assoc_time_le, sizeof(scan_assoc_time_le));
-	brcmf_proto_cdc_set_dcmd(drvr, 0, BRCMF_C_SET_SCAN_UNASSOC_TIME,
-		 (char *)&scan_unassoc_time_le, sizeof(scan_unassoc_time_le));
-
-	/* Set and enable ARP offload feature */
-	brcmf_c_arp_offload_set(drvr, BRCMF_ARPOL_MODE);
-	brcmf_c_arp_offload_enable(drvr, true);
-
-	/* Set up pkt filter */
-	for (i = 0; i < drvr->pktfilter_count; i++) {
-		brcmf_c_pktfilter_offload_set(drvr, drvr->pktfilter[i]);
-		brcmf_c_pktfilter_offload_enable(drvr, drvr->pktfilter[i],
-						 0, true);
-=======
 	brcmf_err("Firmware version = %s\n", buf);
 
 	/* locate firmware version number for ethtool */
@@ -452,7 +336,6 @@ int brcmf_c_preinit_dcmds(struct brcmf_pub *drvr)
 	if (err) {
 		brcmf_err("Set event_msgs error (%d)\n", err);
 		goto done;
->>>>>>> android-3.18
 	}
 
 	/* Setup default scan channel time */

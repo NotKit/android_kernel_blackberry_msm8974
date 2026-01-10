@@ -47,50 +47,30 @@ int move_freepages(struct zone *zone,
  * free all pages in the range. test_page_isolated() can be used for
  * test it.
  */
-<<<<<<< HEAD
-extern int
-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-			 unsigned migratetype);
-=======
 int
 start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
 			 unsigned migratetype, bool skip_hwpoisoned_pages);
->>>>>>> android-3.18
 
 /*
  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
  * target range is [start_pfn, end_pfn)
  */
-<<<<<<< HEAD
-extern int
-=======
 int
->>>>>>> android-3.18
 undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
 			unsigned migratetype);
 
 /*
  * Test all pages in [start_pfn, end_pfn) are isolated or not.
  */
-<<<<<<< HEAD
-int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-=======
 int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
 			bool skip_hwpoisoned_pages);
->>>>>>> android-3.18
 
 /*
  * Internal functions. Changes pageblock's migrate type.
  */
-<<<<<<< HEAD
-extern int set_migratetype_isolate(struct page *page);
-extern void unset_migratetype_isolate(struct page *page, unsigned migratetype);
-
-=======
 int set_migratetype_isolate(struct page *page, bool skip_hwpoisoned_pages);
 void unset_migratetype_isolate(struct page *page, unsigned migratetype);
 struct page *alloc_migrate_target(struct page *page, unsigned long private,
 				int **resultp);
->>>>>>> android-3.18
 
 #endif

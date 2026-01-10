@@ -123,15 +123,9 @@ static const struct btmrvl_sdio_card_reg btmrvl_reg_8897 = {
 	.card_misc_cfg = 0xcc,
 };
 
-<<<<<<< HEAD
-static const struct btmrvl_sdio_device btmrvl_sdio_sd6888 = {
-	.helper		= "sd8688_helper.bin",
-	.firmware	= "sd8688.bin",
-=======
 static const struct btmrvl_sdio_device btmrvl_sdio_sd8688 = {
 	.helper		= "mrvl/sd8688_helper.bin",
 	.firmware	= "mrvl/sd8688.bin",
->>>>>>> android-3.18
 	.reg		= &btmrvl_reg_8688,
 	.support_pscan_win_report = false,
 	.sd_blksz_fw_dl	= 64,
@@ -140,9 +134,6 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8688 = {
 static const struct btmrvl_sdio_device btmrvl_sdio_sd8787 = {
 	.helper		= NULL,
 	.firmware	= "mrvl/sd8787_uapsta.bin",
-<<<<<<< HEAD
-	.reg		= &btmrvl_reg_8787,
-=======
 	.reg		= &btmrvl_reg_87xx,
 	.support_pscan_win_report = false,
 	.sd_blksz_fw_dl	= 256,
@@ -169,7 +160,6 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8897 = {
 	.firmware	= "mrvl/sd8897_uapsta.bin",
 	.reg		= &btmrvl_reg_8897,
 	.support_pscan_win_report = true,
->>>>>>> android-3.18
 	.sd_blksz_fw_dl	= 256,
 };
 
@@ -180,8 +170,6 @@ static const struct sdio_device_id btmrvl_sdio_ids[] = {
 	/* Marvell SD8787 Bluetooth device */
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x911A),
 			.driver_data = (unsigned long) &btmrvl_sdio_sd8787 },
-<<<<<<< HEAD
-=======
 	/* Marvell SD8787 Bluetooth AMP device */
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x911B),
 			.driver_data = (unsigned long) &btmrvl_sdio_sd8787 },
@@ -194,7 +182,6 @@ static const struct sdio_device_id btmrvl_sdio_ids[] = {
 	/* Marvell SD8897 Bluetooth device */
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x912E),
 			.driver_data = (unsigned long) &btmrvl_sdio_sd8897 },
->>>>>>> android-3.18
 
 	{ }	/* Terminating entry */
 };
@@ -1323,9 +1310,6 @@ MODULE_LICENSE("GPL v2");
 MODULE_FIRMWARE("mrvl/sd8688_helper.bin");
 MODULE_FIRMWARE("mrvl/sd8688.bin");
 MODULE_FIRMWARE("mrvl/sd8787_uapsta.bin");
-<<<<<<< HEAD
-=======
 MODULE_FIRMWARE("mrvl/sd8797_uapsta.bin");
 MODULE_FIRMWARE("mrvl/sd8887_uapsta.bin");
 MODULE_FIRMWARE("mrvl/sd8897_uapsta.bin");
->>>>>>> android-3.18

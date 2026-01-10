@@ -63,29 +63,6 @@
  */
 struct timex {
 	unsigned int modes;	/* mode selector */
-<<<<<<< HEAD
-	long offset;		/* time offset (usec) */
-	long freq;		/* frequency offset (scaled ppm) */
-	long maxerror;		/* maximum error (usec) */
-	long esterror;		/* estimated error (usec) */
-	int status;		/* clock command/status */
-	long constant;		/* pll time constant */
-	long precision;		/* clock precision (usec) (read only) */
-	long tolerance;		/* clock frequency tolerance (ppm)
-				 * (read only)
-				 */
-	struct timeval time;	/* (read only, except for ADJ_SETOFFSET) */
-	long tick;		/* (modified) usecs between clock ticks */
-
-	long ppsfreq;           /* pps frequency (scaled ppm) (ro) */
-	long jitter;            /* pps jitter (us) (ro) */
-	int shift;              /* interval duration (s) (shift) (ro) */
-	long stabil;            /* pps stability (scaled ppm) (ro) */
-	long jitcnt;            /* jitter limit exceeded (ro) */
-	long calcnt;            /* calibration intervals (ro) */
-	long errcnt;            /* calibration errors (ro) */
-	long stbcnt;            /* stability limit exceeded (ro) */
-=======
 	__kernel_long_t offset;	/* time offset (usec) */
 	__kernel_long_t freq;	/* frequency offset (scaled ppm) */
 	__kernel_long_t maxerror;/* maximum error (usec) */
@@ -107,7 +84,6 @@ struct timex {
 	__kernel_long_t calcnt; /* calibration intervals (ro) */
 	__kernel_long_t errcnt; /* calibration errors (ro) */
 	__kernel_long_t stbcnt; /* stability limit exceeded (ro) */
->>>>>>> android-3.18
 
 	int tai;		/* TAI offset (ro) */
 

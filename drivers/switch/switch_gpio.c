@@ -91,11 +91,7 @@ static int gpio_switch_probe(struct platform_device *pdev)
 	switch_data->state_off = pdata->state_off;
 	switch_data->sdev.print_state = switch_gpio_print_state;
 
-<<<<<<< HEAD
-    ret = switch_dev_register(&switch_data->sdev);
-=======
 	ret = switch_dev_register(&switch_data->sdev);
->>>>>>> android-3.18
 	if (ret < 0)
 		goto err_switch_dev_register;
 
@@ -130,32 +126,20 @@ err_detect_irq_num_failed:
 err_set_gpio_input:
 	gpio_free(switch_data->gpio);
 err_request_gpio:
-<<<<<<< HEAD
-    switch_dev_unregister(&switch_data->sdev);
-=======
 	switch_dev_unregister(&switch_data->sdev);
->>>>>>> android-3.18
 err_switch_dev_register:
 	kfree(switch_data);
 
 	return ret;
 }
 
-<<<<<<< HEAD
-static int __devexit gpio_switch_remove(struct platform_device *pdev)
-=======
 static int gpio_switch_remove(struct platform_device *pdev)
->>>>>>> android-3.18
 {
 	struct gpio_switch_data *switch_data = platform_get_drvdata(pdev);
 
 	cancel_work_sync(&switch_data->work);
 	gpio_free(switch_data->gpio);
-<<<<<<< HEAD
-    switch_dev_unregister(&switch_data->sdev);
-=======
 	switch_dev_unregister(&switch_data->sdev);
->>>>>>> android-3.18
 	kfree(switch_data);
 
 	return 0;
@@ -163,11 +147,7 @@ static int gpio_switch_remove(struct platform_device *pdev)
 
 static struct platform_driver gpio_switch_driver = {
 	.probe		= gpio_switch_probe,
-<<<<<<< HEAD
-	.remove		= __devexit_p(gpio_switch_remove),
-=======
 	.remove		= gpio_switch_remove,
->>>>>>> android-3.18
 	.driver		= {
 		.name	= "switch-gpio",
 		.owner	= THIS_MODULE,

@@ -634,52 +634,6 @@ static void se_release_vpd_for_dev(struct se_device *dev)
 
 static u32 se_dev_align_max_sectors(u32 max_sectors, u32 block_size)
 {
-<<<<<<< HEAD
-	struct se_hba *hba = dev->se_hba;
-
-	spin_lock(&hba->device_lock);
-	atomic_dec(&dev->dev_obj.obj_access_count);
-	if (atomic_read(&dev->dev_obj.obj_access_count) == 0) {
-		if (dev->dev_status & TRANSPORT_DEVICE_ACTIVATED) {
-			dev->dev_status &= ~TRANSPORT_DEVICE_ACTIVATED;
-			dev->dev_status |= TRANSPORT_DEVICE_DEACTIVATED;
-		} else if (dev->dev_status &
-			   TRANSPORT_DEVICE_OFFLINE_ACTIVATED) {
-			dev->dev_status &= ~TRANSPORT_DEVICE_OFFLINE_ACTIVATED;
-			dev->dev_status |= TRANSPORT_DEVICE_OFFLINE_DEACTIVATED;
-		}
-	}
-	spin_unlock(&hba->device_lock);
-}
-
-int se_dev_check_online(struct se_device *dev)
-{
-	unsigned long flags;
-	int ret;
-
-	spin_lock_irqsave(&dev->dev_status_lock, flags);
-	ret = ((dev->dev_status & TRANSPORT_DEVICE_ACTIVATED) ||
-	       (dev->dev_status & TRANSPORT_DEVICE_DEACTIVATED)) ? 0 : 1;
-	spin_unlock_irqrestore(&dev->dev_status_lock, flags);
-
-	return ret;
-}
-
-int se_dev_check_shutdown(struct se_device *dev)
-{
-	int ret;
-
-	spin_lock_irq(&dev->dev_status_lock);
-	ret = (dev->dev_status & TRANSPORT_DEVICE_SHUTDOWN);
-	spin_unlock_irq(&dev->dev_status_lock);
-
-	return ret;
-}
-
-u32 se_dev_align_max_sectors(u32 max_sectors, u32 block_size)
-{
-=======
->>>>>>> android-3.18
 	u32 aligned_max_sectors;
 	u32 alignment;
 	/*
@@ -688,20 +642,10 @@ u32 se_dev_align_max_sectors(u32 max_sectors, u32 block_size)
 	 */
 	alignment = max(1ul, PAGE_SIZE / block_size);
 	aligned_max_sectors = rounddown(max_sectors, alignment);
-<<<<<<< HEAD
 
 	if (max_sectors != aligned_max_sectors)
 		pr_info("Rounding down aligned max_sectors from %u to %u\n",
 			max_sectors, aligned_max_sectors);
-
-	return aligned_max_sectors;
-}
-=======
-
-	if (max_sectors != aligned_max_sectors)
-		pr_info("Rounding down aligned max_sectors from %u to %u\n",
-			max_sectors, aligned_max_sectors);
->>>>>>> android-3.18
 
 	return aligned_max_sectors;
 }
@@ -1160,15 +1104,9 @@ int se_dev_set_queue_depth(struct se_device *dev, u32 queue_depth)
 
 int se_dev_set_fabric_max_sectors(struct se_device *dev, u32 fabric_max_sectors)
 {
-<<<<<<< HEAD
-	int block_size = dev->se_sub_dev->se_dev_attrib.block_size;
-
-	if (atomic_read(&dev->dev_export_obj.obj_access_count)) {
-=======
 	int block_size = dev->dev_attrib.block_size;
 
 	if (dev->export_count) {
->>>>>>> android-3.18
 		pr_err("dev[%p]: Unable to change SE Device"
 			" fabric_max_sectors while export_count is %d\n",
 			dev, dev->export_count);
@@ -1755,11 +1693,6 @@ int target_configure_device(struct se_device *dev)
 		strncpy(&dev->t10_wwn.revision[0],
 			dev->transport->inquiry_rev, 4);
 	}
-<<<<<<< HEAD
-	dev->dev_link_magic = SE_DEV_LINK_MAGIC;
-	se_dev->se_dev_ptr = dev;
-	g_lun0_dev = dev;
-=======
 
 	scsi_dump_inquiry(dev);
 
@@ -1772,7 +1705,6 @@ int target_configure_device(struct se_device *dev)
 	mutex_unlock(&g_device_mutex);
 
 	dev->dev_flags |= DF_CONFIGURED;
->>>>>>> android-3.18
 
 	return 0;
 

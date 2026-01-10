@@ -696,23 +696,10 @@ void r600_hdmi_enable(struct drm_encoder *encoder, bool enable)
 		dig->afmt->pin = NULL;
 	}
 
-<<<<<<< HEAD
-	offset = radeon_encoder->hdmi_offset;
-	if (ASIC_IS_DCE5(rdev)) {
-		/* TODO */
-	} else if (ASIC_IS_DCE4(rdev)) {
-		WREG32_P(radeon_encoder->hdmi_config_offset + 0xc, 0x1, ~0x1);
-	} else if (ASIC_IS_DCE32(rdev)) {
-		WREG32_P(radeon_encoder->hdmi_config_offset + 0x4, 0x1, ~0x1);
-	} else if (ASIC_IS_DCE3(rdev)) {
-		/* TODO */
-	} else if (ASIC_IS_DCE2(rdev)) {
-=======
 	/* Older chipsets require setting HDMI and routing manually */
 	if (!ASIC_IS_DCE3(rdev)) {
 		if (enable)
 			hdmi |= HDMI0_ENABLE;
->>>>>>> android-3.18
 		switch (radeon_encoder->encoder_id) {
 		case ENCODER_OBJECT_ID_INTERNAL_KLDSCP_TMDS1:
 			if (enable) {
@@ -761,36 +748,7 @@ void r600_hdmi_enable(struct drm_encoder *encoder, bool enable)
 
 	dig->afmt->enabled = enable;
 
-<<<<<<< HEAD
-	if (ASIC_IS_DCE5(rdev)) {
-		/* TODO */
-	} else if (ASIC_IS_DCE4(rdev)) {
-		WREG32_P(radeon_encoder->hdmi_config_offset + 0xc, 0, ~0x1);
-	} else if (ASIC_IS_DCE32(rdev)) {
-		WREG32_P(radeon_encoder->hdmi_config_offset + 0x4, 0, ~0x1);
-	} else if (ASIC_IS_DCE2(rdev) && !ASIC_IS_DCE3(rdev)) {
-		switch (radeon_encoder->encoder_id) {
-		case ENCODER_OBJECT_ID_INTERNAL_KLDSCP_TMDS1:
-			WREG32_P(AVIVO_TMDSA_CNTL, 0,
-				 ~AVIVO_TMDSA_CNTL_HDMI_EN);
-			WREG32(offset + R600_HDMI_ENABLE, 0);
-			break;
-		case ENCODER_OBJECT_ID_INTERNAL_LVTM1:
-			WREG32_P(AVIVO_LVTMA_CNTL, 0,
-				 ~AVIVO_LVTMA_CNTL_HDMI_EN);
-			WREG32(offset + R600_HDMI_ENABLE, 0);
-			break;
-		default:
-			dev_err(rdev->dev, "Unknown HDMI output type\n");
-			break;
-		}
-	}
-
-	radeon_encoder->hdmi_offset = 0;
-	radeon_encoder->hdmi_config_offset = 0;
-=======
 	DRM_DEBUG("%sabling HDMI interface @ 0x%04X for encoder 0x%x\n",
 		  enable ? "En" : "Dis", dig->afmt->offset, radeon_encoder->encoder_id);
->>>>>>> android-3.18
 }
 

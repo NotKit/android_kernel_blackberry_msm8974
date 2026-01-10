@@ -2619,32 +2619,8 @@ static void rt2800_config_channel_rf3322(struct rt2x00_dev *rt2x00dev,
 {
 	u8 rfcsr;
 
-<<<<<<< HEAD
-	/*
-	 * First check if temperature compensation is supported.
-	 */
-	rt2x00_eeprom_read(rt2x00dev, EEPROM_NIC_CONF1, &eeprom);
-	if (!rt2x00_get_field16(eeprom, EEPROM_NIC_CONF1_EXTERNAL_TX_ALC))
-		return 0;
-
-	/*
-	 * Read TSSI boundaries for temperature compensation from
-	 * the EEPROM.
-	 *
-	 * Array idx               0    1    2    3    4    5    6    7    8
-	 * Matching Delta value   -4   -3   -2   -1    0   +1   +2   +3   +4
-	 * Example TSSI bounds  0xF0 0xD0 0xB5 0xA0 0x88 0x45 0x25 0x15 0x00
-	 */
-	if (rt2x00dev->curr_band == IEEE80211_BAND_2GHZ) {
-		rt2x00_eeprom_read(rt2x00dev, EEPROM_TSSI_BOUND_BG1, &eeprom);
-		tssi_bounds[0] = rt2x00_get_field16(eeprom,
-					EEPROM_TSSI_BOUND_BG1_MINUS4);
-		tssi_bounds[1] = rt2x00_get_field16(eeprom,
-					EEPROM_TSSI_BOUND_BG1_MINUS3);
-=======
 	rt2800_rfcsr_write(rt2x00dev, 8, rf->rf1);
 	rt2800_rfcsr_write(rt2x00dev, 9, rf->rf3);
->>>>>>> android-3.18
 
 	rt2800_rfcsr_write(rt2x00dev, 11, 0x42);
 	rt2800_rfcsr_write(rt2x00dev, 12, 0x1c);
@@ -2684,20 +2660,12 @@ static void rt2800_config_channel_rf3322(struct rt2x00_dev *rt2x00dev,
 	rt2800_rfcsr_write(rt2x00dev, 31, 80);
 }
 
-<<<<<<< HEAD
-	/*
-	 * Check if temperature compensation is supported.
-	 */
-	if (tssi_bounds[4] == 0xff || step == 0xff)
-		return 0;
-=======
 static void rt2800_config_channel_rf53xx(struct rt2x00_dev *rt2x00dev,
 					 struct ieee80211_conf *conf,
 					 struct rf_channel *rf,
 					 struct channel_info *info)
 {
 	u8 rfcsr;
->>>>>>> android-3.18
 
 	rt2800_rfcsr_write(rt2x00dev, 8, rf->rf1);
 	rt2800_rfcsr_write(rt2x00dev, 9, rf->rf3);
@@ -7701,11 +7669,8 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
 		for (i = 14; i < spec->num_channels; i++) {
 			info[i].default_power1 = default_power1[i - 14];
 			info[i].default_power2 = default_power2[i - 14];
-<<<<<<< HEAD
-=======
 			if (default_power3)
 				info[i].default_power3 = default_power3[i - 14];
->>>>>>> android-3.18
 		}
 	}
 

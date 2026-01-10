@@ -1907,11 +1907,6 @@ static struct abx500_chargalg_sysfs_entry abx500_chargalg_curr_step =
 static ssize_t abx500_chargalg_sysfs_show(struct kobject *kobj,
 	struct attribute *attr, char *buf)
 {
-<<<<<<< HEAD
-	.name = "chargalg",
-	.mode = S_IWUSR,
-};
-=======
 	struct abx500_chargalg_sysfs_entry *entry = container_of(attr,
 		struct abx500_chargalg_sysfs_entry, attr);
 
@@ -1938,7 +1933,6 @@ static ssize_t abx500_chargalg_sysfs_charger(struct kobject *kobj,
 
 	return entry->store(di, buf, length);
 }
->>>>>>> android-3.18
 
 static struct attribute *abx500_chargalg_chg[] = {
 	&abx500_chargalg_en_charger.attr,

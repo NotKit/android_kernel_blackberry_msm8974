@@ -463,13 +463,8 @@ static const struct ideapad_rfk_data ideapad_rfk_data[] = {
 
 static int ideapad_rfk_set(void *data, bool blocked)
 {
-<<<<<<< HEAD
-	unsigned long dev = (unsigned long)data;
-	int opcode = ideapad_rfk_data[dev].opcode;
-=======
 	struct ideapad_rfk_priv *priv = data;
 	int opcode = ideapad_rfk_data[priv->dev].opcode;
->>>>>>> android-3.18
 
 	return write_ec_cmd(priv->priv->adev->handle, opcode, !blocked);
 }

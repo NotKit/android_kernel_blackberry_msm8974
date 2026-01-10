@@ -23,11 +23,7 @@ struct vm_area_struct;
 #define ___GFP_REPEAT		0x400u
 #define ___GFP_NOFAIL		0x800u
 #define ___GFP_NORETRY		0x1000u
-<<<<<<< HEAD
-#define ___GFP_CMA		0x2000u
-=======
 #define ___GFP_MEMALLOC		0x2000u
->>>>>>> android-3.18
 #define ___GFP_COMP		0x4000u
 #define ___GFP_ZERO		0x8000u
 #define ___GFP_NOMEMALLOC	0x10000u

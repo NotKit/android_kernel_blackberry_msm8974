@@ -1,10 +1,7 @@
 # UAPI Header export list
 header-y += audio.h
 header-y += cdc.h
-<<<<<<< HEAD
-=======
 header-y += cdc-wdm.h
->>>>>>> android-3.18
 header-y += ch11.h
 header-y += ch9.h
 header-y += functionfs.h

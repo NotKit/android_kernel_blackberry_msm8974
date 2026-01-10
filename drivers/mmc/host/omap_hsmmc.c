@@ -2235,15 +2235,9 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
 
 	/* Request IRQ for card detect */
 	if ((mmc_slot(host).card_detect_irq)) {
-<<<<<<< HEAD
-		ret = request_threaded_irq(mmc_slot(host).card_detect_irq,
-					   NULL,
-					   omap_hsmmc_detect,
-=======
 		ret = devm_request_threaded_irq(&pdev->dev,
 						mmc_slot(host).card_detect_irq,
 						NULL, omap_hsmmc_detect,
->>>>>>> android-3.18
 					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
 					   mmc_hostname(mmc), host);
 		if (ret) {
@@ -2371,29 +2365,6 @@ static int omap_hsmmc_suspend(struct device *dev)
 		return 0;
 
 	pm_runtime_get_sync(host->dev);
-<<<<<<< HEAD
-	host->suspended = 1;
-	if (host->pdata->suspend) {
-		ret = host->pdata->suspend(dev, host->slot_id);
-		if (ret) {
-			dev_dbg(dev, "Unable to handle MMC board"
-					" level suspend\n");
-			host->suspended = 0;
-			return ret;
-		}
-	}
-	ret = mmc_suspend_host(host->mmc);
-
-	if (ret) {
-		host->suspended = 0;
-		if (host->pdata->resume) {
-			if (host->pdata->resume(dev, host->slot_id))
-				dev_dbg(dev, "Unmask interrupt failed\n");
-		}
-		goto err;
-	}
-=======
->>>>>>> android-3.18
 
 	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
 		OMAP_HSMMC_WRITE(host->base, ISE, 0);

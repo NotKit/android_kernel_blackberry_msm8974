@@ -28,22 +28,6 @@ config B43
 	  If unsure, say M.
 
 config B43_BCMA
-<<<<<<< HEAD
-	bool "Support for BCMA bus"
-	depends on B43 && (BCMA = y || BCMA = B43)
-	default y
-
-config B43_BCMA_EXTRA
-	bool "Hardware support that overlaps with the brcmsmac driver"
-	depends on B43_BCMA
-	default n if BRCMSMAC || BRCMSMAC_MODULE
-	default	y
-
-config B43_SSB
-	bool
-	depends on B43 && (SSB = y || SSB = B43)
-	default y
-=======
 	bool
 
 config B43_SSB
@@ -71,7 +55,6 @@ config B43_BUSES_SSB
 	select B43_SSB
 
 endchoice
->>>>>>> android-3.18
 
 # Auto-select SSB PCI-HOST support, if possible
 config B43_PCI_AUTOSELECT

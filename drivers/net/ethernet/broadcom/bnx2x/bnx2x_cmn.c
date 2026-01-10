@@ -211,10 +211,6 @@ static u16 bnx2x_free_tx_pkt(struct bnx2x *bp, struct bnx2x_fp_txdata *txdata,
 	   txdata->txq_index, idx, tx_buf, skb);
 
 	tx_start_bd = &txdata->tx_desc_ring[bd_idx].start_bd;
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 
 	nbd = le16_to_cpu(tx_start_bd->nbd) - 1;
 #ifdef BNX2X_STOP_ON_ERROR
@@ -232,15 +228,12 @@ static u16 bnx2x_free_tx_pkt(struct bnx2x *bp, struct bnx2x_fp_txdata *txdata,
 	--nbd;
 	bd_idx = TX_BD(NEXT_TX_IDX(bd_idx));
 
-<<<<<<< HEAD
-=======
 	if (tx_buf->flags & BNX2X_HAS_SECOND_PBD) {
 		/* Skip second parse bd... */
 		--nbd;
 		bd_idx = TX_BD(NEXT_TX_IDX(bd_idx));
 	}
 
->>>>>>> android-3.18
 	/* TSO headers+data bds share a common mapping. See bnx2x_tx_split() */
 	if (tx_buf->flags & BNX2X_TSO_SPLIT_BD) {
 		tx_data_bd = &txdata->tx_desc_ring[bd_idx].reg_bd;
@@ -342,11 +335,7 @@ int bnx2x_tx_int(struct bnx2x *bp, struct bnx2x_fp_txdata *txdata)
 
 		if ((netif_tx_queue_stopped(txq)) &&
 		    (bp->state == BNX2X_STATE_OPEN) &&
-<<<<<<< HEAD
-		    (bnx2x_tx_avail(bp, txdata) >= MAX_SKB_FRAGS + 4))
-=======
 		    (bnx2x_tx_avail(bp, txdata) >= MAX_DESC_PER_TX_PKT))
->>>>>>> android-3.18
 			netif_tx_wake_queue(txq);
 
 		__netif_tx_unlock(txq);
@@ -801,14 +790,8 @@ static void bnx2x_tpa_stop(struct bnx2x *bp, struct bnx2x_fastpath *fp,
 		if (!bnx2x_fill_frag_skb(bp, fp, tpa_info, pages,
 					 skb, cqe, cqe_idx)) {
 			if (tpa_info->parsing_flags & PARSING_FLAGS_VLAN)
-<<<<<<< HEAD
-				__vlan_hwaccel_put_tag(skb, tpa_info->vlan_tag);
-			skb_record_rx_queue(skb, fp->rx_queue);
-			napi_gro_receive(&fp->napi, skb);
-=======
 				__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), tpa_info->vlan_tag);
 			bnx2x_gro_receive(bp, fp, skb);
->>>>>>> android-3.18
 		} else {
 			DP(NETIF_MSG_RX_STATUS,
 			   "Failed to allocate new pages - dropping packet!\n");
@@ -859,15 +842,10 @@ static int bnx2x_alloc_rx_data(struct bnx2x *bp, struct bnx2x_fastpath *fp,
 	return 0;
 }
 
-<<<<<<< HEAD
-static void bnx2x_csum_validate(struct sk_buff *skb, union eth_rx_cqe *cqe,
-				struct bnx2x_fastpath *fp)
-=======
 static
 void bnx2x_csum_validate(struct sk_buff *skb, union eth_rx_cqe *cqe,
 				 struct bnx2x_fastpath *fp,
 				 struct bnx2x_eth_q_stats *qstats)
->>>>>>> android-3.18
 {
 	/* Do nothing if no L4 csum validation was done.
 	 * We do not check whether IP csum was validated. For IPv4 we assume
@@ -879,17 +857,6 @@ void bnx2x_csum_validate(struct sk_buff *skb, union eth_rx_cqe *cqe,
 		return;
 
 	/* If L4 validation was done, check if an error was found. */
-<<<<<<< HEAD
-
-	if (cqe->fast_path_cqe.type_error_flags &
-	    (ETH_FAST_PATH_RX_CQE_IP_BAD_XSUM_FLG |
-	     ETH_FAST_PATH_RX_CQE_L4_BAD_XSUM_FLG))
-		fp->eth_q_stats.hw_csum_err++;
-	else
-		skb->ip_summed = CHECKSUM_UNNECESSARY;
-}
-=======
->>>>>>> android-3.18
 
 	if (cqe->fast_path_cqe.type_error_flags &
 	    (ETH_FAST_PATH_RX_CQE_IP_BAD_XSUM_FLG |
@@ -1095,13 +1062,8 @@ reuse_rx:
 		skb_checksum_none_assert(skb);
 
 		if (bp->dev->features & NETIF_F_RXCSUM)
-<<<<<<< HEAD
-			bnx2x_csum_validate(skb, cqe, fp);
-
-=======
 			bnx2x_csum_validate(skb, cqe, fp,
 					    bnx2x_fp_qstats(bp, fp));
->>>>>>> android-3.18
 
 		skb_record_rx_queue(skb, fp->rx_queue);
 
@@ -4201,11 +4163,7 @@ netdev_tx_t bnx2x_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	txdata->tx_bd_prod += nbd;
 
-<<<<<<< HEAD
-	if (unlikely(bnx2x_tx_avail(bp, txdata) < MAX_SKB_FRAGS + 4)) {
-=======
 	if (unlikely(bnx2x_tx_avail(bp, txdata) < MAX_DESC_PER_TX_PKT)) {
->>>>>>> android-3.18
 		netif_tx_stop_queue(txq);
 
 		/* paired memory barrier is in bnx2x_tx_int(), we have to keep
@@ -4213,13 +4171,8 @@ netdev_tx_t bnx2x_start_xmit(struct sk_buff *skb, struct net_device *dev)
 		 * fp->bd_tx_cons */
 		smp_mb();
 
-<<<<<<< HEAD
-		fp->eth_q_stats.driver_xoff++;
-		if (bnx2x_tx_avail(bp, txdata) >= MAX_SKB_FRAGS + 4)
-=======
 		bnx2x_fp_qstats(bp, txdata->parent_fp)->driver_xoff++;
 		if (bnx2x_tx_avail(bp, txdata) >= MAX_DESC_PER_TX_PKT)
->>>>>>> android-3.18
 			netif_tx_wake_queue(txq);
 	}
 	txdata->tx_pkt++;

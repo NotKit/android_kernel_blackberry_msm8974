@@ -15,11 +15,7 @@
 #include <linux/sched.h>
 #include <linux/device.h>
 #include <linux/fault-inject.h>
-<<<<<<< HEAD
-#include <linux/wakelock.h>
-=======
 #include <linux/blkdev.h>
->>>>>>> android-3.18
 
 #include <linux/mmc/core.h>
 #include <linux/mmc/card.h>
@@ -62,21 +58,6 @@ struct mmc_ios {
 #define MMC_TIMING_LEGACY	0
 #define MMC_TIMING_MMC_HS	1
 #define MMC_TIMING_SD_HS	2
-<<<<<<< HEAD
-#define MMC_TIMING_UHS_SDR12	MMC_TIMING_LEGACY
-#define MMC_TIMING_UHS_SDR25	MMC_TIMING_SD_HS
-#define MMC_TIMING_UHS_SDR50	3
-#define MMC_TIMING_UHS_SDR104	4
-#define MMC_TIMING_UHS_DDR50	5
-#define MMC_TIMING_MMC_HS200	6
-#define MMC_TIMING_MMC_HS400	7
-
-#define MMC_SDR_MODE		0
-#define MMC_1_2V_DDR_MODE	1
-#define MMC_1_8V_DDR_MODE	2
-#define MMC_1_2V_SDR_MODE	3
-#define MMC_1_8V_SDR_MODE	4
-=======
 #define MMC_TIMING_UHS_SDR12	3
 #define MMC_TIMING_UHS_SDR25	4
 #define MMC_TIMING_UHS_SDR50	5
@@ -85,7 +66,6 @@ struct mmc_ios {
 #define MMC_TIMING_MMC_DDR52	8
 #define MMC_TIMING_MMC_HS200	9
 #define MMC_TIMING_MMC_HS400	10
->>>>>>> android-3.18
 
 	unsigned char	signal_voltage;		/* signalling voltage (1.8V or 3.3V) */
 
@@ -164,15 +144,6 @@ struct mmc_host_ops {
 
 	/* The tuning command opcode value is different for SD and eMMC cards */
 	int	(*execute_tuning)(struct mmc_host *host, u32 opcode);
-<<<<<<< HEAD
-	int	(*select_drive_strength)(unsigned int max_dtr, int host_drv, int card_drv);
-	void	(*hw_reset)(struct mmc_host *host);
-	unsigned long (*get_max_frequency)(struct mmc_host *host);
-	unsigned long (*get_min_frequency)(struct mmc_host *host);
-	int	(*notify_load)(struct mmc_host *, enum mmc_load);
-	int	(*stop_request)(struct mmc_host *host);
-	unsigned int	(*get_xfer_remain)(struct mmc_host *host);
-=======
 
 	/* Prepare HS400 target operating frequency depending host driver */
 	int	(*prepare_hs400_tuning)(struct mmc_host *host, struct mmc_ios *ios);
@@ -186,7 +157,6 @@ struct mmc_host_ops {
 	 */
 	int	(*multi_io_quirk)(struct mmc_card *card,
 				  unsigned int direction, int blk_size);
->>>>>>> android-3.18
 };
 
 struct mmc_card;
@@ -247,12 +217,6 @@ struct mmc_slot {
 	void *handler_priv;
 };
 
-<<<<<<< HEAD
-enum dev_state {
-	DEV_SUSPENDING = 1,
-	DEV_SUSPENDED,
-	DEV_RESUMED,
-=======
 /**
  * mmc_context_info - synchronization details for mmc context
  * @is_done_rcv		wake up reason was done request
@@ -274,7 +238,6 @@ struct regulator;
 struct mmc_supply {
 	struct regulator *vmmc;		/* Card power supply */
 	struct regulator *vqmmc;	/* Optional Vccq supply */
->>>>>>> android-3.18
 };
 
 struct mmc_host {
@@ -353,30 +316,6 @@ struct mmc_host {
 #define MMC_CAP2_HS200		(MMC_CAP2_HS200_1_8V_SDR | \
 				 MMC_CAP2_HS200_1_2V_SDR)
 #define MMC_CAP2_HC_ERASE_SZ	(1 << 9)	/* High-capacity erase size */
-<<<<<<< HEAD
-#define MMC_CAP2_CD_ACTIVE_HIGH (1 << 10) /* Card-detect signal active high */
-
-#define MMC_CAP2_PACKED_RD	(1 << 12)	/* Allow packed read */
-#define MMC_CAP2_PACKED_WR	(1 << 13)	/* Allow packed write */
-#define MMC_CAP2_PACKED_CMD	(MMC_CAP2_PACKED_RD | \
-				 MMC_CAP2_PACKED_WR) /* Allow packed commands */
-#define MMC_CAP2_PACKED_WR_CONTROL (1 << 14) /* Allow write packing control */
-
-#define MMC_CAP2_SANITIZE	(1 << 15)		/* Support Sanitize */
-#define MMC_CAP2_INIT_BKOPS	    (1 << 16)	/* Need to set BKOPS_EN */
-#define MMC_CAP2_CLK_SCALE	(1 << 17)	/* Allow dynamic clk scaling */
-#define MMC_CAP2_STOP_REQUEST	(1 << 18)	/* Allow stop ongoing request */
-/* Use runtime PM framework provided by MMC core */
-#define MMC_CAP2_CORE_RUNTIME_PM (1 << 19)
-/* Allows Asynchronous SDIO irq while card is in 4-bit mode */
-#define MMC_CAP2_ASYNC_SDIO_IRQ_4BIT_MODE (1 << 20)
-
-#define MMC_CAP2_HS400_1_8V	(1 << 21)        /* can support */
-#define MMC_CAP2_HS400_1_2V	(1 << 22)        /* can support */
-#define MMC_CAP2_CORE_PM	(1 << 23)       /* use PM framework */
-#define MMC_CAP2_HS400		(MMC_CAP2_HS400_1_8V | \
-				 MMC_CAP2_HS400_1_2V)
-=======
 #define MMC_CAP2_CD_ACTIVE_HIGH	(1 << 10)	/* Card-detect signal active high */
 #define MMC_CAP2_RO_ACTIVE_HIGH	(1 << 11)	/* Write-protect signal active high */
 #define MMC_CAP2_PACKED_RD	(1 << 12)	/* Allow packed read */
@@ -390,7 +329,6 @@ struct mmc_host {
 				 MMC_CAP2_HS400_1_2V)
 #define MMC_CAP2_SDIO_IRQ_NOTHREAD (1 << 17)
 
->>>>>>> android-3.18
 	mmc_pm_flag_t		pm_caps;	/* supported pm features */
 
 	int			clk_requests;	/* internal reference counter */
@@ -475,14 +413,11 @@ struct mmc_host {
 
 	unsigned int		actual_clock;	/* Actual HC clock rate */
 
-<<<<<<< HEAD
-=======
 	unsigned int		slotno;	/* used for sdio acpi binding */
 
 	int			dsr_req;	/* DSR value is valid */
 	u32			dsr;	/* optional driver stage (DSR) value */
 
->>>>>>> android-3.18
 #ifdef CONFIG_MMC_EMBEDDED_SDIO
 	struct {
 		struct sdio_cis			*cis;
@@ -492,46 +427,6 @@ struct mmc_host {
 	} embedded_sdio_data;
 #endif
 
-<<<<<<< HEAD
-#ifdef CONFIG_MMC_PERF_PROFILING
-	struct {
-
-		unsigned long rbytes_drv;  /* Rd bytes MMC Host  */
-		unsigned long wbytes_drv;  /* Wr bytes MMC Host  */
-		ktime_t rtime_drv;	   /* Rd time  MMC Host  */
-		ktime_t wtime_drv;	   /* Wr time  MMC Host  */
-		ktime_t start;
-	} perf;
-	bool perf_enable;
-#endif
-	struct mmc_ios saved_ios;
-	struct {
-		unsigned long	busy_time_us;
-		unsigned long	window_time;
-		unsigned long	curr_freq;
-		unsigned long	polling_delay_ms;
-		unsigned int	up_threshold;
-		unsigned int	down_threshold;
-		ktime_t		start_busy;
-		bool		enable;
-		bool		scale_down_in_low_wr_load;
-		bool		initialized;
-		bool		in_progress;
-		/* freq. transitions are not allowed in invalid state */
-		bool		invalid_state;
-		struct delayed_work work;
-		enum mmc_load	state;
-	} clk_scaling;
-	enum dev_state dev_status;
-	unsigned long		private[0] ____cacheline_aligned;
-};
-
-extern struct mmc_host *mmc_alloc_host(int extra, struct device *);
-extern bool mmc_host_may_gate_card(struct mmc_card *);
-extern int mmc_add_host(struct mmc_host *);
-extern void mmc_remove_host(struct mmc_host *);
-extern void mmc_free_host(struct mmc_host *);
-=======
 #ifdef CONFIG_BLOCK
 	int			latency_hist_enabled;
 	struct io_latency_state io_lat_read;
@@ -554,7 +449,6 @@ extern void mmc_set_embedded_sdio_data(struct mmc_host *host,
 				       struct sdio_embedded_func *funcs,
 				       int num_funcs);
 #endif
->>>>>>> android-3.18
 
 #ifdef CONFIG_MMC_EMBEDDED_SDIO
 extern void mmc_set_embedded_sdio_data(struct mmc_host *host,
@@ -664,14 +558,11 @@ static inline int mmc_host_uhs(struct mmc_host *host)
 		 MMC_CAP_UHS_DDR50);
 }
 
-<<<<<<< HEAD
-=======
 static inline int mmc_host_packed_wr(struct mmc_host *host)
 {
 	return host->caps2 & MMC_CAP2_PACKED_WR;
 }
 
->>>>>>> android-3.18
 #ifdef CONFIG_MMC_CLKGATE
 void mmc_host_clk_hold(struct mmc_host *host);
 void mmc_host_clk_release(struct mmc_host *host);
@@ -692,16 +583,6 @@ static inline unsigned int mmc_host_clk_rate(struct mmc_host *host)
 }
 #endif
 
-<<<<<<< HEAD
-static inline int mmc_use_core_runtime_pm(struct mmc_host *host)
-{
-	return host->caps2 & MMC_CAP2_CORE_RUNTIME_PM;
-}
-
-static inline int mmc_use_core_pm(struct mmc_host *host)
-{
-	return host->caps2 & MMC_CAP2_CORE_PM;
-=======
 static inline int mmc_card_hs(struct mmc_card *card)
 {
 	return card->host->ios.timing == MMC_TIMING_SD_HS ||
@@ -727,7 +608,6 @@ static inline bool mmc_card_ddr52(struct mmc_card *card)
 static inline bool mmc_card_hs400(struct mmc_card *card)
 {
 	return card->host->ios.timing == MMC_TIMING_MMC_HS400;
->>>>>>> android-3.18
 }
 
 #endif /* LINUX_MMC_HOST_H */

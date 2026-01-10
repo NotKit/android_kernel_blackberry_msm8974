@@ -21,12 +21,7 @@
 #include <linux/mutex.h>
 #include <linux/power_supply.h>
 #include <linux/power/smb347-charger.h>
-<<<<<<< HEAD
-#include <linux/seq_file.h>
-#include <linux/delay.h>
-=======
 #include <linux/regmap.h>
->>>>>>> android-3.18
 
 /*
  * Configuration registers. These are mirrored to volatile RAM and can be
@@ -128,11 +123,7 @@
 #define STAT_B					0x3c
 #define STAT_C					0x3d
 #define STAT_C_CHG_ENABLED			BIT(0)
-<<<<<<< HEAD
-#define STAT_C_CHG_STATUS			BIT(5)
-=======
 #define STAT_C_HOLDOFF_STAT			BIT(3)
->>>>>>> android-3.18
 #define STAT_C_CHG_MASK				0x06
 #define STAT_C_CHG_SHIFT			1
 #define STAT_C_CHG_TERM				BIT(5)
@@ -164,15 +155,6 @@ struct smb347_charger {
 	bool			mains_online;
 	bool			usb_online;
 	bool			charging_enabled;
-<<<<<<< HEAD
-	unsigned int		mains_current_limit;
-	bool			usb_hc_mode;
-	bool			usb_otg_enabled;
-	bool			is_fully_charged;
-	int			en_gpio;
-	struct dentry		*dentry;
-=======
->>>>>>> android-3.18
 	const struct smb347_charger_platform_data *pdata;
 };
 
@@ -336,17 +318,7 @@ static int smb347_charging_set(struct smb347_charger *smb, bool enable)
 		smb->is_fully_charged = false;
 
 	if (smb->pdata->enable_control != SMB347_CHG_ENABLE_SW) {
-<<<<<<< HEAD
-		smb->charging_enabled = enable;
-
-		if (smb->en_gpio)
-			gpio_set_value(
-				smb->en_gpio,
-				(smb->pdata->enable_control ==
-				 SMB347_CHG_ENABLE_PIN_ACTIVE_LOW) ^ enable);
-=======
 		dev_dbg(smb->dev, "charging enable/disable in SW disabled\n");
->>>>>>> android-3.18
 		return 0;
 	}
 
@@ -442,19 +414,11 @@ static int smb347_set_current_limits(struct smb347_charger *smb)
 {
 	int ret;
 
-<<<<<<< HEAD
-	if (smb->mains_current_limit) {
-		val = current_to_hw(icl_tbl, ARRAY_SIZE(icl_tbl),
-				    smb->mains_current_limit);
-		if (val < 0)
-			return val;
-=======
 	if (smb->pdata->mains_current_limit) {
 		ret = current_to_hw(icl_tbl, ARRAY_SIZE(icl_tbl),
 				    smb->pdata->mains_current_limit);
 		if (ret < 0)
 			return ret;
->>>>>>> android-3.18
 
 		ret = regmap_update_bits(smb->regmap, CFG_CURRENT_LIMIT,
 					 CFG_CURRENT_LIMIT_DC_MASK,
@@ -503,15 +467,10 @@ static int smb347_set_voltage_limits(struct smb347_charger *smb)
 		ret = clamp_val(ret, 3500000, 4500000) - 3500000;
 		ret /= 20000;
 
-<<<<<<< HEAD
-		ret &= ~CFG_FLOAT_VOLTAGE_MASK;
-		ret |= val;
-=======
 		ret = regmap_update_bits(smb->regmap, CFG_FLOAT_VOLTAGE,
 					 CFG_FLOAT_VOLTAGE_FLOAT_MASK, ret);
 		if (ret < 0)
 			return ret;
->>>>>>> android-3.18
 	}
 
 	return 0;
@@ -880,33 +839,8 @@ static int smb347_hw_init(struct smb347_charger *smb)
 	 * If configured by platform data, we enable hardware Auto-OTG
 	 * support for driving VBUS. Otherwise we disable it.
 	 */
-<<<<<<< HEAD
-	ret &= ~CFG_OTHER_RID_MASK;
-	if (smb->pdata->use_usb_otg)
-		ret |= CFG_OTHER_RID_ENABLED_AUTO_OTG;
-
-	ret = smb347_write(smb, CFG_OTHER, ret);
-	if (ret < 0)
-		goto fail;
-
-	/* If configured by platform data, disable AUTOMATIC RECHARGE */
-	if (smb->pdata->disable_automatic_recharge) {
-		ret = smb347_read(smb, CFG_CHARGE_CONTROL);
-		if (ret < 0)
-			goto fail;
-
-		ret |= CFG_AUTOMATIC_RECHARGE_DISABLE;
-
-		ret = smb347_write(smb, CFG_CHARGE_CONTROL, ret);
-		if (ret < 0)
-			goto fail;
-	}
-
-	ret = smb347_read(smb, CFG_PIN);
-=======
 	ret = regmap_update_bits(smb->regmap, CFG_OTHER, CFG_OTHER_RID_MASK,
 		smb->pdata->use_usb_otg ? CFG_OTHER_RID_ENABLED_AUTO_OTG : 0);
->>>>>>> android-3.18
 	if (ret < 0)
 		goto fail;
 
@@ -915,11 +849,6 @@ static int smb347_hw_init(struct smb347_charger *smb)
 	 * command register unless pin control is specified in the platform
 	 * data.
 	 */
-<<<<<<< HEAD
-	ret &= ~(CFG_PIN_EN_CTRL_MASK | CFG_PIN_USB_MODE_CTRL);
-
-=======
->>>>>>> android-3.18
 	switch (smb->pdata->enable_control) {
 	case SMB347_CHG_ENABLE_PIN_ACTIVE_LOW:
 		val = CFG_PIN_EN_CTRL_ACTIVE_LOW;
@@ -932,18 +861,10 @@ static int smb347_hw_init(struct smb347_charger *smb)
 		break;
 	}
 
-<<<<<<< HEAD
-	if (smb->pdata->usb_mode_pin_ctrl)
-		ret |= CFG_PIN_USB_MODE_CTRL;
-
-	/* Disable Automatic Power Source Detection (APSD) interrupt. */
-	ret &= ~CFG_PIN_EN_APSD_IRQ;
-=======
 	ret = regmap_update_bits(smb->regmap, CFG_PIN, CFG_PIN_EN_CTRL_MASK,
 				 val);
 	if (ret < 0)
 		goto fail;
->>>>>>> android-3.18
 
 	/* Disable Automatic Power Source Detection (APSD) interrupt. */
 	ret = regmap_update_bits(smb->regmap, CFG_PIN, CFG_PIN_EN_APSD_IRQ, 0);
@@ -956,30 +877,6 @@ static int smb347_hw_init(struct smb347_charger *smb)
 
 	ret = smb347_start_stop_charging(smb);
 
-<<<<<<< HEAD
-	if ((smb->pdata->irq_gpio >= 0) &&
-	    !smb->pdata->disable_stat_interrupts) {
-		/*
-		 * Configure the STAT output to be suitable for interrupts:
-		 * disable all other output (except interrupts) and make it
-		 * active low.
-		 */
-		ret = smb347_read(smb, CFG_STAT);
-		if (ret < 0)
-			goto fail;
-
-		ret &= ~CFG_STAT_ACTIVE_HIGH;
-		ret |= CFG_STAT_DISABLED;
-
-		ret = smb347_write(smb, CFG_STAT, ret);
-		if (ret < 0)
-			goto fail;
-
-		ret = smb347_irq_enable(smb);
-		if (ret < 0)
-			goto fail;
-	}
-=======
 fail:
 	smb347_set_writable(smb, false);
 	return ret;
@@ -1094,7 +991,6 @@ static int smb347_irq_set(struct smb347_charger *smb, bool enable)
 					CFG_STATUS_IRQ_CHARGE_TIMEOUT) : 0);
 	if (ret < 0)
 		goto fail;
->>>>>>> android-3.18
 
 	ret = regmap_update_bits(smb->regmap, CFG_PIN, CFG_PIN_EN_CHARGER_ERROR,
 				 enable ? CFG_PIN_EN_CHARGER_ERROR : 0);
@@ -1125,27 +1021,14 @@ static int smb347_mains_get_property(struct power_supply *psy,
 	return -EINVAL;
 }
 
-<<<<<<< HEAD
-static int smb347_mains_set_property(struct power_supply *psy,
-				     enum power_supply_property prop,
-				     const union power_supply_propval *val)
-=======
 static int smb347_irq_init(struct smb347_charger *smb,
 			   struct i2c_client *client)
->>>>>>> android-3.18
 {
 	struct smb347_charger *smb =
 		container_of(psy, struct smb347_charger, mains);
 	int ret;
 	bool oldval;
 
-<<<<<<< HEAD
-	switch (prop) {
-	case POWER_SUPPLY_PROP_ONLINE:
-		oldval = smb->mains_online;
-
-		smb->mains_online = val->intval;
-=======
 	ret = gpio_request_one(pdata->irq_gpio, GPIOF_IN, client->name);
 	if (ret < 0)
 		goto fail;
@@ -1154,49 +1037,9 @@ static int smb347_irq_init(struct smb347_charger *smb,
 				   IRQF_TRIGGER_FALLING, client->name, smb);
 	if (ret < 0)
 		goto fail_gpio;
->>>>>>> android-3.18
 
 		smb347_set_writable(smb, true);
 
-<<<<<<< HEAD
-		ret = smb347_read(smb, CMD_A);
-		if (ret < 0)
-			return -EINVAL;
-
-		ret &= ~CMD_A_SUSPEND_ENABLED;
-		if (val->intval)
-			ret |= CMD_A_SUSPEND_ENABLED;
-
-		ret = smb347_write(smb, CMD_A, ret);
-
-		smb347_hw_init(smb);
-
-		smb347_set_writable(smb, false);
-
-		if (smb->mains_online != oldval)
-			power_supply_changed(psy);
-		return 0;
-	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		smb->mains_current_limit = val->intval;
-		smb347_hw_init(smb);
-		return 0;
-
-	default:
-		return -EINVAL;
-	}
-
-	return -EINVAL;
-}
-
-static int smb347_mains_property_is_writeable(struct power_supply *psy,
-					     enum power_supply_property prop)
-{
-	switch (prop) {
-	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		return 1;
-	default:
-		break;
-=======
 	/*
 	 * Configure the STAT output to be suitable for interrupts: disable
 	 * all other output (except interrupts) and make it active low.
@@ -1308,7 +1151,6 @@ static int smb347_mains_get_property(struct power_supply *psy,
 
 	default:
 		return -EINVAL;
->>>>>>> android-3.18
 	}
 
 	return 0;
@@ -1316,12 +1158,8 @@ static int smb347_mains_get_property(struct power_supply *psy,
 
 static enum power_supply_property smb347_mains_properties[] = {
 	POWER_SUPPLY_PROP_ONLINE,
-<<<<<<< HEAD
-	POWER_SUPPLY_PROP_CURRENT_MAX,
-=======
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT,
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE,
->>>>>>> android-3.18
 };
 
 static int smb347_usb_get_property(struct power_supply *psy,
@@ -1335,20 +1173,6 @@ static int smb347_usb_get_property(struct power_supply *psy,
 	switch (prop) {
 	case POWER_SUPPLY_PROP_ONLINE:
 		val->intval = smb->usb_online;
-<<<<<<< HEAD
-		return 0;
-
-	case POWER_SUPPLY_PROP_USB_HC:
-		val->intval = smb->usb_hc_mode;
-		return 0;
-
-	case POWER_SUPPLY_PROP_USB_OTG:
-		val->intval = smb->usb_otg_enabled;
-		return 0;
-
-	default:
-		break;
-=======
 		break;
 
 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
@@ -1369,7 +1193,6 @@ static int smb347_usb_get_property(struct power_supply *psy,
 
 	default:
 		return -EINVAL;
->>>>>>> android-3.18
 	}
 
 	return 0;
@@ -1442,13 +1265,8 @@ static int smb347_usb_property_is_writeable(struct power_supply *psy,
 
 static enum power_supply_property smb347_usb_properties[] = {
 	POWER_SUPPLY_PROP_ONLINE,
-<<<<<<< HEAD
-	POWER_SUPPLY_PROP_USB_HC,
-	POWER_SUPPLY_PROP_USB_OTG,
-=======
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT,
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE,
->>>>>>> android-3.18
 };
 
 static int smb347_get_charging_status(struct smb347_charger *smb)
@@ -1517,24 +1335,10 @@ static int smb347_battery_get_property(struct power_supply *psy,
 
 	switch (prop) {
 	case POWER_SUPPLY_PROP_STATUS:
-<<<<<<< HEAD
-		if (!smb347_is_online(smb)) {
-			smb->is_fully_charged = false;
-			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
-			break;
-		}
-		if (smb347_charging_status(smb))
-			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-		else
-			val->intval = smb->is_fully_charged ?
-					POWER_SUPPLY_STATUS_FULL :
-					POWER_SUPPLY_STATUS_NOT_CHARGING;
-=======
 		ret = smb347_get_charging_status(smb);
 		if (ret < 0)
 			return ret;
 		val->intval = ret;
->>>>>>> android-3.18
 		break;
 
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
@@ -1710,64 +1514,14 @@ static int smb347_probe(struct i2c_client *client,
 	smb->dev = &client->dev;
 	smb->pdata = pdata;
 
-<<<<<<< HEAD
-	smb->mains_current_limit = smb->pdata->mains_current_limit;
-
-	if (pdata->en_gpio) {
-		ret = gpio_request_one(
-			pdata->en_gpio,
-			smb->pdata->enable_control ==
-			SMB347_CHG_ENABLE_PIN_ACTIVE_LOW ?
-			GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
-			smb->client->name);
-		if (ret < 0)
-			dev_warn(dev, "failed to claim EN GPIO: %d\n", ret);
-		else
-			smb->en_gpio = pdata->en_gpio;
-	}
-
-	ret = smb347_write(smb, CMD_B, CMD_B_POR);
-	if (ret < 0)
-		return ret;
-
-	msleep(20);
-
-	ret = smb347_read(smb, CMD_B);
-	if (ret < 0) {
-		dev_err(dev, "failed read after reset\n");
-		return ret;
-	}
-=======
 	smb->regmap = devm_regmap_init_i2c(client, &smb347_regmap);
 	if (IS_ERR(smb->regmap))
 		return PTR_ERR(smb->regmap);
->>>>>>> android-3.18
 
 	ret = smb347_hw_init(smb);
 	if (ret < 0)
 		return ret;
 
-<<<<<<< HEAD
-	smb->mains.name = "smb347-mains";
-	smb->mains.type = POWER_SUPPLY_TYPE_MAINS;
-	smb->mains.get_property = smb347_mains_get_property;
-	smb->mains.set_property = smb347_mains_set_property;
-	smb->mains.property_is_writeable = smb347_mains_property_is_writeable;
-	smb->mains.properties = smb347_mains_properties;
-	smb->mains.num_properties = ARRAY_SIZE(smb347_mains_properties);
-	smb->mains.supplied_to = battery;
-	smb->mains.num_supplicants = ARRAY_SIZE(battery);
-
-	smb->usb.name = "smb347-usb";
-	smb->usb.type = POWER_SUPPLY_TYPE_USB;
-	smb->usb.get_property = smb347_usb_get_property;
-	smb->usb.set_property = smb347_usb_set_property;
-	smb->usb.property_is_writeable = smb347_usb_property_is_writeable;
-	smb->usb.properties = smb347_usb_properties;
-	smb->usb.num_properties = ARRAY_SIZE(smb347_usb_properties);
-	smb->usb.supplied_to = battery;
-	smb->usb.num_supplicants = ARRAY_SIZE(battery);
-=======
 	if (smb->pdata->use_mains) {
 		smb->mains.name = "smb347-mains";
 		smb->mains.type = POWER_SUPPLY_TYPE_MAINS;
@@ -1796,7 +1550,6 @@ static int smb347_probe(struct i2c_client *client,
 			return ret;
 		}
 	}
->>>>>>> android-3.18
 
 	smb->battery.name = "smb347-battery";
 	smb->battery.type = POWER_SUPPLY_TYPE_BATTERY;
@@ -1806,24 +1559,6 @@ static int smb347_probe(struct i2c_client *client,
 	smb->battery.properties = smb347_battery_properties;
 	smb->battery.num_properties = ARRAY_SIZE(smb347_battery_properties);
 
-<<<<<<< HEAD
-	if (smb->pdata->supplied_to) {
-		smb->battery.supplied_to = smb->pdata->supplied_to;
-		smb->battery.num_supplicants = smb->pdata->num_supplicants;
-		smb->battery.external_power_changed = power_supply_changed;
-	}
-
-	ret = power_supply_register(dev, &smb->mains);
-	if (ret < 0)
-		return ret;
-
-	ret = power_supply_register(dev, &smb->usb);
-	if (ret < 0) {
-		power_supply_unregister(&smb->mains);
-		return ret;
-	}
-=======
->>>>>>> android-3.18
 
 	ret = power_supply_register(dev, &smb->battery);
 	if (ret < 0) {

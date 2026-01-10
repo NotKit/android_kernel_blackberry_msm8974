@@ -117,15 +117,6 @@ static netdev_tx_t veth_xmit(struct sk_buff *skb, struct net_device *dev)
 		kfree_skb(skb);
 		goto drop;
 	}
-<<<<<<< HEAD
-	/* don't change ip_summed == CHECKSUM_PARTIAL, as that
-	 * will cause bad checksum on forwarded packets
-	 */
-	if (skb->ip_summed == CHECKSUM_NONE &&
-	    rcv->features & NETIF_F_RXCSUM)
-		skb->ip_summed = CHECKSUM_UNNECESSARY;
-=======
->>>>>>> android-3.18
 
 	if (likely(dev_forward_skb(rcv, skb) == NET_RX_SUCCESS)) {
 		struct pcpu_vstats *stats = this_cpu_ptr(dev->vstats);
@@ -159,17 +150,10 @@ static u64 veth_stats_one(struct pcpu_vstats *result, struct net_device *dev)
 		unsigned int start;
 
 		do {
-<<<<<<< HEAD
-			start = u64_stats_fetch_begin_bh(&stats->syncp);
-			packets = stats->packets;
-			bytes = stats->bytes;
-		} while (u64_stats_fetch_retry_bh(&stats->syncp, start));
-=======
 			start = u64_stats_fetch_begin_irq(&stats->syncp);
 			packets = stats->packets;
 			bytes = stats->bytes;
 		} while (u64_stats_fetch_retry_irq(&stats->syncp, start));
->>>>>>> android-3.18
 		result->packets += packets;
 		result->bytes += bytes;
 	}
@@ -246,16 +230,9 @@ static int veth_change_mtu(struct net_device *dev, int new_mtu)
 
 static int veth_dev_init(struct net_device *dev)
 {
-<<<<<<< HEAD
-	dev->vstats = alloc_percpu(struct pcpu_vstats);
-	if (!dev->vstats)
-		return -ENOMEM;
-
-=======
 	dev->vstats = netdev_alloc_pcpu_stats(struct pcpu_vstats);
 	if (!dev->vstats)
 		return -ENOMEM;
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -296,14 +273,10 @@ static const struct net_device_ops veth_netdev_ops = {
 
 #define VETH_FEATURES (NETIF_F_SG | NETIF_F_FRAGLIST | NETIF_F_ALL_TSO |    \
 		       NETIF_F_HW_CSUM | NETIF_F_RXCSUM | NETIF_F_HIGHDMA | \
-<<<<<<< HEAD
-		       NETIF_F_HW_VLAN_TX | NETIF_F_HW_VLAN_RX)
-=======
 		       NETIF_F_GSO_GRE | NETIF_F_GSO_UDP_TUNNEL |	    \
 		       NETIF_F_GSO_IPIP | NETIF_F_GSO_SIT | NETIF_F_UFO	|   \
 		       NETIF_F_HW_VLAN_CTAG_TX | NETIF_F_HW_VLAN_CTAG_RX | \
 		       NETIF_F_HW_VLAN_STAG_TX | NETIF_F_HW_VLAN_STAG_RX )
->>>>>>> android-3.18
 
 static void veth_setup(struct net_device *dev)
 {
@@ -316,11 +289,6 @@ static void veth_setup(struct net_device *dev)
 	dev->ethtool_ops = &veth_ethtool_ops;
 	dev->features |= NETIF_F_LLTX;
 	dev->features |= VETH_FEATURES;
-<<<<<<< HEAD
-	dev->destructor = veth_dev_free;
-
-	dev->hw_features = VETH_FEATURES;
-=======
 	dev->vlan_features = dev->features &
 			     ~(NETIF_F_HW_VLAN_CTAG_TX |
 			       NETIF_F_HW_VLAN_STAG_TX |
@@ -330,7 +298,6 @@ static void veth_setup(struct net_device *dev)
 
 	dev->hw_features = VETH_FEATURES;
 	dev->hw_enc_features = VETH_FEATURES;
->>>>>>> android-3.18
 }
 
 /*
@@ -415,12 +382,9 @@ static int veth_newlink(struct net *src_net, struct net_device *dev,
 	if (ifmp && (dev->ifindex != 0))
 		peer->ifindex = ifmp->ifi_index;
 
-<<<<<<< HEAD
-=======
 	peer->gso_max_size = dev->gso_max_size;
 	peer->gso_max_segs = dev->gso_max_segs;
 
->>>>>>> android-3.18
 	err = register_netdevice(peer);
 	put_net(net);
 	net = NULL;

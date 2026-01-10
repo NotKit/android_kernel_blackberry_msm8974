@@ -412,8 +412,6 @@ static int lis3lv02d_suspend(struct device *dev)
 
 static int lis3lv02d_resume(struct device *dev)
 {
-<<<<<<< HEAD
-=======
 	lis3_dev.init_required = false;
 	lis3lv02d_poweron(&lis3_dev);
 	return 0;
@@ -422,7 +420,6 @@ static int lis3lv02d_resume(struct device *dev)
 static int lis3lv02d_restore(struct device *dev)
 {
 	lis3_dev.init_required = true;
->>>>>>> android-3.18
 	lis3lv02d_poweron(&lis3_dev);
 	return 0;
 }

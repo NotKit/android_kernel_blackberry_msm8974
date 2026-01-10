@@ -626,16 +626,11 @@ gpio_keys_get_devtree_pdata(struct device *dev)
 	if (nbuttons == 0)
 		return ERR_PTR(-ENODEV);
 
-<<<<<<< HEAD
-	pdata->rep = !!of_get_property(node, "autorepeat", NULL);
-	pdata->name = of_get_property(node, "input-name", NULL);
-=======
 	pdata = devm_kzalloc(dev,
 			     sizeof(*pdata) + nbuttons * sizeof(*button),
 			     GFP_KERNEL);
 	if (!pdata)
 		return ERR_PTR(-ENOMEM);
->>>>>>> android-3.18
 
 	pdata->buttons = (struct gpio_keys_button *)(pdata + 1);
 	pdata->nbuttons = nbuttons;

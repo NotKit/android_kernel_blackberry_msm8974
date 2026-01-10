@@ -118,15 +118,10 @@ unsigned int efx_tx_max_skb_descs(struct efx_nic *efx)
 	 */
 	unsigned int max_descs = EFX_TSO_MAX_SEGS * 2 + MAX_SKB_FRAGS;
 
-<<<<<<< HEAD
-	/* Possibly one more per segment for the alignment workaround */
-	if (EFX_WORKAROUND_5391(efx))
-=======
 	/* Possibly one more per segment for the alignment workaround,
 	 * or for option descriptors
 	 */
 	if (EFX_WORKAROUND_5391(efx) || efx_nic_rev(efx) >= EFX_REV_HUNT_A0)
->>>>>>> android-3.18
 		max_descs += EFX_TSO_MAX_SEGS;
 
 	/* Possibly more for PCIe page boundaries within input fragments */
@@ -137,8 +132,6 @@ unsigned int efx_tx_max_skb_descs(struct efx_nic *efx)
 	return max_descs;
 }
 
-<<<<<<< HEAD
-=======
 static void efx_tx_maybe_stop_queue(struct efx_tx_queue *txq1)
 {
 	/* We need to consider both queues that the net core sees as one */
@@ -321,7 +314,6 @@ efx_enqueue_skb_pio(struct efx_tx_queue *tx_queue, struct sk_buff *skb)
 }
 #endif /* EFX_USE_PIO */
 
->>>>>>> android-3.18
 /*
  * Add a socket buffer to a TX queue
  *

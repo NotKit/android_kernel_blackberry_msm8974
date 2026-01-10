@@ -11,8 +11,6 @@ generic-y += irq_regs.h
 generic-y += irq_work.h
 generic-y += linkage.h
 generic-y += local.h
-<<<<<<< HEAD
-=======
 generic-y += local64.h
 generic-y += mcs_spinlock.h
 generic-y += module.h
@@ -22,5 +20,4 @@ generic-y += scatterlist.h
 generic-y += serial.h
 generic-y += trace_clock.h
 generic-y += types.h
->>>>>>> android-3.18
 generic-y += word-at-a-time.h

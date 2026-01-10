@@ -170,11 +170,7 @@ static unsigned int counters_total_to_per_cpu(unsigned int counters)
 	return counters >> vpe_shift();
 }
 
-<<<<<<< HEAD
-#else /* !CONFIG_MIPS_MT_SMP */
-=======
 #else /* !CONFIG_MIPS_PERF_SHARED_TC_COUNTERS */
->>>>>>> android-3.18
 #define vpe_id()	0
 
 #endif /* CONFIG_MIPS_PERF_SHARED_TC_COUNTERS */

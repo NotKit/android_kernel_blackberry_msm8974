@@ -249,30 +249,6 @@ static inline int get_int(char **bpp, int *anint)
 }
 
 static inline int get_uint(char **bpp, unsigned int *anint)
-<<<<<<< HEAD
-{
-	char buf[50];
-	int len = qword_get(bpp, buf, sizeof(buf));
-
-	if (len < 0)
-		return -EINVAL;
-	if (len == 0)
-		return -ENOENT;
-
-	if (kstrtouint(buf, 0, anint))
-		return -EINVAL;
-
-	return 0;
-}
-
-/*
- * timestamps kept in the cache are expressed in seconds
- * since boot.  This is the best for measuring differences in
- * real time.
- */
-static inline time_t seconds_since_boot(void)
-=======
->>>>>>> android-3.18
 {
 	char buf[50];
 	int len = qword_get(bpp, buf, sizeof(buf));

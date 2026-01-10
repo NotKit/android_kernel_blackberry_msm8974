@@ -490,17 +490,10 @@ static int ab8500_rtc_probe(struct platform_device *pdev)
 		return err;
 	}
 
-<<<<<<< HEAD
-	err = request_threaded_irq(irq, NULL, rtc_alarm_handler,
-		IRQF_NO_SUSPEND | IRQF_ONESHOT, "ab8500-rtc", rtc);
-	if (err < 0) {
-		rtc_device_unregister(rtc);
-=======
 	err = devm_request_threaded_irq(&pdev->dev, irq, NULL,
 			rtc_alarm_handler, IRQF_NO_SUSPEND | IRQF_ONESHOT,
 			"ab8500-rtc", rtc);
 	if (err < 0)
->>>>>>> android-3.18
 		return err;
 
 	platform_set_drvdata(pdev, rtc);

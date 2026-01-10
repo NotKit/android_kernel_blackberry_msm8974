@@ -780,33 +780,7 @@ static void brcmf_escan_prep(struct brcmf_cfg80211_info *cfg,
 	params_le->active_time = cpu_to_le32(-1);
 	params_le->passive_time = cpu_to_le32(-1);
 	params_le->home_time = cpu_to_le32(-1);
-<<<<<<< HEAD
-	if (ssid && ssid->SSID_len) {
-		params_le->ssid_le.SSID_len = cpu_to_le32(ssid->SSID_len);
-		memcpy(&params_le->ssid_le.SSID, ssid->SSID, ssid->SSID_len);
-	}
-}
-
-static s32
-brcmf_dev_iovar_setbuf(struct net_device *ndev, s8 * iovar, void *param,
-		    s32 paramlen, void *bufptr, s32 buflen)
-{
-	s32 iolen;
-
-	iolen = brcmf_c_mkiovar(iovar, param, paramlen, bufptr, buflen);
-	BUG_ON(!iolen);
-
-	return brcmf_exec_dcmd(ndev, BRCMF_C_SET_VAR, bufptr, iolen);
-}
-
-static s32
-brcmf_dev_iovar_getbuf(struct net_device *ndev, s8 * iovar, void *param,
-		    s32 paramlen, void *bufptr, s32 buflen)
-{
-	s32 iolen;
-=======
 	memset(&params_le->ssid_le, 0, sizeof(params_le->ssid_le));
->>>>>>> android-3.18
 
 	/* if request is null exit so it will be all channel broadcast scan */
 	if (!request)

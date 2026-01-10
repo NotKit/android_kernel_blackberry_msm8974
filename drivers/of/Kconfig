@@ -85,26 +85,6 @@ config OF_MTD
 	depends on MTD
 	def_bool y
 
-<<<<<<< HEAD
-config OF_SLIMBUS
-	def_tristate SLIMBUS
-	depends on SLIMBUS
-	help
-	  OpenFirmware SLIMBUS accessors
-
-config OF_CORESIGHT
-	def_bool y
-	depends on CORESIGHT
-	help
-	  OpenFirmware CoreSight accessors
-
-config OF_BATTERYDATA
-	def_bool y
-	help
-	  OpenFirmware BatteryData accessors
-
-endmenu # OF
-=======
 config OF_RESERVED_MEM
 	depends on OF_EARLY_FLATTREE
 	bool
@@ -121,4 +101,3 @@ config OF_OVERLAY
 	select OF_DEVICE
 	select OF_RESOLVE
 endif # OF
->>>>>>> android-3.18

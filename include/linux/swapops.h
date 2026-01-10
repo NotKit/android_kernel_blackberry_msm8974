@@ -141,12 +141,8 @@ extern void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
 					spinlock_t *ptl);
 extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
 					unsigned long address);
-<<<<<<< HEAD
-extern void migration_entry_wait_huge(struct mm_struct *mm, pte_t *pte);
-=======
 extern void migration_entry_wait_huge(struct vm_area_struct *vma,
 		struct mm_struct *mm, pte_t *pte);
->>>>>>> android-3.18
 #else
 
 #define make_migration_entry(page, write) swp_entry(0, 0)
@@ -160,13 +156,8 @@ static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
 					spinlock_t *ptl) { }
 static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
 					 unsigned long address) { }
-<<<<<<< HEAD
-static inline void migration_entry_wait_huge(struct mm_struct *mm,
-					pte_t *pte) { }
-=======
 static inline void migration_entry_wait_huge(struct vm_area_struct *vma,
 		struct mm_struct *mm, pte_t *pte) { }
->>>>>>> android-3.18
 static inline int is_write_migration_entry(swp_entry_t entry)
 {
 	return 0;

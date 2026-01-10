@@ -68,12 +68,6 @@ struct ti_port {
 	__u8			tp_uart_mode;	/* 232 or 485 modes */
 	unsigned int		tp_uart_base_addr;
 	int			tp_flags;
-<<<<<<< HEAD
-	int			tp_closing_wait;/* in .01 secs */
-	struct async_icount	tp_icount;
-	wait_queue_head_t	tp_write_wait;
-=======
->>>>>>> android-3.18
 	struct ti_device	*tp_tdev;
 	struct usb_serial_port	*tp_port;
 	spinlock_t		tp_lock;
@@ -148,14 +142,7 @@ static int ti_download_firmware(struct ti_device *tdev);
 static int closing_wait = TI_DEFAULT_CLOSING_WAIT;
 
 /* supported devices */
-<<<<<<< HEAD
-/* the array dimension is the number of default entries plus */
-/* TI_EXTRA_VID_PID_COUNT user defined entries plus 1 terminating */
-/* null entry */
-static struct usb_device_id ti_id_table_3410[16+TI_EXTRA_VID_PID_COUNT+1] = {
-=======
 static const struct usb_device_id ti_id_table_3410[] = {
->>>>>>> android-3.18
 	{ USB_DEVICE(TI_VENDOR_ID, TI_3410_PRODUCT_ID) },
 	{ USB_DEVICE(TI_VENDOR_ID, TI_3410_EZ430_ID) },
 	{ USB_DEVICE(MTS_VENDOR_ID, MTS_GSM_NO_FW_PRODUCT_ID) },
@@ -172,10 +159,7 @@ static const struct usb_device_id ti_id_table_3410[] = {
 	{ USB_DEVICE(ABBOTT_VENDOR_ID, ABBOTT_STEREO_PLUG_ID) },
 	{ USB_DEVICE(ABBOTT_VENDOR_ID, ABBOTT_STRIP_PORT_ID) },
 	{ USB_DEVICE(TI_VENDOR_ID, FRI2_PRODUCT_ID) },
-<<<<<<< HEAD
-=======
 	{ }	/* terminator */
->>>>>>> android-3.18
 };
 
 static const struct usb_device_id ti_id_table_5052[] = {
@@ -186,11 +170,7 @@ static const struct usb_device_id ti_id_table_5052[] = {
 	{ }	/* terminator */
 };
 
-<<<<<<< HEAD
-static struct usb_device_id ti_id_table_combined[20+2*TI_EXTRA_VID_PID_COUNT+1] = {
-=======
 static const struct usb_device_id ti_id_table_combined[] = {
->>>>>>> android-3.18
 	{ USB_DEVICE(TI_VENDOR_ID, TI_3410_PRODUCT_ID) },
 	{ USB_DEVICE(TI_VENDOR_ID, TI_3410_EZ430_ID) },
 	{ USB_DEVICE(MTS_VENDOR_ID, MTS_GSM_NO_FW_PRODUCT_ID) },
@@ -211,18 +191,7 @@ static const struct usb_device_id ti_id_table_combined[] = {
 	{ USB_DEVICE(ABBOTT_VENDOR_ID, ABBOTT_PRODUCT_ID) },
 	{ USB_DEVICE(ABBOTT_VENDOR_ID, ABBOTT_STRIP_PORT_ID) },
 	{ USB_DEVICE(TI_VENDOR_ID, FRI2_PRODUCT_ID) },
-<<<<<<< HEAD
-	{ }
-};
-
-static struct usb_driver ti_usb_driver = {
-	.name			= "ti_usb_3410_5052",
-	.probe			= usb_serial_probe,
-	.disconnect		= usb_serial_disconnect,
-	.id_table		= ti_id_table_combined,
-=======
 	{ }	/* terminator */
->>>>>>> android-3.18
 };
 
 static struct usb_serial_driver ti_1port_device = {
@@ -368,38 +337,11 @@ static int ti_startup(struct usb_serial *serial)
 		goto free_tdev;
 	}
 
-<<<<<<< HEAD
-	/* set up port structures */
-	for (i = 0; i < serial->num_ports; ++i) {
-		tport = kzalloc(sizeof(struct ti_port), GFP_KERNEL);
-		if (tport == NULL) {
-			dev_err(&dev->dev, "%s - out of memory\n", __func__);
-			status = -ENOMEM;
-			goto free_tports;
-		}
-		spin_lock_init(&tport->tp_lock);
-		tport->tp_uart_base_addr = (i == 0 ?
-				TI_UART1_BASE_ADDR : TI_UART2_BASE_ADDR);
-		tport->tp_closing_wait = closing_wait;
-		init_waitqueue_head(&tport->tp_write_wait);
-		if (kfifo_alloc(&tport->write_fifo, TI_WRITE_BUF_SIZE,
-								GFP_KERNEL)) {
-			dev_err(&dev->dev, "%s - out of memory\n", __func__);
-			kfree(tport);
-			status = -ENOMEM;
-			goto free_tports;
-		}
-		tport->tp_port = serial->port[i];
-		tport->tp_tdev = tdev;
-		usb_set_serial_port_data(serial->port[i], tport);
-		tport->tp_uart_mode = 0;	/* default is RS232 */
-=======
 	if (serial->num_bulk_in < serial->num_ports ||
 			serial->num_bulk_out < serial->num_ports) {
 		dev_err(&serial->interface->dev, "missing endpoints\n");
 		status = -ENODEV;
 		goto free_tdev;
->>>>>>> android-3.18
 	}
 
 	return 0;
@@ -754,32 +696,6 @@ static int ti_ioctl(struct tty_struct *tty,
 		dev_dbg(&port->dev, "%s - TIOCSSERIAL\n", __func__);
 		return ti_set_serial_info(tty, tport,
 				(struct serial_struct __user *)arg);
-<<<<<<< HEAD
-	case TIOCMIWAIT:
-		dbg("%s - (%d) TIOCMIWAIT", __func__, port->number);
-		cprev = tport->tp_icount;
-		while (1) {
-			interruptible_sleep_on(&port->delta_msr_wait);
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			cnow = tport->tp_icount;
-			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
-			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts)
-				return -EIO; /* no change => error */
-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-			    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts)))
-				return 0;
-			cprev = cnow;
-		}
-		break;
-=======
->>>>>>> android-3.18
 	}
 	return -ENOIOCTLCMD;
 }
@@ -1368,11 +1284,7 @@ static void ti_handle_new_msr(struct ti_port *tport, __u8 msr)
 			icount->dcd++;
 		if (msr & TI_MSR_DELTA_RI)
 			icount->rng++;
-<<<<<<< HEAD
-		wake_up_interruptible(&tport->tp_port->delta_msr_wait);
-=======
 		wake_up_interruptible(&tport->tp_port->port.delta_msr_wait);
->>>>>>> android-3.18
 		spin_unlock_irqrestore(&tport->tp_lock, flags);
 	}
 
@@ -1539,13 +1451,9 @@ static int ti_download_firmware(struct ti_device *tdev)
 	sprintf(buf, "ti_usb-v%04x-p%04x.fw",
 			le16_to_cpu(dev->descriptor.idVendor),
 			le16_to_cpu(dev->descriptor.idProduct));
-<<<<<<< HEAD
-	if ((status = request_firmware(&fw_p, buf, &dev->dev)) != 0) {
-=======
 	status = request_firmware(&fw_p, buf, &dev->dev);
 
 	if (status != 0) {
->>>>>>> android-3.18
 		buf[0] = '\0';
 		if (le16_to_cpu(dev->descriptor.idVendor) == MTS_VENDOR_ID) {
 			switch (le16_to_cpu(dev->descriptor.idProduct)) {

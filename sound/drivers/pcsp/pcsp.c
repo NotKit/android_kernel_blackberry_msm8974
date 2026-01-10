@@ -188,10 +188,6 @@ static int pcsp_remove(struct platform_device *dev)
 	struct snd_pcsp *chip = platform_get_drvdata(dev);
 	pcspkr_input_remove(chip->input_dev);
 	alsa_card_pcsp_exit(chip);
-<<<<<<< HEAD
-	platform_set_drvdata(dev, NULL);
-=======
->>>>>>> android-3.18
 	return 0;
 }
 

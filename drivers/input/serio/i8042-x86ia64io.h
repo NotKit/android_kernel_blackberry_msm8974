@@ -449,8 +449,6 @@ static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
 		},
 	},
 	{
-<<<<<<< HEAD
-=======
 		/* Acer Aspire 5710 */
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
@@ -458,7 +456,6 @@ static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
 		},
 	},
 	{
->>>>>>> android-3.18
 		/* Acer Aspire 7738 */
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
@@ -523,8 +520,6 @@ static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
 		},
 	},
 	{
-<<<<<<< HEAD
-=======
 		/* Asus X450LCP */
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
@@ -532,15 +527,12 @@ static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
 		},
 	},
 	{
->>>>>>> android-3.18
 		/* Avatar AVIU-145A6 */
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Intel"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "IC4I"),
 		},
 	},
-<<<<<<< HEAD
-=======
 	{
 		/* TUXEDO BU1406 */
 		.matches = {
@@ -574,7 +566,6 @@ static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
 			DMI_MATCH(DMI_PRODUCT_VERSION, "EL07R4"),
 		},
 	},
->>>>>>> android-3.18
 	{ }
 };
 
@@ -820,8 +811,6 @@ static const struct dmi_system_id __initconst i8042_dmi_notimeout_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK U574"),
 		},
 	},
-<<<<<<< HEAD
-=======
 	{
 		/* Fujitsu UH554 laptop */
 		.matches = {
@@ -843,7 +832,6 @@ static const struct dmi_system_id i8042_dmi_forcemux_table[] __initconst = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-CS"),
 		},
 	},
->>>>>>> android-3.18
 	{ }
 };
 
@@ -953,8 +941,6 @@ static const struct dmi_system_id __initconst i8042_dmi_kbdreset_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "P34"),
 		},
 	},
-<<<<<<< HEAD
-=======
 	{
 		/* Gigabyte P57 - Elantech touchpad */
 		.matches = {
@@ -969,7 +955,6 @@ static const struct dmi_system_id __initconst i8042_dmi_kbdreset_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "C504"),
 		},
 	},
->>>>>>> android-3.18
 	{ }
 };
 

@@ -644,21 +644,7 @@ void rs600_gart_set_page(struct radeon_device *rdev, unsigned i,
 			 uint64_t entry)
 {
 	void __iomem *ptr = (void *)rdev->gart.ptr;
-<<<<<<< HEAD
-
-	if (i < 0 || i > rdev->gart.num_gpu_pages) {
-		return -EINVAL;
-	}
-	addr = addr & 0xFFFFFFFFFFFFF000ULL;
-	if (addr != rdev->dummy_page.addr)
-		addr |= R600_PTE_VALID | R600_PTE_READABLE |
-			R600_PTE_WRITEABLE;
-	addr |= R600_PTE_SYSTEM | R600_PTE_SNOOPED;
-	writeq(addr, ptr + (i * 8));
-	return 0;
-=======
 	writeq(entry, ptr + (i * 8));
->>>>>>> android-3.18
 }
 
 int rs600_irq_set(struct radeon_device *rdev)
@@ -705,11 +691,8 @@ int rs600_irq_set(struct radeon_device *rdev)
 	WREG32(R_006540_DxMODE_INT_MASK, mode_int);
 	WREG32(R_007D08_DC_HOT_PLUG_DETECT1_INT_CONTROL, hpd1);
 	WREG32(R_007D18_DC_HOT_PLUG_DETECT2_INT_CONTROL, hpd2);
-<<<<<<< HEAD
-=======
 	if (ASIC_IS_DCE2(rdev))
 		WREG32(R_007408_HDMI0_AUDIO_PACKET_CONTROL, hdmi0);
->>>>>>> android-3.18
 
 	/* posting read */
 	RREG32(R_000040_GEN_INT_CNTL);

@@ -935,13 +935,8 @@ static int ixgbe_alloc_q_vector(struct ixgbe_adapter *adapter,
 		if (adapter->netdev->features & NETIF_F_FCOE_MTU) {
 			struct ixgbe_ring_feature *f;
 			f = &adapter->ring_feature[RING_F_FCOE];
-<<<<<<< HEAD
-			if ((rxr_idx >= f->mask) &&
-			    (rxr_idx < f->mask + f->indices))
-=======
 			if ((rxr_idx >= f->offset) &&
 			    (rxr_idx < f->offset + f->indices))
->>>>>>> android-3.18
 				set_bit(__IXGBE_RX_FCOE, &ring->state);
 		}
 

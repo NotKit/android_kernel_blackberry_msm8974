@@ -27,60 +27,7 @@
 #include <linux/spi/flash.h>
 #include <linux/mtd/spi-nor.h>
 
-<<<<<<< HEAD
-/* Flash opcodes. */
-#define	OPCODE_WREN		0x06	/* Write enable */
-#define	OPCODE_RDSR		0x05	/* Read status register */
-#define	OPCODE_WRSR		0x01	/* Write status register 1 byte */
-#define	OPCODE_NORM_READ	0x03	/* Read data bytes (low frequency) */
-#define	OPCODE_FAST_READ	0x0b	/* Read data bytes (high frequency) */
-#define	OPCODE_PP		0x02	/* Page program (up to 256 bytes) */
-#define	OPCODE_BE_4K		0x20	/* Erase 4KiB block */
-#define	OPCODE_BE_32K		0x52	/* Erase 32KiB block */
-#define	OPCODE_CHIP_ERASE	0xc7	/* Erase whole flash chip */
-#define	OPCODE_SE		0xd8	/* Sector erase (usually 64KiB) */
-#define	OPCODE_RDID		0x9f	/* Read JEDEC ID */
-
-/* Used for SST flashes only. */
-#define	OPCODE_BP		0x02	/* Byte program */
-#define	OPCODE_WRDI		0x04	/* Write disable */
-#define	OPCODE_AAI_WP		0xad	/* Auto address increment word program */
-
-/* Used for Macronix flashes only. */
-#define	OPCODE_EN4B		0xb7	/* Enter 4-byte mode */
-#define	OPCODE_EX4B		0xe9	/* Exit 4-byte mode */
-
-/* Used for Spansion flashes only. */
-#define	OPCODE_BRWR		0x17	/* Bank register write */
-
-/* Status Register bits. */
-#define	SR_WIP			1	/* Write in progress */
-#define	SR_WEL			2	/* Write enable latch */
-/* meaning of other SR_* bits may differ between vendors */
-#define	SR_BP0			4	/* Block protect 0 */
-#define	SR_BP1			8	/* Block protect 1 */
-#define	SR_BP2			0x10	/* Block protect 2 */
-#define	SR_SRWD			0x80	/* SR write protect */
-
-/* Define max times to check status register before we give up. */
-#define	MAX_READY_WAIT_JIFFIES	(40 * HZ)	/* M25P16 specs 40s max chip erase */
 #define	MAX_CMD_SIZE		6
-
-#ifdef CONFIG_M25PXX_USE_FAST_READ
-#define OPCODE_READ 	OPCODE_FAST_READ
-#define FAST_READ_DUMMY_BYTE 1
-#else
-#define OPCODE_READ 	OPCODE_NORM_READ
-#define FAST_READ_DUMMY_BYTE 0
-#endif
-
-#define JEDEC_MFR(_jedec_id)	((_jedec_id) >> 16)
-
-/****************************************************************************/
-
-=======
-#define	MAX_CMD_SIZE		6
->>>>>>> android-3.18
 struct m25p {
 	struct spi_device	*spi;
 	struct spi_nor		spi_nor;
@@ -257,13 +204,6 @@ static int m25p_probe(struct spi_device *spi)
 	flash = devm_kzalloc(&spi->dev, sizeof(*flash), GFP_KERNEL);
 	if (!flash)
 		return -ENOMEM;
-<<<<<<< HEAD
-
-	flash->command = devm_kzalloc(&spi->dev, MAX_CMD_SIZE, GFP_KERNEL);
-	if (!flash->command)
-		return -ENOMEM;
-=======
->>>>>>> android-3.18
 
 	nor = &flash->spi_nor;
 
@@ -314,19 +254,10 @@ static int m25p_probe(struct spi_device *spi)
 
 static int m25p_remove(struct spi_device *spi)
 {
-<<<<<<< HEAD
-	struct m25p	*flash = dev_get_drvdata(&spi->dev);
-
-	/* Clean up MTD stuff. */
-	mtd_device_unregister(&flash->mtd);
-
-	return 0;
-=======
 	struct m25p	*flash = spi_get_drvdata(spi);
 
 	/* Clean up MTD stuff. */
 	return mtd_device_unregister(&flash->mtd);
->>>>>>> android-3.18
 }
 
 

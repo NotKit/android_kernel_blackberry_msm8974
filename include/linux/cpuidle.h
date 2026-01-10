@@ -55,10 +55,7 @@ struct cpuidle_state {
 /* Idle State Flags */
 #define CPUIDLE_FLAG_TIME_VALID	(0x01) /* is residency time measurable? */
 #define CPUIDLE_FLAG_COUPLED	(0x02) /* state applies to multiple cpus */
-<<<<<<< HEAD
-=======
 #define CPUIDLE_FLAG_TIMER_STOP (0x04)  /* timer is stopped on this state */
->>>>>>> android-3.18
 
 #define CPUIDLE_DRIVER_FLAGS_MASK (0xFFFF0000)
 
@@ -77,11 +74,6 @@ struct cpuidle_device {
 	struct cpuidle_driver_kobj *kobj_driver;
 	struct cpuidle_device_kobj *kobj_dev;
 	struct list_head 	device_list;
-<<<<<<< HEAD
-	struct kobject		kobj;
-	struct completion	kobj_unregister;
-=======
->>>>>>> android-3.18
 
 #ifdef CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED
 	int			safe_state_index;

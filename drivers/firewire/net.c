@@ -787,19 +787,6 @@ static void fwnet_receive_broadcast(struct fw_iso_context *context,
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
-<<<<<<< HEAD
-	specifier_id =    (be32_to_cpu(buf_ptr[0]) & 0xffff) << 8
-			| (be32_to_cpu(buf_ptr[1]) & 0xff000000) >> 24;
-	ver = be32_to_cpu(buf_ptr[1]) & 0xffffff;
-	source_node_id = be32_to_cpu(buf_ptr[0]) >> 16;
-
-	if (specifier_id == IANA_SPECIFIER_ID && ver == RFC2734_SW_VERSION) {
-		buf_ptr += 2;
-		length -= IEEE1394_GASP_HDR_SIZE;
-		fwnet_incoming_packet(dev, buf_ptr, length, source_node_id,
-				      context->card->generation, true);
-	}
-=======
 	if (length > IEEE1394_GASP_HDR_SIZE &&
 	    gasp_specifier_id(buf_ptr) == IANA_SPECIFIER_ID &&
 	    (gasp_version(buf_ptr) == RFC2734_SW_VERSION
@@ -811,7 +798,6 @@ static void fwnet_receive_broadcast(struct fw_iso_context *context,
 				      length - IEEE1394_GASP_HDR_SIZE,
 				      gasp_source_id(buf_ptr),
 				      context->card->generation, true);
->>>>>>> android-3.18
 
 	packet.payload_length = dev->rcv_buffer_size;
 	packet.interrupt = 1;
@@ -1016,8 +1002,6 @@ static int fwnet_send_packet(struct fwnet_packet_task *ptask)
 		smp_rmb();
 		node_id = dev->card->node_id;
 
-<<<<<<< HEAD
-=======
 		switch (ptask->skb->protocol) {
 		default:
 			sw_version = RFC2734_SW_VERSION;
@@ -1028,7 +1012,6 @@ static int fwnet_send_packet(struct fwnet_packet_task *ptask)
 #endif
 		}
 
->>>>>>> android-3.18
 		p = skb_push(ptask->skb, IEEE1394_GASP_HDR_SIZE);
 		put_unaligned_be32(node_id << 16 | IANA_SPECIFIER_ID >> 8, p);
 		put_unaligned_be32((IANA_SPECIFIER_ID & 0xff) << 24

@@ -79,17 +79,6 @@ struct voltage_map_desc {
 
 /* Voltage maps in uV */
 static const struct voltage_map_desc ldo_voltage_map_desc = {
-<<<<<<< HEAD
-	.min = 800000,	.max = 3950000,	.step = 50000,	.n_bits = 6,
-}; /* LDO1 ~ 18, 21 all */
-
-static const struct voltage_map_desc buck1245_voltage_map_desc = {
-	.min = 650000,	.max = 2225000,	.step = 25000,	.n_bits = 6,
-}; /* Buck1, 2, 4, 5 */
-
-static const struct voltage_map_desc buck37_voltage_map_desc = {
-	.min = 750000,	.max = 3900000,	.step = 50000,	.n_bits = 6,
-=======
 	.min = 800000,	.max = 3950000,	.step = 50000,
 }; /* LDO1 ~ 18, 21 all */
 
@@ -99,24 +88,15 @@ static const struct voltage_map_desc buck1245_voltage_map_desc = {
 
 static const struct voltage_map_desc buck37_voltage_map_desc = {
 	.min = 750000,	.max = 3900000,	.step = 50000,
->>>>>>> android-3.18
 }; /* Buck3, 7 */
 
 /* current map in uA */
 static const struct voltage_map_desc charger_current_map_desc = {
-<<<<<<< HEAD
-	.min = 200000,	.max = 950000,	.step = 50000,	.n_bits = 4,
-};
-
-static const struct voltage_map_desc topoff_current_map_desc = {
-	.min = 50000,	.max = 200000,	.step = 10000,	.n_bits = 4,
-=======
 	.min = 200000,	.max = 950000,	.step = 50000,
 };
 
 static const struct voltage_map_desc topoff_current_map_desc = {
 	.min = 50000,	.max = 200000,	.step = 10000,
->>>>>>> android-3.18
 };
 
 static const struct voltage_map_desc *reg_voltage_map[] = {
@@ -522,14 +502,6 @@ static int max8997_set_voltage_ldobuck(struct regulator_dev *rdev,
 	ret = max8997_update_reg(i2c, reg, i << shift, mask << shift);
 	*selector = i;
 
-<<<<<<< HEAD
-	if (rid == MAX8997_BUCK1 || rid == MAX8997_BUCK2 ||
-			rid == MAX8997_BUCK4 || rid == MAX8997_BUCK5) {
-		/* If the voltage is increasing */
-		if (org < i)
-			udelay(DIV_ROUND_UP(desc->step * (i - org),
-						max8997->ramp_delay * 1000));
-=======
 	return ret;
 }
 
@@ -559,7 +531,6 @@ static int max8997_set_voltage_buck_time_sel(struct regulator_dev *rdev,
 		if (max8997->buck5_gpiodvs)
 			return 0;
 		break;
->>>>>>> android-3.18
 	}
 
 	switch (rid) {

@@ -531,11 +531,7 @@ void vmw_fence_obj_flush(struct vmw_fence_obj *fence)
 
 static void vmw_fence_destroy(struct vmw_fence_obj *fence)
 {
-<<<<<<< HEAD
-	kfree(fence);
-=======
 	fence_free(&fence->base);
->>>>>>> android-3.18
 }
 
 int vmw_fence_create(struct vmw_fence_manager *fman,
@@ -543,11 +539,7 @@ int vmw_fence_create(struct vmw_fence_manager *fman,
 		     struct vmw_fence_obj **p_fence)
 {
 	struct vmw_fence_obj *fence;
-<<<<<<< HEAD
-	int ret;
-=======
  	int ret;
->>>>>>> android-3.18
 
 	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
 	if (unlikely(fence == NULL))

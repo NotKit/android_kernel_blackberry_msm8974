@@ -687,10 +687,6 @@ void ssb_pmu_spuravoid_pllupdate(struct ssb_chipcommon *cc, int spuravoid)
 		pmu_ctl = SSB_CHIPCO_PMU_CTL_PLL_UPD;
 		break;
 	case 43222:
-<<<<<<< HEAD
-		/* TODO: BCM43222 requires updating PLLs too */
-		return;
-=======
 		if (spuravoid == 1) {
 			ssb_chipco_pll_write(cc, SSB_PMU1_PLLCTL0, 0x11500008);
 			ssb_chipco_pll_write(cc, SSB_PMU1_PLLCTL1, 0x0C000C06);
@@ -708,7 +704,6 @@ void ssb_pmu_spuravoid_pllupdate(struct ssb_chipcommon *cc, int spuravoid)
 		}
 		pmu_ctl = SSB_CHIPCO_PMU_CTL_PLL_UPD;
 		break;
->>>>>>> android-3.18
 	default:
 		ssb_printk(KERN_ERR PFX
 			   "Unknown spuravoidance settings for chip 0x%04X, not changing PLL\n",

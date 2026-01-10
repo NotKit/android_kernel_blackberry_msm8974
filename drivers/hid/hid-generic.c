@@ -34,23 +34,7 @@ static struct hid_driver hid_generic = {
 	.name = "hid-generic",
 	.id_table = hid_table,
 };
-<<<<<<< HEAD
-
-static int __init hid_init(void)
-{
-	return hid_register_driver(&hid_generic);
-}
-
-static void __exit hid_exit(void)
-{
-	hid_unregister_driver(&hid_generic);
-}
-
-module_init(hid_init);
-module_exit(hid_exit);
-=======
 module_hid_driver(hid_generic);
->>>>>>> android-3.18
 
 MODULE_AUTHOR("Henrik Rydberg");
 MODULE_DESCRIPTION("HID generic driver");

@@ -212,25 +212,6 @@ static int spufs_fill_dir(struct dentry *dir,
 		files++;
 	}
 	return 0;
-<<<<<<< HEAD
-out:
-	/*
-	 * remove all children from dir. dir->inode is not set so don't
-	 * just simply use spufs_prune_dir() and panic afterwards :)
-	 * dput() looks like it will do the right thing:
-	 * - dec parent's ref counter
-	 * - remove child from parent's child list
-	 * - free child's inode if possible
-	 * - free child
-	 */
-	list_for_each_entry_safe(dentry, tmp, &dir->d_subdirs, d_child) {
-		dput(dentry);
-	}
-
-	shrink_dcache_parent(dir);
-	return ret;
-=======
->>>>>>> android-3.18
 }
 
 static int spufs_dir_close(struct inode *inode, struct file *file)
@@ -486,11 +467,7 @@ spufs_create_context(struct inode *inode, struct dentry *dentry,
 	}
 
 	ret = spufs_context_open(&path);
-<<<<<<< HEAD
-	if (ret < 0) {
-=======
 	if (ret < 0)
->>>>>>> android-3.18
 		WARN_ON(spufs_rmdir(inode, dentry));
 
 out_aff_unlock:
@@ -568,22 +545,12 @@ static int spufs_create_gang(struct inode *inode,
 	int ret;
 
 	ret = spufs_mkgang(inode, dentry, mode & S_IRWXUGO);
-<<<<<<< HEAD
-	if (ret)
-		goto out;
-
-	ret = spufs_gang_open(&path);
-	if (ret < 0) {
-		int err = simple_rmdir(inode, dentry);
-		WARN_ON(err);
-=======
 	if (!ret) {
 		ret = spufs_gang_open(&path);
 		if (ret < 0) {
 			int err = simple_rmdir(inode, dentry);
 			WARN_ON(err);
 		}
->>>>>>> android-3.18
 	}
 	return ret;
 }

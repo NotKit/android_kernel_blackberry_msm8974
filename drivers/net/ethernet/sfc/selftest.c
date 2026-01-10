@@ -721,11 +721,7 @@ int efx_selftest(struct efx_nic *efx, struct efx_self_tests *tests,
 			return rc_reset;
 		}
 
-<<<<<<< HEAD
-		if ((tests->registers < 0) && !rc_test)
-=======
 		if ((tests->memory < 0 || tests->registers < 0) && !rc_test)
->>>>>>> android-3.18
 			rc_test = -EIO;
 	}
 

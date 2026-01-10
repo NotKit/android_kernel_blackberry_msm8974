@@ -169,15 +169,6 @@ int vmbus_open(struct vmbus_channel *newchannel, u32 send_ringbuffer_size,
 	if (ret != 0) {
 		err = ret;
 		goto error1;
-<<<<<<< HEAD
-	}
-
-	t = wait_for_completion_timeout(&open_info->waitevent, 5*HZ);
-	if (t == 0) {
-		err = -ETIMEDOUT;
-		goto error1;
-=======
->>>>>>> android-3.18
 	}
 
 	wait_for_completion(&open_info->waitevent);
@@ -539,11 +530,7 @@ static int vmbus_close_internal(struct vmbus_channel *channel)
 		 * If we failed to post the close msg,
 		 * it is perhaps better to leak memory.
 		 */
-<<<<<<< HEAD
-		return;
-=======
 		goto out;
->>>>>>> android-3.18
 	}
 
 	/* Tear down the gpadl for the channel's ring buffer */
@@ -556,11 +543,7 @@ static int vmbus_close_internal(struct vmbus_channel *channel)
 			 * If we failed to teardown gpadl,
 			 * it is perhaps better to leak memory.
 			 */
-<<<<<<< HEAD
-			return;
-=======
 			goto out;
->>>>>>> android-3.18
 		}
 	}
 
@@ -570,8 +553,6 @@ static int vmbus_close_internal(struct vmbus_channel *channel)
 
 	free_pages((unsigned long)channel->ringbuffer_pages,
 		get_order(channel->ringbuffer_pagecount * PAGE_SIZE));
-<<<<<<< HEAD
-=======
 
 out:
 	tasklet_enable(tasklet);
@@ -608,7 +589,6 @@ void vmbus_close(struct vmbus_channel *channel)
 	 * Now close the primary.
 	 */
 	vmbus_close_internal(channel);
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(vmbus_close);
 

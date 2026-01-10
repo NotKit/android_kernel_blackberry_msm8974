@@ -2018,29 +2018,7 @@ int regmap_raw_write_async(struct regmap *map, unsigned int reg,
 
 	map->lock(map->lock_arg);
 
-<<<<<<< HEAD
-	/* No formatting is require if val_byte is 1 */
-	if (val_bytes == 1) {
-		wval = (void *)val;
-	} else {
-		if (!val_count) {
-			ret = -EINVAL;
-			goto out;
-		}
-
-		wval = kmemdup(val, val_count * val_bytes, GFP_KERNEL);
-		if (!wval) {
-			ret = -ENOMEM;
-			dev_err(map->dev, "Error in memory allocation\n");
-			goto out;
-		}
-		for (i = 0; i < val_count * val_bytes; i += val_bytes)
-			map->format.parse_val(wval + i);
-	}
-	ret = _regmap_raw_write(map, reg, wval, val_bytes * val_count);
-=======
 	map->async = true;
->>>>>>> android-3.18
 
 	ret = _regmap_raw_write(map, reg, val, val_len);
 
@@ -2340,11 +2318,7 @@ int regmap_bulk_read(struct regmap *map, unsigned int reg, void *val,
 					  &ival);
 			if (ret != 0)
 				return ret;
-<<<<<<< HEAD
-			map->format.format_val(val + (i * val_bytes), ival);
-=======
 			map->format.format_val(val + (i * val_bytes), ival, 0);
->>>>>>> android-3.18
 		}
 	}
 

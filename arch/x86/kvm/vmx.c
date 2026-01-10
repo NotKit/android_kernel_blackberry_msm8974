@@ -474,12 +474,8 @@ struct vcpu_vmx {
 #endif
 		int           gs_ldt_reload_needed;
 		int           fs_reload_needed;
-<<<<<<< HEAD
-		unsigned long vmcs_host_cr4;    /* May not match real cr4 */
-=======
 		u64           msr_host_bndcfgs;
 		unsigned long vmcs_host_cr4;	/* May not match real cr4 */
->>>>>>> android-3.18
 	} host_state;
 	struct {
 		int vm86_active;
@@ -1835,22 +1831,15 @@ static void __vmx_load_host_state(struct vcpu_vmx *vmx)
 #ifdef CONFIG_X86_64
 	wrmsrl(MSR_KERNEL_GS_BASE, vmx->msr_host_kernel_gs_base);
 #endif
-<<<<<<< HEAD
-=======
 	if (vmx->host_state.msr_host_bndcfgs)
 		wrmsrl(MSR_IA32_BNDCFGS, vmx->host_state.msr_host_bndcfgs);
->>>>>>> android-3.18
 	/*
 	 * If the FPU is not active (through the host task or
 	 * the guest vcpu), then restore the cr0.TS bit.
 	 */
 	if (!user_has_fpu() && !vmx->vcpu.guest_fpu_loaded)
 		stts();
-<<<<<<< HEAD
-	load_gdt(&__get_cpu_var(host_gdt));
-=======
 	load_gdt(this_cpu_ptr(&host_gdt));
->>>>>>> android-3.18
 }
 
 static void vmx_load_host_state(struct vcpu_vmx *vmx)
@@ -4357,11 +4346,7 @@ static void vmx_set_constant_host_state(struct vcpu_vmx *vmx)
 	vmcs_writel(HOST_CR3, read_cr3());  /* 22.2.3  FIXME: shadow tables */
 
 	/* Save the most likely value for this task's CR4 in the VMCS. */
-<<<<<<< HEAD
-	cr4 = read_cr4();
-=======
 	cr4 = cr4_read_shadow();
->>>>>>> android-3.18
 	vmcs_writel(HOST_CR4, cr4);			/* 22.2.3, 22.2.5 */
 	vmx->host_state.vmcs_host_cr4 = cr4;
 
@@ -5381,14 +5366,10 @@ static int handle_wrmsr(struct kvm_vcpu *vcpu)
 	u64 data = (vcpu->arch.regs[VCPU_REGS_RAX] & -1u)
 		| ((u64)(vcpu->arch.regs[VCPU_REGS_RDX] & -1u) << 32);
 
-<<<<<<< HEAD
-	if (kvm_set_msr(vcpu, ecx, data) != 0) {
-=======
 	msr.data = data;
 	msr.index = ecx;
 	msr.host_initiated = false;
 	if (kvm_set_msr(vcpu, &msr) != 0) {
->>>>>>> android-3.18
 		trace_kvm_msr_write_ex(ecx, data);
 		kvm_inject_gp(vcpu, 0);
 		return 1;
@@ -6824,11 +6805,6 @@ static int handle_vmptrst(struct kvm_vcpu *vcpu)
 	return 1;
 }
 
-<<<<<<< HEAD
-static int handle_invept(struct kvm_vcpu *vcpu)
-{
-	kvm_queue_exception(vcpu, UD_VECTOR);
-=======
 /* Emulate the INVEPT instruction */
 static int handle_invept(struct kvm_vcpu *vcpu)
 {
@@ -6891,7 +6867,6 @@ static int handle_invept(struct kvm_vcpu *vcpu)
 	}
 
 	skip_emulated_instruction(vcpu);
->>>>>>> android-3.18
 	return 1;
 }
 
@@ -6943,13 +6918,8 @@ static int (*const kvm_vmx_exit_handlers[])(struct kvm_vcpu *vcpu) = {
 	[EXIT_REASON_EPT_VIOLATION]	      = handle_ept_violation,
 	[EXIT_REASON_EPT_MISCONFIG]           = handle_ept_misconfig,
 	[EXIT_REASON_PAUSE_INSTRUCTION]       = handle_pause,
-<<<<<<< HEAD
-	[EXIT_REASON_MWAIT_INSTRUCTION]	      = handle_invalid_op,
-	[EXIT_REASON_MONITOR_INSTRUCTION]     = handle_invalid_op,
-=======
 	[EXIT_REASON_MWAIT_INSTRUCTION]	      = handle_mwait,
 	[EXIT_REASON_MONITOR_INSTRUCTION]     = handle_monitor,
->>>>>>> android-3.18
 	[EXIT_REASON_INVEPT]                  = handle_invept,
 	[EXIT_REASON_INVVPID]                 = handle_invvpid,
 };
@@ -7686,26 +7656,7 @@ static void atomic_switch_perf_msrs(struct vcpu_vmx *vmx)
 static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 {
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
-<<<<<<< HEAD
-	unsigned long cr4;
-
-	if (is_guest_mode(vcpu) && !vmx->nested.nested_run_pending) {
-		struct vmcs12 *vmcs12 = get_vmcs12(vcpu);
-		if (vmcs12->idt_vectoring_info_field &
-				VECTORING_INFO_VALID_MASK) {
-			vmcs_write32(VM_ENTRY_INTR_INFO_FIELD,
-				vmcs12->idt_vectoring_info_field);
-			vmcs_write32(VM_ENTRY_INSTRUCTION_LEN,
-				vmcs12->vm_exit_instruction_len);
-			if (vmcs12->idt_vectoring_info_field &
-					VECTORING_INFO_DELIVER_CODE_MASK)
-				vmcs_write32(VM_ENTRY_EXCEPTION_ERROR_CODE,
-					vmcs12->idt_vectoring_error_code);
-		}
-	}
-=======
 	unsigned long debugctlmsr, cr4;
->>>>>>> android-3.18
 
 	/* Record the guest's net vcpu time for enforced NMI injections. */
 	if (unlikely(!cpu_has_virtual_nmis() && vmx->soft_vnmi_blocked))
@@ -7731,11 +7682,7 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 	if (test_bit(VCPU_REGS_RIP, (unsigned long *)&vcpu->arch.regs_dirty))
 		vmcs_writel(GUEST_RIP, vcpu->arch.regs[VCPU_REGS_RIP]);
 
-<<<<<<< HEAD
-	cr4 = read_cr4();
-=======
 	cr4 = cr4_read_shadow();
->>>>>>> android-3.18
 	if (unlikely(cr4 != vmx->host_state.vmcs_host_cr4)) {
 		vmcs_writel(HOST_CR4, cr4);
 		vmx->host_state.vmcs_host_cr4 = cr4;
@@ -7956,11 +7903,8 @@ static void vmx_free_vcpu(struct kvm_vcpu *vcpu)
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 
 	free_vpid(vmx);
-<<<<<<< HEAD
-=======
 	leave_guest_mode(vcpu);
 	vmx_free_vcpu_nested(vcpu);
->>>>>>> android-3.18
 	free_loaded_vmcs(vmx->loaded_vmcs);
 	free_nested(vmx);
 	kfree(vmx->guest_msrs);

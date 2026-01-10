@@ -295,10 +295,6 @@ static int virtscsi_kick_event_all(struct virtio_scsi *vscsi)
 {
 	int i;
 
-<<<<<<< HEAD
-	for_each_sg(table->sgl, sg_elem, table->nents, i)
-		sg[idx++] = *sg_elem;
-=======
 	for (i = 0; i < VIRTIO_SCSI_EVENT_LEN; i++) {
 		vscsi->event_list[i].vscsi = vscsi;
 		virtscsi_kick_event(vscsi, &vscsi->event_list[i]);
@@ -368,7 +364,6 @@ static void virtscsi_handle_param_change(struct virtio_scsi *vscsi,
 	   "Capacity data has changed".  */
 	if (asc == 0x2a && (ascq == 0x00 || ascq == 0x01 || ascq == 0x09))
 		scsi_rescan_device(&sdev->sdev_gendev);
->>>>>>> android-3.18
 
 	scsi_device_put(sdev);
 }

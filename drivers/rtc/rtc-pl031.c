@@ -319,12 +319,8 @@ static int pl031_probe(struct amba_device *adev, const struct amba_id *id)
 {
 	int ret;
 	struct pl031_local *ldata;
-<<<<<<< HEAD
-	struct rtc_class_ops *ops = id->data;
-=======
 	struct pl031_vendor_data *vendor = id->data;
 	struct rtc_class_ops *ops = &vendor->ops;
->>>>>>> android-3.18
 	unsigned long time, data;
 
 	ret = amba_request_regions(adev, NULL);
@@ -352,11 +348,7 @@ static int pl031_probe(struct amba_device *adev, const struct amba_id *id)
 
 	data = readl(ldata->base + RTC_CR);
 	/* Enable the clockwatch on ST Variants */
-<<<<<<< HEAD
-	if (ldata->hw_designer == AMBA_VENDOR_ST)
-=======
 	if (vendor->clockwatch)
->>>>>>> android-3.18
 		data |= RTC_CR_CWEN;
 	else
 		data |= RTC_CR_EN;

@@ -513,13 +513,8 @@ static char **realloc_argv(unsigned *size, char **old_argv)
 	unsigned new_size;
 	gfp_t gfp;
 
-<<<<<<< HEAD
-	if (*array_size) {
-		new_size = *array_size * 2;
-=======
 	if (*size) {
 		new_size = *size * 2;
->>>>>>> android-3.18
 		gfp = GFP_KERNEL;
 	} else {
 		new_size = 8;
@@ -1405,20 +1400,7 @@ static int device_not_write_same_capable(struct dm_target *ti, struct dm_dev *de
 	return q && !q->limits.max_write_same_sectors;
 }
 
-<<<<<<< HEAD
-static int device_is_not_random(struct dm_target *ti, struct dm_dev *dev,
-			     sector_t start, sector_t len, void *data)
-{
-	struct request_queue *q = bdev_get_queue(dev->bdev);
-
-	return q && !blk_queue_add_random(q);
-}
-
-static bool dm_table_all_devices_attribute(struct dm_table *t,
-					   iterate_devices_callout_fn func)
-=======
 static bool dm_table_supports_write_same(struct dm_table *t)
->>>>>>> android-3.18
 {
 	struct dm_target *ti;
 	unsigned i = 0;
@@ -1430,13 +1412,8 @@ static bool dm_table_supports_write_same(struct dm_table *t)
 			return false;
 
 		if (!ti->type->iterate_devices ||
-<<<<<<< HEAD
-		    !ti->type->iterate_devices(ti, func, NULL))
-			return 0;
-=======
 		    ti->type->iterate_devices(ti, device_not_write_same_capable, NULL))
 			return false;
->>>>>>> android-3.18
 	}
 
 	return true;
@@ -1505,13 +1482,9 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
 		q->limits.discard_zeroes_data = 0;
 
 	/* Ensure that all underlying devices are non-rotational. */
-<<<<<<< HEAD
-	if (dm_table_all_devices_attribute(t, device_is_nonrot))
-=======
 	if (dm_table_any_dev_attr(t, device_is_rotational))
 		queue_flag_clear_unlocked(QUEUE_FLAG_NONROT, q);
 	else
->>>>>>> android-3.18
 		queue_flag_set_unlocked(QUEUE_FLAG_NONROT, q);
 
 	if (!dm_table_supports_write_same(t))
@@ -1530,11 +1503,7 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
 	 * Clear QUEUE_FLAG_ADD_RANDOM if any underlying device does not
 	 * have it set.
 	 */
-<<<<<<< HEAD
-	if (blk_queue_add_random(q) && dm_table_all_devices_attribute(t, device_is_not_random))
-=======
 	if (blk_queue_add_random(q) && dm_table_any_dev_attr(t, device_is_not_random))
->>>>>>> android-3.18
 		queue_flag_clear_unlocked(QUEUE_FLAG_ADD_RANDOM, q);
 
 	/*

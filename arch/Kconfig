@@ -203,9 +203,6 @@ config HAVE_DMA_ATTRS
 config HAVE_DMA_CONTIGUOUS
 	bool
 
-<<<<<<< HEAD
-config USE_GENERIC_SMP_HELPERS
-=======
 config GENERIC_SMP_IDLE_THREAD
        bool
 
@@ -222,7 +219,6 @@ config ARCH_TASK_STRUCT_ALLOCATOR
 
 # Select if arch has its private alloc_thread_info() function
 config ARCH_THREAD_INFO_ALLOCATOR
->>>>>>> android-3.18
 	bool
 
 config GENERIC_SMP_IDLE_THREAD

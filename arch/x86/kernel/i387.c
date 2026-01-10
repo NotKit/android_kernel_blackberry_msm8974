@@ -76,16 +76,10 @@ void __kernel_fpu_begin(void)
 
 	if (__thread_has_fpu(me)) {
 		__thread_clear_has_fpu(me);
-<<<<<<< HEAD
-		/* We do 'stts()' in __kernel_fpu_end() */
-	} else {
-		percpu_write(fpu_owner_task, NULL);
-=======
 		__save_init_fpu(me);
 		/* We do 'stts()' in __kernel_fpu_end() */
 	} else if (!use_eager_fpu()) {
 		this_cpu_write(fpu_owner_task, NULL);
->>>>>>> android-3.18
 		clts();
 	}
 }
@@ -93,9 +87,6 @@ EXPORT_SYMBOL(__kernel_fpu_begin);
 
 void __kernel_fpu_end(void)
 {
-<<<<<<< HEAD
-	stts();
-=======
 	if (use_eager_fpu()) {
 		/*
 		 * For eager fpu, most the time, tsk_used_math() is true.
@@ -109,7 +100,6 @@ void __kernel_fpu_end(void)
 	} else {
 		stts();
 	}
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL(__kernel_fpu_end);
 

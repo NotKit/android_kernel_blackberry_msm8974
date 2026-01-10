@@ -825,16 +825,10 @@ static int __init dell_init(void)
 	 * is passed to SMI handler.
 	 */
 	buffer = (void *)__get_free_page(GFP_KERNEL | GFP_DMA32);
-<<<<<<< HEAD
-
-	if (!buffer)
-		goto fail_buffer;
-=======
 	if (!buffer) {
 		ret = -ENOMEM;
 		goto fail_buffer;
 	}
->>>>>>> android-3.18
 
 	ret = dell_setup_rfkill();
 

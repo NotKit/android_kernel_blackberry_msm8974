@@ -1240,12 +1240,6 @@ static void gfar_hw_init(struct gfar_private *priv)
 	if (priv->rx_stash_size != 0)
 		attrs |= ATTR_BUFSTASH;
 
-<<<<<<< HEAD
-	if (priv->device_flags & FSL_GIANFAR_DEV_HAS_VLAN) {
-		dev->hw_features |= NETIF_F_HW_VLAN_TX | NETIF_F_HW_VLAN_RX;
-		dev->features |= NETIF_F_HW_VLAN_RX;
-	}
-=======
 	gfar_write(&regs->attr, attrs);
 
 	/* FIFO configs */
@@ -1261,7 +1255,6 @@ static void gfar_hw_init(struct gfar_private *priv)
 static void gfar_init_addr_hash_table(struct gfar_private *priv)
 {
 	struct gfar __iomem *regs = priv->gfargrp[0].regs;
->>>>>>> android-3.18
 
 	if (priv->device_flags & FSL_GIANFAR_DEV_HAS_EXTENDED_HASH) {
 		priv->extended_hash = 1;
@@ -1398,13 +1391,10 @@ static int gfar_probe(struct platform_device *ofdev)
 	/* use pritority h/w tx queue scheduling for single queue devices */
 	if (priv->num_tx_queues == 1)
 		priv->prio_sched_en = 1;
-<<<<<<< HEAD
-=======
 
 	set_bit(GFAR_DOWN, &priv->state);
 
 	gfar_hw_init(priv);
->>>>>>> android-3.18
 
 	/* Carrier starts down, phylib will bring it up */
 	netif_carrier_off(dev);
@@ -2235,14 +2225,6 @@ static int gfar_start_xmit(struct sk_buff *skb, struct net_device *dev)
 			dev_kfree_skb_any(skb);
 			return NETDEV_TX_OK;
 		}
-<<<<<<< HEAD
-
-		if (skb->sk)
-			skb_set_owner_w(skb_new, skb->sk);
-		consume_skb(skb);
-		skb = skb_new;
-=======
->>>>>>> android-3.18
 	}
 
 	/* total number of fragments in the SKB */

@@ -3018,11 +3018,7 @@ void iscsi_conn_teardown(struct iscsi_cls_conn *cls_conn)
 	del_timer_sync(&conn->transport_timer);
 
 	mutex_lock(&session->eh_mutex);
-<<<<<<< HEAD
-	spin_lock_bh(&session->lock);
-=======
 	spin_lock_bh(&session->frwd_lock);
->>>>>>> android-3.18
 	conn->c_stage = ISCSI_CONN_CLEANUP_WAIT;
 	if (session->leadconn == conn) {
 		/*
@@ -3031,11 +3027,7 @@ void iscsi_conn_teardown(struct iscsi_cls_conn *cls_conn)
 		session->state = ISCSI_STATE_TERMINATE;
 		wake_up(&conn->ehwait);
 	}
-<<<<<<< HEAD
-	spin_unlock_bh(&session->lock);
-=======
 	spin_unlock_bh(&session->frwd_lock);
->>>>>>> android-3.18
 
 	/* flush queued up work because we free the connection below */
 	iscsi_suspend_tx(conn);
@@ -3052,11 +3044,7 @@ void iscsi_conn_teardown(struct iscsi_cls_conn *cls_conn)
 	spin_unlock_bh(&session->back_lock);
 	if (session->leadconn == conn)
 		session->leadconn = NULL;
-<<<<<<< HEAD
-	spin_unlock_bh(&session->lock);
-=======
 	spin_unlock_bh(&session->frwd_lock);
->>>>>>> android-3.18
 	mutex_unlock(&session->eh_mutex);
 
 	iscsi_destroy_conn(cls_conn);

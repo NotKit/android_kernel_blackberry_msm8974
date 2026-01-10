@@ -684,14 +684,6 @@ restart:
 			case NETDEV_RELEASE:
 			case NETDEV_JOIN:
 			case NETDEV_UNREGISTER:
-<<<<<<< HEAD
-				/*
-				 * we might sleep in __netpoll_cleanup()
-				 * rtnl_lock already held
-				 */
-				spin_unlock_irqrestore(&target_list_lock, flags);
-				__netpoll_cleanup(&nt->np);
-=======
 				/* rtnl_lock already held
 				 * we might sleep in __netpoll_cleanup()
 				 */
@@ -699,7 +691,6 @@ restart:
 
 				__netpoll_cleanup(&nt->np);
 
->>>>>>> android-3.18
 				spin_lock_irqsave(&target_list_lock, flags);
 				dev_put(nt->np.dev);
 				nt->np.dev = NULL;

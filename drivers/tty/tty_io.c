@@ -1126,12 +1126,7 @@ static inline ssize_t do_tty_write(
 		cond_resched();
 	}
 	if (written) {
-<<<<<<< HEAD
-		struct inode *inode = file->f_path.dentry->d_inode;
-		tty_update_time(&inode->i_mtime);
-=======
 		tty_update_time(&file_inode(file)->i_mtime);
->>>>>>> android-3.18
 		ret = written;
 	}
 out:
@@ -1804,15 +1799,9 @@ int tty_release(struct inode *inode, struct file *filp)
 		if (once) {
 			once = 0;
 			printk(KERN_WARNING "%s: %s: read/write wait queue active!\n",
-<<<<<<< HEAD
-				__func__, tty_name(tty, buf));
-		}
-		tty_unlock();
-=======
 			       __func__, tty_name(tty, buf));
 		}
 		tty_unlock_pair(tty, o_tty);
->>>>>>> android-3.18
 		mutex_unlock(&tty_mutex);
 		schedule_timeout_killable(timeout);
 		if (timeout < 120 * HZ)
@@ -2586,15 +2575,8 @@ static int tiocspgrp(struct tty_struct *tty, struct tty_struct *real_tty, pid_t 
 	if (session_of_pgrp(pgrp) != task_session(current))
 		goto out_unlock;
 	retval = 0;
-<<<<<<< HEAD
-	spin_lock_irqsave(&real_tty->ctrl_lock, flags);
 	put_pid(real_tty->pgrp);
 	real_tty->pgrp = get_pid(pgrp);
-	spin_unlock_irqrestore(&real_tty->ctrl_lock, flags);
-=======
-	put_pid(real_tty->pgrp);
-	real_tty->pgrp = get_pid(pgrp);
->>>>>>> android-3.18
 out_unlock:
 	rcu_read_unlock();
 out_unlock_ctrl:
@@ -3034,10 +3016,7 @@ void __do_SAK(struct tty_struct *tty)
 	struct task_struct *g, *p;
 	struct pid *session;
 	int		i;
-<<<<<<< HEAD
-=======
 	unsigned long flags;
->>>>>>> android-3.18
 
 	if (!tty)
 		return;

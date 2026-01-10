@@ -242,24 +242,6 @@ void arch_cpu_idle_dead(void)
 void arch_cpu_idle(void)
 {
 	void (*mark_idle)(int) = ia64_mark_idle;
-<<<<<<< HEAD
-  	int cpu = smp_processor_id();
-
-	/* endless idle loop with no priority at all */
-	while (1) {
-		rcu_idle_enter();
-		if (can_do_pal_halt) {
-			current_thread_info()->status &= ~TS_POLLING;
-			/*
-			 * TS_POLLING-cleared state must be visible before we
-			 * test NEED_RESCHED:
-			 */
-			smp_mb();
-		} else {
-			current_thread_info()->status |= TS_POLLING;
-		}
-=======
->>>>>>> android-3.18
 
 #ifdef CONFIG_SMP
 	min_xtp();
@@ -275,16 +257,6 @@ void arch_cpu_idle(void)
 #ifdef CONFIG_SMP
 	normal_xtp();
 #endif
-<<<<<<< HEAD
-		}
-		rcu_idle_exit();
-		schedule_preempt_disabled();
-		check_pgt_cache();
-		if (cpu_is_offline(cpu))
-			play_dead();
-	}
-=======
->>>>>>> android-3.18
 }
 
 void
@@ -586,60 +558,6 @@ dump_fpu (struct pt_regs *pt, elf_fpregset_t dst)
 	return 1;	/* f0-f31 are always valid so we always return 1 */
 }
 
-<<<<<<< HEAD
-long
-sys_execve (const char __user *filename,
-	    const char __user *const __user *argv,
-	    const char __user *const __user *envp,
-	    struct pt_regs *regs)
-{
-	struct filename *fname;
-	int error;
-
-	fname = getname(filename);
-	error = PTR_ERR(fname);
-	if (IS_ERR(fname))
-		goto out;
-	error = do_execve(fname->name, argv, envp, regs);
-	putname(fname);
-out:
-	return error;
-}
-
-pid_t
-kernel_thread (int (*fn)(void *), void *arg, unsigned long flags)
-{
-	extern void start_kernel_thread (void);
-	unsigned long *helper_fptr = (unsigned long *) &start_kernel_thread;
-	struct {
-		struct switch_stack sw;
-		struct pt_regs pt;
-	} regs;
-
-	memset(&regs, 0, sizeof(regs));
-	regs.pt.cr_iip = helper_fptr[0];	/* set entry point (IP) */
-	regs.pt.r1 = helper_fptr[1];		/* set GP */
-	regs.pt.r9 = (unsigned long) fn;	/* 1st argument */
-	regs.pt.r11 = (unsigned long) arg;	/* 2nd argument */
-	/* Preserve PSR bits, except for bits 32-34 and 37-45, which we can't read.  */
-	regs.pt.cr_ipsr = ia64_getreg(_IA64_REG_PSR) | IA64_PSR_BN;
-	regs.pt.cr_ifs = 1UL << 63;		/* mark as valid, empty frame */
-	regs.sw.ar_fpsr = regs.pt.ar_fpsr = ia64_getreg(_IA64_REG_AR_FPSR);
-	regs.sw.ar_bspstore = (unsigned long) current + IA64_RBS_OFFSET;
-	regs.sw.pr = (1 << PRED_KERNEL_STACK);
-	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs.pt, 0, NULL, NULL);
-}
-EXPORT_SYMBOL(kernel_thread);
-
-/* This gets called from kernel_thread() via ia64_invoke_thread_helper().  */
-int
-kernel_thread_helper (int (*fn)(void *), void *arg)
-{
-	return (*fn)(arg);
-}
-
-=======
->>>>>>> android-3.18
 /*
  * Flush thread state.  This is called when a thread does an execve().
  */

@@ -20,27 +20,6 @@
  *
  */
 #define SA_STATIC_ALLOC         0x8000
-<<<<<<< HEAD
-#endif
-
-#include <asm-generic/signal-defs.h>
-
-struct __new_sigaction {
-	__sighandler_t		sa_handler;
-	unsigned long		sa_flags;
-	__sigrestore_t		sa_restorer;  /* not used by Linux/SPARC yet */
-	__new_sigset_t		sa_mask;
-};
-
-struct __old_sigaction {
-	__sighandler_t		sa_handler;
-	__old_sigset_t		sa_mask;
-	unsigned long		sa_flags;
-	void			(*sa_restorer)(void);  /* not used by Linux/SPARC yet */
-};
-#define __ARCH_HAS_SA_RESTORER
-=======
->>>>>>> android-3.18
 
 #define __ARCH_HAS_KA_RESTORER
 #define __ARCH_HAS_SA_RESTORER

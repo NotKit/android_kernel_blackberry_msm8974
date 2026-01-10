@@ -310,52 +310,6 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	return 0;
 }
 
-<<<<<<< HEAD
-/* r12-r8 are dummy parameters to force the compiler to use the stack */
-asmlinkage int sys_fork(struct pt_regs *regs)
-{
-	return do_fork(SIGCHLD, regs->sp, regs, 0, NULL, NULL);
-}
-
-asmlinkage int sys_clone(unsigned long clone_flags, unsigned long newsp,
-		void __user *parent_tidptr, void __user *child_tidptr,
-		struct pt_regs *regs)
-{
-	if (!newsp)
-		newsp = regs->sp;
-	return do_fork(clone_flags, newsp, regs, 0, parent_tidptr,
-			child_tidptr);
-}
-
-asmlinkage int sys_vfork(struct pt_regs *regs)
-{
-	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs->sp, regs,
-		       0, NULL, NULL);
-}
-
-asmlinkage int sys_execve(const char __user *ufilename,
-			  const char __user *const __user *uargv,
-			  const char __user *const __user *uenvp,
-			  struct pt_regs *regs)
-{
-	int error;
-	struct filename *filename;
-
-	filename = getname(ufilename);
-	error = PTR_ERR(filename);
-	if (IS_ERR(filename))
-		goto out;
-
-	error = do_execve(filename->name, uargv, uenvp, regs);
-	putname(filename);
-
-out:
-	return error;
-}
-
-
-=======
->>>>>>> android-3.18
 /*
  * This function is supposed to answer the question "who called
  * schedule()?"

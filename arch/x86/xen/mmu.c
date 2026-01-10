@@ -1242,28 +1242,6 @@ unsigned long xen_read_cr2_direct(void)
 }
 
 void xen_flush_tlb_all(void)
-<<<<<<< HEAD
-{
-	struct mmuext_op *op;
-	struct multicall_space mcs;
-
-	trace_xen_mmu_flush_tlb_all(0);
-
-	preempt_disable();
-
-	mcs = xen_mc_entry(sizeof(*op));
-
-	op = mcs.args;
-	op->cmd = MMUEXT_TLB_FLUSH_ALL;
-	MULTI_mmuext_op(mcs.mc, op, 1, NULL, DOMID_SELF);
-
-	xen_mc_issue(PARAVIRT_LAZY_MMU);
-
-	preempt_enable();
-}
-static void xen_flush_tlb(void)
-=======
->>>>>>> android-3.18
 {
 	struct mmuext_op *op;
 	struct multicall_space mcs;

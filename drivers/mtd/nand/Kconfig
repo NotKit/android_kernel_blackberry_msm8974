@@ -101,8 +101,6 @@ config MTD_NAND_OMAP2
           Support for NAND flash on Texas Instruments OMAP2, OMAP3 and OMAP4
 	  platforms.
 
-<<<<<<< HEAD
-=======
 config MTD_NAND_OMAP_BCH
 	depends on MTD_NAND_OMAP2
 	bool "Support hardware based BCH error correction"
@@ -118,7 +116,6 @@ config MTD_NAND_OMAP_BCH
 config MTD_NAND_OMAP_BCH_BUILD
 	def_tristate MTD_NAND_OMAP2 && MTD_NAND_OMAP_BCH
 
->>>>>>> android-3.18
 config MTD_NAND_RICOH
 	tristate "Ricoh xD card reader"
 	default n

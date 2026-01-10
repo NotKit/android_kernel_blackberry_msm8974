@@ -26,12 +26,7 @@
 #include <linux/gpio.h>
 #include <linux/gpio/consumer.h>
 #include <linux/of.h>
-<<<<<<< HEAD
-#include <linux/seq_file.h>
-#include <linux/uaccess.h>
-=======
 #include <linux/regmap.h>
->>>>>>> android-3.18
 #include <linux/regulator/of_regulator.h>
 #include <linux/regulator/consumer.h>
 #include <linux/regulator/driver.h>
@@ -61,11 +56,6 @@ static LIST_HEAD(regulator_map_list);
 static LIST_HEAD(regulator_ena_gpio_list);
 static LIST_HEAD(regulator_supply_alias_list);
 static bool has_full_constraints;
-<<<<<<< HEAD
-static bool board_wants_dummy_regulator;
-static int suppress_info_printing;
-=======
->>>>>>> android-3.18
 
 static struct dentry *debugfs_root;
 
@@ -88,16 +78,6 @@ struct regulator_map {
  */
 struct regulator_enable_gpio {
 	struct list_head list;
-<<<<<<< HEAD
-	int uA_load;
-	int min_uV;
-	int max_uV;
-	int enabled;
-	char *supply_name;
-	struct device_attribute dev_attr;
-	struct regulator_dev *rdev;
-	struct dentry *debugfs;
-=======
 	struct gpio_desc *gpiod;
 	u32 enable_count;	/* a number of enabled shared GPIO */
 	u32 request_count;	/* a number of requested shared GPIO */
@@ -115,7 +95,6 @@ struct regulator_supply_alias {
 	const char *src_supply;
 	struct device *alias_dev;
 	const char *alias_supply;
->>>>>>> android-3.18
 };
 
 static int _regulator_is_enabled(struct regulator_dev *rdev);
@@ -1552,12 +1531,6 @@ static void _regulator_put(struct regulator *regulator)
 	/* remove any sysfs entries */
 	if (regulator->dev)
 		sysfs_remove_link(&rdev->dev.kobj, regulator->supply_name);
-<<<<<<< HEAD
-		device_remove_file(regulator->dev, &regulator->dev_attr);
-		kfree(regulator->dev_attr.attr.name);
-	}
-=======
->>>>>>> android-3.18
 	mutex_lock(&rdev->mutex);
 	kfree(regulator->supply_name);
 	list_del(&regulator->list);
@@ -1945,22 +1918,6 @@ static int _regulator_enable(struct regulator_dev *rdev)
 			if (ret < 0)
 				return ret;
 
-<<<<<<< HEAD
-			trace_regulator_enable_delay(rdev_get_name(rdev));
-
-			if (delay >= 1000) {
-				mdelay(delay / 1000);
-				udelay(delay % 1000);
-			} else if (delay) {
-				udelay(delay);
-			}
-
-			trace_regulator_enable_complete(rdev_get_name(rdev));
-
-			_notifier_call_chain(rdev, REGULATOR_EVENT_ENABLE,
-						NULL);
-=======
->>>>>>> android-3.18
 		} else if (ret < 0) {
 			rdev_err(rdev, "is_enabled() failed: %d\n", ret);
 			return ret;
@@ -2566,22 +2523,9 @@ static int _regulator_do_set_voltage(struct regulator_dev *rdev,
 			return old_selector;
 	}
 
-<<<<<<< HEAD
-		if (rdev->desc->ops->list_voltage)
-			selector = rdev->desc->ops->list_voltage(rdev,
-								 selector);
-		else if (rdev->desc->ops->get_voltage)
-			selector = rdev->desc->ops->get_voltage(rdev);
-		else
-			selector = -1;
-	} else if (rdev->desc->ops->set_voltage_sel) {
-		int best_val = INT_MAX;
-		int i;
-=======
 	if (rdev->desc->ops->set_voltage) {
 		ret = _regulator_call_set_voltage(rdev, min_uV, max_uV,
 						  &selector);
->>>>>>> android-3.18
 
 		if (ret >= 0) {
 			if (rdev->desc->ops->list_voltage)
@@ -2682,10 +2626,7 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
 	struct regulator_dev *rdev = regulator->rdev;
 	int ret = 0;
 	int old_min_uV, old_max_uV;
-<<<<<<< HEAD
-=======
 	int current_uV;
->>>>>>> android-3.18
 
 	mutex_lock(&rdev->mutex);
 
@@ -3933,99 +3874,8 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
 			   &rdev->use_count);
 	debugfs_create_u32("open_count", 0444, rdev->debugfs,
 			   &rdev->open_count);
-<<<<<<< HEAD
-	debugfs_create_file("consumers", 0444, rdev->debugfs, rdev,
-			    &reg_consumers_fops);
-
-	reg = regulator_get(NULL, rdev->desc->name);
-	if (IS_ERR(reg) || reg == NULL) {
-		pr_err("Error-Bad Function Input\n");
-		goto error;
-	}
-
-	reg_ops = rdev->desc->ops;
-	mode = S_IRUGO | S_IWUSR;
-	/* Enabled File */
-	if (mode)
-		err_ptr = debugfs_create_file("enable", mode, rdev->debugfs,
-						reg, &reg_enable_fops);
-	if (IS_ERR(err_ptr)) {
-		pr_err("Error-Could not create enable file\n");
-		debugfs_remove_recursive(rdev->debugfs);
-		goto error;
-	}
-
-	mode = 0;
-	/* Force-Disable File */
-	if (reg_ops->is_enabled)
-		mode |= S_IRUGO;
-	if (reg_ops->enable || reg_ops->disable)
-		mode |= S_IWUSR;
-	if (mode)
-		err_ptr = debugfs_create_file("force_disable", mode,
-					rdev->debugfs, reg, &reg_fdisable_fops);
-	if (IS_ERR(err_ptr)) {
-		pr_err("Error-Could not create force_disable file\n");
-		debugfs_remove_recursive(rdev->debugfs);
-		goto error;
-	}
-
-	mode = 0;
-	/* Voltage File */
-	if (reg_ops->get_voltage)
-		mode |= S_IRUGO;
-	if (reg_ops->set_voltage)
-		mode |= S_IWUSR;
-	if (mode)
-		err_ptr = debugfs_create_file("voltage", mode, rdev->debugfs,
-						reg, &reg_volt_fops);
-	if (IS_ERR(err_ptr)) {
-		pr_err("Error-Could not create voltage file\n");
-		debugfs_remove_recursive(rdev->debugfs);
-		goto error;
-	}
-
-	mode = 0;
-	/* Mode File */
-	if (reg_ops->get_mode)
-		mode |= S_IRUGO;
-	if (reg_ops->set_mode)
-		mode |= S_IWUSR;
-	if (mode)
-		err_ptr = debugfs_create_file("mode", mode, rdev->debugfs,
-						reg, &reg_mode_fops);
-	if (IS_ERR(err_ptr)) {
-		pr_err("Error-Could not create mode file\n");
-		debugfs_remove_recursive(rdev->debugfs);
-		goto error;
-	}
-
-	mode = 0;
-	/* Optimum Mode File */
-	if (reg_ops->get_mode)
-		mode |= S_IRUGO;
-	if (reg_ops->set_mode)
-		mode |= S_IWUSR;
-	if (mode)
-		err_ptr = debugfs_create_file("optimum_mode", mode,
-				rdev->debugfs, reg, &reg_optimum_mode_fops);
-	if (IS_ERR(err_ptr)) {
-		pr_err("Error-Could not create optimum_mode file\n");
-		debugfs_remove_recursive(rdev->debugfs);
-		goto error;
-	}
-
-error:
-	return;
-}
-#else
-static inline void rdev_init_debugfs(struct regulator_dev *rdev)
-{
-	return;
-=======
 	debugfs_create_u32("bypass_count", 0444, rdev->debugfs,
 			   &rdev->bypass_count);
->>>>>>> android-3.18
 }
 #endif
 
@@ -4175,8 +4025,6 @@ regulator_register(const struct regulator_desc *regulator_desc,
 		ret = set_supply(rdev, r);
 		if (ret < 0)
 			goto scrub;
-<<<<<<< HEAD
-=======
 
 		/* Enable supply if rail is enabled */
 		if (_regulator_is_enabled(rdev)) {
@@ -4184,7 +4032,6 @@ regulator_register(const struct regulator_desc *regulator_desc,
 			if (ret < 0)
 				goto scrub;
 		}
->>>>>>> android-3.18
 	}
 
 add_dev:
@@ -4217,15 +4064,10 @@ unset_supplies:
 
 scrub:
 	if (rdev->supply)
-<<<<<<< HEAD
-		regulator_put(rdev->supply);
-	kfree(rdev->constraints);
-=======
 		_regulator_put(rdev->supply);
 	regulator_ena_gpio_free(rdev);
 
 wash:
->>>>>>> android-3.18
 	device_unregister(&rdev->dev);
 	/* device core frees rdev */
 	rdev = ERR_PTR(ret);
@@ -4358,41 +4200,6 @@ void regulator_has_full_constraints(void)
 EXPORT_SYMBOL_GPL(regulator_has_full_constraints);
 
 /**
-<<<<<<< HEAD
- * regulator_use_dummy_regulator - Provide a dummy regulator when none is found
- *
- * Calling this function will cause the regulator API to provide a
- * dummy regulator to consumers if no physical regulator is found,
- * allowing most consumers to proceed as though a regulator were
- * configured.  This allows systems such as those with software
- * controllable regulators for the CPU core only to be brought up more
- * readily.
- */
-void regulator_use_dummy_regulator(void)
-{
-	board_wants_dummy_regulator = true;
-}
-EXPORT_SYMBOL_GPL(regulator_use_dummy_regulator);
-
-/**
- * regulator_suppress_info_printing - disable printing of info messages
- *
- * The regulator framework calls print_constraints() when a regulator is
- * registered.  It also prints a disable message for each unused regulator in
- * regulator_init_complete().
- *
- * Calling this function ensures that such messages do not end up in the
- * log.
- */
-void regulator_suppress_info_printing(void)
-{
-	suppress_info_printing = 1;
-}
-EXPORT_SYMBOL_GPL(regulator_suppress_info_printing);
-
-/**
-=======
->>>>>>> android-3.18
  * rdev_get_drvdata - get rdev regulator driver data
  * @rdev: regulator
  *
@@ -4538,27 +4345,6 @@ static int __init regulator_late_cleanup(struct device *dev, void *data)
 	if (!enabled)
 		goto unlock;
 
-<<<<<<< HEAD
-		if (has_full_constraints) {
-			/* We log since this may kill the system if it
-			 * goes wrong. */
-			if (!suppress_info_printing)
-				rdev_info(rdev, "disabling\n");
-			ret = ops->disable(rdev);
-			if (ret != 0) {
-				rdev_err(rdev, "couldn't disable: %d\n", ret);
-			}
-		} else {
-			/* The intention is that in future we will
-			 * assume that full constraints are provided
-			 * so warn even if we aren't going to do
-			 * anything here.
-			 */
-			if (!suppress_info_printing)
-				rdev_warn(rdev, "incomplete constraints, "
-						"leaving on\n");
-		}
-=======
 	if (have_full_constraints()) {
 		/* We log since this may kill the system if it goes
 		 * wrong. */
@@ -4574,7 +4360,6 @@ static int __init regulator_late_cleanup(struct device *dev, void *data)
 		 */
 		rdev_warn(rdev, "incomplete constraints, leaving on\n");
 	}
->>>>>>> android-3.18
 
 unlock:
 	mutex_unlock(&rdev->mutex);

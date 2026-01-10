@@ -175,10 +175,6 @@ static int cn_call_callback(struct sk_buff *skb)
 static void cn_rx_skb(struct sk_buff *skb)
 {
 	struct nlmsghdr *nlh;
-<<<<<<< HEAD
-	struct sk_buff *skb;
-=======
->>>>>>> android-3.18
 	int len, err;
 
 	if (skb->len >= NLMSG_HDRLEN) {
@@ -187,12 +183,7 @@ static void cn_rx_skb(struct sk_buff *skb)
 
 		if (len < (int)sizeof(struct cn_msg) ||
 		    skb->len < nlh->nlmsg_len ||
-<<<<<<< HEAD
-		    len > CONNECTOR_MAX_MSG_SIZE) {
-			kfree_skb(skb);
-=======
 		    len > CONNECTOR_MAX_MSG_SIZE)
->>>>>>> android-3.18
 			return;
 
 		err = cn_call_callback(skb_get(skb));

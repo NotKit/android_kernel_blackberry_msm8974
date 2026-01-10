@@ -2,10 +2,7 @@
 #define _LINUX_SIGNAL_H
 
 #include <linux/list.h>
-<<<<<<< HEAD
-=======
 #include <linux/bug.h>
->>>>>>> android-3.18
 #include <uapi/linux/signal.h>
 
 struct task_struct;
@@ -474,8 +471,6 @@ int unhandled_signal(struct task_struct *tsk, int sig);
 
 void signals_init(void);
 
-<<<<<<< HEAD
-=======
 int restore_altstack(const stack_t __user *);
 int __save_altstack(stack_t __user *, unsigned long);
 
@@ -492,5 +487,4 @@ struct seq_file;
 extern void render_sigset_t(struct seq_file *, const char *, sigset_t *);
 #endif
 
->>>>>>> android-3.18
 #endif /* _LINUX_SIGNAL_H */

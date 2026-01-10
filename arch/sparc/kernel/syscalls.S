@@ -259,18 +259,10 @@ ret_sys_call:
 
 	cmp	%o0, -ERESTART_RESTARTBLOCK
 	bgeu,pn	%xcc, 1f
-<<<<<<< HEAD
-	 andcc	%l0, (_TIF_SYSCALL_TRACE|_TIF_SECCOMP|_TIF_SYSCALL_AUDIT|_TIF_SYSCALL_TRACEPOINT), %g0
-	ldx	[%sp + PTREGS_OFF + PT_V9_TNPC], %l1 ! pc = npc
-
-2:
-	stb	%g0, [%g6 + TI_SYS_NOERROR]
-=======
 	 andcc	%l0, (_TIF_SYSCALL_TRACE|_TIF_SECCOMP|_TIF_SYSCALL_AUDIT|_TIF_SYSCALL_TRACEPOINT|_TIF_NOHZ), %g0
 	ldx	[%sp + PTREGS_OFF + PT_V9_TNPC], %l1 ! pc = npc
 
 2:
->>>>>>> android-3.18
 	/* System call success, clear Carry condition code. */
 	andn	%g3, %g2, %g3
 3:

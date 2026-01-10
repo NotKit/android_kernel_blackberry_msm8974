@@ -236,24 +236,6 @@ static inline int irq_to_gpio(unsigned irq)
 	return -EINVAL;
 }
 
-<<<<<<< HEAD
-#ifdef CONFIG_PINCTRL
-
-static inline int
-gpiochip_add_pin_range(struct gpio_chip *chip, const char *pinctl_name,
-		       unsigned int pin_base, unsigned int npins)
-{
-}
-
-static inline void
-gpiochip_remove_pin_ranges(struct gpio_chip *chip)
-{
-}
-
-#endif /* CONFIG_PINCTRL */
-
-#endif /* ! CONFIG_GENERIC_GPIO */
-=======
 static inline int devm_gpio_request(struct device *dev, unsigned gpio,
 				    const char *label)
 {
@@ -274,6 +256,5 @@ static inline void devm_gpio_free(struct device *dev, unsigned int gpio)
 }
 
 #endif /* ! CONFIG_GPIOLIB */
->>>>>>> android-3.18
 
 #endif /* __LINUX_GPIO_H */

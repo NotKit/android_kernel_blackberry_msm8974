@@ -808,11 +808,7 @@ config HID_WACOM
 
 config HID_WIIMOTE
 	tristate "Nintendo Wii / Wii U peripherals"
-<<<<<<< HEAD
-	depends on BT_HIDP
-=======
 	depends on HID
->>>>>>> android-3.18
 	depends on LEDS_CLASS
 	select POWER_SUPPLY
 	select INPUT_FF_MEMLESS
@@ -821,7 +817,6 @@ config HID_WIIMOTE
 	devices are the Wii Remote and its extension devices, but also devices
 	based on the Wii Remote like the Wii U Pro Controller or the
 	Wii Balance Board.
-<<<<<<< HEAD
 
 	Support for all official Nintendo extensions is available, however, 3rd
 	party extensions might not be supported. Please report these devices to:
@@ -831,23 +826,10 @@ config HID_WIIMOTE
 	the Wii U Gamepad) might be supported in the future. But currently
 	support is limited to Bluetooth based devices.
 
-=======
-
-	Support for all official Nintendo extensions is available, however, 3rd
-	party extensions might not be supported. Please report these devices to:
-	  http://github.com/dvdhrm/xwiimote/issues
-
-	Other Nintendo Wii U peripherals that are IEEE 802.11 based (including
-	the Wii U Gamepad) might be supported in the future. But currently
-	support is limited to Bluetooth based devices.
-
->>>>>>> android-3.18
 	If unsure, say N.
 
 	To compile this driver as a module, choose M here: the
 	module will be called hid-wiimote.
-<<<<<<< HEAD
-=======
 
 config HID_XINMO
 	tristate "Xin-Mo non-fully compliant devices"
@@ -856,7 +838,6 @@ config HID_XINMO
 	Support for Xin-Mo devices that are not fully compliant with the HID
 	standard. Currently only supports the Xin-Mo Dual Arcade. Say Y here
 	if you have a Xin-Mo Dual Arcade controller.
->>>>>>> android-3.18
 
 config HID_ZEROPLUS
 	tristate "Zeroplus based game controller support"
@@ -898,9 +879,6 @@ endif # HID
 
 source "drivers/hid/usbhid/Kconfig"
 
-<<<<<<< HEAD
-=======
 source "drivers/hid/i2c-hid/Kconfig"
 
->>>>>>> android-3.18
 endmenu

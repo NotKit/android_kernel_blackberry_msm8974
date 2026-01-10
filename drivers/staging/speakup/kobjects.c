@@ -232,12 +232,8 @@ static ssize_t keymap_show(struct kobject *kobj, struct kobj_attribute *attr,
 	u_char *cp1;
 	u_char ch;
 	unsigned long flags;
-<<<<<<< HEAD
-	spk_lock(flags);
-=======
 
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 	cp1 = spk_key_buf + SHIFT_TBL_SIZE;
 	num_keys = (int)(*cp1);
 	nstates = (int)cp1[1];
@@ -423,11 +419,7 @@ static ssize_t synth_direct_store(struct kobject *kobj,
 		bytes = min_t(size_t, len, 250);
 		strncpy(tmp, ptr, bytes);
 		tmp[bytes] = '\0';
-<<<<<<< HEAD
-		spk_xlate(tmp);
-=======
 		string_unescape_any_inplace(tmp);
->>>>>>> android-3.18
 		synth_printf("%s", tmp);
 		ptr += bytes;
 		len -= bytes;
@@ -479,11 +471,7 @@ static ssize_t punc_show(struct kobject *kobj, struct kobj_attribute *attr,
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
-	spk_lock(flags);
-=======
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 	pb = (struct st_bits_data *) &spk_punc_info[var->value];
 	mask = pb->mask;
 	for (i = 33; i < 128; i++) {
@@ -534,11 +522,7 @@ static ssize_t punc_store(struct kobject *kobj, struct kobj_attribute *attr,
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
 
 	if (*punc_buf == 'd' || *punc_buf == 'r')
-<<<<<<< HEAD
-		x = spk_set_mask_bits(0, var->value, 3);
-=======
 		x = spk_set_mask_bits(NULL, var->value, 3);
->>>>>>> android-3.18
 	else
 		x = spk_set_mask_bits(punc_buf, var->value, 3);
 
@@ -642,12 +626,8 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 	if (param->data == NULL)
 		return 0;
 	ret = 0;
-<<<<<<< HEAD
-	cp = spk_xlate((char *) buf);
-=======
 	cp = (char *)buf;
 	string_unescape_any_inplace(cp);
->>>>>>> android-3.18
 
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
 	switch (param->var_type) {
@@ -659,17 +639,11 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 			len = E_INC;
 		else
 			len = E_SET;
-<<<<<<< HEAD
-		speakup_s2i(cp, &value);
-		ret = spk_set_num_var(value, param, len);
-		if (ret == E_RANGE) {
-=======
 		if (kstrtol(cp, 10, &value) == 0)
 			ret = spk_set_num_var(value, param, len);
 		else
 			pr_warn("overflow or parsing error has occurred");
 		if (ret == -ERANGE) {
->>>>>>> android-3.18
 			var_data = param->data;
 			pr_warn("value for %s out of range, expect %d to %d\n",
 				param->name,
@@ -699,13 +673,8 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 			len -= 2;
 		}
 		cp[len] = '\0';
-<<<<<<< HEAD
-		ret = spk_set_string_var(buf, param, len);
-		if (ret == E_TOOLONG)
-=======
 		ret = spk_set_string_var(cp, param, len);
 		if (ret == -E2BIG)
->>>>>>> android-3.18
 			pr_warn("value too long for %s\n",
 					param->name);
 		break;
@@ -714,33 +683,7 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 			param->name, (int)param->var_type);
 	break;
 	}
-<<<<<<< HEAD
-	/*
-	 * If voice was just changed, we might need to reset our default
-	 * pitch and volume.
-	 */
-	if (strcmp(attr->attr.name, "voice") == 0) {
-		if (synth && synth->default_pitch) {
-			param = spk_var_header_by_name("pitch");
-			if (param)  {
-				spk_set_num_var(synth->default_pitch[value], param,
-					E_NEW_DEFAULT);
-				spk_set_num_var(0, param, E_DEFAULT);
-			}
-		}
-		if (synth && synth->default_vol) {
-			param = spk_var_header_by_name("vol");
-			if (param)  {
-				spk_set_num_var(synth->default_vol[value], param,
-					E_NEW_DEFAULT);
-				spk_set_num_var(0, param, E_DEFAULT);
-			}
-		}
-	}
-	spk_unlock(flags);
-=======
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 
 	if (ret == -ERESTART)
 		pr_info("%s reset to default value\n", param->name);
@@ -901,12 +844,9 @@ static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
 {
 	ssize_t retval = 0;
 	struct msg_group_t *group = spk_find_msg_group(attr->attr.name);
-<<<<<<< HEAD
-=======
 
 	if (WARN_ON(!group))
 		return -EINVAL;
->>>>>>> android-3.18
 
 	retval = message_store_helper(buf, count, group);
 	return retval;

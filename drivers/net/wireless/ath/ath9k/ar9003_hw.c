@@ -39,14 +39,6 @@
  */
 static void ar9003_hw_init_mode_regs(struct ath_hw *ah)
 {
-<<<<<<< HEAD
-#define AR9462_BB_CTX_COEFJ(x)	\
-		ar9462_##x##_baseband_core_txfir_coeff_japan_2484
-
-#define AR9462_BBC_TXIFR_COEFFJ \
-		ar9462_2p0_baseband_core_txfir_coeff_japan_2484
-=======
->>>>>>> android-3.18
 	if (AR_SREV_9330_11(ah)) {
 		/* mac */
 		INIT_INI_ARRAY(&ah->iniMac[ATH_INI_CORE],
@@ -270,21 +262,10 @@ static void ar9003_hw_init_mode_regs(struct ath_hw *ah)
 
 		/* Awake -> Sleep Setting */
 		INIT_INI_ARRAY(&ah->iniPcieSerdes,
-<<<<<<< HEAD
-				ar9462_pciephy_clkreq_disable_L1_2p0,
-				ARRAY_SIZE(ar9462_pciephy_clkreq_disable_L1_2p0),
-				2);
-		/* Sleep -> Awake Setting */
-		INIT_INI_ARRAY(&ah->iniPcieSerdesLowPower,
-				ar9462_pciephy_clkreq_disable_L1_2p0,
-				ARRAY_SIZE(ar9462_pciephy_clkreq_disable_L1_2p0),
-				2);
-=======
 			       ar9462_2p0_pciephy_clkreq_disable_L1);
 		/* Sleep -> Awake Setting */
 		INIT_INI_ARRAY(&ah->iniPcieSerdesLowPower,
 			       ar9462_2p0_pciephy_clkreq_disable_L1);
->>>>>>> android-3.18
 
 		/* Fast clock modal settings */
 		INIT_INI_ARRAY(&ah->iniModesFastClock,
@@ -755,12 +736,6 @@ static void ar9003_rx_gain_table_mode0(struct ath_hw *ah)
 				ar9340Common_rx_gain_table_1p0);
 	else if (AR_SREV_9485_11_OR_LATER(ah))
 		INIT_INI_ARRAY(&ah->iniModesRxGain,
-<<<<<<< HEAD
-			       ar9485_common_rx_gain_1_1,
-			       ARRAY_SIZE(ar9485_common_rx_gain_1_1),
-				2);
-	else if (AR_SREV_9580(ah))
-=======
 			       ar9485_common_rx_gain_1_1);
 	else if (AR_SREV_9550(ah)) {
 		INIT_INI_ARRAY(&ah->iniModesRxGain,
@@ -773,7 +748,6 @@ static void ar9003_rx_gain_table_mode0(struct ath_hw *ah)
 		INIT_INI_ARRAY(&ah->ini_modes_rx_gain_bounds,
 			       qca953x_1p0_common_rx_gain_bounds);
 	} else if (AR_SREV_9580(ah))
->>>>>>> android-3.18
 		INIT_INI_ARRAY(&ah->iniModesRxGain,
 				ar9580_1p0_rx_gain_table);
 	else if (AR_SREV_9462_21(ah))

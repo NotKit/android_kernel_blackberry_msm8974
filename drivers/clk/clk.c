@@ -1692,11 +1692,6 @@ static struct clk *clk_propagate_rate_change(struct clk *clk, unsigned long even
 static void clk_change_rate(struct clk *clk)
 {
 	struct clk *child;
-<<<<<<< HEAD
-	unsigned long old_rate;
-	unsigned long best_parent_rate = 0;
-=======
->>>>>>> android-3.18
 	struct hlist_node *tmp;
 	unsigned long old_rate;
 	unsigned long best_parent_rate = 0;
@@ -1705,18 +1700,6 @@ static void clk_change_rate(struct clk *clk)
 
 	old_rate = clk->rate;
 
-<<<<<<< HEAD
-	if (clk->parent)
-		best_parent_rate = clk->parent->rate;
-
-	if (clk->ops->set_rate)
-		clk->ops->set_rate(clk->hw, clk->new_rate);
-
-	if (clk->ops->recalc_rate)
-		clk->rate = clk->ops->recalc_rate(clk->hw, best_parent_rate);
-	else
-		clk->rate = best_parent_rate;
-=======
 	if (clk->new_parent)
 		best_parent_rate = clk->new_parent->rate;
 	else if (clk->parent)
@@ -1767,7 +1750,6 @@ static void clk_change_rate(struct clk *clk)
 	}
 #endif /*CONFIG_COMMON_CLK_FREQ_STATS_ACCOUNTING*/
 
->>>>>>> android-3.18
 
 	if (clk->notifier_count && old_rate != clk->rate)
 		__clk_notify(clk, POST_RATE_CHANGE, old_rate, clk->rate);
@@ -1920,11 +1902,7 @@ static struct clk *__clk_init_parent(struct clk *clk)
 
 	if (!clk->parents)
 		clk->parents =
-<<<<<<< HEAD
-			kzalloc((sizeof(struct clk*) * clk->num_parents),
-=======
 			kcalloc(clk->num_parents, sizeof(struct clk *),
->>>>>>> android-3.18
 					GFP_KERNEL);
 
 	ret = clk_get_parent_by_index(clk, index);
@@ -1966,26 +1944,6 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 	if (!clk)
 		return 0;
 
-<<<<<<< HEAD
-	if (!clk->parents)
-		clk->parents = kzalloc((sizeof(struct clk*) * clk->num_parents),
-								GFP_KERNEL);
-
-	/*
-	 * find index of new parent clock using cached parent ptrs,
-	 * or if not yet cached, use string name comparison and cache
-	 * them now to avoid future calls to __clk_lookup.
-	 */
-	for (i = 0; i < clk->num_parents; i++) {
-		if (clk->parents && clk->parents[i] == parent)
-			break;
-		else if (!strcmp(clk->parent_names[i], parent->name)) {
-			if (clk->parents)
-				clk->parents[i] = __clk_lookup(parent->name);
-			break;
-		}
-	}
-=======
 	/* verify ops for for multi-parent clks */
 	if ((clk->num_parents > 1) && (!clk->ops->set_parent))
 		return -ENOSYS;
@@ -1995,7 +1953,6 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 
 	if (clk->parent == parent)
 		goto out;
->>>>>>> android-3.18
 
 	/* check that we are allowed to re-parent if the clock is in use */
 	if ((clk->flags & CLK_SET_PARENT_GATE) && clk->prepare_count) {
@@ -2723,17 +2680,8 @@ struct of_clk_provider {
 	void *data;
 };
 
-<<<<<<< HEAD
-		/* XXX the notifier code should handle this better */
-		if (!cn->notifier_head.head) {
-			srcu_cleanup_notifier_head(&cn->notifier_head);
-			list_del(&cn->node);
-			kfree(cn);
-		}
-=======
 static const struct of_device_id __clk_of_table_sentinel
 	__used __section(__clk_of_table_end);
->>>>>>> android-3.18
 
 static LIST_HEAD(of_clk_providers);
 static DEFINE_MUTEX(of_clk_mutex);

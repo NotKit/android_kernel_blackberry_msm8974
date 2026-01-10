@@ -35,11 +35,7 @@
 
 static bool is_enabled;
 
-<<<<<<< HEAD
-static void __init tegra_cpu_reset_handler_enable(void)
-=======
 static void __init tegra_cpu_reset_handler_set(const u32 reset_address)
->>>>>>> android-3.18
 {
 	void __iomem *evp_cpu_reset =
 		IO_ADDRESS(TEGRA_EXCEPTION_VECTORS_BASE + 0x100);

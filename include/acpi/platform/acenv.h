@@ -75,10 +75,7 @@
 #define ACPI_CONSTANT_EVAL_ONLY
 #define ACPI_LARGE_NAMESPACE_NODE
 #define ACPI_DATA_TABLE_DISASSEMBLY
-<<<<<<< HEAD
-=======
 #define ACPI_SINGLE_THREADED
->>>>>>> android-3.18
 #define ACPI_32BIT_PHYSICAL_ADDRESS
 #endif
 

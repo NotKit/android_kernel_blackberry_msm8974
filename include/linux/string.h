@@ -163,11 +163,6 @@ static inline bool strstarts(const char *str, const char *prefix)
 	return strncmp(str, prefix, strlen(prefix)) == 0;
 }
 
-<<<<<<< HEAD
-extern size_t memweight(const void *ptr, size_t bytes);
-void memzero_explicit(void *s, size_t count);
-
-=======
 size_t memweight(const void *ptr, size_t bytes);
 void memzero_explicit(void *s, size_t count);
 
@@ -182,5 +177,4 @@ static inline const char *kbasename(const char *path)
 	return tail ? tail + 1 : path;
 }
 
->>>>>>> android-3.18
 #endif /* _LINUX_STRING_H_ */

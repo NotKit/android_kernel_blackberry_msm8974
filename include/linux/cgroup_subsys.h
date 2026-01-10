@@ -51,15 +51,6 @@ SUBSYS(net_prio)
 SUBSYS(hugetlb)
 #endif
 
-<<<<<<< HEAD
-/* */
-
-#ifdef CONFIG_CGROUP_BFQIO
-SUBSYS(bfqio)
-#endif
-
-/* */
-=======
 /*
  * The following subsystems are not supported on the default hierarchy.
  */
@@ -69,4 +60,3 @@ SUBSYS(debug)
 /*
  * DO NOT ADD ANY SUBSYSTEM WITHOUT EXPLICIT ACKS FROM CGROUP MAINTAINERS.
  */
->>>>>>> android-3.18

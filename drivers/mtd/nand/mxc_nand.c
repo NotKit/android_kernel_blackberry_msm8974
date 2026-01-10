@@ -1553,15 +1553,9 @@ static int mxcnd_probe(struct platform_device *pdev)
 	host->devtype_data->preset(mtd);
 
 	if (mtd->writesize == 2048)
-<<<<<<< HEAD
-		this->ecc.layout = oob_largepage;
-	if (nfc_is_v21() && mtd->writesize == 4096)
-		this->ecc.layout = &nandv2_hw_eccoob_4k;
-=======
 		this->ecc.layout = host->devtype_data->ecclayout_2k;
 	else if (mtd->writesize == 4096)
 		this->ecc.layout = host->devtype_data->ecclayout_4k;
->>>>>>> android-3.18
 
 	if (this->ecc.mode == NAND_ECC_HW) {
 		if (is_imx21_nfc(host) || is_imx27_nfc(host))

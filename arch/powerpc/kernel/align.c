@@ -842,16 +842,6 @@ int fix_alignment(struct pt_regs *regs)
 	nb = aligninfo[instr].len;
 	flags = aligninfo[instr].flags;
 
-<<<<<<< HEAD
-	/* ldbrx/stdbrx overlap lfs/stfs in the DSISR unfortunately */
-	if (IS_XFORM(instruction) && ((instruction >> 1) & 0x3ff) == 532) {
-		nb = 8;
-		flags = LD+SW;
-	} else if (IS_XFORM(instruction) &&
-		   ((instruction >> 1) & 0x3ff) == 660) {
-		nb = 8;
-		flags = ST+SW;
-=======
 	/*
 	 * Handle some cases which give overlaps in the DSISR values.
 	 */
@@ -871,7 +861,6 @@ int fix_alignment(struct pt_regs *regs)
 		case 276:	/* lqarx */
 			return 0;	/* not emulated ever */
 		}
->>>>>>> android-3.18
 	}
 
 	/* Byteswap little endian loads and stores */

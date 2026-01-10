@@ -650,27 +650,6 @@ void show_mem(unsigned int filter)
 
 	printk(KERN_INFO "Mem-info:\n");
 	show_free_areas(filter);
-<<<<<<< HEAD
-	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
-		return;
-#ifndef CONFIG_DISCONTIGMEM
-	i = max_mapnr;
-	while (i-- > 0) {
-		total++;
-		if (PageReserved(mem_map+i))
-			reserved++;
-		else if (PageSwapCache(mem_map+i))
-			cached++;
-		else if (!page_count(&mem_map[i]))
-			free++;
-		else
-			shared += page_count(&mem_map[i]) - 1;
-	}
-#else
-	for (i = 0; i < npmem_ranges; i++) {
-		int j;
-=======
->>>>>>> android-3.18
 
 	for_each_online_pgdat(pgdat) {
 		unsigned long flags;

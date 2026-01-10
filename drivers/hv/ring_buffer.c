@@ -381,13 +381,8 @@ int hv_ringbuffer_write(struct hv_ring_buffer_info *outring_info,
 					     &prev_indices,
 					     sizeof(u64));
 
-<<<<<<< HEAD
-	/* Make sure we flush all writes before updating the writeIndex */
-	wmb();
-=======
 	/* Issue a full memory barrier before updating the write index */
 	mb();
->>>>>>> android-3.18
 
 	/* Now, update the write location */
 	hv_set_next_write_location(outring_info, next_write_location);
@@ -476,17 +471,11 @@ int hv_ringbuffer_read(struct hv_ring_buffer_info *inring_info, void *buffer,
 						sizeof(u64),
 						next_read_location);
 
-<<<<<<< HEAD
-	/* Make sure all reads are done before we update the read index since */
-	/* the writer may start writing to the read area once the read index */
-	/*is updated */
-=======
 	/*
 	 * Make sure all reads are done before we update the read index since
 	 * the writer may start writing to the read area once the read index
 	 * is updated.
 	 */
->>>>>>> android-3.18
 	mb();
 
 	/* Update the read index */

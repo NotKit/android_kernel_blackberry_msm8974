@@ -8,21 +8,6 @@
 #endif
 
 /*
-<<<<<<< HEAD
- * SHMMAX, SHMMNI and SHMALL are upper limits are defaults which can
- * be increased by sysctl
- */
-
-#define SHMMAX 0x2000000		 /* max shared seg size (bytes) */
-#define SHMMIN 1			 /* min shared seg size (bytes) */
-#define SHMMNI 4096			 /* max num of segs system wide */
-#ifndef __KERNEL__
-#define SHMALL (SHMMAX/getpagesize()*(SHMMNI/16))
-#endif
-#define SHMSEG SHMMNI			 /* max shared segs per process */
-
-
-=======
  * SHMMNI, SHMMAX and SHMALL are default upper limits which can be
  * modified by sysctl. The SHMMAX and SHMALL values have been chosen to
  * be as large possible without facilitating scenarios where userspace
@@ -37,7 +22,6 @@
 #define SHMALL (ULONG_MAX - (1UL << 24)) /* max shm system wide (pages) */
 #define SHMSEG SHMMNI			 /* max shared segs per process */
 
->>>>>>> android-3.18
 /* Obsolete, used only for backwards compatibility and libc5 compiles */
 struct shmid_ds {
 	struct ipc_perm		shm_perm;	/* operation perms */
@@ -85,19 +69,11 @@ struct	shminfo {
 
 struct shm_info {
 	int used_ids;
-<<<<<<< HEAD
-	unsigned long shm_tot;	/* total allocated shm */
-	unsigned long shm_rss;	/* total resident shm */
-	unsigned long shm_swp;	/* total swapped shm */
-	unsigned long swap_attempts;
-	unsigned long swap_successes;
-=======
 	__kernel_ulong_t shm_tot;	/* total allocated shm */
 	__kernel_ulong_t shm_rss;	/* total resident shm */
 	__kernel_ulong_t shm_swp;	/* total swapped shm */
 	__kernel_ulong_t swap_attempts;
 	__kernel_ulong_t swap_successes;
->>>>>>> android-3.18
 };
 
 

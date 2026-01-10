@@ -31,11 +31,7 @@
 #include <linux/extcon.h>
 #include <linux/regulator/consumer.h>
 
-<<<<<<< HEAD
-#include "core.h"
-=======
 #include <linux/usb/otg.h>
->>>>>>> android-3.18
 
 /*
  * All these registers belong to OMAP's Wrapper around the
@@ -149,20 +145,11 @@ enum omap_dwc3_vbus_id_status {
 
 static inline u32 dwc3_omap_readl(void __iomem *base, u32 offset)
 {
-<<<<<<< HEAD
-	return readl_relaxed(base + offset);
-=======
 	return readl(base + offset);
->>>>>>> android-3.18
 }
 
 static inline void dwc3_omap_writel(void __iomem *base, u32 offset, u32 value)
 {
-<<<<<<< HEAD
-	writel_relaxed(value, base + offset);
-}
-
-=======
 	writel(value, base + offset);
 }
 
@@ -289,20 +276,13 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
 		dev_dbg(omap->dev, "invalid state\n");
 	}
 }
->>>>>>> android-3.18
 
 static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
 {
 	struct dwc3_omap	*omap = _omap;
 	u32			reg;
 
-<<<<<<< HEAD
-	spin_lock(&omap->lock);
-
-	reg = dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_1);
-=======
 	reg = dwc3_omap_read_irqmisc_status(omap);
->>>>>>> android-3.18
 
 	if (reg & USBOTGSS_IRQMISC_DMADISABLECLR) {
 		dev_dbg(omap->dev, "DMA Disable was Cleared\n");
@@ -336,16 +316,9 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
 	if (reg & USBOTGSS_IRQMISC_IDPULLUP_FALL)
 		dev_dbg(omap->dev, "IDPULLUP Fall\n");
 
-<<<<<<< HEAD
-	dwc3_omap_writel(omap->base, USBOTGSS_IRQSTATUS_1, reg);
-
-	reg = dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_0);
-	dwc3_omap_writel(omap->base, USBOTGSS_IRQSTATUS_0, reg);
-=======
 	dwc3_omap_write_irqmisc_status(omap, reg);
 
 	reg = dwc3_omap_read_irq0_status(omap);
->>>>>>> android-3.18
 
 	dwc3_omap_write_irq0_status(omap, reg);
 
@@ -561,34 +534,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
 	omap->dev	= dev;
 	omap->irq	= irq;
 	omap->base	= base;
-<<<<<<< HEAD
-	omap->dwc3	= dwc3;
-
-	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
-
-	utmi_mode = of_get_property(node, "utmi-mode", &size);
-	if (utmi_mode && size == sizeof(*utmi_mode)) {
-		reg |= *utmi_mode;
-	} else {
-		if (!pdata) {
-			dev_dbg(dev, "missing platform data\n");
-		} else {
-			switch (pdata->utmi_mode) {
-			case DWC3_OMAP_UTMI_MODE_SW:
-				reg |= USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
-				break;
-			case DWC3_OMAP_UTMI_MODE_HW:
-				reg &= ~USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
-				break;
-			default:
-				dev_dbg(dev, "UNKNOWN utmi mode %d\n",
-						pdata->utmi_mode);
-			}
-		}
-	}
-
-	dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, reg);
-=======
 	omap->vbus_reg	= vbus_reg;
 	dev->dma_mask	= &dwc3_omap_dma_mask;
 
@@ -601,24 +546,11 @@ static int dwc3_omap_probe(struct platform_device *pdev)
 
 	dwc3_omap_map_offset(omap);
 	dwc3_omap_set_utmi_mode(omap);
->>>>>>> android-3.18
 
 	/* check the DMA Status */
 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
 	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
 
-<<<<<<< HEAD
-	/* Set No-Idle and No-Standby */
-	reg &= ~(USBOTGSS_STANDBYMODE_MASK
-			| USBOTGSS_IDLEMODE_MASK);
-
-	reg |= (USBOTGSS_SYSCONFIG_STANDBYMODE(USBOTGSS_STANDBYMODE_NO_STANDBY)
-		| USBOTGSS_SYSCONFIG_IDLEMODE(USBOTGSS_IDLEMODE_NO_IDLE));
-
-	dwc3_omap_writel(omap->base, USBOTGSS_SYSCONFIG, reg);
-
-=======
->>>>>>> android-3.18
 	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
 			"dwc3-omap", omap);
 	if (ret) {
@@ -627,33 +559,10 @@ static int dwc3_omap_probe(struct platform_device *pdev)
 		goto err1;
 	}
 
-<<<<<<< HEAD
-	/* enable all IRQs */
-	reg = USBOTGSS_IRQO_COREIRQ_ST;
-	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_0, reg);
-
-	reg = (USBOTGSS_IRQ1_OEVT |
-			USBOTGSS_IRQ1_DRVVBUS_RISE |
-			USBOTGSS_IRQ1_CHRGVBUS_RISE |
-			USBOTGSS_IRQ1_DISCHRGVBUS_RISE |
-			USBOTGSS_IRQ1_IDPULLUP_RISE |
-			USBOTGSS_IRQ1_DRVVBUS_FALL |
-			USBOTGSS_IRQ1_CHRGVBUS_FALL |
-			USBOTGSS_IRQ1_DISCHRGVBUS_FALL |
-			USBOTGSS_IRQ1_IDPULLUP_FALL);
-
-	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_1, reg);
-
-	ret = platform_device_add_resources(dwc3, pdev->resource,
-			pdev->num_resources);
-	if (ret) {
-		dev_err(dev, "couldn't add resources to dwc3 device\n");
-=======
 	dwc3_omap_enable_irqs(omap);
 
 	ret = dwc3_omap_extcon_register(omap);
 	if (ret < 0)
->>>>>>> android-3.18
 		goto err2;
 
 	ret = of_platform_populate(node, NULL, NULL, dev);

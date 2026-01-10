@@ -544,11 +544,7 @@ static void pci_setup_bridge_io(struct pci_dev *bridge)
 		io_mask = PCI_IO_1K_RANGE_MASK;
 
 	/* Set up the top and bottom of the PCI I/O segment for this bus. */
-<<<<<<< HEAD
-	res = bus->resource[0];
-=======
 	res = &bridge->resource[PCI_BRIDGE_RESOURCES + 0];
->>>>>>> android-3.18
 	pcibios_resource_to_bus(bridge->bus, &region, res);
 	if (res->flags & IORESOURCE_IO) {
 		pci_read_config_word(bridge, PCI_IO_BASE, &l);
@@ -578,11 +574,7 @@ static void pci_setup_bridge_mmio(struct pci_dev *bridge)
 	u32 l;
 
 	/* Set up the top and bottom of the PCI Memory segment for this bus. */
-<<<<<<< HEAD
-	res = bus->resource[1];
-=======
 	res = &bridge->resource[PCI_BRIDGE_RESOURCES + 1];
->>>>>>> android-3.18
 	pcibios_resource_to_bus(bridge->bus, &region, res);
 	if (res->flags & IORESOURCE_MEM) {
 		l = (region.start >> 16) & 0xfff0;
@@ -607,11 +599,7 @@ static void pci_setup_bridge_mmio_pref(struct pci_dev *bridge)
 
 	/* Set up PREF base/limit. */
 	bu = lu = 0;
-<<<<<<< HEAD
-	res = bus->resource[2];
-=======
 	res = &bridge->resource[PCI_BRIDGE_RESOURCES + 2];
->>>>>>> android-3.18
 	pcibios_resource_to_bus(bridge->bus, &region, res);
 	if (res->flags & IORESOURCE_PREFETCH) {
 		l = (region.start >> 16) & 0xfff0;

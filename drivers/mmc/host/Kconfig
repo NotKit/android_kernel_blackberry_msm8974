@@ -365,17 +365,6 @@ config MMC_ATMELMCI
 
 	  If unsure, say N.
 
-<<<<<<< HEAD
-endchoice
-
-config MMC_IMX
-	tristate "Motorola i.MX Multimedia Card Interface support"
-	depends on ARCH_MX1
-	help
-	  This selects the Motorola i.MX Multimedia card Interface.
-	  If you have a i.MX platform with a Multimedia Card slot,
-	  say Y or M here.
-=======
 config MMC_SDHCI_MSM
 	tristate "Qualcomm SDHCI Controller Support"
 	depends on ARCH_QCOM || (ARM && COMPILE_TEST)
@@ -386,7 +375,6 @@ config MMC_SDHCI_MSM
 	  SD/MMC/SDIO devices.
 
 	  If you have a controller with this interface, say Y or M here.
->>>>>>> android-3.18
 
 	  If unsure, say N.
 

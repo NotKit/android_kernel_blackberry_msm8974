@@ -482,11 +482,6 @@ static int bfusb_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
 
-<<<<<<< HEAD
-	data = hdev->driver_data;
-
-=======
->>>>>>> android-3.18
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
 		hdev->stat.cmd_tx++;
@@ -546,23 +541,6 @@ static int bfusb_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	return 0;
 }
 
-<<<<<<< HEAD
-static void bfusb_destruct(struct hci_dev *hdev)
-{
-	struct bfusb_data *data = hdev->driver_data;
-
-	BT_DBG("hdev %p bfusb %p", hdev, data);
-
-	kfree(data);
-}
-
-static int bfusb_ioctl(struct hci_dev *hdev, unsigned int cmd, unsigned long arg)
-{
-	return -ENOIOCTLCMD;
-}
-
-=======
->>>>>>> android-3.18
 static int bfusb_load_firmware(struct bfusb_data *data,
 			       const unsigned char *firmware, int count)
 {
@@ -712,19 +690,10 @@ static int bfusb_probe(struct usb_interface *intf, const struct usb_device_id *i
 	hdev->driver_data = data;
 	SET_HCIDEV_DEV(hdev, &intf->dev);
 
-<<<<<<< HEAD
-	hdev->open     = bfusb_open;
-	hdev->close    = bfusb_close;
-	hdev->flush    = bfusb_flush;
-	hdev->send     = bfusb_send_frame;
-	hdev->destruct = bfusb_destruct;
-	hdev->ioctl    = bfusb_ioctl;
-=======
 	hdev->open  = bfusb_open;
 	hdev->close = bfusb_close;
 	hdev->flush = bfusb_flush;
 	hdev->send  = bfusb_send_frame;
->>>>>>> android-3.18
 
 	hdev->owner = THIS_MODULE;
 

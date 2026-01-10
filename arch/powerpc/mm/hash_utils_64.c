@@ -829,16 +829,8 @@ void __init early_init_mmu(void)
 	 */
 	htab_initialize();
 
-<<<<<<< HEAD
-	/* Initialize stab / SLB management */
-	if (mmu_has_feature(MMU_FTR_SLB))
-		slb_initialize();
-	else
-		stab_initialize(get_paca()->stab_real);
-=======
 	/* Initialize SLB management */
 	slb_initialize();
->>>>>>> android-3.18
 }
 
 #ifdef CONFIG_SMP

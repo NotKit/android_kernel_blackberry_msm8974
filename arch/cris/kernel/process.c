@@ -36,28 +36,7 @@ EXPORT_SYMBOL(pm_power_off);
 
 void arch_cpu_idle(void)
 {
-<<<<<<< HEAD
-	/* endless idle loop with no priority at all */
-	while (1) {
-		rcu_idle_enter();
-		while (!need_resched()) {
-			void (*idle)(void);
-			/*
-			 * Mark this as an RCU critical section so that
-			 * synchronize_kernel() in the unload path waits
-			 * for our completion.
-			 */
-			idle = pm_idle;
-			if (!idle)
-				idle = default_idle;
-			idle();
-		}
-		rcu_idle_exit();
-		schedule_preempt_disabled();
-	}
-=======
 	default_idle();
->>>>>>> android-3.18
 }
 
 void hard_reset_now (void);

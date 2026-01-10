@@ -215,11 +215,7 @@ extern struct {
 	void *thread_info;
 } stack_start;
 
-<<<<<<< HEAD
-int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
-=======
 int __cpu_up(unsigned int cpu, struct task_struct *tsk)
->>>>>>> android-3.18
 {
 	unsigned long timeout;
 

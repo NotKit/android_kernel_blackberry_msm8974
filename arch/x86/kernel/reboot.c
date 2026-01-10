@@ -398,26 +398,9 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "Precision WorkStation T7400"),
 		},
 	},
-<<<<<<< HEAD
-
-	/* ASRock */
-	{	/* Handle problems with rebooting on ASRock Q1900DC-ITX */
-		.callback = set_pci_reboot,
-		.ident = "ASRock Q1900DC-ITX",
-		.matches = {
-			DMI_MATCH(DMI_BOARD_VENDOR, "ASRock"),
-			DMI_MATCH(DMI_BOARD_NAME, "Q1900DC-ITX"),
-		},
-	},
-
-	{	/* Handle problems with rebooting on the Latitude E6320. */
-		.callback = set_pci_reboot,
-		.ident = "Dell Latitude E6320",
-=======
 	{	/* Handle problems with rebooting on Dell XPS710 */
 		.callback = set_bios_reboot,
 		.ident = "Dell XPS710",
->>>>>>> android-3.18
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Dell XPS710"),
@@ -452,34 +435,7 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-Z540N"),
 		},
 	},
-<<<<<<< HEAD
-	{	/* Handle problems with rebooting on the Precision M6600. */
-		.callback = set_pci_reboot,
-		.ident = "Dell OptiPlex 990",
-		.matches = {
-			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M6600"),
-		},
-	},
-	{	/* Handle problems with rebooting on the Dell PowerEdge C6100. */
-		.callback = set_pci_reboot,
-		.ident = "Dell PowerEdge C6100",
-		.matches = {
-			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-			DMI_MATCH(DMI_PRODUCT_NAME, "C6100"),
-		},
-	},
-	{	/* Some C6100 machines were shipped with vendor being 'Dell'. */
-		.callback = set_pci_reboot,
-		.ident = "Dell PowerEdge C6100",
-		.matches = {
-			DMI_MATCH(DMI_SYS_VENDOR, "Dell"),
-			DMI_MATCH(DMI_PRODUCT_NAME, "C6100"),
-		},
-	},
-=======
 
->>>>>>> android-3.18
 	{ }
 };
 
@@ -627,25 +583,7 @@ static void native_machine_emergency_restart(void)
 			reboot_type = BOOT_CF9_SAFE;
 			break;
 
-<<<<<<< HEAD
-		case BOOT_ACPI:
-			acpi_reboot();
-			reboot_type = BOOT_KBD;
-			break;
-
-		case BOOT_EFI:
-			if (efi_enabled(EFI_RUNTIME_SERVICES))
-				efi.reset_system(reboot_mode ?
-						 EFI_RESET_WARM :
-						 EFI_RESET_COLD,
-						 EFI_SUCCESS, 0, NULL);
-			reboot_type = BOOT_KBD;
-			break;
-
-		case BOOT_CF9:
-=======
 		case BOOT_CF9_FORCE:
->>>>>>> android-3.18
 			port_cf9_safe = true;
 			/* Fall through */
 
@@ -676,38 +614,6 @@ static void native_machine_emergency_restart(void)
 void native_machine_shutdown(void)
 {
 	/* Stop the cpus and apics */
-<<<<<<< HEAD
-#ifdef CONFIG_SMP
-
-	/* The boot cpu is always logical cpu 0 */
-	int reboot_cpu_id = 0;
-#endif
-
-#ifdef CONFIG_X86_IO_APIC
-	disable_IO_APIC();
-#endif
-
-#ifdef CONFIG_SMP
-
-#ifdef CONFIG_X86_32
-	/* See if there has been given a command line override */
-	if ((reboot_cpu != -1) && (reboot_cpu < nr_cpu_ids) &&
-		cpu_online(reboot_cpu))
-		reboot_cpu_id = reboot_cpu;
-#endif
-
-	/* Make certain the cpu I'm about to reboot on is online */
-	if (!cpu_online(reboot_cpu_id))
-		reboot_cpu_id = smp_processor_id();
-
-	/* Make certain I only run on the appropriate processor */
-	set_cpus_allowed_ptr(current, cpumask_of(reboot_cpu_id));
-
-	/*
-	 * O.K Now that I'm on the appropriate processor, stop all of the
-	 * others. Also disable the local irq to not receive the per-cpu
-	 * timer interrupt which may trigger scheduler's load balance.
-=======
 #ifdef CONFIG_X86_IO_APIC
 	/*
 	 * Disabling IO APIC before local APIC is a workaround for
@@ -728,7 +634,6 @@ void native_machine_shutdown(void)
 	 * Stop all of the others. Also disable the local irq to
 	 * not receive the per-cpu timer interrupt which may trigger
 	 * scheduler's load balance.
->>>>>>> android-3.18
 	 */
 	local_irq_disable();
 	stop_other_cpus();

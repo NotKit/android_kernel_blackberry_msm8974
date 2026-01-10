@@ -28,11 +28,8 @@
 #include <asm/mach/map.h>
 #include <asm/mach/flash.h>
 #include <mach/vreg.h>
-<<<<<<< HEAD
 #include <mach/board.h>
 #include <mach/proc_comm.h>
-=======
->>>>>>> android-3.18
 
 #include <asm/io.h>
 #include <asm/delay.h>

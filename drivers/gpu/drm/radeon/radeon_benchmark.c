@@ -132,12 +132,8 @@ static void radeon_benchmark_move(struct radeon_device *rdev, unsigned size,
 
 	if (rdev->asic->copy.blit) {
 		time = radeon_benchmark_do_move(rdev, size, saddr, daddr,
-<<<<<<< HEAD
-						RADEON_BENCHMARK_COPY_BLIT, n);
-=======
 						RADEON_BENCHMARK_COPY_BLIT, n,
 						dobj->tbo.resv);
->>>>>>> android-3.18
 		if (time < 0)
 			goto out_cleanup;
 		if (time > 0)

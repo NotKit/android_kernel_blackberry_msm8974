@@ -96,11 +96,7 @@ static inline u8 FAN_TO_REG(long rpm, int div)
 		return 255;
 	if (rpm > 1350000)
 		return 1;
-<<<<<<< HEAD
-	return SENSORS_LIMIT((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
-=======
 	return clamp_val((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
->>>>>>> android-3.18
 }
 
 static inline int FAN_FROM_REG(u8 val, int div)

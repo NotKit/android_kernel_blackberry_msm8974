@@ -230,13 +230,6 @@ config LEDS_LP3944
 	  To compile this driver as a module, choose M here: the
 	  module will be called leds-lp3944.
 
-<<<<<<< HEAD
-config LEDS_CPLD
-	tristate "LED Support for CPLD connected LEDs"
-	depends on LEDS_CLASS
-	help
-	  This option enables support for the LEDs connected to CPLD
-=======
 config LEDS_LP55XX_COMMON
 	tristate "Common Driver for TI/National LP5521/5523/55231/5562/8501"
 	depends on LEDS_LP5521 || LEDS_LP5523 || LEDS_LP5562 || LEDS_LP8501
@@ -244,7 +237,6 @@ config LEDS_LP55XX_COMMON
 	help
 	  This option supports common operations for LP5521/5523/55231/5562/8501
 	  devices.
->>>>>>> android-3.18
 
 config LEDS_LP5521
 	tristate "LED Support for N.S. LP5521 LED driver chip"
@@ -336,24 +328,8 @@ config LEDS_PCA955X
 	  LED driver chips accessed via the I2C bus.  Supported
 	  devices include PCA9550, PCA9551, PCA9552, and PCA9553.
 
-<<<<<<< HEAD
-config LEDS_PM8XXX
-	tristate "LED Support for Qualcomm PMIC8XXX"
-	depends on MFD_PM8XXX
-	help
-	  This option enables support for LEDs connected over PMIC8XXX
-	  (Power Management IC) chip on Qualcomm reference boards,
-	  for example SURF and FFAs.
-
-	  To compile this driver as a module, choose M here: the module will
-	  be called leds-pmic8xxx.
-
-config LEDS_PCA9633
-	tristate "LED support for PCA9633 I2C chip"
-=======
 config LEDS_PCA963X
 	tristate "LED support for PCA963x I2C chip"
->>>>>>> android-3.18
 	depends on LEDS_CLASS
 	depends on I2C
 	help
@@ -576,33 +552,9 @@ config LEDS_OT200
 	  This option enables support for the LEDs on the Bachmann OT200.
 	  Say Y to enable LEDs on the Bachmann OT200.
 
-<<<<<<< HEAD
-config LEDS_STLED110
-	tristate "LED Support for STLED110 I2C chip"
-	depends on LEDS_CLASS && I2C
-	help
-	  This option enables support for LEDs connected to STLED110
-	  LED driver chips accessed via the I2C bus.
-	  Driver support brightness control and hardware-assisted blinking.
-
-config LEDS_TRIGGERS
-	bool "LED Trigger support"
-	depends on LEDS_CLASS
-	help
-	  This option enables trigger support for the leds class.
-	  These triggers allow kernel events to drive the LEDs and can
-	  be configured via sysfs. If unsure, say Y.
-
-comment "LED Triggers"
-
-config LEDS_TRIGGER_TIMER
-	tristate "LED Timer Trigger"
-	depends on LEDS_TRIGGERS
-=======
 config LEDS_MENF21BMC
 	tristate "LED support for the MEN 14F021P00 BMC"
 	depends on LEDS_CLASS && MFD_MENF21BMC
->>>>>>> android-3.18
 	help
 	  Say Y here to include support for the MEN 14F021P00 BMC LEDs.
 
@@ -637,18 +589,7 @@ config LEDS_VERSATILE
 	  This option enabled support for the LEDs on the ARM Versatile
 	  and RealView boards. Say Y to enabled these.
 
-<<<<<<< HEAD
-config LEDS_TRIGGER_SLEEP
-	tristate "LED Sleep Mode Trigger"
-	depends on LEDS_TRIGGERS && HAS_EARLYSUSPEND
-	help
-	  This turns LEDs on when the screen is off but the cpu still running.
-
-comment "iptables trigger is under Netfilter config (LED target)"
-	depends on LEDS_TRIGGERS
-=======
 comment "LED Triggers"
 source "drivers/leds/trigger/Kconfig"
->>>>>>> android-3.18
 
 endif # NEW_LEDS

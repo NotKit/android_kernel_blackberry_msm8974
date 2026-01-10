@@ -199,18 +199,6 @@ struct usb_ftdi {
 static struct usb_driver ftdi_elan_driver;
 static void ftdi_elan_delete(struct kref *kref)
 {
-<<<<<<< HEAD
-        struct usb_ftdi *ftdi = kref_to_usb_ftdi(kref);
-        dev_warn(&ftdi->udev->dev, "FREEING ftdi=%pK\n", ftdi);
-        usb_put_dev(ftdi->udev);
-        ftdi->disconnected += 1;
-        mutex_lock(&ftdi_module_lock);
-        list_del_init(&ftdi->ftdi_list);
-        ftdi_instances -= 1;
-        mutex_unlock(&ftdi_module_lock);
-        kfree(ftdi->bulk_in_buffer);
-        ftdi->bulk_in_buffer = NULL;
-=======
 	struct usb_ftdi *ftdi = kref_to_usb_ftdi(kref);
 	dev_warn(&ftdi->udev->dev, "FREEING ftdi=%p\n", ftdi);
 	usb_put_dev(ftdi->udev);
@@ -221,7 +209,6 @@ static void ftdi_elan_delete(struct kref *kref)
 	mutex_unlock(&ftdi_module_lock);
 	kfree(ftdi->bulk_in_buffer);
 	ftdi->bulk_in_buffer = NULL;
->>>>>>> android-3.18
 }
 
 static void ftdi_elan_put_kref(struct usb_ftdi *ftdi)
@@ -539,95 +526,6 @@ static void ftdi_elan_status_work(struct work_struct *work)
 {
 	struct usb_ftdi *ftdi =
 		container_of(work, struct usb_ftdi, status_work.work);
-<<<<<<< HEAD
-        int work_delay_in_msec = 0;
-        if (ftdi->disconnected > 0) {
-                ftdi_elan_put_kref(ftdi);
-                return;
-        } else if (ftdi->synchronized == 0) {
-                down(&ftdi->sw_lock);
-                if (ftdi_elan_synchronize(ftdi) == 0) {
-                        ftdi->synchronized = 1;
-                        ftdi_command_queue_work(ftdi, 1);
-                        ftdi_respond_queue_work(ftdi, 1);
-                        up(&ftdi->sw_lock);
-                        work_delay_in_msec = 100;
-                } else {
-                        dev_err(&ftdi->udev->dev, "synchronize failed\n");
-                        up(&ftdi->sw_lock);
-                        work_delay_in_msec = 10 *1000;
-                }
-        } else if (ftdi->stuck_status > 0) {
-                if (ftdi_elan_stuck_waiting(ftdi) == 0) {
-                        ftdi->stuck_status = 0;
-                        ftdi->synchronized = 0;
-                } else if ((ftdi->stuck_status++ % 60) == 1) {
-                        dev_err(&ftdi->udev->dev, "WRONG type of card inserted "
-                                "- please remove\n");
-                } else
-                        dev_err(&ftdi->udev->dev, "WRONG type of card inserted "
-                                "- checked %d times\n", ftdi->stuck_status);
-                work_delay_in_msec = 100;
-        } else if (ftdi->enumerated == 0) {
-                if (ftdi_elan_enumeratePCI(ftdi) == 0) {
-                        ftdi->enumerated = 1;
-                        work_delay_in_msec = 250;
-                } else
-                        work_delay_in_msec = 1000;
-        } else if (ftdi->initialized == 0) {
-                if (ftdi_elan_setupOHCI(ftdi) == 0) {
-                        ftdi->initialized = 1;
-                        work_delay_in_msec = 500;
-                } else {
-                        dev_err(&ftdi->udev->dev, "initialized failed - trying "
-                                "again in 10 seconds\n");
-                        work_delay_in_msec = 1 *1000;
-                }
-        } else if (ftdi->registered == 0) {
-                work_delay_in_msec = 10;
-                if (ftdi_elan_hcd_init(ftdi) == 0) {
-                        ftdi->registered = 1;
-                } else
-                        dev_err(&ftdi->udev->dev, "register failed\n");
-                work_delay_in_msec = 250;
-        } else {
-                if (ftdi_elan_checkingPCI(ftdi) == 0) {
-                        work_delay_in_msec = 250;
-                } else if (ftdi->controlreg & 0x00400000) {
-                        if (ftdi->gone_away > 0) {
-                                dev_err(&ftdi->udev->dev, "PCI device eject con"
-                                        "firmed platform_dev.dev.parent=%pK plat"
-                                        "form_dev.dev=%pK\n",
-                                        ftdi->platform_dev.dev.parent,
-                                        &ftdi->platform_dev.dev);
-                                platform_device_unregister(&ftdi->platform_dev);
-                                ftdi->platform_dev.dev.parent = NULL;
-                                ftdi->registered = 0;
-                                ftdi->enumerated = 0;
-                                ftdi->card_ejected = 0;
-                                ftdi->initialized = 0;
-                                ftdi->gone_away = 0;
-                        } else
-                                ftdi_elan_flush_targets(ftdi);
-                        work_delay_in_msec = 250;
-                } else {
-                        dev_err(&ftdi->udev->dev, "PCI device has disappeared\n"
-                                );
-                        ftdi_elan_cancel_targets(ftdi);
-                        work_delay_in_msec = 500;
-                        ftdi->enumerated = 0;
-                        ftdi->initialized = 0;
-                }
-        }
-        if (ftdi->disconnected > 0) {
-                ftdi_elan_put_kref(ftdi);
-                return;
-        } else {
-                ftdi_status_requeue_work(ftdi,
-                        msecs_to_jiffies(work_delay_in_msec));
-                return;
-        }
-=======
 	int work_delay_in_msec = 0;
 	if (ftdi->disconnected > 0) {
 		ftdi_elan_put_kref(ftdi);
@@ -710,7 +608,6 @@ static void ftdi_elan_status_work(struct work_struct *work)
 					 msecs_to_jiffies(work_delay_in_msec));
 		return;
 	}
->>>>>>> android-3.18
 }
 
 
@@ -829,21 +726,12 @@ static void ftdi_elan_write_bulk_callback(struct urb *urb)
 	int status = urb->status;
 
 	if (status && !(status == -ENOENT || status == -ECONNRESET ||
-<<<<<<< HEAD
-	    status == -ESHUTDOWN)) {
-                dev_err(&ftdi->udev->dev, "urb=%pK write bulk status received: %"
-                        "d\n", urb, status);
-        }
-        usb_free_coherent(urb->dev, urb->transfer_buffer_length,
-                urb->transfer_buffer, urb->transfer_dma);
-=======
 			status == -ESHUTDOWN)) {
 		dev_err(&ftdi->udev->dev,
 			"urb=%p write bulk status received: %d\n", urb, status);
 	}
 	usb_free_coherent(urb->dev, urb->transfer_buffer_length,
 			  urb->transfer_buffer, urb->transfer_dma);
->>>>>>> android-3.18
 }
 
 static int fill_buffer_with_all_queued_commands(struct usb_ftdi *ftdi,
@@ -887,67 +775,6 @@ static int ftdi_elan_total_command_size(struct usb_ftdi *ftdi, int command_size)
 
 static int ftdi_elan_command_engine(struct usb_ftdi *ftdi)
 {
-<<<<<<< HEAD
-        int retval;
-        char *buf;
-        int ed_commands;
-        int total_size;
-        struct urb *urb;
-        int command_size = ftdi->command_next - ftdi->command_head;
-        if (command_size == 0)
-                return 0;
-        total_size = ftdi_elan_total_command_size(ftdi, command_size);
-        urb = usb_alloc_urb(0, GFP_KERNEL);
-        if (!urb) {
-                dev_err(&ftdi->udev->dev, "could not get a urb to write %d comm"
-                        "ands totaling %d bytes to the Uxxx\n", command_size,
-                        total_size);
-                return -ENOMEM;
-        }
-        buf = usb_alloc_coherent(ftdi->udev, total_size, GFP_KERNEL,
-                &urb->transfer_dma);
-        if (!buf) {
-                dev_err(&ftdi->udev->dev, "could not get a buffer to write %d c"
-                        "ommands totaling %d bytes to the Uxxx\n", command_size,
-                         total_size);
-                usb_free_urb(urb);
-                return -ENOMEM;
-        }
-        ed_commands = fill_buffer_with_all_queued_commands(ftdi, buf,
-                command_size, total_size);
-        usb_fill_bulk_urb(urb, ftdi->udev, usb_sndbulkpipe(ftdi->udev,
-                ftdi->bulk_out_endpointAddr), buf, total_size,
-                ftdi_elan_write_bulk_callback, ftdi);
-        urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-        if (ed_commands) {
-                char diag[40 *3 + 4];
-                char *d = diag;
-                int m = total_size;
-                u8 *c = buf;
-                int s = (sizeof(diag) - 1) / 3;
-                diag[0] = 0;
-                while (s-- > 0 && m-- > 0) {
-                        if (s > 0 || m == 0) {
-                                d += sprintf(d, " %02X", *c++);
-                        } else
-                                d += sprintf(d, " ..");
-                }
-        }
-        retval = usb_submit_urb(urb, GFP_KERNEL);
-        if (retval) {
-                dev_err(&ftdi->udev->dev, "failed %d to submit urb %pK to write "
-                        "%d commands totaling %d bytes to the Uxxx\n", retval,
-                        urb, command_size, total_size);
-                usb_free_coherent(ftdi->udev, total_size, buf, urb->transfer_dma);
-                usb_free_urb(urb);
-                return retval;
-        }
-        usb_free_urb(urb);        /* release our reference to this urb,
-                the USB core will eventually free it entirely */
-        ftdi->command_head += command_size;
-        ftdi_elan_kick_respond_queue(ftdi);
-        return 0;
-=======
 	int retval;
 	char *buf;
 	int ed_commands;
@@ -1004,7 +831,6 @@ static int ftdi_elan_command_engine(struct usb_ftdi *ftdi)
 	ftdi->command_head += command_size;
 	ftdi_elan_kick_respond_queue(ftdi);
 	return 0;
->>>>>>> android-3.18
 }
 
 static void ftdi_elan_do_callback(struct usb_ftdi *ftdi,
@@ -2929,61 +2755,6 @@ static int ftdi_elan_probe(struct usb_interface *interface,
 		}
 		if (!ftdi->bulk_out_endpointAddr &&
 		    usb_endpoint_is_bulk_out(endpoint)) {
-<<<<<<< HEAD
-                        ftdi->bulk_out_endpointAddr =
-                                endpoint->bEndpointAddress;
-                }
-        }
-        if (!(ftdi->bulk_in_endpointAddr && ftdi->bulk_out_endpointAddr)) {
-                dev_err(&ftdi->udev->dev, "Could not find both bulk-in and bulk"
-                        "-out endpoints\n");
-                retval = -ENODEV;
-                goto error;
-        }
-        dev_info(&ftdi->udev->dev, "interface %d has I=%02X O=%02X\n",
-                iface_desc->desc.bInterfaceNumber, ftdi->bulk_in_endpointAddr,
-                ftdi->bulk_out_endpointAddr);
-        usb_set_intfdata(interface, ftdi);
-        if (iface_desc->desc.bInterfaceNumber == 0 &&
-                ftdi->bulk_in_endpointAddr == 0x81 &&
-                ftdi->bulk_out_endpointAddr == 0x02) {
-                retval = usb_register_dev(interface, &ftdi_elan_jtag_class);
-                if (retval) {
-                        dev_err(&ftdi->udev->dev, "Not able to get a minor for "
-                                "this device.\n");
-                        usb_set_intfdata(interface, NULL);
-                        retval = -ENOMEM;
-                        goto error;
-                } else {
-                        ftdi->class = &ftdi_elan_jtag_class;
-                        dev_info(&ftdi->udev->dev, "USB FDTI=%pK JTAG interface "
-                                "%d now attached to ftdi%d\n", ftdi,
-                                iface_desc->desc.bInterfaceNumber,
-                                interface->minor);
-                        return 0;
-                }
-        } else if (iface_desc->desc.bInterfaceNumber == 1 &&
-                ftdi->bulk_in_endpointAddr == 0x83 &&
-                ftdi->bulk_out_endpointAddr == 0x04) {
-                ftdi->class = NULL;
-                dev_info(&ftdi->udev->dev, "USB FDTI=%pK ELAN interface %d now a"
-                        "ctivated\n", ftdi, iface_desc->desc.bInterfaceNumber);
-                INIT_DELAYED_WORK(&ftdi->status_work, ftdi_elan_status_work);
-                INIT_DELAYED_WORK(&ftdi->command_work, ftdi_elan_command_work);
-                INIT_DELAYED_WORK(&ftdi->respond_work, ftdi_elan_respond_work);
-                ftdi_status_queue_work(ftdi, msecs_to_jiffies(3 *1000));
-                return 0;
-        } else {
-                dev_err(&ftdi->udev->dev,
-                        "Could not find ELAN's U132 device\n");
-                retval = -ENODEV;
-                goto error;
-        }
-      error:if (ftdi) {
-                ftdi_elan_put_kref(ftdi);
-        }
-        return retval;
-=======
 			ftdi->bulk_out_endpointAddr =
 				endpoint->bEndpointAddress;
 		}
@@ -3034,7 +2805,6 @@ error:if (ftdi) {
 		ftdi_elan_put_kref(ftdi);
 	}
 	return retval;
->>>>>>> android-3.18
 }
 
 static void ftdi_elan_disconnect(struct usb_interface *interface)

@@ -276,12 +276,6 @@ static void sdio_release_func(struct device *dev)
 	if (!func->card->host->embedded_sdio_data.funcs)
 #endif
 		sdio_free_func_cis(func);
-<<<<<<< HEAD
-
-	if (func->info)
-		kfree(func->info);
-=======
->>>>>>> android-3.18
 
 	kfree(func->info);
 	kfree(func->tmpbuf);

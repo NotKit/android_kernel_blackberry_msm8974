@@ -93,11 +93,6 @@ obj-$(CONFIG_EARLY_PRINTK_8250)	+= early_printk_8250.o
 obj-$(CONFIG_SPINLOCK_TEST)	+= spinlock_test.o
 obj-$(CONFIG_MIPS_MACHINE)	+= mips_machine.o
 
-<<<<<<< HEAD
-obj-$(CONFIG_OF)		+= prom.o
-
-=======
->>>>>>> android-3.18
 CFLAGS_cpu-bugs64.o	= $(shell if $(CC) $(KBUILD_CFLAGS) -Wa,-mdaddi -c -o /dev/null -x c /dev/null >/dev/null 2>&1; then echo "-DHAVE_AS_SET_DADDI"; fi)
 
 obj-$(CONFIG_HAVE_STD_PC_SERIAL_PORT)	+= 8250-platform.o

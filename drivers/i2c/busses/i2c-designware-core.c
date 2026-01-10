@@ -22,10 +22,6 @@
  *
  */
 #include <linux/export.h>
-<<<<<<< HEAD
-#include <linux/clk.h>
-=======
->>>>>>> android-3.18
 #include <linux/errno.h>
 #include <linux/err.h>
 #include <linux/i2c.h>
@@ -416,15 +412,12 @@ static void i2c_dw_xfer_init(struct dw_i2c_dev *dev)
 
 	dw_writel(dev, ic_con, DW_IC_CON);
 
-<<<<<<< HEAD
-=======
 	/*
 	 * Set the slave (target) address and enable 10-bit addressing mode
 	 * if applicable.
 	 */
 	dw_writel(dev, msgs[dev->msg_write_idx].addr | ic_tar, DW_IC_TAR);
 
->>>>>>> android-3.18
 	/* enforce disabled interrupts (due to HW issues) */
 	i2c_dw_disable_int(dev);
 
@@ -840,9 +833,6 @@ u32 i2c_dw_read_comp_param(struct dw_i2c_dev *dev)
 	return dw_readl(dev, DW_IC_COMP_PARAM_1);
 }
 EXPORT_SYMBOL_GPL(i2c_dw_read_comp_param);
-<<<<<<< HEAD
-=======
 
 MODULE_DESCRIPTION("Synopsys DesignWare I2C bus adapter core");
 MODULE_LICENSE("GPL");
->>>>>>> android-3.18

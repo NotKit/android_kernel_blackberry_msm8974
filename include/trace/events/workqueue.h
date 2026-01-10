@@ -54,11 +54,7 @@ TRACE_EVENT(workqueue_queue_work,
 		__entry->function	= work->func;
 		__entry->workqueue	= pwq->wq;
 		__entry->req_cpu	= req_cpu;
-<<<<<<< HEAD
-		__entry->cpu		= cwq->pool->gcwq->cpu;
-=======
 		__entry->cpu		= pwq->pool->cpu;
->>>>>>> android-3.18
 	),
 
 	TP_printk("work struct=%p function=%pf workqueue=%p req_cpu=%u cpu=%u",

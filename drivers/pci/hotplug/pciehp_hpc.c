@@ -735,12 +735,7 @@ static int pcie_init_slot(struct controller *ctrl)
 	if (!slot)
 		return -ENOMEM;
 
-<<<<<<< HEAD
-	snprintf(name, sizeof(name), "pciehp-%u", PSN(ctrl));
-	slot->wq = alloc_workqueue(name, 0, 0);
-=======
 	slot->wq = alloc_workqueue("pciehp-%u", 0, 0, PSN(ctrl));
->>>>>>> android-3.18
 	if (!slot->wq)
 		goto abort;
 
@@ -758,11 +753,7 @@ abort:
 static void pcie_cleanup_slot(struct controller *ctrl)
 {
 	struct slot *slot = ctrl->slot;
-<<<<<<< HEAD
-	cancel_delayed_work(&slot->work);
-=======
 
->>>>>>> android-3.18
 	destroy_workqueue(slot->wq);
 	kfree(slot);
 }

@@ -197,11 +197,7 @@ int setup_profiling_timer(unsigned int multiplier)
  */
 unsigned long cache_decay_ticks = 1;
 
-<<<<<<< HEAD
-int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
-=======
 int __cpu_up(unsigned int cpu, struct task_struct *tidle)
->>>>>>> android-3.18
 {
 	smp_boot_one_cpu(cpu, tidle);
 	return cpu_online(cpu) ? 0 : -ENOSYS;

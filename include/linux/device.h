@@ -25,11 +25,8 @@
 #include <linux/pm.h>
 #include <linux/atomic.h>
 #include <linux/ratelimit.h>
-<<<<<<< HEAD
-=======
 #include <linux/uidgid.h>
 #include <linux/gfp.h>
->>>>>>> android-3.18
 #include <asm/device.h>
 
 struct device;
@@ -638,18 +635,12 @@ extern unsigned long devm_get_free_pages(struct device *dev,
 					 gfp_t gfp_mask, unsigned int order);
 extern void devm_free_pages(struct device *dev, unsigned long addr);
 
-<<<<<<< HEAD
-void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res);
-void __iomem *devm_request_and_ioremap(struct device *dev,
-			struct resource *res);
-=======
 void __iomem *devm_ioremap_resource(struct device *dev,
 				    const struct resource *res);
 
 /* allows to add/remove a custom action to devres stack */
 int devm_add_action(struct device *dev, void (*action)(void *), void *data);
 void devm_remove_action(struct device *dev, void (*action)(void *), void *data);
->>>>>>> android-3.18
 
 struct device_dma_parameters {
 	/*
@@ -781,11 +772,7 @@ struct device {
 
 	struct dma_coherent_mem	*dma_mem; /* internal for coherent mem
 					     override */
-<<<<<<< HEAD
-#ifdef CONFIG_CMA
-=======
 #ifdef CONFIG_DMA_CMA
->>>>>>> android-3.18
 	struct cma *cma_area;		/* contiguous memory area for dma
 					   allocations */
 #endif
@@ -807,12 +794,9 @@ struct device {
 
 	void	(*release)(struct device *dev);
 	struct iommu_group	*iommu_group;
-<<<<<<< HEAD
-=======
 
 	bool			offline_disabled:1;
 	bool			offline:1;
->>>>>>> android-3.18
 };
 
 static inline struct device *kobj_to_dev(struct kobject *kobj)
@@ -1108,32 +1092,6 @@ int _dev_info(const struct device *dev, const char *fmt, ...)
 { return 0; }
 
 #endif
-
-#define dev_level_ratelimited(dev_level, dev, fmt, ...)			\
-do {									\
-	static DEFINE_RATELIMIT_STATE(_rs,				\
-				      DEFAULT_RATELIMIT_INTERVAL,	\
-				      DEFAULT_RATELIMIT_BURST);		\
-	if (__ratelimit(&_rs))						\
-		dev_level(dev, fmt, ##__VA_ARGS__);			\
-} while (0)
-
-#define dev_emerg_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_emerg, dev, fmt, ##__VA_ARGS__)
-#define dev_alert_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_alert, dev, fmt, ##__VA_ARGS__)
-#define dev_crit_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_crit, dev, fmt, ##__VA_ARGS__)
-#define dev_err_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_err, dev, fmt, ##__VA_ARGS__)
-#define dev_warn_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_warn, dev, fmt, ##__VA_ARGS__)
-#define dev_notice_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
-#define dev_info_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
-#define dev_dbg_ratelimited(dev, fmt, ...)				\
-	dev_level_ratelimited(dev_dbg, dev, fmt, ##__VA_ARGS__)
 
 /*
  * Stupid hackaround for existing uses of non-printk uses dev_info

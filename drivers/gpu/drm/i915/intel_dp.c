@@ -702,15 +702,11 @@ intel_dp_aux_ch(struct intel_dp *intel_dp,
 	uint32_t ch_ctl = intel_dp->aux_ch_ctl_reg;
 	uint32_t ch_data = ch_ctl + 4;
 	uint32_t aux_clock_divider;
-<<<<<<< HEAD
-	int try, precharge;
-=======
 	int i, ret, recv_bytes;
 	uint32_t status;
 	int try, clock = 0;
 	bool has_aux_irq = HAS_AUX_IRQ(dev);
 	bool vdd;
->>>>>>> android-3.18
 
 	pps_lock(intel_dp);
 
@@ -936,40 +932,9 @@ intel_dp_aux_init(struct intel_dp *intel_dp, struct intel_connector *connector)
 	if (!HAS_DDI(dev))
 		intel_dp->aux_ch_ctl_reg = intel_dp->output_reg + 0x10;
 
-<<<<<<< HEAD
-		switch (reply[0] & AUX_NATIVE_REPLY_MASK) {
-		case AUX_NATIVE_REPLY_ACK:
-			/* I2C-over-AUX Reply field is only valid
-			 * when paired with AUX ACK.
-			 */
-			break;
-		case AUX_NATIVE_REPLY_NACK:
-			DRM_DEBUG_KMS("aux_ch native nack\n");
-			return -EREMOTEIO;
-		case AUX_NATIVE_REPLY_DEFER:
-			/*
-			 * For now, just give more slack to branch devices. We
-			 * could check the DPCD for I2C bit rate capabilities,
-			 * and if available, adjust the interval. We could also
-			 * be more careful with DP-to-Legacy adapters where a
-			 * long legacy cable may force very low I2C bit rates.
-			 */
-			if (intel_dp->dpcd[DP_DOWNSTREAMPORT_PRESENT] &
-			    DP_DWN_STRM_PORT_PRESENT)
-				usleep_range(500, 600);
-			else
-				usleep_range(300, 400);
-			continue;
-		default:
-			DRM_ERROR("aux_ch invalid native reply 0x%02x\n",
-				  reply[0]);
-			return -EREMOTEIO;
-		}
-=======
 	intel_dp->aux.name = name;
 	intel_dp->aux.dev = dev->dev;
 	intel_dp->aux.transfer = intel_dp_aux_transfer;
->>>>>>> android-3.18
 
 	DRM_DEBUG_KMS("registering %s bus for %s\n", name,
 		      connector->base.kdev->kobj.name);
@@ -1122,24 +1087,6 @@ intel_dp_compute_config(struct intel_encoder *encoder,
 		mode_rate = intel_dp_link_required(adjusted_mode->crtc_clock,
 						   bpp);
 
-<<<<<<< HEAD
-	bpp = adjusted_mode->private_flags & INTEL_MODE_DP_FORCE_6BPC ? 18 : 24;
-
-	for (clock = 0; clock <= max_clock; clock++) {
-		for (lane_count = 1; lane_count <= max_lane_count; lane_count <<= 1) {
-			int link_avail = intel_dp_max_data_rate(intel_dp_link_clock(bws[clock]), lane_count);
-
-			if (intel_dp_link_required(mode->clock, bpp)
-					<= link_avail) {
-				intel_dp->link_bw = bws[clock];
-				intel_dp->lane_count = lane_count;
-				adjusted_mode->clock = intel_dp_link_clock(intel_dp->link_bw);
-				DRM_DEBUG_KMS("Display port link bw %02x lane "
-						"count %d clock %d\n",
-				       intel_dp->link_bw, intel_dp->lane_count,
-				       adjusted_mode->clock);
-				return true;
-=======
 		for (clock = min_clock; clock <= max_clock; clock++) {
 			for (lane_count = min_lane_count; lane_count <= max_lane_count; lane_count <<= 1) {
 				link_clock = drm_dp_bw_code_to_link_rate(bws[clock]);
@@ -1149,7 +1096,6 @@ intel_dp_compute_config(struct intel_encoder *encoder,
 				if (mode_rate <= link_avail) {
 					goto found;
 				}
->>>>>>> android-3.18
 			}
 		}
 	}
@@ -1650,20 +1596,6 @@ void intel_edp_panel_off(struct intel_dp *intel_dp)
 
 	DRM_DEBUG_KMS("Turn eDP power off\n");
 
-<<<<<<< HEAD
-	WARN(!intel_dp->want_panel_vdd, "Need VDD to turn off panel\n");
-
-	pp = ironlake_get_pp_control(dev_priv);
-	/* We need to switch off panel power _and_ force vdd, for otherwise some
-	 * panels get very unhappy and cease to work. */
-	pp &= ~(POWER_TARGET_ON | EDP_FORCE_VDD | PANEL_POWER_RESET | EDP_BLC_ENABLE);
-	I915_WRITE(PCH_PP_CONTROL, pp);
-	POSTING_READ(PCH_PP_CONTROL);
-
-	intel_dp->want_panel_vdd = false;
-
-	ironlake_wait_panel_off(intel_dp);
-=======
 	pps_lock(intel_dp);
 
 	WARN(!intel_dp->want_panel_vdd, "Need VDD to turn off panel\n");
@@ -1689,7 +1621,6 @@ void intel_edp_panel_off(struct intel_dp *intel_dp)
 	intel_display_power_put(dev_priv, power_domain);
 
 	pps_unlock(intel_dp);
->>>>>>> android-3.18
 }
 
 /* Enable backlight in the panel power control. */
@@ -1891,17 +1822,6 @@ static bool intel_dp_get_hw_state(struct intel_encoder *encoder,
 	enum intel_display_power_domain power_domain;
 	u32 tmp;
 
-<<<<<<< HEAD
-
-	/* Make sure the panel is off before trying to change the mode. But also
-	 * ensure that we have vdd while we switch off the panel. */
-	ironlake_edp_panel_vdd_on(intel_dp);
-	ironlake_edp_backlight_off(intel_dp);
-	intel_dp_sink_dpms(intel_dp, DRM_MODE_DPMS_ON);
-	ironlake_edp_panel_off(intel_dp);
-	intel_dp_link_down(intel_dp);
-}
-=======
 	power_domain = intel_display_port_power_domain(encoder);
 	if (!intel_display_power_enabled(dev_priv, power_domain))
 		return false;
@@ -1910,7 +1830,6 @@ static bool intel_dp_get_hw_state(struct intel_encoder *encoder,
 
 	if (!(tmp & DP_PORT_EN))
 		return false;
->>>>>>> android-3.18
 
 	if (port == PORT_A && IS_GEN7(dev) && !IS_VALLEYVIEW(dev)) {
 		*pipe = PORT_TO_PIPE_CPT(tmp);
@@ -1963,15 +1882,6 @@ static void intel_dp_get_config(struct intel_encoder *encoder,
 	struct intel_crtc *crtc = to_intel_crtc(encoder->base.crtc);
 	int dotclock;
 
-<<<<<<< HEAD
-	if (mode != DRM_MODE_DPMS_ON) {
-		/* Switching the panel off requires vdd. */
-		ironlake_edp_panel_vdd_on(intel_dp);
-		ironlake_edp_backlight_off(intel_dp);
-		intel_dp_sink_dpms(intel_dp, mode);
-		ironlake_edp_panel_off(intel_dp);
-		intel_dp_link_down(intel_dp);
-=======
 	tmp = I915_READ(intel_dp->output_reg);
 
 	pipe_config->has_audio = tmp & DP_AUDIO_OUTPUT_ENABLE && port != PORT_A;
@@ -1981,7 +1891,6 @@ static void intel_dp_get_config(struct intel_encoder *encoder,
 			flags |= DRM_MODE_FLAG_PHSYNC;
 		else
 			flags |= DRM_MODE_FLAG_NHSYNC;
->>>>>>> android-3.18
 
 		if (tmp & DP_SYNC_VS_HIGH)
 			flags |= DRM_MODE_FLAG_PVSYNC;
@@ -4971,15 +4880,6 @@ void intel_dp_set_drrs_state(struct drm_device *dev, int refresh_rate)
 	intel_dp = enc_to_intel_dp(&encoder->base);
 	intel_crtc = encoder->new_crtc;
 
-<<<<<<< HEAD
-static void
-intel_dp_destroy(struct drm_connector *connector)
-{
-	drm_sysfs_connector_remove(connector);
-	drm_connector_cleanup(connector);
-	kfree(connector);
-}
-=======
 	if (!intel_crtc) {
 		DRM_DEBUG_KMS("DRRS: intel_crtc not initialized\n");
 		return;
@@ -4991,7 +4891,6 @@ intel_dp_destroy(struct drm_connector *connector)
 		DRM_DEBUG_KMS("Only Seamless DRRS supported.\n");
 		return;
 	}
->>>>>>> android-3.18
 
 	if (intel_connector->panel.downclock_mode->vrefresh == refresh_rate)
 		index = DRRS_LOW_RR;

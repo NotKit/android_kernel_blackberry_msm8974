@@ -13,10 +13,7 @@
 #define _LINUX_NFS4_H
 
 #include <linux/list.h>
-<<<<<<< HEAD
-=======
 #include <linux/uidgid.h>
->>>>>>> android-3.18
 #include <uapi/linux/nfs4.h>
 
 struct nfs4_ace {
@@ -557,12 +554,9 @@ struct nfs4_deviceid {
 	char data[NFS4_DEVICEID4_SIZE];
 };
 
-<<<<<<< HEAD
-=======
 enum data_content4 {
 	NFS4_CONTENT_DATA		= 0,
 	NFS4_CONTENT_HOLE		= 1,
 };
 
->>>>>>> android-3.18
 #endif

@@ -48,8 +48,6 @@ int pinctrl_bind_pins(struct device *dev)
 		goto cleanup_get;
 	}
 
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_PM
 	/*
 	 * If power management is enabled, we also look for the optional
@@ -69,7 +67,6 @@ int pinctrl_bind_pins(struct device *dev)
 		dev_dbg(dev, "no idle pinctrl state\n");
 #endif
 
->>>>>>> android-3.18
 	return 0;
 
 	/*

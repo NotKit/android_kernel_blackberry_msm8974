@@ -26,11 +26,7 @@ static int oprofile_perf_enabled;
 static DEFINE_MUTEX(oprofile_perf_mutex);
 
 static struct op_counter_config *counter_config;
-<<<<<<< HEAD
-static struct perf_event **perf_events[NR_CPUS];
-=======
 static DEFINE_PER_CPU(struct perf_event **, perf_events);
->>>>>>> android-3.18
 static int num_counters;
 
 /*

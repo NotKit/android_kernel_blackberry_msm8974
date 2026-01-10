@@ -694,11 +694,7 @@ static void smp_start_secondary(void *cpuvoid)
 }
 
 /* Upping and downing of CPUs */
-<<<<<<< HEAD
-int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
-=======
 int __cpu_up(unsigned int cpu, struct task_struct *tidle)
->>>>>>> android-3.18
 {
 	struct pcpu *pcpu;
 	int rc;
@@ -940,10 +936,6 @@ static int smp_cpu_notify(struct notifier_block *self, unsigned long action,
 
 	switch (action & ~CPU_TASKS_FROZEN) {
 	case CPU_ONLINE:
-<<<<<<< HEAD
-	case CPU_ONLINE_FROZEN:
-=======
->>>>>>> android-3.18
 		err = sysfs_create_group(&s->kobj, &cpu_online_attr_group);
 		break;
 	case CPU_DEAD:

@@ -5,10 +5,7 @@
 
 /* has the defines to get at the registers. */
 
-<<<<<<< HEAD
-=======
 #include <linux/types.h>
->>>>>>> android-3.18
 
 #define PTRACE_TRACEME		   0
 #define PTRACE_PEEKTEXT		   1
@@ -56,8 +53,6 @@
 #define PTRACE_INTERRUPT	0x4207
 #define PTRACE_LISTEN		0x4208
 
-<<<<<<< HEAD
-=======
 #define PTRACE_PEEKSIGINFO	0x4209
 
 struct ptrace_peeksiginfo_args {
@@ -72,7 +67,6 @@ struct ptrace_peeksiginfo_args {
 /* Read signals from a shared (process wide) queue */
 #define PTRACE_PEEKSIGINFO_SHARED	(1 << 0)
 
->>>>>>> android-3.18
 /* Wait extended result codes for the above trace options.  */
 #define PTRACE_EVENT_FORK	1
 #define PTRACE_EVENT_VFORK	2
@@ -94,14 +88,10 @@ struct ptrace_peeksiginfo_args {
 #define PTRACE_O_TRACEEXIT	(1 << PTRACE_EVENT_EXIT)
 #define PTRACE_O_TRACESECCOMP	(1 << PTRACE_EVENT_SECCOMP)
 
-<<<<<<< HEAD
-#define PTRACE_O_MASK		0x000000ff
-=======
 /* eventless options */
 #define PTRACE_O_EXITKILL	(1 << 20)
 
 #define PTRACE_O_MASK		(0x000000ff | PTRACE_O_EXITKILL)
->>>>>>> android-3.18
 
 #include <asm/ptrace.h>
 

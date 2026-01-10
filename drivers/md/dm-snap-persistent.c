@@ -260,10 +260,7 @@ static int chunk_io(struct pstore *ps, void *area, chunk_t chunk, int rw,
 	INIT_WORK_ONSTACK(&req.work, do_metadata);
 	queue_work(ps->metadata_wq, &req.work);
 	flush_workqueue(ps->metadata_wq);
-<<<<<<< HEAD
-=======
 	destroy_work_on_stack(&req.work);
->>>>>>> android-3.18
 
 	return req.result;
 }
@@ -564,16 +561,12 @@ static int read_exceptions(struct pstore *ps,
 
 	skip_metadata(ps);
 
-<<<<<<< HEAD
-	return 0;
-=======
 	r = 0;
 
 ret_destroy_bufio:
 	dm_bufio_client_destroy(client);
 
 	return r;
->>>>>>> android-3.18
 }
 
 static struct pstore *get_info(struct dm_exception_store *store)

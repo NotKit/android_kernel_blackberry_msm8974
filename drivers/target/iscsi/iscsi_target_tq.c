@@ -28,11 +28,7 @@ static LIST_HEAD(inactive_ts_list);
 static DEFINE_SPINLOCK(inactive_ts_lock);
 static DEFINE_SPINLOCK(ts_bitmap_lock);
 
-<<<<<<< HEAD
-extern void iscsi_add_ts_to_inactive_list(struct iscsi_thread_set *ts)
-=======
 static void iscsi_add_ts_to_inactive_list(struct iscsi_thread_set *ts)
->>>>>>> android-3.18
 {
 	if (!list_empty(&ts->ts_list)) {
 		WARN_ON(1);

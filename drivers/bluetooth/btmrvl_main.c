@@ -18,11 +18,8 @@
  * this warranty disclaimer.
  **/
 
-<<<<<<< HEAD
-=======
 #include <linux/module.h>
 #include <linux/of.h>
->>>>>>> android-3.18
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
 
@@ -414,33 +411,10 @@ static void btmrvl_free_adapter(struct btmrvl_private *priv)
 
 static int btmrvl_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
-<<<<<<< HEAD
-	return -ENOIOCTLCMD;
-}
-
-static void btmrvl_destruct(struct hci_dev *hdev)
-{
-}
-
-static int btmrvl_send_frame(struct sk_buff *skb)
-{
-	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
-	struct btmrvl_private *priv = NULL;
-
-	BT_DBG("type=%d, len=%d", skb->pkt_type, skb->len);
-
-	if (!hdev || !hdev->driver_data) {
-		BT_ERR("Frame for unknown HCI device");
-		return -ENODEV;
-	}
-
-	priv = (struct btmrvl_private *) hdev->driver_data;
-=======
 	struct btmrvl_private *priv = hci_get_drvdata(hdev);
 
 	BT_DBG("type=%d, len=%d", skb->pkt_type, skb->len);
 
->>>>>>> android-3.18
 	if (!test_bit(HCI_RUNNING, &hdev->flags)) {
 		BT_ERR("Failed testing HCI_RUNING, flags=%lx", hdev->flags);
 		print_hex_dump_bytes("data: ", DUMP_PREFIX_OFFSET,
@@ -681,18 +655,9 @@ int btmrvl_register_hdev(struct btmrvl_private *priv)
 	hdev->open  = btmrvl_open;
 	hdev->close = btmrvl_close;
 	hdev->flush = btmrvl_flush;
-<<<<<<< HEAD
-	hdev->send = btmrvl_send_frame;
-	hdev->destruct = btmrvl_destruct;
-	hdev->ioctl = btmrvl_ioctl;
-	hdev->owner = THIS_MODULE;
-
-	btmrvl_send_module_cfg_cmd(priv, MODULE_BRINGUP_REQ);
-=======
 	hdev->send  = btmrvl_send_frame;
 	hdev->setup = btmrvl_setup;
 	hdev->set_bdaddr = btmrvl_set_bdaddr;
->>>>>>> android-3.18
 
 	hdev->dev_type = priv->btmrvl_dev.dev_type;
 

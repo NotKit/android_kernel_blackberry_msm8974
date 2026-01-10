@@ -19,10 +19,7 @@
 #define USB_CDC_SUBCLASS_OBEX			0x0b
 #define USB_CDC_SUBCLASS_EEM			0x0c
 #define USB_CDC_SUBCLASS_NCM			0x0d
-<<<<<<< HEAD
-=======
 #define USB_CDC_SUBCLASS_MBIM			0x0e
->>>>>>> android-3.18
 
 #define USB_CDC_PROTO_NONE			0
 
@@ -37,10 +34,7 @@
 #define USB_CDC_PROTO_EEM			7
 
 #define USB_CDC_NCM_PROTO_NTB			1
-<<<<<<< HEAD
-=======
 #define USB_CDC_MBIM_PROTO_NTB			2
->>>>>>> android-3.18
 
 /*-------------------------------------------------------------------------*/
 
@@ -61,13 +55,8 @@
 #define USB_CDC_DMM_TYPE		0x14
 #define USB_CDC_OBEX_TYPE		0x15
 #define USB_CDC_NCM_TYPE		0x1a
-<<<<<<< HEAD
-#define USB_CDC_MBB_TYPE		0x1b	/* mbb_desc */
-#define USB_CDC_EXT_MBB_TYPE		0x1c
-=======
 #define USB_CDC_MBIM_TYPE		0x1b
 #define USB_CDC_MBIM_EXTENDED_TYPE	0x1c
->>>>>>> android-3.18
 
 /* "Header Functional Descriptor" from CDC spec  5.2.3.1 */
 struct usb_cdc_header_desc {
@@ -203,29 +192,12 @@ struct usb_cdc_ncm_desc {
 	__u8	bmNetworkCapabilities;
 } __attribute__ ((packed));
 
-<<<<<<< HEAD
-/* "MBIM Functional Descriptor" */
-struct usb_cdc_mbb_desc {
-=======
 /* "MBIM Control Model Functional Descriptor" */
 struct usb_cdc_mbim_desc {
->>>>>>> android-3.18
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
 
-<<<<<<< HEAD
-	__le16	bcdMbbVersion;
-	__le16	wMaxControlMessage;
-	__u8	bNumberFilters;
-	__u8	bMaxFilterSize;
-	__le16	wMaxSegmentSize;
-	__u8	bmNetworkCapabilities;
-} __packed;
-
-/* "Extended MBIM Functional Descriptor" */
-struct usb_cdc_ext_mbb_desc {
-=======
 	__le16	bcdMBIMVersion;
 	__le16  wMaxControlMessage;
 	__u8    bNumberFilters;
@@ -236,22 +208,14 @@ struct usb_cdc_ext_mbb_desc {
 
 /* "MBIM Extended Functional Descriptor" from CDC MBIM spec 1.0 errata-1 */
 struct usb_cdc_mbim_extended_desc {
->>>>>>> android-3.18
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
 
-<<<<<<< HEAD
-	__le16	bcdMbbExtendedVersion;
-	__u8	bMaxOutstandingCmdMsges;
-	__le16	wMTU;
-} __packed;
-=======
 	__le16	bcdMBIMExtendedVersion;
 	__u8	bMaxOutstandingCommandMessages;
 	__le16	wMTU;
 } __attribute__ ((packed));
->>>>>>> android-3.18
 
 /*-------------------------------------------------------------------------*/
 
@@ -267,10 +231,6 @@ struct usb_cdc_mbim_extended_desc {
 
 #define USB_CDC_SEND_ENCAPSULATED_COMMAND	0x00
 #define USB_CDC_GET_ENCAPSULATED_RESPONSE	0x01
-<<<<<<< HEAD
-#define USB_CDC_RESET_FUNCTION			0x05
-=======
->>>>>>> android-3.18
 #define USB_CDC_REQ_SET_LINE_CODING		0x20
 #define USB_CDC_REQ_GET_LINE_CODING		0x21
 #define USB_CDC_REQ_SET_CONTROL_LINE_STATE	0x22
@@ -402,14 +362,11 @@ struct usb_cdc_ncm_nth32 {
 #define USB_CDC_NCM_NDP32_CRC_SIGN	0x316D636E /* ncm1 */
 #define USB_CDC_NCM_NDP32_NOCRC_SIGN	0x306D636E /* ncm0 */
 
-<<<<<<< HEAD
-=======
 #define USB_CDC_MBIM_NDP16_IPS_SIGN     0x00535049 /* IPS<sessionID> : IPS0 for now */
 #define USB_CDC_MBIM_NDP32_IPS_SIGN     0x00737069 /* ips<sessionID> : ips0 for now */
 #define USB_CDC_MBIM_NDP16_DSS_SIGN     0x00535344 /* DSS<sessionID> */
 #define USB_CDC_MBIM_NDP32_DSS_SIGN     0x00737364 /* dss<sessionID> */
 
->>>>>>> android-3.18
 /* 16-bit NCM Datagram Pointer Entry */
 struct usb_cdc_ncm_dpe16 {
 	__le16	wDatagramIndex;

@@ -60,10 +60,6 @@ struct ssu100_port_private {
 	spinlock_t status_lock;
 	u8 shadowLSR;
 	u8 shadowMSR;
-<<<<<<< HEAD
-	struct async_icount icount;
-=======
->>>>>>> android-3.18
 };
 
 static inline int ssu100_control_msg(struct usb_device *dev,
@@ -357,76 +353,6 @@ static int get_serial_info(struct usb_serial_port *port,
 	return 0;
 }
 
-<<<<<<< HEAD
-static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
-{
-	struct ssu100_port_private *priv = usb_get_serial_port_data(port);
-	struct async_icount prev, cur;
-	unsigned long flags;
-
-	spin_lock_irqsave(&priv->status_lock, flags);
-	prev = priv->icount;
-	spin_unlock_irqrestore(&priv->status_lock, flags);
-
-	while (1) {
-		wait_event_interruptible(port->delta_msr_wait,
-					 (port->serial->disconnected ||
-					  (priv->icount.rng != prev.rng) ||
-					  (priv->icount.dsr != prev.dsr) ||
-					  (priv->icount.dcd != prev.dcd) ||
-					  (priv->icount.cts != prev.cts)));
-
-		if (signal_pending(current))
-			return -ERESTARTSYS;
-
-		if (port->serial->disconnected)
-			return -EIO;
-
-		spin_lock_irqsave(&priv->status_lock, flags);
-		cur = priv->icount;
-		spin_unlock_irqrestore(&priv->status_lock, flags);
-
-		if ((prev.rng == cur.rng) &&
-		    (prev.dsr == cur.dsr) &&
-		    (prev.dcd == cur.dcd) &&
-		    (prev.cts == cur.cts))
-			return -EIO;
-
-		if ((arg & TIOCM_RNG && (prev.rng != cur.rng)) ||
-		    (arg & TIOCM_DSR && (prev.dsr != cur.dsr)) ||
-		    (arg & TIOCM_CD  && (prev.dcd != cur.dcd)) ||
-		    (arg & TIOCM_CTS && (prev.cts != cur.cts)))
-			return 0;
-	}
-	return 0;
-}
-
-static int ssu100_get_icount(struct tty_struct *tty,
-			struct serial_icounter_struct *icount)
-{
-	struct usb_serial_port *port = tty->driver_data;
-	struct ssu100_port_private *priv = usb_get_serial_port_data(port);
-	struct async_icount cnow = priv->icount;
-
-	icount->cts = cnow.cts;
-	icount->dsr = cnow.dsr;
-	icount->rng = cnow.rng;
-	icount->dcd = cnow.dcd;
-	icount->rx = cnow.rx;
-	icount->tx = cnow.tx;
-	icount->frame = cnow.frame;
-	icount->overrun = cnow.overrun;
-	icount->parity = cnow.parity;
-	icount->brk = cnow.brk;
-	icount->buf_overrun = cnow.buf_overrun;
-
-	return 0;
-}
-
-
-
-=======
->>>>>>> android-3.18
 static int ssu100_ioctl(struct tty_struct *tty,
 		    unsigned int cmd, unsigned long arg)
 {
@@ -457,10 +383,7 @@ static int ssu100_port_probe(struct usb_serial_port *port)
 		return -ENOMEM;
 
 	spin_lock_init(&priv->status_lock);
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	usb_set_serial_port_data(port, priv);
 
 	return 0;
@@ -520,11 +443,6 @@ static void ssu100_dtr_rts(struct usb_serial_port *port, int on)
 {
 	struct usb_device *dev = port->serial->dev;
 
-<<<<<<< HEAD
-	dbg("%s\n", __func__);
-
-=======
->>>>>>> android-3.18
 	/* Disable flow control */
 	if (!on) {
 		if (ssu100_setregister(dev, 0, UART_MCR, 0) < 0)
@@ -555,13 +473,8 @@ static void ssu100_update_msr(struct usb_serial_port *port, u8 msr)
 		if (msr & UART_MSR_DDCD)
 			port->icount.dcd++;
 		if (msr & UART_MSR_TERI)
-<<<<<<< HEAD
-			priv->icount.rng++;
-		wake_up_interruptible(&port->delta_msr_wait);
-=======
 			port->icount.rng++;
 		wake_up_interruptible(&port->port.delta_msr_wait);
->>>>>>> android-3.18
 	}
 }
 
@@ -595,14 +508,8 @@ static void ssu100_update_lsr(struct usb_serial_port *port, u8 lsr,
 				*tty_flag = TTY_FRAME;
 		}
 		if (lsr & UART_LSR_OE) {
-<<<<<<< HEAD
-			priv->icount.overrun++;
-			tty_insert_flip_char(tty_port_tty_get(&port->port),
-					0, TTY_OVERRUN);
-=======
 			port->icount.overrun++;
 			tty_insert_flip_char(&port->port, 0, TTY_OVERRUN);
->>>>>>> android-3.18
 		}
 	}
 

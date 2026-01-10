@@ -73,11 +73,6 @@ struct tc_estimator {
 #define TC_H_ROOT	(0xFFFFFFFFU)
 #define TC_H_INGRESS    (0xFFFFFFF1U)
 
-<<<<<<< HEAD
-struct tc_ratespec {
-	unsigned char	cell_log;
-	unsigned char	__reserved;
-=======
 /* Need to corrospond to iproute2 tc/tc_core.h "enum link_layer" */
 enum tc_link_layer {
 	TC_LINKLAYER_UNAWARE, /* Indicate unaware old iproute2 util */
@@ -89,7 +84,6 @@ enum tc_link_layer {
 struct tc_ratespec {
 	unsigned char	cell_log;
 	__u8		linklayer; /* lower 4 bits */
->>>>>>> android-3.18
 	unsigned short	overhead;
 	short		cell_align;
 	unsigned short	mpu;
@@ -132,10 +126,6 @@ struct tc_fifo_qopt {
 struct tc_prio_qopt {
 	int	bands;			/* Number of bands */
 	__u8	priomap[TC_PRIO_MAX+1];	/* Map: logical priority -> PRIO band */
-<<<<<<< HEAD
-	__u8	enable_flow;		/* Enable dequeue */
-=======
->>>>>>> android-3.18
 };
 
 /* MULTIQ section */
@@ -181,13 +171,10 @@ enum {
 	TCA_TBF_PARMS,
 	TCA_TBF_RTAB,
 	TCA_TBF_PTAB,
-<<<<<<< HEAD
-=======
 	TCA_TBF_RATE64,
 	TCA_TBF_PRATE64,
 	TCA_TBF_BURST,
 	TCA_TBF_PBURST,
->>>>>>> android-3.18
 	__TCA_TBF_MAX,
 };
 
@@ -373,12 +360,9 @@ enum {
 	TCA_HTB_INIT,
 	TCA_HTB_CTAB,
 	TCA_HTB_RTAB,
-<<<<<<< HEAD
-=======
 	TCA_HTB_DIRECT_QLEN,
 	TCA_HTB_RATE64,
 	TCA_HTB_CEIL64,
->>>>>>> android-3.18
 	__TCA_HTB_MAX,
 };
 
@@ -540,11 +524,8 @@ enum {
 	TCA_NETEM_CORRUPT,
 	TCA_NETEM_LOSS,
 	TCA_NETEM_RATE,
-<<<<<<< HEAD
-=======
 	TCA_NETEM_ECN,
 	TCA_NETEM_RATE64,
->>>>>>> android-3.18
 	__TCA_NETEM_MAX,
 };
 
@@ -690,8 +671,6 @@ struct tc_qfq_stats {
 	__u32 lmax;
 };
 
-<<<<<<< HEAD
-=======
 /* CODEL */
 
 enum {
@@ -864,5 +843,4 @@ struct tc_pie_xstats {
 	__u32 maxq;             /* maximum queue size */
 	__u32 ecn_mark;         /* packets marked with ecn*/
 };
->>>>>>> android-3.18
 #endif

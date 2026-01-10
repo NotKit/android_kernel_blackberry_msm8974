@@ -54,28 +54,6 @@
 #define SJA1000_MAX_IRQ 20	/* max. number of interrupts handled in ISR */
 
 /* SJA1000 registers - manual section 6.4 (Pelican Mode) */
-<<<<<<< HEAD
-#define REG_MOD		0x00
-#define REG_CMR		0x01
-#define SJA1000_REG_SR		0x02
-#define REG_IR		0x03
-#define REG_IER		0x04
-#define REG_ALC		0x0B
-#define REG_ECC		0x0C
-#define REG_EWL		0x0D
-#define REG_RXERR	0x0E
-#define REG_TXERR	0x0F
-#define REG_ACCC0	0x10
-#define REG_ACCC1	0x11
-#define REG_ACCC2	0x12
-#define REG_ACCC3	0x13
-#define REG_ACCM0	0x14
-#define REG_ACCM1	0x15
-#define REG_ACCM2	0x16
-#define REG_ACCM3	0x17
-#define REG_RMC		0x1D
-#define REG_RBSA	0x1E
-=======
 #define SJA1000_MOD		0x00
 #define SJA1000_CMR		0x01
 #define SJA1000_SR		0x02
@@ -96,7 +74,6 @@
 #define SJA1000_ACCM3		0x17
 #define SJA1000_RMC		0x1D
 #define SJA1000_RBSA		0x1E
->>>>>>> android-3.18
 
 /* Common registers - manual section 6.5 */
 #define SJA1000_BTR0		0x06

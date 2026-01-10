@@ -24,10 +24,6 @@
 */
 
 enum dma_ch {
-<<<<<<< HEAD
-	DMACH_DT_PROP = -1,	/* not yet supported, do not use */
-=======
->>>>>>> android-3.18
 	DMACH_XD0 = 0,
 	DMACH_XD1,
 	DMACH_SDI,

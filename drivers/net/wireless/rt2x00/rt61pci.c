@@ -2855,15 +2855,9 @@ static int rt61pci_probe_hw(struct rt2x00_dev *rt2x00dev)
 	 * Enable rfkill polling by setting GPIO direction of the
 	 * rfkill switch GPIO pin correctly.
 	 */
-<<<<<<< HEAD
-	rt2x00pci_register_read(rt2x00dev, MAC_CSR13, &reg);
-	rt2x00_set_field32(&reg, MAC_CSR13_BIT13, 1);
-	rt2x00pci_register_write(rt2x00dev, MAC_CSR13, reg);
-=======
 	rt2x00mmio_register_read(rt2x00dev, MAC_CSR13, &reg);
 	rt2x00_set_field32(&reg, MAC_CSR13_DIR5, 1);
 	rt2x00mmio_register_write(rt2x00dev, MAC_CSR13, reg);
->>>>>>> android-3.18
 
 	/*
 	 * Initialize hw specifications.

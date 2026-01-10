@@ -41,14 +41,8 @@ static inline void load_mm_ldt(struct mm_struct *mm)
 {
 	struct ldt_struct *ldt;
 
-<<<<<<< HEAD
-	/* smp_read_barrier_depends synchronizes with barrier in install_ldt */
-	ldt = ACCESS_ONCE(mm->context.ldt);
-	smp_read_barrier_depends();
-=======
 	/* lockless_dereference synchronizes with smp_store_release */
 	ldt = lockless_dereference(mm->context.ldt);
->>>>>>> android-3.18
 
 	/*
 	 * Any change to mm->context.ldt is followed by an IPI to all
@@ -90,40 +84,9 @@ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
 extern void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 		      struct task_struct *tsk);
 
-<<<<<<< HEAD
-		/* Re-load page tables */
-		load_cr3(next->pgd);
-
-		/* stop flush ipis for the previous mm */
-		cpumask_clear_cpu(cpu, mm_cpumask(prev));
-
-		/*
-		 * load the LDT, if the LDT is different:
-		 */
-		if (unlikely(prev->context.ldt != next->context.ldt))
-			load_mm_ldt(next);
-	}
-#ifdef CONFIG_SMP
-	else {
-		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
-		BUG_ON(percpu_read(cpu_tlbstate.active_mm) != next);
-
-		if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next))) {
-			/* We were in lazy tlb mode and leave_mm disabled
-			 * tlb flush IPI delivery. We must reload CR3
-			 * to make sure to use no freed page tables.
-			 */
-			load_cr3(next->pgd);
-			load_mm_ldt(next);
-		}
-	}
-#endif
-}
-=======
 extern void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 			       struct task_struct *tsk);
 #define switch_mm_irqs_off switch_mm_irqs_off
->>>>>>> android-3.18
 
 #define activate_mm(prev, next)			\
 do {						\

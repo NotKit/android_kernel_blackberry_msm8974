@@ -22,33 +22,12 @@
 #define _UAPI_LINUX_IN6_H
 
 #include <linux/types.h>
-<<<<<<< HEAD
-=======
 #include <linux/libc-compat.h>
->>>>>>> android-3.18
 
 /*
  *	IPv6 address structure
  */
 
-<<<<<<< HEAD
-struct in6_addr {
-	union {
-		__u8		u6_addr8[16];
-		__be16		u6_addr16[8];
-		__be32		u6_addr32[4];
-	} in6_u;
-#define s6_addr			in6_u.u6_addr8
-#define s6_addr16		in6_u.u6_addr16
-#define s6_addr32		in6_u.u6_addr32
-};
-
-/* IPv6 Wildcard Address (::) and Loopback Address (::1) defined in RFC2553
- * NOTE: Be aware the IN6ADDR_* constants and in6addr_* externals are defined
- * in network byte order, not in host byte order as are the IPv4 equivalents
- */
-
-=======
 #if __UAPI_DEF_IN6_ADDR
 struct in6_addr {
 	union {
@@ -67,7 +46,6 @@ struct in6_addr {
 #endif /* __UAPI_DEF_IN6_ADDR */
 
 #if __UAPI_DEF_SOCKADDR_IN6
->>>>>>> android-3.18
 struct sockaddr_in6 {
 	unsigned short int	sin6_family;    /* AF_INET6 */
 	__be16			sin6_port;      /* Transport layer port # */
@@ -75,13 +53,9 @@ struct sockaddr_in6 {
 	struct in6_addr		sin6_addr;      /* IPv6 address */
 	__u32			sin6_scope_id;  /* scope id (new in RFC2553) */
 };
-<<<<<<< HEAD
-
-=======
 #endif /* __UAPI_DEF_SOCKADDR_IN6 */
 
 #if __UAPI_DEF_IPV6_MREQ
->>>>>>> android-3.18
 struct ipv6_mreq {
 	/* IPv6 multicast address of group */
 	struct in6_addr ipv6mr_multiaddr;
@@ -89,10 +63,7 @@ struct ipv6_mreq {
 	/* local IPv6 address of interface */
 	int		ipv6mr_ifindex;
 };
-<<<<<<< HEAD
-=======
 #endif /* __UAPI_DEF_IVP6_MREQ */
->>>>>>> android-3.18
 
 #define ipv6mr_acaddr	ipv6mr_multiaddr
 
@@ -114,11 +85,8 @@ struct in6_flowlabel_req {
 
 #define IPV6_FL_F_CREATE	1
 #define IPV6_FL_F_EXCL		2
-<<<<<<< HEAD
-=======
 #define IPV6_FL_F_REFLECT	4
 #define IPV6_FL_F_REMOTE	8
->>>>>>> android-3.18
 
 #define IPV6_FL_S_NONE		0
 #define IPV6_FL_S_EXCL		1
@@ -159,10 +127,7 @@ struct in6_flowlabel_req {
 /*
  *	IPV6 extension headers
  */
-<<<<<<< HEAD
-=======
 #if __UAPI_DEF_IPPROTO_V6
->>>>>>> android-3.18
 #define IPPROTO_HOPOPTS		0	/* IPv6 hop-by-hop options	*/
 #define IPPROTO_ROUTING		43	/* IPv6 routing header		*/
 #define IPPROTO_FRAGMENT	44	/* IPv6 fragmentation header	*/
@@ -170,19 +135,12 @@ struct in6_flowlabel_req {
 #define IPPROTO_NONE		59	/* IPv6 no next header		*/
 #define IPPROTO_DSTOPTS		60	/* IPv6 destination options	*/
 #define IPPROTO_MH		135	/* IPv6 mobility header		*/
-<<<<<<< HEAD
-=======
 #endif /* __UAPI_DEF_IPPROTO_V6 */
->>>>>>> android-3.18
 
 /*
  *	IPv6 TLV options.
  */
-<<<<<<< HEAD
-#define IPV6_TLV_PAD0		0
-=======
 #define IPV6_TLV_PAD1		0
->>>>>>> android-3.18
 #define IPV6_TLV_PADN		1
 #define IPV6_TLV_ROUTERALERT	5
 #define IPV6_TLV_JUMBO		194
@@ -191,11 +149,7 @@ struct in6_flowlabel_req {
 /*
  *	IPV6 socket options
  */
-<<<<<<< HEAD
-
-=======
 #if __UAPI_DEF_IPV6_OPTIONS
->>>>>>> android-3.18
 #define IPV6_ADDRFORM		1
 #define IPV6_2292PKTINFO	2
 #define IPV6_2292HOPOPTS	3
@@ -227,8 +181,6 @@ struct in6_flowlabel_req {
 #define IPV6_PMTUDISC_WANT		1
 #define IPV6_PMTUDISC_DO		2
 #define IPV6_PMTUDISC_PROBE		3
-<<<<<<< HEAD
-=======
 /* same as IPV6_PMTUDISC_PROBE, provided for symetry with IPv4
  * also see comments on IP_PMTUDISC_INTERFACE
  */
@@ -237,7 +189,6 @@ struct in6_flowlabel_req {
  * get fragmented if they exceed the interface mtu
  */
 #define IPV6_PMTUDISC_OMIT		5
->>>>>>> android-3.18
 
 /* Flowlabel */
 #define IPV6_FLOWLABEL_MGR	32
@@ -245,10 +196,7 @@ struct in6_flowlabel_req {
 
 #define IPV6_IPSEC_POLICY	34
 #define IPV6_XFRM_POLICY	35
-<<<<<<< HEAD
-=======
 #endif
->>>>>>> android-3.18
 
 /*
  * Multicast:
@@ -311,15 +259,10 @@ struct in6_flowlabel_req {
  *
  * IP6T_SO_GET_REVISION_MATCH	68
  * IP6T_SO_GET_REVISION_TARGET	69
-<<<<<<< HEAD
- */
-
-=======
  * IP6T_SO_ORIGINAL_DST		80
  */
 
 #define IPV6_AUTOFLOWLABEL	70
->>>>>>> android-3.18
 /* RFC5014: Source address selection */
 #define IPV6_ADDR_PREFERENCES	72
 
@@ -341,25 +284,10 @@ struct in6_flowlabel_req {
 
 /*
  * Multicast Routing:
-<<<<<<< HEAD
- * see include/linux/mroute6.h.
- *
- * MRT6_INIT			200
- * MRT6_DONE			201
- * MRT6_ADD_MIF			202
- * MRT6_DEL_MIF			203
- * MRT6_ADD_MFC			204
- * MRT6_DEL_MFC			205
- * MRT6_VERSION			206
- * MRT6_ASSERT			207
- * MRT6_PIM			208
- * (reserved)			209
-=======
  * see include/uapi/linux/mroute6.h.
  *
  * MRT6_BASE			200
  * ...
  * MRT6_MAX
->>>>>>> android-3.18
  */
 #endif /* _UAPI_LINUX_IN6_H */

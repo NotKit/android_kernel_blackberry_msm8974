@@ -189,24 +189,6 @@ static void pcmuio_write(struct comedi_device *dev, unsigned int val,
 static unsigned int pcmuio_read(struct comedi_device *dev,
 				int asic, int page, int port)
 {
-<<<<<<< HEAD
-	int i;
-
-	dev_dbg(dev->hw_dev, "comedi%d: %s: remove\n", dev->minor,
-		driver.driver_name);
-	if (dev->iobase)
-		release_region(dev->iobase, ASIC_IOSIZE * thisboard->num_asics);
-
-	if (devpriv) {
-		for (i = 0; i < MAX_ASICS; ++i) {
-			if (devpriv->asics[i].irq)
-				free_irq(devpriv->asics[i].irq, dev);
-		}
-		kfree(devpriv->sprivs);
-	}
-
-	return 0;
-=======
 	struct pcmuio_private *devpriv = dev->private;
 	struct pcmuio_asic *chip = &devpriv->asics[asic];
 	unsigned long iobase = pcmuio_asic_iobase(dev, asic);
@@ -228,7 +210,6 @@ static unsigned int pcmuio_read(struct comedi_device *dev,
 	spin_unlock_irqrestore(&chip->pagelock, flags);
 
 	return val;
->>>>>>> android-3.18
 }
 
 /*

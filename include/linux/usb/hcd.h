@@ -143,15 +143,11 @@ struct usb_hcd {
 	unsigned		wireless:1;	/* Wireless USB HCD */
 	unsigned		authorized_default:1;
 	unsigned		has_tt:1;	/* Integrated TT in root hub */
-<<<<<<< HEAD
-	unsigned		cant_recv_wakeups:1;
-=======
 	unsigned		amd_resume_bug:1; /* AMD remote wakeup quirk */
 	unsigned		can_do_streams:1; /* HC supports streams */
 	unsigned		tpl_support:1; /* OTG & EH TPL support */
 	unsigned		cant_recv_wakeups:1;
 			/* wakeup requests from downstream aren't received */
->>>>>>> android-3.18
 
 	unsigned int		irq;		/* irq allocated */
 	void __iomem		*regs;		/* device memory/io */
@@ -378,15 +374,6 @@ struct hc_driver {
 		 */
 	int	(*update_device)(struct usb_hcd *, struct usb_device *);
 	int	(*set_usb2_hw_lpm)(struct usb_hcd *, struct usb_device *, int);
-<<<<<<< HEAD
-
-	/* to log submission/completion events*/
-	void	(*log_urb)(struct urb *urb, char *event, unsigned extra);
-	void	(*dump_regs)(struct usb_hcd *);
-	void	(*set_autosuspend_delay)(struct usb_device *);
-	void	(*reset_sof_bug_handler)(struct usb_hcd *hcd, u32 val);
-	void	(*set_autosuspend)(struct usb_hcd *hcd, int enable_autosuspend);
-=======
 	/* USB 3.0 Link Power Management */
 		/* Returns the USB3 hub-encoded value for the U1/U2 timeout. */
 	int	(*enable_usb3_lpm_timeout)(struct usb_hcd *,
@@ -397,7 +384,6 @@ struct hc_driver {
 	int	(*disable_usb3_lpm_timeout)(struct usb_hcd *,
 			struct usb_device *, enum usb3_link_state state);
 	int	(*find_raw_port_number)(struct usb_hcd *, int);
->>>>>>> android-3.18
 };
 
 static inline int hcd_giveback_urb_in_bh(struct usb_hcd *hcd)
@@ -449,18 +435,7 @@ extern int usb_hcd_is_primary_hcd(struct usb_hcd *hcd);
 extern int usb_add_hcd(struct usb_hcd *hcd,
 		unsigned int irqnum, unsigned long irqflags);
 extern void usb_remove_hcd(struct usb_hcd *hcd);
-<<<<<<< HEAD
-#else
-static inline int
-usb_add_hcd(struct usb_hcd *hcd, unsigned int irqnum, unsigned long irqflags)
-{
-	return 0;
-}
-static inline void usb_remove_hcd(struct usb_hcd *hcd) {}
-#endif
-=======
 extern int usb_hcd_find_raw_port_number(struct usb_hcd *hcd, int port1);
->>>>>>> android-3.18
 
 struct platform_device;
 extern void usb_hcd_platform_shutdown(struct platform_device *dev);
@@ -473,11 +448,8 @@ extern int usb_hcd_pci_probe(struct pci_dev *dev,
 extern void usb_hcd_pci_remove(struct pci_dev *dev);
 extern void usb_hcd_pci_shutdown(struct pci_dev *dev);
 
-<<<<<<< HEAD
-=======
 extern int usb_hcd_amd_remote_wakeup_quirk(struct pci_dev *dev);
 
->>>>>>> android-3.18
 #ifdef CONFIG_PM
 extern const struct dev_pm_ops usb_hcd_pci_pm_ops;
 #endif

@@ -521,14 +521,11 @@ register_address_increment(struct x86_emulate_ctxt *ctxt, unsigned long *reg, in
 	masked_increment(reg, mask, inc);
 }
 
-<<<<<<< HEAD
-=======
 static void rsp_increment(struct x86_emulate_ctxt *ctxt, int inc)
 {
 	masked_increment(reg_rmw(ctxt, VCPU_REGS_RSP), stack_mask(ctxt), inc);
 }
 
->>>>>>> android-3.18
 static u32 desc_limit_scaled(struct desc_struct *desc)
 {
 	u32 limit = get_desc_limit(desc);
@@ -1498,20 +1495,12 @@ static int write_segment_descriptor(struct x86_emulate_ctxt *ctxt,
 				    &ctxt->exception);
 }
 
-<<<<<<< HEAD
-/* Does not support long mode */
-=======
->>>>>>> android-3.18
 static int __load_segment_descriptor(struct x86_emulate_ctxt *ctxt,
 				     u16 selector, int seg, u8 cpl,
 				     bool in_task_switch,
 				     struct desc_struct *desc)
 {
-<<<<<<< HEAD
-	struct desc_struct seg_desc;
-=======
 	struct desc_struct seg_desc, old_desc;
->>>>>>> android-3.18
 	u8 dpl, rpl;
 	unsigned err_vec = GP_VECTOR;
 	u32 err_code = 0;
@@ -1663,11 +1652,7 @@ static int __load_segment_descriptor(struct x86_emulate_ctxt *ctxt,
 			return ret;
 	}
 load:
-<<<<<<< HEAD
-	ctxt->ops->set_segment(ctxt, selector, &seg_desc, 0, seg);
-=======
 	ctxt->ops->set_segment(ctxt, selector, &seg_desc, base3, seg);
->>>>>>> android-3.18
 	if (desc)
 		*desc = seg_desc;
 	return X86EMUL_CONTINUE;
@@ -2095,21 +2080,9 @@ static int em_iret(struct x86_emulate_ctxt *ctxt)
 static int em_jmp_far(struct x86_emulate_ctxt *ctxt)
 {
 	int rc;
-<<<<<<< HEAD
-	unsigned short sel, old_sel;
-	struct desc_struct old_desc, new_desc;
-	const struct x86_emulate_ops *ops = ctxt->ops;
-	u8 cpl = ctxt->ops->cpl(ctxt);
-
-	/* Assignment of RIP may only fail in 64-bit mode */
-	if (ctxt->mode == X86EMUL_MODE_PROT64)
-		ops->get_segment(ctxt, &old_sel, &old_desc, NULL,
-				 VCPU_SREG_CS);
-=======
 	unsigned short sel;
 	struct desc_struct new_desc;
 	u8 cpl = ctxt->ops->cpl(ctxt);
->>>>>>> android-3.18
 
 	memcpy(&sel, ctxt->src.valptr + ctxt->op_bytes, 2);
 
@@ -2119,91 +2092,9 @@ static int em_jmp_far(struct x86_emulate_ctxt *ctxt)
 		return rc;
 
 	rc = assign_eip_far(ctxt, ctxt->src.val, new_desc.l);
-<<<<<<< HEAD
-	if (rc != X86EMUL_CONTINUE) {
-		WARN_ON(ctxt->mode != X86EMUL_MODE_PROT64);
-		/* assigning eip failed; restore the old cs */
-		ops->set_segment(ctxt, old_sel, &old_desc, 0, VCPU_SREG_CS);
-		return rc;
-	}
-	return rc;
-}
-
-static int em_grp2(struct x86_emulate_ctxt *ctxt)
-{
-	switch (ctxt->modrm_reg) {
-	case 0:	/* rol */
-		emulate_2op_SrcB(ctxt, "rol");
-		break;
-	case 1:	/* ror */
-		emulate_2op_SrcB(ctxt, "ror");
-		break;
-	case 2:	/* rcl */
-		emulate_2op_SrcB(ctxt, "rcl");
-		break;
-	case 3:	/* rcr */
-		emulate_2op_SrcB(ctxt, "rcr");
-		break;
-	case 4:	/* sal/shl */
-	case 6:	/* sal/shl */
-		emulate_2op_SrcB(ctxt, "sal");
-		break;
-	case 5:	/* shr */
-		emulate_2op_SrcB(ctxt, "shr");
-		break;
-	case 7:	/* sar */
-		emulate_2op_SrcB(ctxt, "sar");
-		break;
-	}
-	return X86EMUL_CONTINUE;
-}
-
-static int em_not(struct x86_emulate_ctxt *ctxt)
-{
-	ctxt->dst.val = ~ctxt->dst.val;
-	return X86EMUL_CONTINUE;
-}
-
-static int em_neg(struct x86_emulate_ctxt *ctxt)
-{
-	emulate_1op(ctxt, "neg");
-	return X86EMUL_CONTINUE;
-}
-
-static int em_mul_ex(struct x86_emulate_ctxt *ctxt)
-{
-	u8 ex = 0;
-
-	emulate_1op_rax_rdx(ctxt, "mul", ex);
-	return X86EMUL_CONTINUE;
-}
-
-static int em_imul_ex(struct x86_emulate_ctxt *ctxt)
-{
-	u8 ex = 0;
-
-	emulate_1op_rax_rdx(ctxt, "imul", ex);
-	return X86EMUL_CONTINUE;
-}
-
-static int em_div_ex(struct x86_emulate_ctxt *ctxt)
-{
-	u8 de = 0;
-
-	emulate_1op_rax_rdx(ctxt, "div", de);
-	if (de)
-		return emulate_de(ctxt);
-	return X86EMUL_CONTINUE;
-}
-
-static int em_idiv_ex(struct x86_emulate_ctxt *ctxt)
-{
-	u8 de = 0;
-=======
 	/* Error handling is not implemented. */
 	if (rc != X86EMUL_CONTINUE)
 		return X86EMUL_UNHANDLEABLE;
->>>>>>> android-3.18
 
 	return rc;
 }
@@ -2273,18 +2164,8 @@ static int em_ret_far(struct x86_emulate_ctxt *ctxt)
 {
 	int rc;
 	unsigned long eip, cs;
-<<<<<<< HEAD
-	u16 old_cs;
-	struct desc_struct old_desc, new_desc;
-	const struct x86_emulate_ops *ops = ctxt->ops;
-
-	if (ctxt->mode == X86EMUL_MODE_PROT64)
-		ops->get_segment(ctxt, &old_cs, &old_desc, NULL,
-				 VCPU_SREG_CS);
-=======
 	int cpl = ctxt->ops->cpl(ctxt);
 	struct desc_struct new_desc;
->>>>>>> android-3.18
 
 	rc = emulate_pop(ctxt, &eip, ctxt->op_bytes);
 	if (rc != X86EMUL_CONTINUE)
@@ -2292,29 +2173,18 @@ static int em_ret_far(struct x86_emulate_ctxt *ctxt)
 	rc = emulate_pop(ctxt, &cs, ctxt->op_bytes);
 	if (rc != X86EMUL_CONTINUE)
 		return rc;
-<<<<<<< HEAD
-	rc = __load_segment_descriptor(ctxt, (u16)cs, VCPU_SREG_CS, 0, false,
-=======
 	/* Outer-privilege level return is not implemented */
 	if (ctxt->mode >= X86EMUL_MODE_PROT16 && (cs & 3) > cpl)
 		return X86EMUL_UNHANDLEABLE;
 	rc = __load_segment_descriptor(ctxt, (u16)cs, VCPU_SREG_CS, cpl, false,
->>>>>>> android-3.18
 				       &new_desc);
 	if (rc != X86EMUL_CONTINUE)
 		return rc;
 	rc = assign_eip_far(ctxt, eip, new_desc.l);
-<<<<<<< HEAD
-	if (rc != X86EMUL_CONTINUE) {
-		WARN_ON(ctxt->mode != X86EMUL_MODE_PROT64);
-		ops->set_segment(ctxt, old_cs, &old_desc, 0, VCPU_SREG_CS);
-	}
-=======
 	/* Error handling is not implemented. */
 	if (rc != X86EMUL_CONTINUE)
 		return X86EMUL_UNHANDLEABLE;
 
->>>>>>> android-3.18
 	return rc;
 }
 
@@ -2581,13 +2451,8 @@ static int em_sysexit(struct x86_emulate_ctxt *ctxt)
 	else
 		usermode = X86EMUL_MODE_PROT32;
 
-<<<<<<< HEAD
-	rcx = ctxt->regs[VCPU_REGS_RCX];
-	rdx = ctxt->regs[VCPU_REGS_RDX];
-=======
 	rcx = reg_read(ctxt, VCPU_REGS_RCX);
 	rdx = reg_read(ctxt, VCPU_REGS_RDX);
->>>>>>> android-3.18
 
 	cs.dpl = 3;
 	ss.dpl = 3;
@@ -2618,11 +2483,7 @@ static int em_sysexit(struct x86_emulate_ctxt *ctxt)
 	ops->set_segment(ctxt, ss_sel, &ss, 0, VCPU_SREG_SS);
 
 	ctxt->_eip = rdx;
-<<<<<<< HEAD
-	ctxt->regs[VCPU_REGS_RSP] = rcx;
-=======
 	*reg_write(ctxt, VCPU_REGS_RSP) = rcx;
->>>>>>> android-3.18
 
 	return X86EMUL_CONTINUE;
 }
@@ -3230,12 +3091,6 @@ static int em_ret_near_imm(struct x86_emulate_ctxt *ctxt)
 	unsigned long eip;
 
 	rc = emulate_pop(ctxt, &eip, ctxt->op_bytes);
-<<<<<<< HEAD
-	if (rc != X86EMUL_CONTINUE)
-		return rc;
-	rc = assign_eip_near(ctxt, eip);
-=======
->>>>>>> android-3.18
 	if (rc != X86EMUL_CONTINUE)
 		return rc;
 	rc = assign_eip_near(ctxt, eip);
@@ -3567,13 +3422,8 @@ static int em_loop(struct x86_emulate_ctxt *ctxt)
 {
 	int rc = X86EMUL_CONTINUE;
 
-<<<<<<< HEAD
-	register_address_increment(ctxt, &ctxt->regs[VCPU_REGS_RCX], -1);
-	if ((address_mask(ctxt, ctxt->regs[VCPU_REGS_RCX]) != 0) &&
-=======
 	register_address_increment(ctxt, reg_rmw(ctxt, VCPU_REGS_RCX), -1);
 	if ((address_mask(ctxt, reg_read(ctxt, VCPU_REGS_RCX)) != 0) &&
->>>>>>> android-3.18
 	    (ctxt->b == 0xe2 || test_cc(ctxt->b ^ 0x5, ctxt->eflags)))
 		rc = jmp_rel(ctxt, ctxt->src.val);
 
@@ -3583,17 +3433,10 @@ static int em_loop(struct x86_emulate_ctxt *ctxt)
 static int em_jcxz(struct x86_emulate_ctxt *ctxt)
 {
 	int rc = X86EMUL_CONTINUE;
-<<<<<<< HEAD
-
-	if (address_mask(ctxt, ctxt->regs[VCPU_REGS_RCX]) == 0)
-		rc = jmp_rel(ctxt, ctxt->src.val);
-
-=======
 
 	if (address_mask(ctxt, reg_read(ctxt, VCPU_REGS_RCX)) == 0)
 		rc = jmp_rel(ctxt, ctxt->src.val);
 
->>>>>>> android-3.18
 	return rc;
 }
 

@@ -11,23 +11,13 @@
  * version 2 as published by the Free Software Foundation.
  */
 
-<<<<<<< HEAD
-#include <linux/platform_device.h>
-#include <linux/pm_runtime.h>
-=======
 #include <linux/clk.h>
 #include <linux/dma-mapping.h>
->>>>>>> android-3.18
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
-<<<<<<< HEAD
-#include <linux/usb/otg.h>
-#include <linux/usb/msm_hsusb.h>
-=======
 #include <linux/usb/xhci_pdriver.h>
->>>>>>> android-3.18
 
 #include "xhci.h"
 #include "xhci-mvebu.h"
@@ -49,18 +39,6 @@ static void xhci_plat_quirks(struct device *dev, struct xhci_hcd *xhci)
 	 * dev struct in order to setup MSI
 	 */
 	xhci->quirks |= XHCI_PLAT;
-<<<<<<< HEAD
-
-	if (!pdata)
-		return;
-
-	if (pdata->vendor == SYNOPSIS_DWC3_VENDOR && pdata->revision < 0x230A)
-		xhci->quirks |= XHCI_PORTSC_DELAY;
-
-	if (pdata->vendor == SYNOPSIS_DWC3_VENDOR && pdata->revision == 0x250A)
-		xhci->quirks |= XHCI_RESET_DELAY;
-=======
->>>>>>> android-3.18
 }
 
 /* called during probe() after chip reset completes */
@@ -79,76 +57,16 @@ static int xhci_plat_setup(struct usb_hcd *hcd)
 	return xhci_gen_setup(hcd, xhci_plat_quirks);
 }
 
-<<<<<<< HEAD
-static void xhci_plat_phy_autosuspend(struct usb_hcd *hcd,
-						int enable_autosuspend)
-{
-	if (!phy || !phy->set_phy_autosuspend)
-		return;
-
-	usb_phy_set_autosuspend(phy, enable_autosuspend);
-
-	return;
-}
-
-static const struct hc_driver xhci_plat_xhci_driver = {
-	.description =		"xhci-hcd",
-	.product_desc =		"xHCI Host Controller",
-	.hcd_priv_size =	sizeof(struct xhci_hcd *),
-
-	/*
-	 * generic hardware linkage
-	 */
-	.irq =			xhci_irq,
-	.flags =		HCD_MEMORY | HCD_USB3 | HCD_SHARED,
-
-	/*
-	 * basic lifecycle operations
-	 */
-	.reset =		xhci_plat_setup,
-	.start =		xhci_run,
-	.stop =			xhci_stop,
-	.shutdown =		xhci_shutdown,
-
-	/*
-	 * managing i/o requests and associated device resources
-	 */
-	.urb_enqueue =		xhci_urb_enqueue,
-	.urb_dequeue =		xhci_urb_dequeue,
-	.alloc_dev =		xhci_alloc_dev,
-	.free_dev =		xhci_free_dev,
-	.alloc_streams =	xhci_alloc_streams,
-	.free_streams =		xhci_free_streams,
-	.add_endpoint =		xhci_add_endpoint,
-	.drop_endpoint =	xhci_drop_endpoint,
-	.endpoint_reset =	xhci_endpoint_reset,
-	.check_bandwidth =	xhci_check_bandwidth,
-	.reset_bandwidth =	xhci_reset_bandwidth,
-	.address_device =	xhci_address_device,
-	.update_hub_device =	xhci_update_hub_device,
-	.reset_device =		xhci_discover_or_reset_device,
-=======
 static int xhci_plat_start(struct usb_hcd *hcd)
 {
 	struct device_node *of_node = hcd->self.controller->of_node;
->>>>>>> android-3.18
 
 	if (of_device_is_compatible(of_node, "renesas,xhci-r8a7790") ||
 	    of_device_is_compatible(of_node, "renesas,xhci-r8a7791"))
 		xhci_rcar_start(hcd);
 
-<<<<<<< HEAD
-	/* Root hub support */
-	.hub_control =		xhci_hub_control,
-	.hub_status_data =	xhci_hub_status_data,
-	.bus_suspend =		xhci_bus_suspend,
-	.bus_resume =		xhci_bus_resume,
-	.set_autosuspend =	xhci_plat_phy_autosuspend,
-};
-=======
 	return xhci_run(hcd);
 }
->>>>>>> android-3.18
 
 static int xhci_plat_probe(struct platform_device *pdev)
 {
@@ -198,13 +116,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 		goto put_hcd;
 	}
 
-<<<<<<< HEAD
-	hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
-	if (!hcd->regs) {
-		dev_dbg(&pdev->dev, "error mapping memory\n");
-		ret = -EFAULT;
-		goto release_mem_region;
-=======
 	/*
 	 * Not all platforms have a clk so it is not an error if the
 	 * clock does not exists.
@@ -226,7 +137,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 		ret = xhci_mvebu_mbus_init_quirk(pdev);
 		if (ret)
 			goto disable_clk;
->>>>>>> android-3.18
 	}
 
 	pm_runtime_set_active(&pdev->dev);
@@ -250,13 +160,9 @@ static int xhci_plat_probe(struct platform_device *pdev)
 		goto dealloc_usb2_hcd;
 	}
 
-<<<<<<< HEAD
-	hcd_to_bus(xhci->shared_hcd)->skip_resume = true;
-=======
 	if ((node && of_property_read_bool(node, "usb3-lpm-capable")) ||
 			(pdata && pdata->usb3_lpm_capable))
 		xhci->quirks |= XHCI_LPM_SUPPORT;
->>>>>>> android-3.18
 	/*
 	 * Set the xHCI pointer before xhci_plat_setup() (aka hcd_driver.reset)
 	 * is called by usb_add_hcd().
@@ -318,13 +224,8 @@ static int xhci_plat_remove(struct platform_device *dev)
 	usb_put_hcd(xhci->shared_hcd);
 
 	usb_remove_hcd(hcd);
-<<<<<<< HEAD
-	iounmap(hcd->regs);
-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
-=======
 	if (!IS_ERR(clk))
 		clk_disable_unprepare(clk);
->>>>>>> android-3.18
 	usb_put_hcd(hcd);
 	kfree(xhci);
 
@@ -336,69 +237,6 @@ static int xhci_plat_remove(struct platform_device *dev)
 	return 0;
 }
 
-<<<<<<< HEAD
-#ifdef CONFIG_PM_RUNTIME
-static int xhci_msm_runtime_idle(struct device *dev)
-{
-	dev_dbg(dev, "xhci msm runtime idle\n");
-	return 0;
-}
-
-static int xhci_msm_runtime_suspend(struct device *dev)
-{
-	dev_dbg(dev, "xhci msm runtime suspend\n");
-	/*
-	 * Notify OTG about suspend.  It takes care of
-	 * putting the hardware in LPM.
-	 */
-	if (phy)
-		return usb_phy_set_suspend(phy, 1);
-
-	return 0;
-}
-
-static int xhci_msm_runtime_resume(struct device *dev)
-{
-	dev_dbg(dev, "xhci msm runtime resume\n");
-
-	if (phy)
-		return usb_phy_set_suspend(phy, 0);
-
-	return 0;
-}
-#endif
-
-#ifdef CONFIG_PM_SLEEP
-static int xhci_msm_pm_suspend(struct device *dev)
-{
-	dev_dbg(dev, "xhci-msm PM suspend\n");
-
-	if (phy)
-		return usb_phy_set_suspend(phy, 1);
-
-	return 0;
-}
-
-static int xhci_msm_pm_resume(struct device *dev)
-{
-	dev_dbg(dev, "xhci-msm PM resume\n");
-
-	if (pm_runtime_suspended(dev))
-		return 0;
-
-	if (phy)
-		return usb_phy_set_suspend(phy, 0);
-
-	return 0;
-}
-#endif
-
-static const struct dev_pm_ops xhci_msm_dev_pm_ops = {
-	SET_SYSTEM_SLEEP_PM_OPS(xhci_msm_pm_suspend, xhci_msm_pm_resume)
-	SET_RUNTIME_PM_OPS(xhci_msm_runtime_suspend, xhci_msm_runtime_resume,
-				xhci_msm_runtime_idle)
-};
-=======
 #ifdef CONFIG_PM_SLEEP
 static int xhci_plat_suspend(struct device *dev)
 {
@@ -444,7 +282,6 @@ static const struct of_device_id usb_xhci_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, usb_xhci_of_match);
 #endif
->>>>>>> android-3.18
 
 static struct platform_driver usb_xhci_driver = {
 	.probe	= xhci_plat_probe,
@@ -452,12 +289,8 @@ static struct platform_driver usb_xhci_driver = {
 	.shutdown = usb_hcd_platform_shutdown,
 	.driver	= {
 		.name = "xhci-hcd",
-<<<<<<< HEAD
-		.pm = &xhci_msm_dev_pm_ops,
-=======
 		.pm = DEV_PM_OPS,
 		.of_match_table = of_match_ptr(usb_xhci_of_match),
->>>>>>> android-3.18
 	},
 };
 MODULE_ALIAS("platform:xhci-hcd");

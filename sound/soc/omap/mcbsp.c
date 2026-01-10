@@ -744,12 +744,7 @@ int omap2_mcbsp_set_clks_src(struct omap_mcbsp *mcbsp, u8 fck_src_id)
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
-	if (!mcbsp->pdata->mux_signal)
-		return -EINVAL;
-=======
 	pm_runtime_put_sync(mcbsp->dev);
->>>>>>> android-3.18
 
 	r = clk_set_parent(mcbsp->fclk, fck_src);
 	if (r) {

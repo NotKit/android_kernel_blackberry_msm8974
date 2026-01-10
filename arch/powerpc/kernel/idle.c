@@ -53,24 +53,6 @@ void arch_cpu_idle_dead(void)
 }
 #endif
 
-<<<<<<< HEAD
-static void do_nothing(void *unused)
-{
-}
-
-/*
- * cpu_idle_wait - Used to ensure that all the CPUs come out of the old
- * idle loop and start using the new idle loop.
- * Required while changing idle handler on SMP systems.
- * Caller must have changed idle handler to the new value before the call.
- * This window may be larger on shared systems.
- */
-void cpu_idle_wait(void)
-{
-	smp_mb();
-	/* kick all the CPUs so that they exit out of pm_idle */
-	smp_call_function(do_nothing, NULL, 1);
-=======
 void arch_cpu_idle(void)
 {
 	ppc64_runlatch_off();
@@ -95,7 +77,6 @@ void arch_cpu_idle(void)
 
 	HMT_medium();
 	ppc64_runlatch_on();
->>>>>>> android-3.18
 }
 
 int powersave_nap;

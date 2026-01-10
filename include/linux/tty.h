@@ -10,11 +10,8 @@
 #include <linux/mutex.h>
 #include <linux/tty_flags.h>
 #include <uapi/linux/tty.h>
-<<<<<<< HEAD
-=======
 #include <linux/rwsem.h>
 #include <linux/llist.h>
->>>>>>> android-3.18
 
 
 

@@ -154,15 +154,9 @@ void __init dove_ehci1_init(void)
  ****************************************************************************/
 void __init dove_ge00_init(struct mv643xx_eth_platform_data *eth_data)
 {
-<<<<<<< HEAD
-	orion_ge00_init(eth_data,
-			DOVE_GE00_PHYS_BASE, IRQ_DOVE_GE00_SUM,
-			0, get_tclk(), 1600);
-=======
 	orion_ge00_init(eth_data, DOVE_GE00_PHYS_BASE,
 			IRQ_DOVE_GE00_SUM, IRQ_DOVE_GE00_ERR,
 			1600);
->>>>>>> android-3.18
 }
 
 /*****************************************************************************

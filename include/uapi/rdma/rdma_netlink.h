@@ -4,9 +4,6 @@
 #include <linux/types.h>
 
 enum {
-<<<<<<< HEAD
-	RDMA_NL_RDMA_CM = 1
-=======
 	RDMA_NL_RDMA_CM = 1,
 	RDMA_NL_NES,
 	RDMA_NL_C4IW,
@@ -17,7 +14,6 @@ enum {
 	RDMA_NL_GROUP_CM = 1,
 	RDMA_NL_GROUP_IWPM,
 	RDMA_NL_NUM_GROUPS
->>>>>>> android-3.18
 };
 
 #define RDMA_NL_GET_CLIENT(type) ((type & (((1 << 6) - 1) << 10)) >> 10)
@@ -35,8 +31,6 @@ enum {
 	RDMA_NL_RDMA_CM_NUM_ATTR,
 };
 
-<<<<<<< HEAD
-=======
 /* iwarp port mapper op-codes */
 enum {
 	RDMA_NL_IWPM_REG_PID = 0,
@@ -49,7 +43,6 @@ enum {
 	RDMA_NL_IWPM_NUM_OPS
 };
 
->>>>>>> android-3.18
 struct rdma_cm_id_stats {
 	__u32	qp_num;
 	__u32	bound_dev_if;
@@ -61,8 +54,6 @@ struct rdma_cm_id_stats {
 	__u8	qp_type;
 };
 
-<<<<<<< HEAD
-=======
 enum {
 	IWPM_NLA_REG_PID_UNSPEC = 0,
 	IWPM_NLA_REG_PID_SEQ,
@@ -136,6 +127,5 @@ enum {
 	IWPM_NLA_ERR_MAX
 };
 
->>>>>>> android-3.18
 
 #endif /* _UAPI_RDMA_NETLINK_H */

@@ -15,12 +15,6 @@
 #include <linux/clockchips.h>
 #include <linux/clksrc-dbx500-prcmu.h>
 #include <linux/sched_clock.h>
-<<<<<<< HEAD
-
-#include <mach/setup.h>
-#include <mach/hardware.h>
-=======
->>>>>>> android-3.18
 
 #define RATE_32K		32768
 

@@ -87,15 +87,6 @@ static const char	hcd_name [] = "ehci_hcd";
  */
 #define	EHCI_TUNE_FLS		1	/* (medium) 512-frame schedule */
 
-<<<<<<< HEAD
-#define EHCI_IAA_MSECS		100		/* arbitrary */
-#define EHCI_IO_JIFFIES		(HZ/10)		/* io watchdog > irq_thresh */
-#define EHCI_ASYNC_JIFFIES	(HZ/20)		/* async idle timeout */
-#define EHCI_SHRINK_JIFFIES	(DIV_ROUND_UP(HZ, 200) + 1)
-						/* 5-ms async qh unlink delay */
-
-=======
->>>>>>> android-3.18
 /* Initial IRQ latency:  faster than hw default */
 static int log2_irq_thresh = 0;		// 0 to 6
 module_param (log2_irq_thresh, int, S_IRUGO);
@@ -221,44 +212,8 @@ static int ehci_halt (struct ehci_hcd *ehci)
 	temp &= ~(CMD_RUN | CMD_IAAD);
 	ehci_writel(ehci, temp, &ehci->regs->command);
 
-<<<<<<< HEAD
-	if (error == -ETIMEDOUT && ehci_read_frame_index(ehci) == old_index)
-		return 0;
-
-	return error;
-}
-
-#else
-
-static int handshake_for_broken_root_hub(struct ehci_hcd *ehci,
-					 void __iomem *ptr, u32 mask, u32 done,
-					 int usec)
-{
-	return -ETIMEDOUT;
-}
-
-#endif
-
-static int handshake_on_error_set_halt(struct ehci_hcd *ehci, void __iomem *ptr,
-				       u32 mask, u32 done, int usec)
-{
-	int error;
-
-	error = handshake(ehci, ptr, mask, done, usec);
-	if (error == -ETIMEDOUT)
-		error = handshake_for_broken_root_hub(ehci, ptr, mask, done,
-						      usec);
-
-	if (error) {
-		ehci_halt(ehci);
-		ehci->rh_state = EHCI_RH_HALTED;
-		ehci_err(ehci, "force halt; handshake %pK %08x %08x -> %d\n",
-			ptr, mask, done, error);
-	}
-=======
 	spin_unlock_irq(&ehci->lock);
 	synchronize_irq(ehci_to_hcd(ehci)->irq);
->>>>>>> android-3.18
 
 	return ehci_handshake(ehci, &ehci->regs->status,
 			  STS_HALT, STS_HALT, 16 * 125);
@@ -412,14 +367,6 @@ static void ehci_shutdown(struct usb_hcd *hcd)
 	ehci->rh_state = EHCI_RH_STOPPING;
 	ehci->enabled_hrtimer_events = 0;
 	spin_unlock_irq(&ehci->lock);
-<<<<<<< HEAD
-}
-
-static void __maybe_unused ehci_port_power (struct ehci_hcd *ehci, int is_on)
-{
-	unsigned port;
-=======
->>>>>>> android-3.18
 
 	ehci_silence_controller(ehci);
 
@@ -488,25 +435,7 @@ static void ehci_stop (struct usb_hcd *hcd)
 
 	/* root hub is shut down separately (first, when possible) */
 	spin_lock_irq (&ehci->lock);
-<<<<<<< HEAD
-	if (ehci->async) {
-		/*
-		 * TODO: Observed that ehci->async next ptr is not
-		 * NULL sometimes which leads to crash in mem_cleanup.
-		 * Root cause is not yet known why this messup is
-		 * happenning.
-		 * The follwing workaround fixes the crash caused
-		 * by this temporarily.
-		 * check if async next ptr is not NULL and unlink
-		 * explictly.
-		 */
-		if (ehci->async->qh_next.ptr != NULL)
-			start_unlink_async(ehci, ehci->async->qh_next.qh);
-		ehci_work (ehci);
-	}
-=======
 	end_free_itds(ehci);
->>>>>>> android-3.18
 	spin_unlock_irq (&ehci->lock);
 	ehci_mem_cleanup (ehci);
 
@@ -589,11 +518,7 @@ static int ehci_init(struct usb_hcd *hcd)
 	hw->hw_next = QH_NEXT(ehci, ehci->async->qh_dma);
 	hw->hw_info1 = cpu_to_hc32(ehci, QH_HEAD);
 #if defined(CONFIG_PPC_PS3)
-<<<<<<< HEAD
-	hw->hw_info1 |= cpu_to_hc32(ehci, (1 << 7));	/* I = 1 */
-=======
 	hw->hw_info1 |= cpu_to_hc32(ehci, QH_INACTIVATE);
->>>>>>> android-3.18
 #endif
 	hw->hw_token = cpu_to_hc32(ehci, QTD_STS_HALT);
 	hw->hw_qtd_next = EHCI_LIST_END(ehci);
@@ -1022,36 +947,6 @@ static int ehci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 			qh_completions(ehci, qh);
 			break;
 		}
-<<<<<<< HEAD
-		break;
-
-	case PIPE_INTERRUPT:
-		qh = (struct ehci_qh *) urb->hcpriv;
-		if (!qh)
-			break;
-		switch (qh->qh_state) {
-		case QH_STATE_LINKED:
-		case QH_STATE_COMPLETING:
-			intr_deschedule (ehci, qh);
-			break;
-		case QH_STATE_IDLE:
-			qh_completions (ehci, qh);
-			break;
-		default:
-			ehci_dbg (ehci, "bogus qh %pK state %d\n",
-					qh, qh->qh_state);
-			goto done;
-		}
-		break;
-
-	case PIPE_ISOCHRONOUS:
-		// itd or sitd ...
-
-		// wait till next completion, do it then.
-		// completion irqs can wait up to 1024 msec,
-		break;
-=======
->>>>>>> android-3.18
 	}
 done:
 	spin_unlock_irqrestore (&ehci->lock, flags);
@@ -1372,79 +1267,16 @@ MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_AUTHOR (DRIVER_AUTHOR);
 MODULE_LICENSE ("GPL");
 
-<<<<<<< HEAD
-#ifdef CONFIG_PCI
-#include "ehci-pci.c"
-#define	PCI_DRIVER		ehci_pci_driver
-#endif
-
-#ifdef CONFIG_PPC_PS3
-#include "ehci-ps3.c"
-#define	PS3_SYSTEM_BUS_DRIVER	ps3_ehci_driver
-#endif
-
-#ifdef CONFIG_USB_EHCI_HCD_PPC_OF
-#include "ehci-ppc-of.c"
-#define OF_PLATFORM_DRIVER	ehci_hcd_ppc_of_driver
-#endif
-
-#ifdef CONFIG_XPS_USB_HCD_XILINX
-#include "ehci-xilinx-of.c"
-#define XILINX_OF_PLATFORM_DRIVER	ehci_hcd_xilinx_of_driver
-#endif
-
-=======
->>>>>>> android-3.18
 #ifdef CONFIG_USB_EHCI_FSL
 #include "ehci-fsl.c"
 #define PLATFORM_DRIVER_PRESENT
 #endif
 
-<<<<<<< HEAD
-#ifdef CONFIG_USB_EHCI_MXC
-#include "ehci-mxc.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-=======
->>>>>>> android-3.18
 #ifdef CONFIG_USB_EHCI_SH
 #include "ehci-sh.c"
 #define PLATFORM_DRIVER_PRESENT
 #endif
 
-<<<<<<< HEAD
-#ifdef CONFIG_MIPS_ALCHEMY
-#include "ehci-au1xxx.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_HCD_OMAP
-#include "ehci-omap.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_PLAT_ORION
-#include "ehci-orion.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_ARCH_IXP4XX
-#include "ehci-ixp4xx.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_W90X900_EHCI
-#include "ehci-w90x900.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_ARCH_AT91
-#include "ehci-atmel.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-=======
 #ifdef CONFIG_PPC_PS3
 #include "ehci-ps3.c"
 #define	PS3_SYSTEM_BUS_DRIVER	ps3_ehci_driver
@@ -1460,42 +1292,14 @@ MODULE_LICENSE ("GPL");
 #define XILINX_OF_PLATFORM_DRIVER	ehci_hcd_xilinx_of_driver
 #endif
 
->>>>>>> android-3.18
 #ifdef CONFIG_USB_OCTEON_EHCI
 #include "ehci-octeon.c"
 #define PLATFORM_DRIVER_PRESENT
 #endif
 
-<<<<<<< HEAD
-#ifdef CONFIG_USB_CNS3XXX_EHCI
-#include "ehci-cns3xxx.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_ARCH_VT8500
-#include "ehci-vt8500.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_PLAT_SPEAR
-#include "ehci-spear.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM_72K
-#include "ehci-msm72k.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM
-#include "ehci-msm.c"
-#include "ehci-msm2.c"
-#define PLATFORM_DRIVER_PRESENT
-=======
 #ifdef CONFIG_TILE_USB
 #include "ehci-tilegx.c"
 #define	PLATFORM_DRIVER		ehci_hcd_tilegx_driver
->>>>>>> android-3.18
 #endif
 
 #ifdef CONFIG_USB_EHCI_HCD_PMC_MSP
@@ -1503,24 +1307,6 @@ MODULE_LICENSE ("GPL");
 #define PLATFORM_DRIVER_PRESENT
 #endif
 
-<<<<<<< HEAD
-#ifdef CONFIG_USB_EHCI_TEGRA
-#include "ehci-tegra.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_S5P
-#include "ehci-s5p.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_ATH79
-#include "ehci-ath79.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-=======
->>>>>>> android-3.18
 #ifdef CONFIG_SPARC_LEON
 #include "ehci-grlib.c"
 #define PLATFORM_DRIVER_PRESENT
@@ -1536,39 +1322,14 @@ MODULE_LICENSE ("GPL");
 #define PLATFORM_DRIVER_PRESENT
 #endif
 
-<<<<<<< HEAD
-#ifdef CONFIG_CPU_XLR
-#include "ehci-xls.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-=======
->>>>>>> android-3.18
 #ifdef CONFIG_USB_EHCI_MV
 #include "ehci-mv.c"
 #define PLATFORM_DRIVER_PRESENT
 #endif
 
-<<<<<<< HEAD
-#ifdef CONFIG_MACH_LOONGSON1
-#include "ehci-ls1x.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_HCD_PLATFORM
-#include "ehci-platform.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#if !defined(PCI_DRIVER) && !defined(PLATFORM_DRIVER_PRESENT) && \
-    !defined(PS3_SYSTEM_BUS_DRIVER) && !defined(OF_PLATFORM_DRIVER) && \
-    !defined(XILINX_OF_PLATFORM_DRIVER)
-#error "missing bus glue for ehci-hcd"
-=======
 #ifdef CONFIG_MIPS_SEAD3
 #include "ehci-sead3.c"
 #define	PLATFORM_DRIVER		ehci_hcd_sead3_driver
->>>>>>> android-3.18
 #endif
 
 static struct platform_driver *plat_drivers[]  = {
@@ -1745,22 +1506,11 @@ clean3:
 	ps3_ehci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
 clean2:
 #endif
-<<<<<<< HEAD
-#ifdef PCI_DRIVER
-	pci_unregister_driver(&PCI_DRIVER);
-clean1:
-#endif
-	for (i = 0; i < ARRAY_SIZE(plat_drivers); i++)
-		platform_driver_unregister(plat_drivers[i]);
-clean0:
-#ifdef DEBUG
-=======
 #ifdef PLATFORM_DRIVER
 	platform_driver_unregister(&PLATFORM_DRIVER);
 clean0:
 #endif
 #ifdef CONFIG_DYNAMIC_DEBUG
->>>>>>> android-3.18
 	debugfs_remove(ehci_debug_root);
 	ehci_debug_root = NULL;
 err_debug:
@@ -1779,17 +1529,8 @@ static void __exit ehci_hcd_cleanup(void)
 #ifdef OF_PLATFORM_DRIVER
 	platform_driver_unregister(&OF_PLATFORM_DRIVER);
 #endif
-<<<<<<< HEAD
-
-	for (i = 0; i < ARRAY_SIZE(plat_drivers); i++)
-		platform_driver_unregister(plat_drivers[i]);
-
-#ifdef PCI_DRIVER
-	pci_unregister_driver(&PCI_DRIVER);
-=======
 #ifdef PLATFORM_DRIVER
 	platform_driver_unregister(&PLATFORM_DRIVER);
->>>>>>> android-3.18
 #endif
 #ifdef PS3_SYSTEM_BUS_DRIVER
 	ps3_ehci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);

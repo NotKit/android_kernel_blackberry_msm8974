@@ -24,113 +24,17 @@
 #include <linux/usb/quirks.h>
 #include <linux/workqueue.h>
 #include <linux/mutex.h>
-<<<<<<< HEAD
-#include <linux/freezer.h>
-#include <linux/usb/otg.h>
-#include <linux/random.h>
-=======
 #include <linux/random.h>
 #include <linux/pm_qos.h>
->>>>>>> android-3.18
 
 #include <asm/uaccess.h>
 #include <asm/byteorder.h>
 
-<<<<<<< HEAD
-#include "usb.h"
-
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-#include <linux/usb/hcd.h>
-#include <linux/usb/ch11.h>
-
-int portno;
-int No_Data_Phase;
-EXPORT_SYMBOL(No_Data_Phase);
-int No_Status_Phase;
-EXPORT_SYMBOL(No_Status_Phase);
-unsigned char hub_tier;
-
-#define PDC_HOST_NOTIFY		0x8001	/*completion from core */
-#define UNSUPPORTED_DEVICE	0x8099
-#define UNWANTED_SUSPEND	0x8098
-#define PDC_POWERMANAGEMENT	0x8097
-
-int Unwanted_SecondReset;
-EXPORT_SYMBOL(Unwanted_SecondReset);
-int HostComplianceTest;
-EXPORT_SYMBOL(HostComplianceTest);
-int HostTest;
-EXPORT_SYMBOL(HostTest);
-#endif
-
-
-/* if we are in debug mode, always announce new devices */
-#ifdef DEBUG
-#ifndef CONFIG_USB_ANNOUNCE_NEW_DEVICES
-#define CONFIG_USB_ANNOUNCE_NEW_DEVICES
-#endif
-#endif
-
-struct usb_hub {
-	struct device		*intfdev;	/* the "interface" device */
-	struct usb_device	*hdev;
-	struct kref		kref;
-	struct urb		*urb;		/* for interrupt polling pipe */
-
-	/* buffer for urb ... with extra space in case of babble */
-	char			(*buffer)[8];
-	union {
-		struct usb_hub_status	hub;
-		struct usb_port_status	port;
-	}			*status;	/* buffer for status reports */
-	struct mutex		status_mutex;	/* for the status buffer */
-
-	int			error;		/* last reported error */
-	int			nerrors;	/* track consecutive errors */
-
-	struct list_head	event_list;	/* hubs w/data or errs ready */
-	unsigned long		event_bits[1];	/* status change bitmask */
-	unsigned long		change_bits[1];	/* ports with logical connect
-							status change */
-	unsigned long		busy_bits[1];	/* ports being reset or
-							resumed */
-	unsigned long		removed_bits[1]; /* ports with a "removed"
-							device present */
-	unsigned long		wakeup_bits[1];	/* ports that have signaled
-							remote wakeup */
-#if USB_MAXCHILDREN > 31 /* 8*sizeof(unsigned long) - 1 */
-#error event_bits[] is too short!
-#endif
-
-	struct usb_hub_descriptor *descriptor;	/* class descriptor */
-	struct usb_tt		tt;		/* Transaction Translator */
-
-	unsigned		mA_per_port;	/* current for each child */
-
-	unsigned		limited_power:1;
-	unsigned		quiescing:1;
-	unsigned		disconnected:1;
-
-	unsigned		has_indicators:1;
-	u8			indicator[USB_MAXCHILDREN];
-	struct delayed_work	leds;
-	struct delayed_work	init_work;
-	void			**port_owners;
-};
-
-int deny_new_usb = 0;
-
-static inline int hub_is_superspeed(struct usb_device *hdev)
-{
-	return (hdev->descriptor.bDeviceProtocol == USB_HUB_PR_SS);
-}
-=======
 #include "hub.h"
 #include "otg_whitelist.h"
 
 #define USB_VENDOR_GENESYS_LOGIC		0x05e3
 #define HUB_QUIRK_CHECK_PORT_AUTOSUSPEND	0x01
->>>>>>> android-3.18
 
 /* Protect struct usb_device->state and ->children members
  * Note: Both are also protected by ->dev.sem, except that ->state can
@@ -195,10 +99,6 @@ EXPORT_SYMBOL_GPL(ehci_cf_port_reset_rwsem);
 #define HUB_DEBOUNCE_STEP	  25
 #define HUB_DEBOUNCE_STABLE	 100
 
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 static void hub_release(struct kref *kref);
 static int usb_reset_and_verify_device(struct usb_device *udev);
 static int hub_port_disable(struct usb_hub *hub, int port1, int set_state);
@@ -998,84 +898,10 @@ static int hub_hub_status(struct usb_hub *hub,
 
 static int hub_set_port_link_state(struct usb_hub *hub, int port1,
 			unsigned int link_status)
-<<<<<<< HEAD
 {
 	return set_port_feature(hub->hdev,
 			port1 | (link_status << 3),
 			USB_PORT_FEAT_LINK_STATE);
-}
-
-/*
- * If USB 3.0 ports are placed into the Disabled state, they will no longer
- * detect any device connects or disconnects.  This is generally not what the
- * USB core wants, since it expects a disabled port to produce a port status
- * change event when a new device connects.
- *
- * Instead, set the link state to Disabled, wait for the link to settle into
- * that state, clear any change bits, and then put the port into the RxDetect
- * state.
- */
-static int hub_usb3_port_disable(struct usb_hub *hub, int port1)
-{
-	int ret;
-	int total_time;
-	u16 portchange, portstatus;
-
-	if (!hub_is_superspeed(hub->hdev))
-		return -EINVAL;
-
-	ret = hub_set_port_link_state(hub, port1, USB_SS_PORT_LS_SS_DISABLED);
-	if (ret) {
-		dev_err(hub->intfdev, "cannot disable port %d (err = %d)\n",
-				port1, ret);
-		return ret;
-	}
-
-	/* Wait for the link to enter the disabled state. */
-	for (total_time = 0; ; total_time += HUB_DEBOUNCE_STEP) {
-		ret = hub_port_status(hub, port1, &portstatus, &portchange);
-		if (ret < 0)
-			return ret;
-
-		if ((portstatus & USB_PORT_STAT_LINK_STATE) ==
-				USB_SS_PORT_LS_SS_DISABLED)
-			break;
-		if (total_time >= HUB_DEBOUNCE_TIMEOUT)
-			break;
-		msleep(HUB_DEBOUNCE_STEP);
-	}
-	if (total_time >= HUB_DEBOUNCE_TIMEOUT)
-		dev_warn(hub->intfdev, "Could not disable port %d after %d ms\n",
-				port1, total_time);
-
-	return hub_set_port_link_state(hub, port1, USB_SS_PORT_LS_RX_DETECT);
-}
-
-static int hub_port_disable(struct usb_hub *hub, int port1, int set_state)
-{
-	struct usb_device *hdev = hub->hdev;
-	int ret = 0;
-
-	if (hdev->children[port1-1] && set_state)
-		usb_set_device_state(hdev->children[port1-1],
-				USB_STATE_NOTATTACHED);
-	if (!hub->error) {
-		if (hub_is_superspeed(hub->hdev))
-			ret = hub_usb3_port_disable(hub, port1);
-		else
-			ret = clear_port_feature(hdev, port1,
-					USB_PORT_FEAT_ENABLE);
-	}
-	if (ret)
-		dev_err(hub->intfdev, "cannot disable port %d (err = %d)\n",
-				port1, ret);
-	return ret;
-=======
-{
-	return set_port_feature(hub->hdev,
-			port1 | (link_status << 3),
-			USB_PORT_FEAT_LINK_STATE);
->>>>>>> android-3.18
 }
 
 /*
@@ -1155,21 +981,6 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 
 	/* Continue a partial initialization */
 	if (type == HUB_INIT2 || type == HUB_INIT3) {
-<<<<<<< HEAD
-                device_lock(hub->intfdev);
-
-                /* Was the hub disconnected while we were waiting? */
-                if (hub->disconnected) {
-                        device_unlock(hub->intfdev);
-                        kref_put(&hub->kref, hub_release);
-                        return;
-		}
-                if (type == HUB_INIT2)
-                        goto init2;
-		goto init3;
-	}
-        kref_get(&hub->kref);
-=======
 		device_lock(&hdev->dev);
 
 		/* Was the hub disconnected while we were waiting? */
@@ -1180,7 +991,6 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 		goto init3;
 	}
 	kref_get(&hub->kref);
->>>>>>> android-3.18
 
 	/* The superspeed hub except for root hub has to use Hub Depth
 	 * value as an offset into the route string to locate the bits
@@ -1216,22 +1026,12 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 		 * for HUB_POST_RESET, but it's easier not to.
 		 */
 		if (type == HUB_INIT) {
-<<<<<<< HEAD
-			delay = hub_power_on(hub, false);
-#ifdef CONFIG_USB_OTG
-			if (hdev->bus->is_b_host)
-				goto init2;
-#endif
-			PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func2);
-			schedule_delayed_work(&hub->init_work,
-=======
 			unsigned delay = hub_power_on_good_delay(hub);
 
 			hub_power_on(hub, false);
 			INIT_DELAYED_WORK(&hub->init_work, hub_init_func2);
 			queue_delayed_work(system_power_efficient_wq,
 					&hub->init_work,
->>>>>>> android-3.18
 					msecs_to_jiffies(delay));
 
 			/* Suppress autosuspend until init is done */
@@ -1332,11 +1132,7 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 		}
 		if (portchange & USB_PORT_STAT_C_RESET) {
 			need_debounce_delay = true;
-<<<<<<< HEAD
-			clear_port_feature(hub->hdev, port1,
-=======
 			usb_clear_port_feature(hub->hdev, port1,
->>>>>>> android-3.18
 					USB_PORT_FEAT_C_RESET);
 		}
 		if ((portchange & USB_PORT_STAT_C_BH_RESET) &&
@@ -1420,11 +1216,7 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 			queue_delayed_work(system_power_efficient_wq,
 					&hub->init_work,
 					msecs_to_jiffies(delay));
-<<<<<<< HEAD
-                        device_unlock(hub->intfdev);
-=======
 			device_unlock(&hdev->dev);
->>>>>>> android-3.18
 			return;		/* Continues at init3: below */
 		} else {
 			msleep(delay);
@@ -1447,14 +1239,8 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 		/* Allow autosuspend if it was suppressed */
  disconnected:
 		usb_autopm_put_interface_async(to_usb_interface(hub->intfdev));
-<<<<<<< HEAD
-
-	if (type == HUB_INIT2 || type == HUB_INIT3)
-		device_unlock(hub->intfdev);
-=======
 		device_unlock(&hdev->dev);
 	}
->>>>>>> android-3.18
 
 	kref_put(&hub->kref, hub_release);
 }
@@ -1499,9 +1285,6 @@ static void hub_quiesce(struct usb_hub *hub, enum hub_quiescing_type type)
 	if (hub->has_indicators)
 		cancel_delayed_work_sync(&hub->leds);
 	if (hub->tt.hub)
-<<<<<<< HEAD
-		flush_work_sync(&hub->tt.clear_work);
-=======
 		flush_work(&hub->tt.clear_work);
 }
 
@@ -1511,7 +1294,6 @@ static void hub_pm_barrier_for_all_ports(struct usb_hub *hub)
 
 	for (i = 0; i < hub->hdev->maxchild; ++i)
 		pm_runtime_barrier(&hub->ports[i]->dev);
->>>>>>> android-3.18
 }
 
 /* caller has locked the hub device */
@@ -1916,8 +1698,6 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
 	hdev = interface_to_usbdev(intf);
 
 	/*
-<<<<<<< HEAD
-=======
 	 * Set default autosuspend delay as 0 to speedup bus suspend,
 	 * based on the below considerations:
 	 *
@@ -1959,7 +1739,6 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
 #endif
 
 	/*
->>>>>>> android-3.18
 	 * Hubs have proper suspend/resume support, except for root hubs
 	 * where the controller driver doesn't have bus_suspend and
 	 * bus_resume methods.
@@ -2352,20 +2131,11 @@ void usb_disconnect(struct usb_device **pdev)
 	dev_info(&udev->dev, "USB disconnect, device number %d\n",
 			udev->devnum);
 
-<<<<<<< HEAD
-#ifdef CONFIG_USB_OTG
-	if (udev->bus->hnp_support && udev->portnum == udev->bus->otg_port) {
-		cancel_delayed_work_sync(&udev->bus->hnp_polling);
-		udev->bus->hnp_support = 0;
-	}
-#endif
-=======
 	/*
 	 * Ensure that the pm runtime code knows that the USB device
 	 * is in the process of being disconnected.
 	 */
 	pm_runtime_barrier(&udev->dev);
->>>>>>> android-3.18
 
 	usb_lock_device(udev);
 
@@ -2477,12 +2247,8 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 		/* descriptor may appear anywhere in config */
 		if (__usb_get_extra_descriptor (udev->rawdescriptors[0],
 					le16_to_cpu(udev->config[0].desc.wTotalLength),
-<<<<<<< HEAD
-					USB_DT_OTG, (void **) &desc, sizeof(*desc)) == 0) {
-=======
 					USB_DT_OTG, (void **) &desc,
 					sizeof(*desc)) == 0) {
->>>>>>> android-3.18
 			if (desc->bmAttributes & USB_OTG_HNP) {
 				unsigned		port1 = udev->portnum;
 
@@ -2532,45 +2298,6 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 			}
 		}
 	}
-<<<<<<< HEAD
-out:
-	if ((udev->quirks & USB_QUIRK_OTG_PET)) {
-		if (le16_to_cpu(udev->descriptor.bcdDevice) &
-			OTG_TTST_VBUS_OFF)
-			udev->bus->otg_vbus_off = 1;
-		if (udev->bus->is_b_host || old_otg)
-			udev->bus->quick_hnp = 1;
-	}
-
-	if (!is_targeted(udev)) {
-
-		otg_send_event(OTG_EVENT_DEV_NOT_SUPPORTED);
-
-		/* Maybe it can talk to us, though we can't talk to it.
-		 * (Includes HNP test device.)
-		 */
-		if (udev->bus->hnp_support) {
-			err = usb_port_suspend(udev, PMSG_SUSPEND);
-			if (err < 0)
-				dev_dbg(&udev->dev, "HNP fail, %d\n", err);
-		}
-		err = -ENOTSUPP;
-	} else if (udev->bus->hnp_support &&
-		udev->portnum == udev->bus->otg_port) {
-		/* HNP polling is introduced in OTG supplement Rev 2.0
-		 * and older devices may not support. Work is not
-		 * re-armed if device returns STALL. B-Host also perform
-		 * HNP polling.
-		 */
-		if (udev->bus->quick_hnp)
-			schedule_delayed_work(&udev->bus->hnp_polling,
-				msecs_to_jiffies(OTG_TTST_SUSP));
-		else
-			schedule_delayed_work(&udev->bus->hnp_polling,
-				msecs_to_jiffies(THOST_REQ_POLL));
-	}
-=======
->>>>>>> android-3.18
 #endif
 	return err;
 }
@@ -2598,14 +2325,9 @@ static int usb_enumerate_device(struct usb_device *udev)
 	if (udev->config == NULL) {
 		err = usb_get_configuration(udev);
 		if (err < 0) {
-<<<<<<< HEAD
-			dev_err(&udev->dev, "can't read configurations, error %d\n",
-				err);
-=======
 			if (err != -ENODEV)
 				dev_err(&udev->dev, "can't read configurations, error %d\n",
 						err);
->>>>>>> android-3.18
 			return err;
 		}
 	}
@@ -2620,8 +2342,6 @@ static int usb_enumerate_device(struct usb_device *udev)
 	if (err < 0)
 		return err;
 
-<<<<<<< HEAD
-=======
 	if (IS_ENABLED(CONFIG_USB_OTG_WHITELIST) && hcd->tpl_support &&
 		!is_targeted(udev)) {
 		/* Maybe it can talk to us, though we can't talk to it.
@@ -2636,7 +2356,6 @@ static int usb_enumerate_device(struct usb_device *udev)
 		return -ENOTSUPP;
 	}
 
->>>>>>> android-3.18
 	usb_detect_interface_quirks(udev);
 
 	return 0;
@@ -2902,19 +2621,6 @@ static unsigned hub_is_wusb(struct usb_hub *hub)
 #define HUB_BH_RESET_TIME	50
 #define HUB_LONG_RESET_TIME	200
 #define HUB_RESET_TIMEOUT	800
-<<<<<<< HEAD
-
-/* Is a USB 3.0 port in the Inactive or Complinance Mode state?
- * Port worm reset is required to recover
- */
-static bool hub_port_warm_reset_required(struct usb_hub *hub, u16 portstatus)
-{
-	return hub_is_superspeed(hub->hdev) &&
-		(((portstatus & USB_PORT_STAT_LINK_STATE) ==
-		  USB_SS_PORT_LS_SS_INACTIVE) ||
-		 ((portstatus & USB_PORT_STAT_LINK_STATE) ==
-		  USB_SS_PORT_LS_COMP_MOD)) ;
-=======
 
 /*
  * "New scheme" enumeration causes an extra state transition to be
@@ -2948,7 +2654,6 @@ static bool hub_port_warm_reset_required(struct usb_hub *hub, int port1,
 	link_state = portstatus & USB_PORT_STAT_LINK_STATE;
 	return link_state == USB_SS_PORT_LS_SS_INACTIVE
 		|| link_state == USB_SS_PORT_LS_COMP_MOD;
->>>>>>> android-3.18
 }
 
 static int hub_port_wait_reset(struct usb_hub *hub, int port1,
@@ -2969,43 +2674,6 @@ static int hub_port_wait_reset(struct usb_hub *hub, int port1,
 		if (ret < 0)
 			return ret;
 
-<<<<<<< HEAD
-		/* The port state is unknown until the reset completes. */
-		if ((portstatus & USB_PORT_STAT_RESET))
-			goto delay;
-
-		if (hub_port_warm_reset_required(hub, portstatus))
-			return -ENOTCONN;
-
-		/* Device went away? */
-		if (!(portstatus & USB_PORT_STAT_CONNECTION))
-			return -ENOTCONN;
-
-		/* bomb out completely if the connection bounced.  A USB 3.0
-		 * connection may bounce if multiple warm resets were issued,
-		 * but the device may have successfully re-connected. Ignore it.
-		 */
-		if (!hub_is_superspeed(hub->hdev) &&
-				(portchange & USB_PORT_STAT_C_CONNECTION))
-			return -ENOTCONN;
-
-		if ((portstatus & USB_PORT_STAT_ENABLE)) {
-			if (!udev)
-				return 0;
-
-			if (hub_is_wusb(hub))
-				udev->speed = USB_SPEED_WIRELESS;
-			else if (hub_is_superspeed(hub->hdev))
-				udev->speed = USB_SPEED_SUPER;
-			else if (portstatus & USB_PORT_STAT_HIGH_SPEED)
-				udev->speed = USB_SPEED_HIGH;
-			else if (portstatus & USB_PORT_STAT_LOW_SPEED)
-				udev->speed = USB_SPEED_LOW;
-			else
-				udev->speed = USB_SPEED_FULL;
-			return 0;
-		}
-=======
 		/*
 		 * The port state is unknown until the reset completes.
 		 *
@@ -3016,7 +2684,6 @@ static int hub_port_wait_reset(struct usb_hub *hub, int port1,
 		if (!(portstatus & USB_PORT_STAT_RESET) &&
 		    (portstatus & USB_PORT_STAT_CONNECTION))
 			break;
->>>>>>> android-3.18
 
 delay:
 		/* switch to the long delay after two short delay failures */
@@ -3031,8 +2698,6 @@ delay:
 	if ((portstatus & USB_PORT_STAT_RESET))
 		return -EBUSY;
 
-<<<<<<< HEAD
-=======
 	if (hub_port_warm_reset_required(hub, port1, portstatus))
 		return -ENOTCONN;
 
@@ -3070,17 +2735,13 @@ delay:
 	return 0;
 }
 
->>>>>>> android-3.18
 /* Handle port reset and port warm(BH) reset (for USB3 protocol ports) */
 static int hub_port_reset(struct usb_hub *hub, int port1,
 			struct usb_device *udev, unsigned int delay, bool warm)
 {
 	int i, status;
 	u16 portchange, portstatus;
-<<<<<<< HEAD
-=======
 	struct usb_port *port_dev = hub->ports[port1 - 1];
->>>>>>> android-3.18
 
 	if (!hub_is_superspeed(hub->hdev)) {
 		if (warm) {
@@ -3098,12 +2759,8 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 		 * double check and see if one is needed.
 		 */
 		if (hub_port_status(hub, port1, &portstatus, &portchange) == 0)
-<<<<<<< HEAD
-			if (hub_port_warm_reset_required(hub, portstatus))
-=======
 			if (hub_port_warm_reset_required(hub, port1,
 							portstatus))
->>>>>>> android-3.18
 				warm = true;
 	}
 	clear_bit(port1, hub->warm_reset_bits);
@@ -3130,23 +2787,12 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 
 		/* Check for disconnect or reset */
 		if (status == 0 || status == -ENOTCONN || status == -ENODEV) {
-<<<<<<< HEAD
-			clear_port_feature(hub->hdev, port1,
-=======
 			usb_clear_port_feature(hub->hdev, port1,
->>>>>>> android-3.18
 					USB_PORT_FEAT_C_RESET);
 
 			if (!hub_is_superspeed(hub->hdev))
 				goto done;
 
-<<<<<<< HEAD
-			clear_port_feature(hub->hdev, port1,
-					USB_PORT_FEAT_C_BH_PORT_RESET);
-			clear_port_feature(hub->hdev, port1,
-					USB_PORT_FEAT_C_PORT_LINK_STATE);
-			clear_port_feature(hub->hdev, port1,
-=======
 			usb_clear_port_feature(hub->hdev, port1,
 					USB_PORT_FEAT_C_BH_PORT_RESET);
 			usb_clear_port_feature(hub->hdev, port1,
@@ -3154,7 +2800,6 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 
 			if (udev)
 				usb_clear_port_feature(hub->hdev, port1,
->>>>>>> android-3.18
 					USB_PORT_FEAT_C_CONNECTION);
 
 			/*
@@ -3165,12 +2810,8 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 					&portstatus, &portchange) < 0)
 				goto done;
 
-<<<<<<< HEAD
-			if (!hub_port_warm_reset_required(hub, portstatus))
-=======
 			if (!hub_port_warm_reset_required(hub, port1,
 					portstatus))
->>>>>>> android-3.18
 				goto done;
 
 			/*
@@ -3178,13 +2819,8 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 			 * hot or warm reset failed.  Try another warm reset.
 			 */
 			if (!warm) {
-<<<<<<< HEAD
-				dev_dbg(hub->intfdev, "hot reset failed, warm reset port %d\n",
-						port1);
-=======
 				dev_dbg(&port_dev->dev,
 						"hot reset failed, warm reset\n");
->>>>>>> android-3.18
 				warm = true;
 			}
 		}
@@ -3331,26 +2967,6 @@ static int check_port_resume_type(struct usb_device *udev,
 	return status;
 }
 
-<<<<<<< HEAD
-#ifdef	CONFIG_USB_SUSPEND
-/*
- * usb_disable_function_remotewakeup - disable usb3.0
- * device's function remote wakeup
- * @udev: target device
- *
- * Assume there's only one function on the USB 3.0
- * device and disable remote wake for the first
- * interface. FIXME if the interface association
- * descriptor shows there's more than one function.
- */
-static int usb_disable_function_remotewakeup(struct usb_device *udev)
-{
-	return usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-				USB_REQ_CLEAR_FEATURE, USB_RECIP_INTERFACE,
-				USB_INTRF_FUNC_SUSPEND,	0, NULL, 0,
-				USB_CTRL_SET_TIMEOUT);
-}
-=======
 int usb_disable_ltm(struct usb_device *udev)
 {
 	struct usb_hcd *hcd = bus_to_hcd(udev->bus);
@@ -3394,7 +3010,6 @@ void usb_enable_ltm(struct usb_device *udev)
 			USB_CTRL_SET_TIMEOUT);
 }
 EXPORT_SYMBOL_GPL(usb_enable_ltm);
->>>>>>> android-3.18
 
 /*
  * usb_enable_remote_wakeup - enable remote wakeup for a device
@@ -3586,28 +3201,6 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 		status = 0;
 	}
 	if (status) {
-<<<<<<< HEAD
-		dev_dbg(hub->intfdev, "can't suspend port %d, status %d\n",
-				port1, status);
-		/* paranoia:  "should not happen" */
-		if (udev->do_remote_wakeup) {
-			if (!hub_is_superspeed(hub->hdev)) {
-				(void) usb_control_msg(udev,
-						usb_sndctrlpipe(udev, 0),
-						USB_REQ_CLEAR_FEATURE,
-						USB_RECIP_DEVICE,
-						USB_DEVICE_REMOTE_WAKEUP, 0,
-						NULL, 0,
-						USB_CTRL_SET_TIMEOUT);
-			} else
-				(void) usb_disable_function_remotewakeup(udev);
-
-		}
-
-		/* Try to enable USB2 hardware LPM again */
-		if (udev->usb2_hw_lpm_capable == 1)
-			usb_set_usb2_hardware_lpm(udev, 1);
-=======
 		dev_dbg(&port_dev->dev, "can't suspend, status %d\n", status);
 
 		/* Try to enable USB3 LPM and LTM again */
@@ -3622,7 +3215,6 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 		if (udev->do_remote_wakeup)
 			(void) usb_disable_remote_wakeup(udev);
  err_wakeup:
->>>>>>> android-3.18
 
 		/* System sleep transitions should never fail */
 		if (!PMSG_IS_AUTO(msg))
@@ -3724,26 +3316,6 @@ static int finish_port_resume(struct usb_device *udev)
 	 * udev->reset_resume
 	 */
 	} else if (udev->actconfig && !udev->reset_resume) {
-<<<<<<< HEAD
-		if (!hub_is_superspeed(udev->parent)) {
-			le16_to_cpus(&devstatus);
-			if (devstatus & (1 << USB_DEVICE_REMOTE_WAKEUP))
-				status = usb_control_msg(udev,
-						usb_sndctrlpipe(udev, 0),
-						USB_REQ_CLEAR_FEATURE,
-						USB_RECIP_DEVICE,
-						USB_DEVICE_REMOTE_WAKEUP, 0,
-						NULL, 0,
-						USB_CTRL_SET_TIMEOUT);
-		} else {
-			status = usb_get_status(udev, USB_RECIP_INTERFACE, 0,
-					&devstatus);
-			le16_to_cpus(&devstatus);
-			if (!status && devstatus & (USB_INTRF_STAT_FUNC_RW_CAP
-					| USB_INTRF_STAT_FUNC_RW))
-				status =
-					usb_disable_function_remotewakeup(udev);
-=======
 		if (udev->speed < USB_SPEED_SUPER) {
 			if (devstatus & (1 << USB_DEVICE_REMOTE_WAKEUP))
 				status = usb_disable_remote_wakeup(udev);
@@ -3753,7 +3325,6 @@ static int finish_port_resume(struct usb_device *udev)
 			if (!status && devstatus & (USB_INTRF_STAT_FUNC_RW_CAP
 					| USB_INTRF_STAT_FUNC_RW))
 				status = usb_disable_remote_wakeup(udev);
->>>>>>> android-3.18
 		}
 
 		if (status)
@@ -3950,11 +3521,7 @@ int usb_remote_wakeup(struct usb_device *udev)
 		dev_dbg(&udev->dev, "usb not suspended\n");
 		clear_bit(HCD_FLAG_WAKEUP_PENDING, &hcd->flags);
 	}
-<<<<<<< HEAD
-
-=======
 	usb_unlock_device(udev);
->>>>>>> android-3.18
 	return status;
 }
 
@@ -4887,18 +4454,10 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
 	 * first 8 bytes of the device descriptor to get the ep0 maxpacket
 	 * value.
 	 */
-<<<<<<< HEAD
-	for (i = 0; i < GET_DESCRIPTOR_TRIES; (++i, msleep(100))) {
-		if (USE_NEW_SCHEME(retry_counter) &&
-			!(hcd->driver->flags & HCD_USB3) &&
-			!((hcd->driver->flags & HCD_RT_OLD_ENUM) &&
-				!hdev->parent)) {
-=======
 	for (retries = 0; retries < GET_DESCRIPTOR_TRIES; (++retries, msleep(100))) {
 		bool did_new_scheme = false;
 
 		if (use_new_scheme(udev, retry_counter)) {
->>>>>>> android-3.18
 			struct usb_device_descriptor *buf;
 			int r = 0;
 
@@ -5016,18 +4575,11 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
 			 *  - read ep0 maxpacket even for high and low speed,
 			 */
 			msleep(10);
-<<<<<<< HEAD
-			if (USE_NEW_SCHEME(retry_counter) &&
-				!(hcd->driver->flags & HCD_USB3) &&
-				!((hcd->driver->flags & HCD_RT_OLD_ENUM) &&
-					!hdev->parent))
-=======
 			/* use_new_scheme() checks the speed which may have
 			 * changed since the initial look so we cache the result
 			 * in did_new_scheme
 			 */
 			if (did_new_scheme)
->>>>>>> android-3.18
 				break;
 		}
 
@@ -5256,15 +4808,7 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
 	else
 		unit_load = 100;
 
-<<<<<<< HEAD
-	if (deny_new_usb) {
-		dev_err(hub_dev, "denied insert of USB device on port %d\n", port1);
-		goto done;
-	}
-
-=======
 	status = 0;
->>>>>>> android-3.18
 	for (i = 0; i < SET_CONFIG_TRIES; i++) {
 
 		/* reallocate for each attempt, since references
@@ -5383,26 +4927,7 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
 
 		status = hub_power_remaining(hub);
 		if (status)
-<<<<<<< HEAD
-			dev_dbg(hub_dev, "%dmA power budget left\n", status);
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-		if (HostComplianceTest == 1 && udev->devnum > 1) {
-			if (HostTest == 7) {	/*SINGLE_STEP_GET_DEV_DESC */
-				dev_info(hub_dev, "Testing "
-						"SINGLE_STEP_GET_DEV_DESC\n");
-				/* Test the Single Step Get Device Descriptor ,
-				 * take care it should not get status phase
-				 */
-				No_Data_Phase = 1;
-				No_Status_Phase = 1;
-
-				usb_get_device_descriptor(udev, 8);
-				No_Data_Phase = 0;
-				No_Status_Phase = 0;
-			}
-=======
 			dev_dbg(hub->intfdev, "%dmA power budget left\n", status);
->>>>>>> android-3.18
 
 			if (HostTest == 8) {
 				dev_info(hub_dev, "Testing "
@@ -5515,30 +5040,11 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
 static void port_event(struct usb_hub *hub, int port1)
 		__must_hold(&port_dev->status_lock)
 {
-<<<<<<< HEAD
-	struct list_head *tmp;
-	struct usb_device *hdev;
-	struct usb_interface *intf;
-	struct usb_hub *hub;
-	struct device *hub_dev;
-	u16 hubstatus;
-	u16 hubchange;
-	u16 portstatus;
-	u16 portchange;
-	int i, ret;
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-	int j;
-	int otgport = 0;
-	struct usb_port_status port_status;
-#endif
-	int connect_change, wakeup_change;
-=======
 	int connect_change, reset_device = 0;
 	struct usb_port *port_dev = hub->ports[port1 - 1];
 	struct usb_device *udev = port_dev->child;
 	struct usb_device *hdev = hub->hdev;
 	u16 portstatus, portchange;
->>>>>>> android-3.18
 
 	connect_change = test_bit(port1, hub->change_bits);
 	clear_bit(port1, hub->event_bits);
@@ -5547,44 +5053,10 @@ static void port_event(struct usb_hub *hub, int port1)
 	if (hub_port_status(hub, port1, &portstatus, &portchange) < 0)
 		return;
 
-<<<<<<< HEAD
-		tmp = hub_event_list.next;
-		list_del_init(tmp);
-
-		hub = list_entry(tmp, struct usb_hub, event_list);
-		kref_get(&hub->kref);
-		hdev = hub->hdev;
-		usb_get_dev(hdev);
-		spin_unlock_irq(&hub_event_lock);
-
-		hub_dev = hub->intfdev;
-		intf = to_usb_interface(hub_dev);
-		dev_dbg(hub_dev, "state %d ports %d chg %04x evt %04x\n",
-				hdev->state, hub->descriptor
-					? hub->descriptor->bNbrPorts
-					: 0,
-				/* NOTE: expects max 15 ports... */
-				(u16) hub->change_bits[0],
-				(u16) hub->event_bits[0]);
-
-		/* Lock the device, then check to see if we were
-		 * disconnected while waiting for the lock to succeed. */
-		usb_lock_device(hdev);
-		if (unlikely(hub->disconnected))
-			goto loop_disconnected;
-
-		/* If the hub has died, clean up after it */
-		if (hdev->state == USB_STATE_NOTATTACHED) {
-			hub->error = -ENODEV;
-			hub_quiesce(hub, HUB_DISCONNECT);
-			goto loop;
-		}
-=======
 	if (portchange & USB_PORT_STAT_C_CONNECTION) {
 		usb_clear_port_feature(hdev, port1, USB_PORT_FEAT_C_CONNECTION);
 		connect_change = 1;
 	}
->>>>>>> android-3.18
 
 	if (portchange & USB_PORT_STAT_C_ENABLE) {
 		if (!connect_change)
@@ -5642,185 +5114,8 @@ static void port_event(struct usb_hub *hub, int port1)
 	if (!pm_runtime_active(&port_dev->dev))
 		return;
 
-<<<<<<< HEAD
-		/* deal with port status changes */
-		for (i = 1; i <= hub->descriptor->bNbrPorts; i++) {
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-			struct usb_port_status portsts;
-
-			/*if we have something to do on
-			 * otg port
-			 * */
-			if ((hdev->otgstate & USB_OTG_SUSPEND) ||
-			    (hdev->otgstate & USB_OTG_ENUMERATE) ||
-			    (hdev->otgstate & USB_OTG_DISCONNECT) ||
-			    (hdev->otgstate & USB_OTG_RESUME)) {
-				otgport = 1;
-			}
-
-
-			if (hdev->otgstate & USB_OTG_RESUME) {
-				ret = clear_port_feature(hdev, i,
-							 USB_PORT_FEAT_SUSPEND);
-				if (ret < 0) {
-					dev_err(hub_dev, "usb otg port Resume"
-						" fails, %d\n", ret);
-				}
-				hdev->otgstate &= ~USB_OTG_RESUME;
-			}
-			if ((hdev->otgstate & USB_OTG_SUSPEND)
-			    && (hdev->children[0])) {
-				hdev->otgstate &= ~USB_OTG_SUSPEND;
-
-				ret = set_port_feature(hdev, 1,
-						       USB_PORT_FEAT_SUSPEND);
-				if (ret < 0) {
-					dev_err(hub_dev, "usb otg port suspend"
-						" fails, %d\n", ret);
-					break;
-				}
-				msleep(1);
-				ret = get_port_status(hdev, i, &portsts);
-				if (ret < 0) {
-					dev_err(hub_dev, "usb otg get port"
-						" status fails, %d\n", ret);
-					break;
-				}
-				portchange = le16_to_cpu(portsts.wPortChange);
-				if (portchange & USB_PORT_STAT_C_SUSPEND) {
-					clear_port_feature(hdev, i,
-						USB_PORT_FEAT_C_SUSPEND);
-				}
-				break;
-			}
-
-			if (hdev->otgstate & USB_OTG_REMOTEWAKEUP) {
-
-				for (j = 1; j <= hub->descriptor->bNbrPorts;
-				     j++) {
-					if (hdev->children[j - 1]) {
-						dev_dbg(hub_dev, "child"
-						     " found at port %d\n", j);
-						ret = usb_control_msg(hdev->
-						      children[j - 1],
-						      usb_sndctrlpipe(hdev->
-								children[j - 1],
-								0),
-						      USB_REQ_SET_FEATURE,
-						      USB_RECIP_DEVICE,
-						      USB_DEVICE_REMOTE_WAKEUP,
-						      0, NULL,
-						      0,
-						      USB_CTRL_SET_TIMEOUT);
-						if (ret < 0) {
-							dev_err(hub_dev, "Port"
-							  " %d doesn't support"
-							  "remote wakeup\n", j);
-						} else {
-							dev_dbg(hub_dev, "Port"
-							  " %d supports"
-							  "remote wakeup\n", j);
-						}
-						ret = set_port_feature(hdev, j,
-							USB_PORT_FEAT_SUSPEND);
-						if (ret < 0) {
-							dev_err(hub_dev, "Port"
-							  " %d NOT ABLE TO"
-							  " SUSPEND\n", j);
-						} else {
-							dev_dbg(hub_dev, "Port"
-							  " %d is ABLE TO"
-							  " SUSPEND\n", j);
-						}
-					}
-				}
-				ret = usb_control_msg(hdev,
-						      usb_sndctrlpipe(hdev, 0),
-						      USB_REQ_SET_FEATURE,
-						      USB_RECIP_DEVICE,
-						      USB_DEVICE_REMOTE_WAKEUP,
-						      0, NULL, 0,
-						      USB_CTRL_SET_TIMEOUT);
-				if (ret < 0) {
-					dev_err(hub_dev, "HUB doesn't support"
-							" REMOTE WAKEUP\n");
-				} else {
-					dev_dbg(hub_dev, "HUB supports"
-							" REMOTE WAKEUP\n");
-				}
-				ret = 0;
-				msleep(10);
-				if (hdev->parent == hdev->bus->root_hub) {
-					if (hdev->hcd_suspend &&
-					    hdev->hcd_priv) {
-						dev_dbg(hub_dev, "calling"
-						  " suspend after remote wakeup"
-						  " command is issued\n");
-						hdev->hcd_suspend(hdev->
-								   hcd_priv);
-					}
-					if (hdev->otg_notif)
-						hdev->otg_notif(hdev->otgpriv,
-						       PDC_POWERMANAGEMENT, 10);
-				}
-			}
-
-			if (hdev->otgstate & USB_OTG_WAKEUP_ALL) {
-				(void) usb_control_msg(hdev,
-						       usb_sndctrlpipe(hdev, 0),
-						       USB_REQ_CLEAR_FEATURE,
-						       USB_RECIP_DEVICE,
-						       USB_DEVICE_REMOTE_WAKEUP,
-						       0, NULL, 0,
-						       USB_CTRL_SET_TIMEOUT);
-				dev_dbg(hub_dev, "Hub CLEARED REMOTE WAKEUP\n");
-				for (j = 1; j <= hub->descriptor->bNbrPorts;
-				     j++) {
-					if (hdev->children[j - 1]) {
-						dev_dbg(hub_dev, "PORT %d"
-						   " SUSPEND IS CLEARD\n", j);
-						clear_port_feature(hdev, j,
-						   USB_PORT_FEAT_C_SUSPEND);
-						msleep(50);
-						(void) usb_control_msg(hdev->
-						       children[j - 1],
-						       usb_sndctrlpipe(
-							  hdev->children[j - 1],
-							  0),
-						       USB_REQ_CLEAR_FEATURE,
-						       USB_RECIP_DEVICE,
-						       USB_DEVICE_REMOTE_WAKEUP,
-						       0, NULL,
-						       0,
-						       USB_CTRL_SET_TIMEOUT);
-						dev_dbg(hub_dev, "PORT %d "
-							"REMOTE WAKEUP IS "
-							"CLEARD\n", j);
-						msleep(10);
-					}
-				}
-
-
-			}
-
-
-			/*
-			 * reset the state of otg device,
-			 * regardless of otg device
-			 */
-			hdev->otgstate = 0;
-#endif
-			if (test_bit(i, hub->busy_bits))
-				continue;
-			connect_change = test_bit(i, hub->change_bits);
-			wakeup_change = test_and_clear_bit(i, hub->wakeup_bits);
-			if (!test_and_clear_bit(i, hub->event_bits) &&
-					!connect_change && !wakeup_change)
-				continue;
-=======
 	if (hub_handle_remote_wakeup(hub, port1, portstatus, portchange))
 		connect_change = 1;
->>>>>>> android-3.18
 
 	/*
 	 * Warm reset a USB3 protocol port if it's in
@@ -5904,54 +5199,12 @@ static void hub_event(struct work_struct *work)
 		goto out_hdev_lock;
 	}
 
-<<<<<<< HEAD
-			/* Warm reset a USB3 protocol port if it's in
-			 * SS.Inactive state.
-			 */
-			if (hub_port_warm_reset_required(hub, portstatus)) {
-				int status;
-				struct usb_device *udev =
-					hub->hdev->children[i - 1];
-
-				dev_dbg(hub_dev, "warm reset port %d\n", i);
-				if (!udev ||
-				    !(portstatus & USB_PORT_STAT_CONNECTION) ||
-				    udev->state == USB_STATE_NOTATTACHED) {
-					status = hub_port_reset(hub, i,
-							NULL, HUB_BH_RESET_TIME,
-							true);
-					if (status < 0)
-						hub_port_disable(hub, i, 1);
-				} else {
-					usb_lock_device(udev);
-					status = usb_reset_device(udev);
-					usb_unlock_device(udev);
-					connect_change = 0;
-				}
-			}
-
-			if (connect_change) {
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-				if (hdev->parent == hdev->bus->root_hub)
-					if (hdev->otg_notif
-					    && (HostComplianceTest == 0))
-						hdev->otg_notif(hdev->otgpriv,
-								PDC_HOST_NOTIFY,
-								5);
-				portno = i;
-#endif
-				hub_port_connect_change(hub, i,
-						portstatus, portchange);
-				}
-		} /* end for i */
-=======
 	/* If this is an inactive hub, do nothing */
 	if (hub->quiescing)
 		goto out_autopm;
 
 	if (hub->error) {
 		dev_dbg(hub_dev, "resetting for error %d\n", hub->error);
->>>>>>> android-3.18
 
 		ret = usb_reset_device(hdev);
 		if (ret) {
@@ -5969,112 +5222,9 @@ static void hub_event(struct work_struct *work)
 							PDC_HOST_NOTIFY, 0);
 		}
 
-<<<<<<< HEAD
-		if (HostComplianceTest && hdev->devnum > 1) {
-			/* TEST_SE0_NAK */
-			if (HostTest == 1) {
-				dev_info(hub_dev, "Testing for TEST_SE0_NAK\n");
-				ret = clear_port_feature(hdev, portno,
-						 USB_PORT_FEAT_C_CONNECTION);
-				ret = set_port_feature(hdev, portno,
-						       USB_PORT_FEAT_SUSPEND);
-				ret = set_port_feature(hdev, portno | 0x300,
-						       USB_PORT_FEAT_TEST);
-				ret = get_port_status(hdev, portno,
-						      &port_status);
-			}
-			/*TEST_J*/
-			if (HostTest == 2) {
-				dev_info(hub_dev, "Testing TEST_J\n");
-				ret = clear_port_feature(hdev, portno,
-						USB_PORT_FEAT_C_CONNECTION);
-				ret = set_port_feature(hdev, portno,
-						USB_PORT_FEAT_SUSPEND);
-				ret = set_port_feature(hdev, portno | 0x100,
-						       USB_PORT_FEAT_TEST);
-				ret = get_port_status(hdev, portno,
-						      &port_status);
-			}
-			if (HostTest == 3) {
-				dev_info(hub_dev, "Testing TEST_K\n");
-				ret = clear_port_feature(hdev, portno,
-						USB_PORT_FEAT_C_CONNECTION);
-				ret = set_port_feature(hdev, portno,
-						       USB_PORT_FEAT_SUSPEND);
-				ret = set_port_feature(hdev, portno | 0x200,
-						       USB_PORT_FEAT_TEST);
-				ret = get_port_status(hdev, portno,
-						      &port_status);
-			}
-			if (HostTest == 4) {
-				dev_info(hub_dev, "Testing TEST_PACKET at Port"
-						  " %d\n", portno);
-				ret = clear_port_feature(hdev, portno,
-						USB_PORT_FEAT_C_CONNECTION);
-				if (ret < 0)
-					dev_err(hub_dev, "Clear port feature"
-						" C_CONNECTION failed\n");
-
-				ret = set_port_feature(hdev, portno,
-						       USB_PORT_FEAT_SUSPEND);
-				if (ret < 0)
-					dev_err(hub_dev, "Clear port feature"
-						" SUSPEND failed\n");
-
-				ret = set_port_feature(hdev, portno | 0x400,
-						       USB_PORT_FEAT_TEST);
-				if (ret < 0)
-					dev_err(hub_dev, "Clear port feature"
-						" TEST failed\n");
-
-				ret = get_port_status(hdev, portno,
-						      &port_status);
-				if (ret < 0)
-					dev_err(hub_dev, "Get port status"
-						" failed\n");
-			}
-			if (HostTest == 5) {
-				dev_info(hub_dev, "Testing TEST_FORCE_ENBLE\n");
-				ret = clear_port_feature(hdev, portno,
-						 USB_PORT_FEAT_C_CONNECTION);
-				ret = set_port_feature(hdev, portno,
-						 USB_PORT_FEAT_SUSPEND);
-				ret = set_port_feature(hdev, portno | 0x500,
-						       USB_PORT_FEAT_TEST);
-				ret = get_port_status(hdev, portno,
-						      &port_status);
-			}
-			if (HostTest == 6) {
-				dev_info(hub_dev, "Testing "
-					 "HS_HOST_PORT_SUSPEND_RESUME\n");
-				ret = clear_port_feature(hdev, portno,
-						 USB_PORT_FEAT_C_CONNECTION);
-				ret = set_port_feature(hdev, portno,
-						     USB_PORT_FEAT_SUSPEND);
-				msleep(3000);
-				ret = clear_port_feature(hdev, portno,
-						 USB_PORT_FEAT_SUSPEND);
-				HostTest = 0;
-			}
-		}
-#endif
- loop_autopm:
-		/* Balance the usb_autopm_get_interface() above */
-		usb_autopm_put_interface_no_suspend(intf);
- loop:
-		/* Balance the usb_autopm_get_interface_no_resume() in
-		 * kick_khubd() and allow autosuspend.
-		 */
-		usb_autopm_put_interface(intf);
- loop_disconnected:
-		usb_unlock_device(hdev);
-		usb_put_dev(hdev);
-		kref_put(&hub->kref, hub_release);
-=======
 		hub->nerrors = 0;
 		hub->error = 0;
 	}
->>>>>>> android-3.18
 
 	/* deal with port status changes */
 	for (i = 1; i <= hdev->maxchild; i++) {
@@ -6376,16 +5526,6 @@ static int usb_reset_and_verify_device(struct usb_device *udev)
 	bos = udev->bos;
 	udev->bos = NULL;
 
-<<<<<<< HEAD
-	/* Disable USB2 hardware LPM.
-	 * It will be re-enabled by the enumeration process.
-	 */
-	if (udev->usb2_hw_lpm_enabled == 1)
-		usb_set_usb2_hardware_lpm(udev, 0);
-
-	set_bit(port1, parent_hub->busy_bits);
-=======
->>>>>>> android-3.18
 	for (i = 0; i < SET_CONFIG_TRIES; ++i) {
 
 		/* ep0 maxpacket size may change; let the HCD know about it.
@@ -6588,14 +5728,10 @@ int usb_reset_device(struct usb_device *udev)
 					cintf->needs_binding = 1;
 			}
 		}
-<<<<<<< HEAD
-		usb_unbind_and_rebind_marked_interfaces(udev);
-=======
 
 		/* If the reset failed, hub_wq will unbind drivers later */
 		if (ret == 0)
 			usb_unbind_and_rebind_marked_interfaces(udev);
->>>>>>> android-3.18
 	}
 
 	usb_autosuspend_device(udev);

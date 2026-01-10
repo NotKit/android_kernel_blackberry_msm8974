@@ -96,16 +96,10 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
 	if (len > task_size)
 		return -ENOMEM;
 
-<<<<<<< HEAD
-	offset = (offset + (pgoff << PAGE_SHIFT)) & 0x3FF000;
-
-	addr = DCACHE_ALIGN(addr - offset) + offset;
-=======
 	do_color_align = 0;
 	if (filp || (flags & MAP_SHARED))
 		do_color_align = 1;
 	last_mmap = GET_LAST_MMAP(filp);
->>>>>>> android-3.18
 
 	if (flags & MAP_FIXED) {
 		if ((flags & MAP_SHARED) && last_mmap &&

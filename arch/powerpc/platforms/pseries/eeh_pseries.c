@@ -88,31 +88,6 @@ static int pseries_eeh_init(void)
 	 * and its variant since the old firmware probably support address
 	 * of domain/bus/slot/function for EEH RTAS operations.
 	 */
-<<<<<<< HEAD
-	if (ibm_set_eeh_option == RTAS_UNKNOWN_SERVICE) {
-		pr_warning("%s: RTAS service <ibm,set-eeh-option> invalid\n",
-			__func__);
-		return -EINVAL;
-	} else if (ibm_set_slot_reset == RTAS_UNKNOWN_SERVICE) {
-		pr_warning("%s: RTAS service <ibm, set-slot-reset> invalid\n",
-			__func__);
-		return -EINVAL;
-	} else if (ibm_read_slot_reset_state2 == RTAS_UNKNOWN_SERVICE &&
-		   ibm_read_slot_reset_state == RTAS_UNKNOWN_SERVICE) {
-		pr_warning("%s: RTAS service <ibm,read-slot-reset-state2> and "
-			"<ibm,read-slot-reset-state> invalid\n",
-			__func__);
-		return -EINVAL;
-	} else if (ibm_slot_error_detail == RTAS_UNKNOWN_SERVICE) {
-		pr_warning("%s: RTAS service <ibm,slot-error-detail> invalid\n",
-			__func__);
-		return -EINVAL;
-	} else if (ibm_configure_pe == RTAS_UNKNOWN_SERVICE &&
-		   ibm_configure_bridge == RTAS_UNKNOWN_SERVICE) {
-		pr_warning("%s: RTAS service <ibm,configure-pe> and "
-			"<ibm,configure-bridge> invalid\n",
-			__func__);
-=======
 	if (ibm_set_eeh_option == RTAS_UNKNOWN_SERVICE		||
 	    ibm_set_slot_reset == RTAS_UNKNOWN_SERVICE		||
 	    (ibm_read_slot_reset_state2 == RTAS_UNKNOWN_SERVICE &&
@@ -121,7 +96,6 @@ static int pseries_eeh_init(void)
 	    (ibm_configure_pe == RTAS_UNKNOWN_SERVICE		&&
 	     ibm_configure_bridge == RTAS_UNKNOWN_SERVICE)) {
 		pr_info("EEH functionality not supported\n");
->>>>>>> android-3.18
 		return -EINVAL;
 	}
 

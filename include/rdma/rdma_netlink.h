@@ -56,8 +56,6 @@ void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
 int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
 		  int len, void *data, int type);
 
-<<<<<<< HEAD
-=======
 /**
  * Send the supplied skb to a specific userspace PID.
  * @skb: The netlink skb
@@ -79,5 +77,4 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
 int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
 			unsigned int group, gfp_t flags);
 
->>>>>>> android-3.18
 #endif /* _RDMA_NETLINK_H */

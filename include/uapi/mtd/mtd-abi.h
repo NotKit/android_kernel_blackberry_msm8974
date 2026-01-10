@@ -94,17 +94,10 @@ struct mtd_write_req {
 #define MTD_RAM			1
 #define MTD_ROM			2
 #define MTD_NORFLASH		3
-<<<<<<< HEAD
-#define MTD_NANDFLASH		4
-#define MTD_DATAFLASH		6
-#define MTD_UBIVOLUME		7
-#define MTD_MLCNANDFLASH	8
-=======
 #define MTD_NANDFLASH		4	/* SLC NAND */
 #define MTD_DATAFLASH		6
 #define MTD_UBIVOLUME		7
 #define MTD_MLCNANDFLASH	8	/* MLC NAND (including TLC) */
->>>>>>> android-3.18
 
 #define MTD_WRITEABLE		0x400	/* Device is writeable */
 #define MTD_BIT_WRITEABLE	0x800	/* Single bits can be flipped */
@@ -116,10 +109,7 @@ struct mtd_write_req {
 #define MTD_CAP_RAM		(MTD_WRITEABLE | MTD_BIT_WRITEABLE | MTD_NO_ERASE)
 #define MTD_CAP_NORFLASH	(MTD_WRITEABLE | MTD_BIT_WRITEABLE)
 #define MTD_CAP_NANDFLASH	(MTD_WRITEABLE)
-<<<<<<< HEAD
-=======
 #define MTD_CAP_NVRAM		(MTD_WRITEABLE | MTD_BIT_WRITEABLE | MTD_NO_ERASE)
->>>>>>> android-3.18
 
 /* Obsolete ECC byte placement modes (used with obsolete MEMGETOOBSEL) */
 #define MTD_NANDECC_OFF		0	// Switch off ECC (Not recommended)
@@ -242,11 +232,7 @@ struct nand_oobfree {
  */
 struct nand_ecclayout_user {
 	__u32 eccbytes;
-<<<<<<< HEAD
-	__u32 eccpos[256];
-=======
 	__u32 eccpos[MTD_MAX_ECCPOS_ENTRIES];
->>>>>>> android-3.18
 	__u32 oobavail;
 	struct nand_oobfree oobfree[MTD_MAX_OOBFREE_ENTRIES];
 };
@@ -290,12 +276,9 @@ enum mtd_file_modes {
 	MTD_FILE_MODE_RAW,
 };
 
-<<<<<<< HEAD
-=======
 static inline int mtd_type_is_nand_user(const struct mtd_info_user *mtd)
 {
 	return mtd->type == MTD_NANDFLASH || mtd->type == MTD_MLCNANDFLASH;
 }
 
->>>>>>> android-3.18
 #endif /* __MTD_ABI_H__ */

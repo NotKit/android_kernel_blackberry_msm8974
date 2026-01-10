@@ -59,10 +59,4 @@ obj-$(CONFIG_USB_SERIAL_VISOR)			+= visor.o
 obj-$(CONFIG_USB_SERIAL_WISHBONE)		+= wishbone-serial.o
 obj-$(CONFIG_USB_SERIAL_WHITEHEAT)		+= whiteheat.o
 obj-$(CONFIG_USB_SERIAL_XIRCOM)			+= keyspan_pda.o
-<<<<<<< HEAD
-obj-$(CONFIG_USB_SERIAL_VIVOPAY_SERIAL)		+= vivopay-serial.o
-obj-$(CONFIG_USB_SERIAL_ZIO)			+= zio.o
-obj-$(CONFIG_USB_SERIAL_CSVT)			+= csvt.o
-=======
 obj-$(CONFIG_USB_SERIAL_XSENS_MT)		+= xsens_mt.o
->>>>>>> android-3.18

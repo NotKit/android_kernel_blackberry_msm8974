@@ -110,20 +110,7 @@ void coprocessor_flush_all(struct thread_info *ti)
  */
 void arch_cpu_idle(void)
 {
-<<<<<<< HEAD
-  	local_irq_enable();
-
-	/* endless idle loop with no priority at all */
-	while (1) {
-		rcu_idle_enter();
-		while (!need_resched())
-			platform_idle();
-		rcu_idle_exit();
-		schedule_preempt_disabled();
-	}
-=======
 	platform_idle();
->>>>>>> android-3.18
 }
 
 /*
@@ -370,42 +357,3 @@ int dump_fpu(void)
 {
 	return 0;
 }
-<<<<<<< HEAD
-
-asmlinkage
-long xtensa_clone(unsigned long clone_flags, unsigned long newsp,
-                  void __user *parent_tid, void *child_tls,
-                  void __user *child_tid, long a5,
-                  struct pt_regs *regs)
-{
-        if (!newsp)
-                newsp = regs->areg[1];
-        return do_fork(clone_flags, newsp, regs, 0, parent_tid, child_tid);
-}
-
-/*
- * xtensa_execve() executes a new program.
- */
-
-asmlinkage
-long xtensa_execve(const char __user *name,
-		   const char __user *const __user *argv,
-                   const char __user *const __user *envp,
-                   long a3, long a4, long a5,
-                   struct pt_regs *regs)
-{
-	long error;
-	struct filename *filename;
-
-	filename = getname(name);
-	error = PTR_ERR(filename);
-	if (IS_ERR(filename))
-		goto out;
-	error = do_execve(filename->name, argv, envp, regs);
-	putname(filename);
-out:
-	return error;
-}
-
-=======
->>>>>>> android-3.18

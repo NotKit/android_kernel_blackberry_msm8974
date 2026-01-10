@@ -128,21 +128,10 @@ struct snd_card {
 								state */
 	spinlock_t files_lock;		/* lock the files for this card */
 	int shutdown;			/* this card is going down */
-<<<<<<< HEAD
-	int free_on_last_close;		/* free in context of file_release */
-	wait_queue_head_t shutdown_sleep;
-	atomic_t refcount;		/* refcount for disconnection */
-	struct device *dev;		/* device assigned to this card */
-	struct device *card_dev;	/* cardX object for sysfs */
-	int offline;			/* if this sound card is offline */
-	unsigned long offline_change;
-	wait_queue_head_t offline_poll_wait;
-=======
 	struct completion *release_completion;
 	struct device *dev;		/* device assigned to this card */
 	struct device card_dev;		/* cardX object for sysfs */
 	bool registered;		/* card_dev is registered? */
->>>>>>> android-3.18
 
 #ifdef CONFIG_PM
 	unsigned int power_state;	/* power state */
@@ -305,13 +294,7 @@ int snd_card_info_done(void);
 int snd_component_add(struct snd_card *card, const char *component);
 int snd_card_file_add(struct snd_card *card, struct file *file);
 int snd_card_file_remove(struct snd_card *card, struct file *file);
-<<<<<<< HEAD
-void snd_card_change_online_state(struct snd_card *card, int online);
-bool snd_card_is_online_state(struct snd_card *card);
-void snd_card_unref(struct snd_card *card);
-=======
 #define snd_card_unref(card)	put_device(&(card)->card_dev)
->>>>>>> android-3.18
 
 #define snd_card_set_dev(card, devptr) ((card)->dev = (devptr))
 

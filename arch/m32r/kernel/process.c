@@ -47,54 +47,6 @@ unsigned long thread_saved_pc(struct task_struct *tsk)
 void (*pm_power_off)(void) = NULL;
 EXPORT_SYMBOL(pm_power_off);
 
-<<<<<<< HEAD
-/*
- * We use this is we don't have any better
- * idle routine..
- */
-static void default_idle(void)
-{
-	/* M32R_FIXME: Please use "cpu_sleep" mode.  */
-	cpu_relax();
-}
-
-/*
- * On SMP it's slightly faster (but much more power-consuming!)
- * to poll the ->work.need_resched flag instead of waiting for the
- * cross-CPU IPI to arrive. Use this option with caution.
- */
-static void poll_idle (void)
-{
-	/* M32R_FIXME */
-	cpu_relax();
-}
-
-/*
- * The idle thread. There's no useful work to be
- * done, so just try to conserve power and have a
- * low exit latency (ie sit in a loop waiting for
- * somebody to say that they'd like to reschedule)
- */
-void cpu_idle (void)
-{
-	/* endless idle loop with no priority at all */
-	while (1) {
-		rcu_idle_enter();
-		while (!need_resched()) {
-			void (*idle)(void) = pm_idle;
-
-			if (!idle)
-				idle = default_idle;
-
-			idle();
-		}
-		rcu_idle_exit();
-		schedule_preempt_disabled();
-	}
-}
-
-=======
->>>>>>> android-3.18
 void machine_restart(char *__unused)
 {
 #if defined(CONFIG_PLAT_MAPPI3)
@@ -202,74 +154,6 @@ int copy_thread(unsigned long clone_flags, unsigned long spu,
 	return 0;
 }
 
-<<<<<<< HEAD
-asmlinkage int sys_fork(unsigned long r0, unsigned long r1, unsigned long r2,
-	unsigned long r3, unsigned long r4, unsigned long r5, unsigned long r6,
-	struct pt_regs regs)
-{
-#ifdef CONFIG_MMU
-	return do_fork(SIGCHLD, regs.spu, &regs, 0, NULL, NULL);
-#else
-	return -EINVAL;
-#endif /* CONFIG_MMU */
-}
-
-asmlinkage int sys_clone(unsigned long clone_flags, unsigned long newsp,
-			 unsigned long parent_tidptr,
-			 unsigned long child_tidptr,
-			 unsigned long r4, unsigned long r5, unsigned long r6,
-			 struct pt_regs regs)
-{
-	if (!newsp)
-		newsp = regs.spu;
-
-	return do_fork(clone_flags, newsp, &regs, 0,
-		       (int __user *)parent_tidptr, (int __user *)child_tidptr);
-}
-
-/*
- * This is trivial, and on the face of it looks like it
- * could equally well be done in user mode.
- *
- * Not so, for quite unobvious reasons - register pressure.
- * In user mode vfork() cannot have a stack frame, and if
- * done by calling the "clone()" system call directly, you
- * do not have enough call-clobbered registers to hold all
- * the information you need.
- */
-asmlinkage int sys_vfork(unsigned long r0, unsigned long r1, unsigned long r2,
-	unsigned long r3, unsigned long r4, unsigned long r5, unsigned long r6,
-	struct pt_regs regs)
-{
-	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs.spu, &regs, 0,
-			NULL, NULL);
-}
-
-/*
- * sys_execve() executes a new program.
- */
-asmlinkage int sys_execve(const char __user *ufilename,
-			  const char __user *const __user *uargv,
-			  const char __user *const __user *uenvp,
-			  unsigned long r3, unsigned long r4, unsigned long r5,
-			  unsigned long r6, struct pt_regs regs)
-{
-	int error;
-	struct filename *filename;
-
-	filename = getname(ufilename);
-	error = PTR_ERR(filename);
-	if (IS_ERR(filename))
-		goto out;
-
-	error = do_execve(filename->name, uargv, uenvp, &regs);
-	putname(filename);
-out:
-	return error;
-}
-
-=======
->>>>>>> android-3.18
 /*
  * These bracket the sleeping functions..
  */

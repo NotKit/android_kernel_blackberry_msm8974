@@ -214,10 +214,7 @@ static int xen_hvm_console_init(void)
 	} else if (info->intf != NULL) {
 		/* already configured */
 		return 0;
-<<<<<<< HEAD
-=======
 	}
->>>>>>> android-3.18
 	/*
 	 * If the toolstack (or the hypervisor) hasn't set these values, the
 	 * default value is 0. Even though mfn = 0 and evtchn = 0 are
@@ -233,11 +230,7 @@ static int xen_hvm_console_init(void)
 	if (r < 0 || v == 0)
 		goto err;
 	mfn = v;
-<<<<<<< HEAD
-	info->intf = ioremap(mfn << PAGE_SHIFT, PAGE_SIZE);
-=======
 	info->intf = xen_remap(mfn << PAGE_SHIFT, PAGE_SIZE);
->>>>>>> android-3.18
 	if (info->intf == NULL)
 		goto err;
 	info->vtermno = HVC_COOKIE;

@@ -104,9 +104,6 @@ err_disable_clks:
 	while (--clk >= 0)
 		clk_disable_unprepare(priv->clks[clk]);
 
-<<<<<<< HEAD
-	.clear_tt_buffer_complete = ehci_clear_tt_buffer_complete,
-=======
 	return ret;
 }
 
@@ -137,7 +134,6 @@ static struct usb_ehci_pdata ehci_platform_defaults = {
 	.power_on =		ehci_platform_power_on,
 	.power_suspend =	ehci_platform_power_off,
 	.power_off =		ehci_platform_power_off,
->>>>>>> android-3.18
 };
 
 static int ehci_platform_probe(struct platform_device *dev)

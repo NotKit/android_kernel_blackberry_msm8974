@@ -399,11 +399,7 @@ static void btuart_change_speed(struct btuart_info *info,
 
 static int btuart_hci_flush(struct hci_dev *hdev)
 {
-<<<<<<< HEAD
-	btuart_info_t *info = (btuart_info_t *)(hdev->driver_data);
-=======
 	struct btuart_info *info = hci_get_drvdata(hdev);
->>>>>>> android-3.18
 
 	/* Drop TX queue */
 	skb_queue_purge(&(info->txq));
@@ -433,19 +429,7 @@ static int btuart_hci_close(struct hci_dev *hdev)
 
 static int btuart_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
-<<<<<<< HEAD
-	btuart_info_t *info;
-	struct hci_dev *hdev = (struct hci_dev *)(skb->dev);
-
-	if (!hdev) {
-		BT_ERR("Frame for unknown HCI device (hdev=NULL)");
-		return -ENODEV;
-	}
-
-	info = (btuart_info_t *)(hdev->driver_data);
-=======
 	struct btuart_info *info = hci_get_drvdata(hdev);
->>>>>>> android-3.18
 
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
@@ -469,20 +453,6 @@ static int btuart_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 }
 
 
-<<<<<<< HEAD
-static void btuart_hci_destruct(struct hci_dev *hdev)
-{
-}
-
-
-static int btuart_hci_ioctl(struct hci_dev *hdev, unsigned int cmd, unsigned long arg)
-{
-	return -ENOIOCTLCMD;
-}
-
-
-=======
->>>>>>> android-3.18
 
 /* ======================== Card services HCI interaction ======================== */
 
@@ -514,19 +484,10 @@ static int btuart_open(struct btuart_info *info)
 	hdev->driver_data = info;
 	SET_HCIDEV_DEV(hdev, &info->p_dev->dev);
 
-<<<<<<< HEAD
-	hdev->open     = btuart_hci_open;
-	hdev->close    = btuart_hci_close;
-	hdev->flush    = btuart_hci_flush;
-	hdev->send     = btuart_hci_send_frame;
-	hdev->destruct = btuart_hci_destruct;
-	hdev->ioctl    = btuart_hci_ioctl;
-=======
 	hdev->open  = btuart_hci_open;
 	hdev->close = btuart_hci_close;
 	hdev->flush = btuart_hci_flush;
 	hdev->send  = btuart_hci_send_frame;
->>>>>>> android-3.18
 
 	hdev->owner = THIS_MODULE;
 

@@ -53,10 +53,7 @@ enum nf_inet_hooks {
 
 enum {
 	NFPROTO_UNSPEC =  0,
-<<<<<<< HEAD
-=======
 	NFPROTO_INET   =  1,
->>>>>>> android-3.18
 	NFPROTO_IPV4   =  2,
 	NFPROTO_ARP    =  3,
 	NFPROTO_BRIDGE =  7,

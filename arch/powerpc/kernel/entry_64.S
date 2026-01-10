@@ -544,8 +544,6 @@ END_MMU_FTR_SECTION_IFSET(MMU_FTR_1T_SEGMENT)
 	mr	r1,r8		/* start using new stack pointer */
 	std	r7,PACAKSAVE(r13)
 
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_PPC_BOOK3S_64
 BEGIN_FTR_SECTION
 	/* Event based branch registers */
@@ -561,7 +559,6 @@ BEGIN_FTR_SECTION
 END_FTR_SECTION_IFSET(CPU_FTR_ARCH_207S)
 #endif
 
->>>>>>> android-3.18
 #ifdef CONFIG_ALTIVEC
 BEGIN_FTR_SECTION
 	ld	r0,THREAD_VRSAVE(r4)
@@ -571,14 +568,6 @@ END_FTR_SECTION_IFSET(CPU_FTR_ALTIVEC)
 #ifdef CONFIG_PPC64
 BEGIN_FTR_SECTION
 	lwz	r6,THREAD_DSCR_INHERIT(r4)
-<<<<<<< HEAD
-	ld	r7,DSCR_DEFAULT@toc(2)
-	ld	r0,THREAD_DSCR(r4)
-	cmpwi	r6,0
-	bne	1f
-	ld	r0,0(r7)
-1:	cmpd	r0,r25
-=======
 	ld	r0,THREAD_DSCR(r4)
 	cmpwi	r6,0
 	bne	1f
@@ -590,7 +579,6 @@ BEGIN_FTR_SECTION_NESTED(70)
 	mtspr	SPRN_FSCR, r8
 END_FTR_SECTION_NESTED(CPU_FTR_ARCH_207S, CPU_FTR_ARCH_207S, 70)
 	cmpd	r0,r25
->>>>>>> android-3.18
 	beq	2f
 	mtspr	SPRN_DSCR,r0
 2:
@@ -968,59 +956,6 @@ restore_check_irq_replay:
 #endif /* CONFIG_PPC_DOORBELL */
 1:	b	ret_from_except /* What else to do here ? */
  
-<<<<<<< HEAD
-
-
-3:
-do_work:
-#ifdef CONFIG_PREEMPT
-	andi.	r0,r3,MSR_PR	/* Returning to user mode? */
-	bne	user_work
-	/* Check that preempt_count() == 0 and interrupts are enabled */
-	lwz	r8,TI_PREEMPT(r9)
-	cmpwi	cr1,r8,0
-	ld	r0,SOFTE(r1)
-	cmpdi	r0,0
-	crandc	eq,cr1*4+eq,eq
-	bne	restore
-
-	/*
-	 * Here we are preempting the current task. We want to make
-	 * sure we are soft-disabled first
-	 */
-	SOFT_DISABLE_INTS(r3,r4)
-1:	bl	.preempt_schedule_irq
-
-	/* Re-test flags and eventually loop */
-	clrrdi	r9,r1,THREAD_SHIFT
-	ld	r4,TI_FLAGS(r9)
-	andi.	r0,r4,_TIF_NEED_RESCHED
-	bne	1b
-	b	restore
-
-user_work:
-#endif /* CONFIG_PREEMPT */
-
-	andi.	r0,r4,_TIF_NEED_RESCHED
-	beq	1f
-	bl	.restore_interrupts
-	bl	.schedule
-	b	.ret_from_except_lite
-
-1:	bl	.save_nvgprs
-	/*
-	 * Use a non volatile GPR to save and restore our thread_info flags
-	 * across the call to restore_interrupts.
-	 */
-	mr	r30,r4
-	bl	.restore_interrupts
-	mr	r4,r30
-	addi	r3,r1,STACK_FRAME_OVERHEAD
-	bl	.do_notify_resume
-	b	.ret_from_except
-
-=======
->>>>>>> android-3.18
 unrecov_restore:
 	addi	r3,r1,STACK_FRAME_OVERHEAD
 	bl	unrecoverable_exception

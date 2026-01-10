@@ -98,18 +98,6 @@ struct attribute_group {
 
 #define __ATTR_NULL { .attr = { .name = NULL } }
 
-<<<<<<< HEAD
-#define ATTRIBUTE_GROUPS(name)					\
-static const struct attribute_group name##_group = {		\
-	.attrs = name##_attrs,					\
-};								\
-static const struct attribute_group *name##_groups[] = {	\
-	&name##_group,						\
-	NULL,							\
-}
-
-#define attr_name(_attr) (_attr).attr.name
-=======
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 #define __ATTR_IGNORE_LOCKDEP(_name, _mode, _show, _store) {	\
 	.attr = {.name = __stringify(_name), .mode = _mode,	\
@@ -132,7 +120,6 @@ static const struct attribute_group _name##_group = {		\
 	.attrs = _name##_attrs,					\
 };								\
 __ATTRIBUTE_GROUPS(_name)
->>>>>>> android-3.18
 
 struct file;
 struct vm_area_struct;

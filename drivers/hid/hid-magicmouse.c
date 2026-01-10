@@ -360,15 +360,9 @@ static int magicmouse_raw_event(struct hid_device *hdev,
 	return 1;
 }
 
-<<<<<<< HEAD
-static int magicmouse_setup_input(struct hid_device *hdev, struct hid_input *hi)
-{
-	struct input_dev *input = hi->input;
-=======
 static int magicmouse_setup_input(struct input_dev *input, struct hid_device *hdev)
 {
 	int error;
->>>>>>> android-3.18
 
 	__set_bit(EV_KEY, input->evbit);
 
@@ -457,15 +451,12 @@ static int magicmouse_setup_input(struct input_dev *input, struct hid_device *hd
 		__set_bit(MSC_RAW, input->mscbit);
 	}
 
-<<<<<<< HEAD
-=======
 	/*
 	 * hid-input may mark device as using autorepeat, but neither
 	 * the trackpad, nor the mouse actually want it.
 	 */
 	__clear_bit(EV_REP, input->evbit);
 
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -536,15 +527,12 @@ static int magicmouse_probe(struct hid_device *hdev,
 		return ret;
 	}
 
-<<<<<<< HEAD
-=======
 	if (!msc->input) {
 		hid_err(hdev, "magicmouse input not registered\n");
 		ret = -ENOMEM;
 		goto err_stop_hw;
 	}
 
->>>>>>> android-3.18
 	if (id->product == USB_DEVICE_ID_APPLE_MAGICMOUSE)
 		report = hid_register_report(hdev, HID_INPUT_REPORT,
 			MOUSE_REPORT_ID);
@@ -598,11 +586,7 @@ static struct hid_driver magicmouse_driver = {
 	.probe = magicmouse_probe,
 	.raw_event = magicmouse_raw_event,
 	.input_mapping = magicmouse_input_mapping,
-<<<<<<< HEAD
-	.input_register = magicmouse_setup_input,
-=======
 	.input_configured = magicmouse_input_configured,
->>>>>>> android-3.18
 };
 module_hid_driver(magicmouse_driver);
 

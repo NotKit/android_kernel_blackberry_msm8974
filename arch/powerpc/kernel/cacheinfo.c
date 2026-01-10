@@ -351,13 +351,9 @@ static int cache_is_unified_d(const struct device_node *np)
 		CACHE_TYPE_UNIFIED_D : CACHE_TYPE_UNIFIED;
 }
 
-<<<<<<< HEAD
-static struct cache *__cpuinit cache_do_one_devnode_unified(struct device_node *node, int level)
-=======
 /*
  */
 static struct cache *cache_do_one_devnode_unified(struct device_node *node, int level)
->>>>>>> android-3.18
 {
 	pr_debug("creating L%d ucache for %s\n", level, node->full_name);
 

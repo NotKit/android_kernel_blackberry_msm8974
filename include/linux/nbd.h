@@ -18,13 +18,6 @@
 #include <linux/wait.h>
 #include <linux/mutex.h>
 #include <uapi/linux/nbd.h>
-<<<<<<< HEAD
-
-/* values for flags field */
-#define NBD_READ_ONLY 0x0001
-#define NBD_WRITE_NOCHK 0x0002
-=======
->>>>>>> android-3.18
 
 struct request;
 

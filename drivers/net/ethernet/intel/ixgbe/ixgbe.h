@@ -221,8 +221,6 @@ enum ixgbe_ring_state_t {
 	__IXGBE_RX_RSC_ENABLED,
 	__IXGBE_RX_CSUM_UDP_ZERO_ERR,
 	__IXGBE_RX_FCOE,
-<<<<<<< HEAD
-=======
 };
 
 struct ixgbe_fwd_adapter {
@@ -232,7 +230,6 @@ struct ixgbe_fwd_adapter {
 	unsigned int tx_base_queue;
 	unsigned int rx_base_queue;
 	int pool;
->>>>>>> android-3.18
 };
 
 #define check_for_tx_hang(ring) \
@@ -333,16 +330,12 @@ struct ixgbe_ring_feature {
  */
 static inline unsigned int ixgbe_rx_bufsz(struct ixgbe_ring *ring)
 {
-<<<<<<< HEAD
-	return test_bit(__IXGBE_RX_FCOE, &ring->state) ? 1 : 0;
-=======
 #ifdef IXGBE_FCOE
 	if (test_bit(__IXGBE_RX_FCOE, &ring->state))
 		return (PAGE_SIZE < 8192) ? IXGBE_RXBUFFER_4K :
 					    IXGBE_RXBUFFER_3K;
 #endif
 	return IXGBE_RXBUFFER_2K;
->>>>>>> android-3.18
 }
 
 static inline unsigned int ixgbe_rx_pg_order(struct ixgbe_ring *ring)

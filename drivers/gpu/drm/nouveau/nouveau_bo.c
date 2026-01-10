@@ -1260,13 +1260,8 @@ nouveau_ttm_io_mem_reserve(struct ttm_bo_device *bdev, struct ttm_mem_reg *mem)
 #if __OS_HAS_AGP
 		if (drm->agp.stat == ENABLED) {
 			mem->bus.offset = mem->start << PAGE_SHIFT;
-<<<<<<< HEAD
-			mem->bus.base = dev_priv->gart_info.aper_base;
-			mem->bus.is_iomem = !dev->agp->cant_use_aperture;
-=======
 			mem->bus.base = drm->agp.base;
 			mem->bus.is_iomem = !drm->dev->agp->cant_use_aperture;
->>>>>>> android-3.18
 		}
 #endif
 		if (drm->device.info.family < NV_DEVICE_INFO_V0_TESLA || !node->memtype)
@@ -1344,31 +1339,10 @@ nouveau_ttm_fault_reserve_notify(struct ttm_buffer_object *bo)
 		nvbo->placements[i].lpfn = mappable;
 	}
 
-<<<<<<< HEAD
-	nvbo->placement.fpfn = 0;
-	nvbo->placement.lpfn = dev_priv->fb_mappable_pages;
-	nouveau_bo_placement_set(nvbo, TTM_PL_FLAG_VRAM, 0);
-	return nouveau_bo_validate(nvbo, false, true, false);
-}
-
-void
-nouveau_bo_fence(struct nouveau_bo *nvbo, struct nouveau_fence *fence)
-{
-	struct nouveau_fence *old_fence;
-
-	if (likely(fence))
-		nouveau_fence_ref(fence);
-
-	spin_lock(&nvbo->bo.bdev->fence_lock);
-	old_fence = nvbo->bo.sync_obj;
-	nvbo->bo.sync_obj = fence;
-	spin_unlock(&nvbo->bo.bdev->fence_lock);
-=======
 	for (i = 0; i < nvbo->placement.num_busy_placement; ++i) {
 		nvbo->busy_placements[i].fpfn = 0;
 		nvbo->busy_placements[i].lpfn = mappable;
 	}
->>>>>>> android-3.18
 
 	nouveau_bo_placement_set(nvbo, TTM_PL_FLAG_VRAM, 0);
 	return nouveau_bo_validate(nvbo, false, false);

@@ -53,24 +53,8 @@ EXPORT_SYMBOL(pm_power_off);
  */
 void arch_cpu_idle(void)
 {
-<<<<<<< HEAD
-	set_thread_flag(TIF_POLLING_NRFLAG);
-
-	while (1) {
-		/* FIXME -- EV6 and LCA45 know how to power down
-		   the CPU.  */
-
-		rcu_idle_enter();
-		while (!need_resched())
-			cpu_relax();
-
-		rcu_idle_exit();
-		schedule();
-	}
-=======
 	wtint(0);
 	local_irq_enable();
->>>>>>> android-3.18
 }
 
 void arch_cpu_idle_dead(void)

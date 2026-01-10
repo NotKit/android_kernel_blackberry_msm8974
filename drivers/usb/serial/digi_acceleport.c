@@ -963,13 +963,7 @@ static void digi_write_bulk_callback(struct urb *urb)
 	struct digi_serial *serial_priv;
 	int ret = 0;
 	int status = urb->status;
-<<<<<<< HEAD
-	int i;
-
-	dbg("digi_write_bulk_callback: TOP, status=%d", status);
-=======
 	bool wakeup;
->>>>>>> android-3.18
 
 	/* port and serial sanity check */
 	if (port == NULL || (priv = usb_get_serial_port_data(port)) == NULL) {

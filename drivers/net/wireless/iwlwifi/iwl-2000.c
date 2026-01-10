@@ -75,11 +75,7 @@ static const struct iwl_base_params iwl2000_base_params = {
 	.wd_timeout = IWL_DEF_WD_TIMEOUT,
 	.max_event_log_size = 512,
 	.shadow_reg_enable = false, /* TODO: fix bugs using this feature */
-<<<<<<< HEAD
-	.hd_v2 = true,
-=======
 	.scd_chain_ext_wa = true,
->>>>>>> android-3.18
 };
 
 
@@ -93,11 +89,7 @@ static const struct iwl_base_params iwl2030_base_params = {
 	.wd_timeout = IWL_LONG_WD_TIMEOUT,
 	.max_event_log_size = 512,
 	.shadow_reg_enable = false, /* TODO: fix bugs using this feature */
-<<<<<<< HEAD
-	.hd_v2 = true,
-=======
 	.scd_chain_ext_wa = true,
->>>>>>> android-3.18
 };
 
 static const struct iwl_ht_params iwl2000_ht_params = {

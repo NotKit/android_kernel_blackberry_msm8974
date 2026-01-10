@@ -493,18 +493,6 @@ static void ring_setup_phys_status_page(struct intel_engine_cs *ring)
 
 static bool stop_ring(struct intel_engine_cs *ring)
 {
-<<<<<<< HEAD
-	struct drm_device *dev = ring->dev;
-	drm_i915_private_t *dev_priv = dev->dev_private;
-	struct drm_i915_gem_object *obj = ring->obj;
-	int ret = 0;
-	u32 head;
-
-	if (HAS_FORCE_WAKE(dev))
-		gen6_gt_force_wake_get(dev_priv);
-
-	/* Stop the ring if it's running. */
-=======
 	struct drm_i915_private *dev_priv = to_i915(ring->dev);
 
 	if (!IS_GEN2(ring->dev)) {
@@ -520,7 +508,6 @@ static bool stop_ring(struct intel_engine_cs *ring)
 		}
 	}
 
->>>>>>> android-3.18
 	I915_WRITE_CTL(ring, 0);
 	I915_WRITE_HEAD(ring, 0);
 	ring->write_tail(ring, 0);
@@ -593,17 +580,6 @@ static int init_ring_common(struct intel_engine_cs *ring)
 
 	/* If the head is still not zero, the ring is dead */
 	if (wait_for((I915_READ_CTL(ring) & RING_VALID) != 0 &&
-<<<<<<< HEAD
-		     I915_READ_START(ring) == obj->gtt_offset &&
-		     (I915_READ_HEAD(ring) & HEAD_ADDR) == 0, 50)) {
-		DRM_ERROR("%s initialization failed "
-				"ctl %08x head %08x tail %08x start %08x\n",
-				ring->name,
-				I915_READ_CTL(ring),
-				I915_READ_HEAD(ring),
-				I915_READ_TAIL(ring),
-				I915_READ_START(ring));
-=======
 		     I915_READ_START(ring) == i915_gem_obj_ggtt_offset(obj) &&
 		     (I915_READ_HEAD(ring) & HEAD_ADDR) == 0, 50)) {
 		DRM_ERROR("%s initialization failed "
@@ -612,7 +588,6 @@ static int init_ring_common(struct intel_engine_cs *ring)
 			  I915_READ_CTL(ring), I915_READ_CTL(ring) & RING_VALID,
 			  I915_READ_HEAD(ring), I915_READ_TAIL(ring),
 			  I915_READ_START(ring), (unsigned long)i915_gem_obj_ggtt_offset(obj));
->>>>>>> android-3.18
 		ret = -EIO;
 		goto out;
 	}
@@ -620,17 +595,6 @@ static int init_ring_common(struct intel_engine_cs *ring)
 	if (!drm_core_check_feature(ring->dev, DRIVER_MODESET))
 		i915_kernel_lost_context(ring->dev);
 	else {
-<<<<<<< HEAD
-		ring->head = I915_READ_HEAD(ring);
-		ring->tail = I915_READ_TAIL(ring) & TAIL_ADDR;
-		ring->space = ring_space(ring);
-		ring->last_retired_head = -1;
-	}
-
-out:
-	if (HAS_FORCE_WAKE(dev))
-		gen6_gt_force_wake_put(dev_priv);
-=======
 		ringbuf->head = I915_READ_HEAD(ring);
 		ringbuf->tail = I915_READ_TAIL(ring) & TAIL_ADDR;
 		ringbuf->space = intel_ring_space(ringbuf);
@@ -641,7 +605,6 @@ out:
 
 out:
 	gen6_gt_force_wake_put(dev_priv, FORCEWAKE_ALL);
->>>>>>> android-3.18
 
 	return ret;
 }
@@ -1363,11 +1326,6 @@ void intel_ring_setup_status_page(struct intel_engine_cs *ring)
 	I915_WRITE(mmio, (u32)ring->status_page.gfx_addr);
 	POSTING_READ(mmio);
 
-<<<<<<< HEAD
-	/* Flush the TLB for this page */
-	if (INTEL_INFO(dev)->gen >= 6) {
-		u32 reg = RING_INSTPM(ring->mmio_base);
-=======
 	/*
 	 * Flush the TLB for this page
 	 *
@@ -1381,7 +1339,6 @@ void intel_ring_setup_status_page(struct intel_engine_cs *ring)
 		/* ring should be idle before issuing a sync flush*/
 		WARN_ON((I915_READ_MODE(ring) & MODE_IDLE) == 0);
 
->>>>>>> android-3.18
 		I915_WRITE(reg,
 			   _MASKED_BIT_ENABLE(INSTPM_TLB_INVALIDATE |
 					      INSTPM_SYNC_FLUSH));
@@ -1790,15 +1747,6 @@ int intel_alloc_ringbuffer_obj(struct drm_device *dev,
 	ret = i915_gem_object_set_to_gtt_domain(obj, true);
 	if (ret)
 		goto err_unpin;
-<<<<<<< HEAD
-
-	ring->map.size = ring->size;
-	ring->map.offset = dev->agp->base + obj->gtt_offset;
-	ring->map.type = 0;
-	ring->map.flags = 0;
-	ring->map.mtrr = 0;
-=======
->>>>>>> android-3.18
 
 	ringbuf->virtual_start =
 		ioremap_wc(dev_priv->gtt.mappable_base + i915_gem_obj_ggtt_offset(obj),

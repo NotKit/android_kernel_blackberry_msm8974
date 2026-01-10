@@ -41,11 +41,7 @@ int pinmux_check_ops(struct pinctrl_dev *pctldev)
 	    !ops->get_functions_count ||
 	    !ops->get_function_name ||
 	    !ops->get_function_groups ||
-<<<<<<< HEAD
-	    !ops->enable) {
-=======
 	    !ops->set_mux) {
->>>>>>> android-3.18
 		dev_err(pctldev->dev, "pinmux ops lacks necessary functions\n");
 		return -EINVAL;
 	}
@@ -421,11 +417,6 @@ int pinmux_enable_setting(struct pinctrl_setting const *setting)
 	for (i = 0; i < num_pins; i++) {
 		ret = pin_request(pctldev, pins[i], setting->dev_name, NULL);
 		if (ret) {
-<<<<<<< HEAD
-			dev_err(pctldev->dev,
-				"could not request pin %d on device %s\n",
-				pins[i], pinctrl_dev_get_name(pctldev));
-=======
 			const char *gname;
 			const char *pname;
 
@@ -438,7 +429,6 @@ int pinmux_enable_setting(struct pinctrl_setting const *setting)
 				" on device %s\n",
 				pins[i], pname, gname,
 				pinctrl_dev_get_name(pctldev));
->>>>>>> android-3.18
 			goto err_pin_request;
 		}
 	}
@@ -455,17 +445,6 @@ int pinmux_enable_setting(struct pinctrl_setting const *setting)
 		desc->mux_setting = &(setting->data.mux);
 	}
 
-<<<<<<< HEAD
-	ret = ops->enable(pctldev, setting->data.mux.func,
-			  setting->data.mux.group);
-
-	if (ret)
-		goto err_enable;
-
-	return 0;
-
-err_enable:
-=======
 	ret = ops->set_mux(pctldev, setting->data.mux.func,
 			   setting->data.mux.group);
 
@@ -475,7 +454,6 @@ err_enable:
 	return 0;
 
 err_set_mux:
->>>>>>> android-3.18
 	for (i = 0; i < num_pins; i++) {
 		desc = pin_desc_get(pctldev, pins[i]);
 		if (desc)
@@ -530,14 +508,6 @@ void pinmux_disable_setting(struct pinctrl_setting const *setting)
 		} else {
 			const char *gname;
 
-<<<<<<< HEAD
-	/* And release the pins */
-	for (i = 0; i < num_pins; i++)
-		pin_free(pctldev, pins[i], NULL);
-
-	if (ops->disable)
-		ops->disable(pctldev, setting->data.mux.func, setting->data.mux.group);
-=======
 			gname = pctlops->get_group_name(pctldev,
 						setting->data.mux.group);
 			dev_warn(pctldev->dev,
@@ -547,7 +517,6 @@ void pinmux_disable_setting(struct pinctrl_setting const *setting)
 				 pins[i], desc->name, gname);
 		}
 	}
->>>>>>> android-3.18
 }
 
 #ifdef CONFIG_DEBUG_FS
@@ -563,11 +532,7 @@ static int pinmux_functions_show(struct seq_file *s, void *what)
 	if (!pmxops)
 		return 0;
 
-<<<<<<< HEAD
-	mutex_lock(&pinctrl_mutex);
-=======
 	mutex_lock(&pctldev->mutex);
->>>>>>> android-3.18
 	nfuncs = pmxops->get_functions_count(pctldev);
 	while (func_selector < nfuncs) {
 		const char *func = pmxops->get_function_name(pctldev,

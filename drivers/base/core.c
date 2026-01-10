@@ -813,20 +813,10 @@ static void cleanup_glue_dir(struct device *dev, struct kobject *glue_dir)
 		return;
 
 	mutex_lock(&gdp_mutex);
-<<<<<<< HEAD
-	kobject_put(glue_dir);
-	mutex_unlock(&gdp_mutex);
-}
-
-static void cleanup_device_parent(struct device *dev)
-{
-	cleanup_glue_dir(dev, dev->kobj.parent);
-=======
 	if (!kobject_has_children(glue_dir))
 		kobject_del(glue_dir);
 	kobject_put(glue_dir);
 	mutex_unlock(&gdp_mutex);
->>>>>>> android-3.18
 }
 
 static int device_add_class_symlinks(struct device *dev)
@@ -1774,11 +1764,7 @@ struct device *device_create_with_groups(struct class *class,
 }
 EXPORT_SYMBOL_GPL(device_create_with_groups);
 
-<<<<<<< HEAD
-static int __match_devt(struct device *dev, void *data)
-=======
 static int __match_devt(struct device *dev, const void *data)
->>>>>>> android-3.18
 {
 	const dev_t *devt = data;
 

@@ -34,16 +34,11 @@
 /* Values for the XOR_CONFIG register */
 #define XOR_OPERATION_MODE_XOR		0
 #define XOR_OPERATION_MODE_MEMCPY	2
-<<<<<<< HEAD
-#define XOR_OPERATION_MODE_MEMSET	4
-#define XOR_DESC_SUCCESS		0x40000000
-=======
 #define XOR_DESCRIPTOR_SWAP		BIT(14)
 #define XOR_DESC_SUCCESS		0x40000000
 
 #define XOR_DESC_DMA_OWNED		BIT(31)
 #define XOR_DESC_EOD_INT_EN		BIT(31)
->>>>>>> android-3.18
 
 #define XOR_CURR_DESC(chan)	(chan->mmr_high_base + 0x10 + (chan->idx * 4))
 #define XOR_NEXT_DESC(chan)	(chan->mmr_high_base + 0x00 + (chan->idx * 4))

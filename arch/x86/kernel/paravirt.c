@@ -311,11 +311,7 @@ enum paravirt_lazy_mode paravirt_get_lazy_mode(void)
 	if (in_interrupt())
 		return PARAVIRT_LAZY_NONE;
 
-<<<<<<< HEAD
-	return percpu_read(paravirt_lazy_mode);
-=======
 	return this_cpu_read(paravirt_lazy_mode);
->>>>>>> android-3.18
 }
 
 struct pv_info pv_info = {

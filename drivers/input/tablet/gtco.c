@@ -236,11 +236,7 @@ static void parse_hid_report_descriptor(struct gtco *device, char * report,
 		/* Determine data size and save the data in the proper variable */
 		size = (1U << PREF_SIZE(prefix)) >> 1;
 		if (i + size > length) {
-<<<<<<< HEAD
-			dev_err(&device->usbdev->dev,
-=======
 			dev_err(ddev,
->>>>>>> android-3.18
 				"Not enough data (need %d, have %d)\n",
 				i + size, length);
 			break;
@@ -890,26 +886,14 @@ static int gtco_probe(struct usb_interface *usbinterface,
 	}
 
 	/* Sanity check that a device has an endpoint */
-<<<<<<< HEAD
-	if (usbinterface->altsetting[0].desc.bNumEndpoints < 1) {
-=======
 	if (usbinterface->cur_altsetting->desc.bNumEndpoints < 1) {
->>>>>>> android-3.18
 		dev_err(&usbinterface->dev,
 			"Invalid number of endpoints\n");
 		error = -EINVAL;
 		goto err_free_urb;
 	}
 
-<<<<<<< HEAD
-	/*
-	 * The endpoint is always altsetting 0, we know this since we know
-	 * this device only has one interrupt endpoint
-	 */
-	endpoint = &usbinterface->altsetting[0].endpoint[0].desc;
-=======
 	endpoint = &usbinterface->cur_altsetting->endpoint[0].desc;
->>>>>>> android-3.18
 
 	/* Some debug */
 	dev_dbg(&usbinterface->dev, "gtco # interfaces: %d\n", usbinterface->num_altsetting);
@@ -927,12 +911,8 @@ static int gtco_probe(struct usb_interface *usbinterface,
 	 */
 	if (usb_get_extra_descriptor(usbinterface->cur_altsetting,
 				     HID_DEVICE_TYPE, &hid_desc) != 0) {
-<<<<<<< HEAD
-		err("Can't retrieve exta USB descriptor to get hid report descriptor length");
-=======
 		dev_err(&usbinterface->dev,
 			"Can't retrieve exta USB descriptor to get hid report descriptor length\n");
->>>>>>> android-3.18
 		error = -EIO;
 		goto err_free_urb;
 	}

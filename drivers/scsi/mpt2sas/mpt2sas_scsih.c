@@ -7136,10 +7136,7 @@ _scsih_scan_for_devices_after_reset(struct MPT2SAS_ADAPTER *ioc)
 	struct _sas_node *expander_device;
 	static struct _raid_device *raid_device;
 	u8 retry_count;
-<<<<<<< HEAD
-=======
 	unsigned long flags;
->>>>>>> android-3.18
 
 	printk(MPT2SAS_INFO_FMT "scan devices: start\n", ioc->name);
 
@@ -7159,15 +7156,6 @@ _scsih_scan_for_devices_after_reset(struct MPT2SAS_ADAPTER *ioc)
 				ioc->name, ioc_status,
 				le32_to_cpu(mpi_reply.IOCLogInfo));
 			break;
-<<<<<<< HEAD
-		if (ioc_status != MPI2_IOCSTATUS_SUCCESS) {
-			printk(MPT2SAS_INFO_FMT "\tbreak from expander scan: "
-				"ioc_status(0x%04x), loginfo(0x%08x)\n",
-				ioc->name, ioc_status,
-				le32_to_cpu(mpi_reply.IOCLogInfo));
-			break;
-=======
->>>>>>> android-3.18
 		}
 		handle = le16_to_cpu(expander_pg0.DevHandle);
 		spin_lock_irqsave(&ioc->sas_node_lock, flags);
@@ -7210,15 +7198,6 @@ _scsih_scan_for_devices_after_reset(struct MPT2SAS_ADAPTER *ioc)
 				ioc->name, ioc_status,
 				le32_to_cpu(mpi_reply.IOCLogInfo));
 			break;
-<<<<<<< HEAD
-		if (ioc_status != MPI2_IOCSTATUS_SUCCESS) {
-			printk(MPT2SAS_INFO_FMT "\tbreak from phys disk scan:"
-				"ioc_status(0x%04x), loginfo(0x%08x)\n",
-				ioc->name, ioc_status,
-				le32_to_cpu(mpi_reply.IOCLogInfo));
-			break;
-=======
->>>>>>> android-3.18
 		}
 		phys_disk_num = pd_pg0.PhysDiskNum;
 		handle = le16_to_cpu(pd_pg0.DevHandle);
@@ -7283,15 +7262,6 @@ _scsih_scan_for_devices_after_reset(struct MPT2SAS_ADAPTER *ioc)
 				ioc->name, ioc_status,
 				le32_to_cpu(mpi_reply.IOCLogInfo));
 			break;
-<<<<<<< HEAD
-		if (ioc_status != MPI2_IOCSTATUS_SUCCESS) {
-			printk(MPT2SAS_INFO_FMT "\tbreak from volume scan: "
-				"ioc_status(0x%04x), loginfo(0x%08x)\n",
-				ioc->name, ioc_status,
-				le32_to_cpu(mpi_reply.IOCLogInfo));
-			break;
-=======
->>>>>>> android-3.18
 		}
 		handle = le16_to_cpu(volume_pg1.DevHandle);
 		spin_lock_irqsave(&ioc->raid_device_lock, flags);
@@ -7343,11 +7313,6 @@ _scsih_scan_for_devices_after_reset(struct MPT2SAS_ADAPTER *ioc)
 	    handle))) {
 		ioc_status = le16_to_cpu(mpi_reply.IOCStatus) &
 		    MPI2_IOCSTATUS_MASK;
-<<<<<<< HEAD
-		if (ioc_status == MPI2_IOCSTATUS_CONFIG_INVALID_PAGE)
-			break;
-=======
->>>>>>> android-3.18
 		if (ioc_status != MPI2_IOCSTATUS_SUCCESS) {
 			printk(MPT2SAS_INFO_FMT "\tbreak from end device scan:"
 				" ioc_status(0x%04x), loginfo(0x%08x)\n",

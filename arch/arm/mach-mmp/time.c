@@ -25,12 +25,9 @@
 
 #include <linux/io.h>
 #include <linux/irq.h>
-<<<<<<< HEAD
-=======
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
->>>>>>> android-3.18
 #include <linux/sched_clock.h>
 
 #include <mach/addr-map.h>

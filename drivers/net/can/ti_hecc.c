@@ -991,11 +991,7 @@ static int ti_hecc_remove(struct platform_device *pdev)
 	struct ti_hecc_priv *priv = netdev_priv(ndev);
 
 	unregister_candev(ndev);
-<<<<<<< HEAD
-	clk_disable(priv->clk);
-=======
 	clk_disable_unprepare(priv->clk);
->>>>>>> android-3.18
 	clk_put(priv->clk);
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	iounmap(priv->base);

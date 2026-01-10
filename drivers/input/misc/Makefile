@@ -33,10 +33,6 @@ obj-$(CONFIG_INPUT_GP2A)		+= gp2ap002a00f.o
 obj-$(CONFIG_INPUT_GPIO_BEEPER)		+= gpio-beeper.o
 obj-$(CONFIG_INPUT_GPIO_TILT_POLLED)	+= gpio_tilt_polled.o
 obj-$(CONFIG_INPUT_GPIO)		+= gpio_event.o gpio_matrix.o gpio_input.o gpio_output.o gpio_axis.o
-<<<<<<< HEAD
-obj-$(CONFIG_INPUT_HBTP_INPUT)		+= hbtp_input.o
-=======
->>>>>>> android-3.18
 obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
 obj-$(CONFIG_INPUT_IMS_PCU)		+= ims-pcu.o
 obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
@@ -74,16 +70,4 @@ obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
 obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
 obj-$(CONFIG_INPUT_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
 obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
-<<<<<<< HEAD
-obj-$(CONFIG_PMIC8058_OTHC)             += pmic8058-othc.o
-obj-$(CONFIG_INPUT_PMIC8058_VIBRA_MEMLESS) += pmic8058-vib-memless.o
-obj-$(CONFIG_BOSCH_BMA150)              += bma150.o
-obj-$(CONFIG_STM_LIS3DH)		+= lis3dh_acc.o
-obj-$(CONFIG_BMP18X)			+= bmp18x-core.o
-obj-$(CONFIG_BMP18X_I2C)		+= bmp18x-i2c.o
-obj-$(CONFIG_SENSORS_MMA8X5X)	  	+= mma8x5x.o
-obj-$(CONFIG_SENSORS_STK3X1X)		+= stk3x1x.o
-obj-$(CONFIG_SENSORS_CAPELLA_CM36283)	+= cm36283.o
-=======
 obj-$(CONFIG_INPUT_IDEAPAD_SLIDEBAR)	+= ideapad_slidebar.o
->>>>>>> android-3.18

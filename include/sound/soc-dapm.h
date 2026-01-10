@@ -250,11 +250,6 @@
 	.reg = wreg, .shift = wshift, .mask = wmask, \
 	.on_val = won_val, .off_val = woff_val, }
 #define SND_SOC_DAPM_SUPPLY(wname, wreg, wshift, winvert, wevent, wflags) \
-<<<<<<< HEAD
-{	.id = snd_soc_dapm_supply, .name = wname, .reg = wreg,	\
-	.shift = wshift, .invert = winvert, .event = wevent, \
-	.event_flags = wflags}
-=======
 {	.id = snd_soc_dapm_supply, .name = wname, \
 	SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), \
 	.event = wevent, .event_flags = wflags}
@@ -264,7 +259,6 @@
 	.event_flags = SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD, \
 	.on_val = wflags}
 
->>>>>>> android-3.18
 
 /* dapm kcontrol types */
 #define SOC_DAPM_SINGLE(xname, reg, shift, max, invert) \
@@ -307,21 +301,6 @@
 	.get = xget, \
 	.put = xput, \
 	.private_value = (unsigned long)&xenum }
-<<<<<<< HEAD
-#define SOC_DAPM_ENUM_EXT(xname, xenum, xget, xput) \
-{	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
-	.info = snd_soc_info_enum_double, \
-	.get = xget, \
-	.put = xput, \
-	.private_value = (unsigned long)&xenum }
-#define SOC_DAPM_VALUE_ENUM(xname, xenum) \
-{	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
-	.info = snd_soc_info_enum_double, \
-	.get = snd_soc_dapm_get_value_enum_double, \
-	.put = snd_soc_dapm_put_value_enum_double, \
-	.private_value = (unsigned long)&xenum }
-=======
->>>>>>> android-3.18
 #define SOC_DAPM_PIN_SWITCH(xname) \
 {	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname " Switch", \
 	.info = snd_soc_dapm_info_pin_switch, \
@@ -365,12 +344,6 @@ struct snd_soc_dapm_path;
 struct snd_soc_dapm_pin;
 struct snd_soc_dapm_route;
 struct snd_soc_dapm_context;
-<<<<<<< HEAD
-struct snd_soc_dapm_widget_list;
-
-int dapm_reg_event(struct snd_soc_dapm_widget *w,
-		   struct snd_kcontrol *kcontrol, int event);
-=======
 struct regulator;
 struct snd_soc_dapm_widget_list;
 struct snd_soc_dapm_update;
@@ -379,7 +352,6 @@ int dapm_regulator_event(struct snd_soc_dapm_widget *w,
 			 struct snd_kcontrol *kcontrol, int event);
 int dapm_clock_event(struct snd_soc_dapm_widget *w,
 			 struct snd_kcontrol *kcontrol, int event);
->>>>>>> android-3.18
 
 /* dapm controls */
 int snd_soc_dapm_put_volsw(struct snd_kcontrol *kcontrol,
@@ -401,8 +373,6 @@ int snd_soc_dapm_new_control(struct snd_soc_dapm_context *dapm,
 int snd_soc_dapm_new_controls(struct snd_soc_dapm_context *dapm,
 	const struct snd_soc_dapm_widget *widget,
 	int num);
-<<<<<<< HEAD
-=======
 int snd_soc_dapm_new_dai_widgets(struct snd_soc_dapm_context *dapm,
 				 struct snd_soc_dai *dai);
 int snd_soc_dapm_link_dai_widgets(struct snd_soc_card *card);
@@ -411,7 +381,6 @@ int snd_soc_dapm_new_pcm(struct snd_soc_card *card,
 			 const struct snd_soc_pcm_stream *params,
 			 struct snd_soc_dapm_widget *source,
 			 struct snd_soc_dapm_widget *sink);
->>>>>>> android-3.18
 
 /* dapm path setup */
 int snd_soc_dapm_new_widgets(struct snd_soc_card *card);
@@ -424,33 +393,16 @@ int snd_soc_dapm_weak_routes(struct snd_soc_dapm_context *dapm,
 			     const struct snd_soc_dapm_route *route, int num);
 
 /* dapm events */
-<<<<<<< HEAD
-void snd_soc_dapm_codec_stream_event(struct snd_soc_codec *codec,
-	const char *stream, int event);
-int snd_soc_dapm_stream_event(struct snd_soc_pcm_runtime *rtd,
-	const char *stream, int event);
-void snd_soc_dapm_rtd_stream_event(struct snd_soc_pcm_runtime *rtd,
-	int stream, int event);
-=======
 void snd_soc_dapm_stream_event(struct snd_soc_pcm_runtime *rtd, int stream,
 	int event);
->>>>>>> android-3.18
 void snd_soc_dapm_shutdown(struct snd_soc_card *card);
 /* external DAPM widget events */
-<<<<<<< HEAD
-int snd_soc_dapm_mixer_update_power(struct snd_soc_dapm_widget *widget,
-		struct snd_kcontrol *kcontrol, int connect);
-int snd_soc_dapm_mux_update_power(struct snd_soc_dapm_widget *widget,
-				 struct snd_kcontrol *kcontrol, int change,
-				 int mux, struct soc_enum *e);
-=======
 int snd_soc_dapm_mixer_update_power(struct snd_soc_dapm_context *dapm,
 		struct snd_kcontrol *kcontrol, int connect,
 		struct snd_soc_dapm_update *update);
 int snd_soc_dapm_mux_update_power(struct snd_soc_dapm_context *dapm,
 		struct snd_kcontrol *kcontrol, int mux, struct soc_enum *e,
 		struct snd_soc_dapm_update *update);
->>>>>>> android-3.18
 
 /* dapm sys fs - used by the core */
 int snd_soc_dapm_sys_add(struct device *dev);
@@ -523,16 +475,6 @@ enum snd_soc_dapm_type {
 	snd_soc_dapm_pre,			/* machine specific pre widget - exec first */
 	snd_soc_dapm_post,			/* machine specific post widget - exec last */
 	snd_soc_dapm_supply,		/* power/clock supply */
-<<<<<<< HEAD
-	snd_soc_dapm_aif_in,		/* audio interface input */
-	snd_soc_dapm_aif_out,		/* audio interface output */
-	snd_soc_dapm_siggen,		/* signal generator */
-};
-
-enum snd_soc_dapm_subclass {
-	SND_SOC_DAPM_CLASS_INIT	= 0,
-	SND_SOC_DAPM_CLASS_PCM	= 1,
-=======
 	snd_soc_dapm_regulator_supply,	/* external regulator */
 	snd_soc_dapm_clock_supply,	/* external clock */
 	snd_soc_dapm_aif_in,		/* audio interface input */
@@ -547,7 +489,6 @@ enum snd_soc_dapm_subclass {
 enum snd_soc_dapm_subclass {
 	SND_SOC_DAPM_CLASS_INIT		= 0,
 	SND_SOC_DAPM_CLASS_RUNTIME	= 1,
->>>>>>> android-3.18
 };
 
 /*
@@ -568,12 +509,7 @@ struct snd_soc_dapm_route {
 
 /* dapm audio path between two widgets */
 struct snd_soc_dapm_path {
-<<<<<<< HEAD
-	char *name;
-	char *long_name;
-=======
 	const char *name;
->>>>>>> android-3.18
 
 	/* source (input) and sink (output) widgets */
 	struct snd_soc_dapm_widget *source;
@@ -600,13 +536,6 @@ struct snd_soc_dapm_widget {
 	char *name;		/* widget name */
 	const char *sname;	/* stream name */
 	struct snd_soc_codec *codec;
-<<<<<<< HEAD
-	struct snd_soc_platform *platform;
-	struct snd_soc_dai *dai;
-	struct list_head list;
-	struct snd_soc_dapm_context *dapm;
-
-=======
 	struct list_head list;
 	struct snd_soc_dapm_context *dapm;
 
@@ -614,7 +543,6 @@ struct snd_soc_dapm_widget {
 	struct regulator *regulator;		/* attached regulator */
 	const struct snd_soc_pcm_stream *params; /* params for dai links */
 
->>>>>>> android-3.18
 	/* dapm control */
 	int reg;				/* negative reg = no direct dapm */
 	unsigned char shift;			/* bits to shift */
@@ -676,13 +604,7 @@ struct snd_soc_dapm_context {
 			     enum snd_soc_dapm_type, int);
 
 	struct device *dev; /* from parent - for debug */
-<<<<<<< HEAD
-	struct snd_soc_codec *codec; /* parent codec */
-	struct snd_soc_platform *platform; /* parent platform */
-	struct snd_soc_dai *dai; /* parent DAI */
-=======
 	struct snd_soc_component *component; /* parent component */
->>>>>>> android-3.18
 	struct snd_soc_card *card; /* parent card */
 
 	/* used during DAPM updates */

@@ -3554,19 +3554,6 @@ static struct omap_hwmod_ocp_if am35xx_l4_core__emac = {
 	.user		= OCP_USER_MPU,
 };
 
-<<<<<<< HEAD
-static struct omap_hwmod_class_sysconfig omap3xxx_usb_host_hs_sysc = {
-	.rev_offs	= 0x0000,
-	.sysc_offs	= 0x0010,
-	.syss_offs	= 0x0014,
-	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
-			   SYSC_HAS_SIDLEMODE | SYSC_HAS_ENAWAKEUP |
-			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE |
-			   SYSS_HAS_RESET_STATUS),
-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-	.sysc_fields	= &omap_hwmod_sysc_type1,
-=======
 static struct omap_hwmod_ocp_if omap3xxx_l3_main__gpmc = {
 	.master		= &omap3xxx_l3_main_hwmod,
 	.slave		= &omap3xxx_gpmc_hwmod,
@@ -3594,7 +3581,6 @@ static struct omap_hwmod_class_sysconfig omap3_sham_sysc = {
 static struct omap_hwmod_class omap3xxx_sham_class = {
 	.name	= "sham",
 	.sysc	= &omap3_sham_sysc,
->>>>>>> android-3.18
 };
 
 static struct omap_hwmod_irq_info omap3_sham_mpu_irqs[] = {
@@ -3663,15 +3649,6 @@ static struct omap_hwmod_class omap3xxx_aes_class = {
 	.sysc	= &omap3_aes_sysc,
 };
 
-<<<<<<< HEAD
-static struct omap_hwmod omap3xxx_usb_host_hs_hwmod = {
-	.name		= "usb_host_hs",
-	.class		= &omap3xxx_usb_host_hs_hwmod_class,
-	.clkdm_name	= "usbhost_clkdm",
-	.mpu_irqs	= omap3xxx_usb_host_hs_irqs,
-	.main_clk	= "usbhost_48m_fck",
-	.prcm = {
-=======
 static struct omap_hwmod_dma_info omap3_aes_sdma_reqs[] = {
 	{ .name = "tx", .dma_req = 65, },
 	{ .name = "rx", .dma_req = 66, },
@@ -3683,7 +3660,6 @@ static struct omap_hwmod omap3xxx_aes_hwmod = {
 	.sdma_reqs	= omap3_aes_sdma_reqs,
 	.main_clk	= "aes2_ick",
 	.prcm		= {
->>>>>>> android-3.18
 		.omap2 = {
 			.module_offs = CORE_MOD,
 			.prcm_reg_id = 1,
@@ -3695,9 +3671,6 @@ static struct omap_hwmod omap3xxx_aes_hwmod = {
 	.class		= &omap3xxx_aes_class,
 };
 
-<<<<<<< HEAD
-	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
-=======
 static struct omap_hwmod_addr_space omap3xxx_aes_addrs[] = {
 	{
 		.pa_start	= 0x480c5000,
@@ -3713,7 +3686,6 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__aes = {
 	.clk		= "aes2_ick",
 	.addr		= omap3xxx_aes_addrs,
 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->>>>>>> android-3.18
 };
 
 /*
@@ -3810,83 +3782,6 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
 	NULL,
 };
 
-<<<<<<< HEAD
-static struct omap_hwmod omap3xxx_usb_tll_hs_hwmod = {
-	.name		= "usb_tll_hs",
-	.class		= &omap3xxx_usb_tll_hs_hwmod_class,
-	.clkdm_name	= "core_l4_clkdm",
-	.mpu_irqs	= omap3xxx_usb_tll_hs_irqs,
-	.main_clk	= "usbtll_fck",
-	.prcm = {
-		.omap2 = {
-			.module_offs = CORE_MOD,
-			.prcm_reg_id = 3,
-			.module_bit = OMAP3430ES2_EN_USBTLL_SHIFT,
-			.idlest_reg_id = 3,
-			.idlest_idle_bit = OMAP3430ES2_ST_USBTLL_SHIFT,
-		},
-	},
-	.slaves		= omap3xxx_usb_tll_hs_slaves,
-	.slaves_cnt	= ARRAY_SIZE(omap3xxx_usb_tll_hs_slaves),
-};
-
-static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
-	&omap3xxx_l3_main_hwmod,
-	&omap3xxx_l4_core_hwmod,
-	&omap3xxx_l4_per_hwmod,
-	&omap3xxx_l4_wkup_hwmod,
-	&omap3xxx_mmc3_hwmod,
-	&omap3xxx_mpu_hwmod,
-
-	&omap3xxx_timer1_hwmod,
-	&omap3xxx_timer2_hwmod,
-	&omap3xxx_timer3_hwmod,
-	&omap3xxx_timer4_hwmod,
-	&omap3xxx_timer5_hwmod,
-	&omap3xxx_timer6_hwmod,
-	&omap3xxx_timer7_hwmod,
-	&omap3xxx_timer8_hwmod,
-	&omap3xxx_timer9_hwmod,
-	&omap3xxx_timer10_hwmod,
-	&omap3xxx_timer11_hwmod,
-
-	&omap3xxx_wd_timer2_hwmod,
-	&omap3xxx_uart1_hwmod,
-	&omap3xxx_uart2_hwmod,
-	&omap3xxx_uart3_hwmod,
-
-	/* i2c class */
-	&omap3xxx_i2c1_hwmod,
-	&omap3xxx_i2c2_hwmod,
-	&omap3xxx_i2c3_hwmod,
-
-	/* gpio class */
-	&omap3xxx_gpio1_hwmod,
-	&omap3xxx_gpio2_hwmod,
-	&omap3xxx_gpio3_hwmod,
-	&omap3xxx_gpio4_hwmod,
-	&omap3xxx_gpio5_hwmod,
-	&omap3xxx_gpio6_hwmod,
-
-	/* dma_system class*/
-	&omap3xxx_dma_system_hwmod,
-
-	/* mcbsp class */
-	&omap3xxx_mcbsp1_hwmod,
-	&omap3xxx_mcbsp2_hwmod,
-	&omap3xxx_mcbsp3_hwmod,
-	&omap3xxx_mcbsp4_hwmod,
-	&omap3xxx_mcbsp5_hwmod,
-	&omap3xxx_mcbsp2_sidetone_hwmod,
-	&omap3xxx_mcbsp3_sidetone_hwmod,
-
-
-	/* mcspi class */
-	&omap34xx_mcspi1,
-	&omap34xx_mcspi2,
-	&omap34xx_mcspi3,
-	&omap34xx_mcspi4,
-=======
 /* GP-only hwmod links */
 static struct omap_hwmod_ocp_if *omap34xx_gp_hwmod_ocp_ifs[] __initdata = {
 	&omap3xxx_l4_sec__timer12,
@@ -3894,7 +3789,6 @@ static struct omap_hwmod_ocp_if *omap34xx_gp_hwmod_ocp_ifs[] __initdata = {
 	&omap3xxx_l4_core__aes,
 	NULL
 };
->>>>>>> android-3.18
 
 static struct omap_hwmod_ocp_if *omap36xx_gp_hwmod_ocp_ifs[] __initdata = {
 	&omap3xxx_l4_sec__timer12,

@@ -227,13 +227,7 @@ drm_crtc_prepare_encoders(struct drm_device *dev)
  * @mode: mode to use
  * @x: horizontal offset into the surface
  * @y: vertical offset into the surface
-<<<<<<< HEAD
- *
- * LOCKING:
- * Caller must hold mode config lock.
-=======
  * @old_fb: old framebuffer, for cleanup
->>>>>>> android-3.18
  *
  * Try to set @mode on @crtc.  Give @crtc and its associated connectors a chance
  * to fixup or reject the mode prior to trying to set it. This is an internal

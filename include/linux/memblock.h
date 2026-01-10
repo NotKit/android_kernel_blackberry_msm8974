@@ -65,10 +65,7 @@ phys_addr_t memblock_find_in_range_node(phys_addr_t size, phys_addr_t align,
 phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
 				   phys_addr_t size, phys_addr_t align);
 phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
-<<<<<<< HEAD
-=======
 phys_addr_t get_allocated_memblock_memory_regions_info(phys_addr_t *addr);
->>>>>>> android-3.18
 void memblock_allow_resize(void);
 int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
 int memblock_add(phys_addr_t base, phys_addr_t size);
@@ -76,8 +73,6 @@ int memblock_remove(phys_addr_t base, phys_addr_t size);
 int memblock_free(phys_addr_t base, phys_addr_t size);
 int memblock_reserve(phys_addr_t base, phys_addr_t size);
 void memblock_trim_memory(phys_addr_t align);
-<<<<<<< HEAD
-=======
 int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
 int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
 
@@ -157,7 +152,6 @@ static inline bool movable_node_is_enabled(void)
 	return false;
 }
 #endif
->>>>>>> android-3.18
 
 #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
 int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,

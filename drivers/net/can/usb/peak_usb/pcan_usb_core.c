@@ -836,11 +836,7 @@ static int peak_usb_create_dev(struct peak_usb_adapter *peak_usb_adapter,
 	if (dev->adapter->dev_set_bus) {
 		err = dev->adapter->dev_set_bus(dev, 0);
 		if (err)
-<<<<<<< HEAD
-			goto lbl_unregister_candev;
-=======
 			goto adap_dev_free;
->>>>>>> android-3.18
 	}
 
 	/* get device number early */
@@ -852,11 +848,6 @@ static int peak_usb_create_dev(struct peak_usb_adapter *peak_usb_adapter,
 
 	return 0;
 
-<<<<<<< HEAD
-lbl_unregister_candev:
-	unregister_candev(netdev);
-
-=======
 adap_dev_free:
 	if (dev->adapter->dev_free)
 		dev->adapter->dev_free(dev);
@@ -864,7 +855,6 @@ adap_dev_free:
 lbl_unregister_candev:
 	unregister_candev(netdev);
 
->>>>>>> android-3.18
 lbl_restore_intf_data:
 	usb_set_intfdata(intf, dev->prev_siblings);
 	kfree(dev->cmd_buf);

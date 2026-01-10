@@ -1,10 +1,7 @@
 #ifndef __SOCK_DIAG_H__
 #define __SOCK_DIAG_H__
 
-<<<<<<< HEAD
-=======
 #include <linux/user_namespace.h>
->>>>>>> android-3.18
 #include <uapi/linux/sock_diag.h>
 
 struct sk_buff;
@@ -30,10 +27,5 @@ int sock_diag_put_meminfo(struct sock *sk, struct sk_buff *skb, int attr);
 int sock_diag_put_filterinfo(bool may_report_filterinfo, struct sock *sk,
 			     struct sk_buff *skb, int attrtype);
 
-<<<<<<< HEAD
-extern struct sock *sock_diag_nlsk;
-
-=======
 int sock_diag_destroy(struct sock *sk, int err);
->>>>>>> android-3.18
 #endif

@@ -11,10 +11,7 @@
 
 #include <asm/page.h>
 #include <uapi/linux/serial.h>
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 
 /*
  * Counters of the input lines (CTS, DSR, RI, CD) interrupts

@@ -32,10 +32,6 @@
 #include <linux/udp.h>
 #include <linux/ppp_defs.h>
 #include <linux/if_ppp.h>
-<<<<<<< HEAD
-#include <linux/if_pppolac.h>
-=======
->>>>>>> android-3.18
 #include <linux/if_pppox.h>
 #include <linux/ppp_channel.h>
 #include <net/tcp_states.h>

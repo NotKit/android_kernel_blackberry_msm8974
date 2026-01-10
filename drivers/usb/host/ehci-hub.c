@@ -346,12 +346,6 @@ static int ehci_bus_suspend (struct usb_hcd *hcd)
 	if (ehci->bus_suspended)
 		udelay(150);
 
-<<<<<<< HEAD
-	/*if this bit is set, controller is already haled*/
-	if (!ehci->susp_sof_bug)
-		ehci_halt(ehci); /* turn off now-idle HC */
-
-=======
 	/* turn off now-idle HC */
 	ehci_halt (ehci);
 
@@ -360,7 +354,6 @@ static int ehci_bus_suspend (struct usb_hcd *hcd)
 		ehci_handle_controller_death(ehci);
 	if (ehci->rh_state != EHCI_RH_RUNNING)
 		goto done;
->>>>>>> android-3.18
 	ehci->rh_state = EHCI_RH_SUSPENDED;
 
 	end_unlink_async(ehci);
@@ -491,25 +484,10 @@ static int __maybe_unused ehci_bus_resume(struct usb_hcd *hcd)
 		ehci_writel(ehci, temp, &ehci->regs->port_status [i]);
 	}
 
-<<<<<<< HEAD
-	if (ehci->resume_sof_bug && resume_needed) {
-		/* root hub has only one port.
-		 * PORT_RESUME gets cleared automatically. */
-		handshake(ehci, &ehci->regs->port_status[0], PORT_RESUME, 0,
-				20000);
-		ehci_writel(ehci, ehci_readl(ehci,
-				&ehci->regs->command) | CMD_RUN,
-				&ehci->regs->command);
-		goto skip_clear_resume;
-	}
-
-	/* msleep for 20ms only if code is trying to resume port */
-=======
 	/*
 	 * msleep for USB_RESUME_TIMEOUT ms only if code is trying to resume
 	 * port
 	 */
->>>>>>> android-3.18
 	if (resume_needed) {
 		spin_unlock_irq(&ehci->lock);
 		msleep(USB_RESUME_TIMEOUT);
@@ -526,23 +504,6 @@ static int __maybe_unused ehci_bus_resume(struct usb_hcd *hcd)
 			ehci_writel(ehci, temp, &ehci->regs->port_status [i]);
 		}
 	}
-<<<<<<< HEAD
-
-skip_clear_resume:
-	(void) ehci_readl(ehci, &ehci->regs->command);
-
-	/* maybe re-activate the schedule(s) */
-	temp = 0;
-	if (ehci->async->qh_next.qh)
-		temp |= CMD_ASE;
-	if (ehci->periodic_sched)
-		temp |= CMD_PSE;
-	if (temp) {
-		ehci->command |= temp;
-		ehci_writel(ehci, ehci->command, &ehci->regs->command);
-	}
-=======
->>>>>>> android-3.18
 
 	ehci->next_statechange = jiffies + msecs_to_jiffies(5);
 	spin_unlock_irq(&ehci->lock);
@@ -773,11 +734,7 @@ ehci_hub_descriptor (
 }
 
 /*-------------------------------------------------------------------------*/
-<<<<<<< HEAD
-#ifdef CONFIG_USB_EHCI_EHSET
-=======
 #ifdef CONFIG_USB_HCD_TEST_MODE
->>>>>>> android-3.18
 
 #define EHSET_TEST_SINGLE_STEP_SET_FEATURE 0x06
 
@@ -788,29 +745,6 @@ static void usb_ehset_completion(struct urb *urb)
 	complete(done);
 }
 static int submit_single_step_set_feature(
-<<<<<<< HEAD
-	struct usb_hcd  *hcd,
-	struct urb      *urb,
-	int 		is_setup
-);
-
-/* Allocate a URB and initialize the various fields of it.
- * This API is used by the single_step_set_feature test of
- * EHSET where IN packet of the GetDescriptor request is
- * sent after 15secs of the SETUP packet.
- * Return NULL if failed.
- */
-static struct urb *
-request_single_step_set_feature_urb(
-	struct usb_device 	*udev,
-	void 			*dr,
-	void 			*buf,
-	struct completion 	*done
-) {
-	struct urb *urb;
-	struct usb_hcd *hcd = bus_to_hcd(udev->bus);
-	struct usb_host_endpoint	*ep;
-=======
 	struct usb_hcd	*hcd,
 	struct urb	*urb,
 	int		is_setup
@@ -831,7 +765,6 @@ static struct urb *request_single_step_set_feature_urb(
 	struct urb *urb;
 	struct usb_hcd *hcd = bus_to_hcd(udev->bus);
 	struct usb_host_endpoint *ep;
->>>>>>> android-3.18
 
 	urb = usb_alloc_urb(0, GFP_KERNEL);
 	if (!urb)
@@ -839,23 +772,12 @@ static struct urb *request_single_step_set_feature_urb(
 
 	urb->pipe = usb_rcvctrlpipe(udev, 0);
 	ep = (usb_pipein(urb->pipe) ? udev->ep_in : udev->ep_out)
-<<<<<<< HEAD
-			[usb_pipeendpoint(urb->pipe)];
-=======
 				[usb_pipeendpoint(urb->pipe)];
->>>>>>> android-3.18
 	if (!ep) {
 		usb_free_urb(urb);
 		return NULL;
 	}
 
-<<<<<<< HEAD
-	/* Initialize the various URB fields as these are used
-	 * by the HCD driver to queue it and as well as
-	 * when completion happens.
-	 */
-=======
->>>>>>> android-3.18
 	urb->ep = ep;
 	urb->dev = udev;
 	urb->setup_packet = (void *)dr;
@@ -864,12 +786,7 @@ static struct urb *request_single_step_set_feature_urb(
 	urb->complete = usb_ehset_completion;
 	urb->status = -EINPROGRESS;
 	urb->actual_length = 0;
-<<<<<<< HEAD
-	urb->transfer_flags = (urb->transfer_flags & ~URB_DIR_MASK)
-				| URB_DIR_IN ;
-=======
 	urb->transfer_flags = URB_DIR_IN;
->>>>>>> android-3.18
 	usb_get_urb(urb);
 	atomic_inc(&urb->use_count);
 	atomic_inc(&urb->dev->urbnum);
@@ -892,15 +809,6 @@ static int ehset_single_step_set_feature(struct usb_hcd *hcd, int port)
 	int retval = -ENOMEM;
 	struct usb_ctrlrequest *dr;
 	struct urb *urb;
-<<<<<<< HEAD
-	struct usb_device *udev ;
-	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
-	struct usb_device_descriptor *buf;
-	DECLARE_COMPLETION_ONSTACK(done);
-
-	/*Obtain udev of the rhub's child port */
-	udev = hcd->self.root_hub->children[port];
-=======
 	struct usb_device *udev;
 	struct ehci_hcd *ehci = hcd_to_ehci(hcd);
 	struct usb_device_descriptor *buf;
@@ -908,7 +816,6 @@ static int ehset_single_step_set_feature(struct usb_hcd *hcd, int port)
 
 	/* Obtain udev of the rhub's child port */
 	udev = usb_hub_find_child(hcd->self.root_hub, port);
->>>>>>> android-3.18
 	if (!udev) {
 		ehci_err(ehci, "No device attached to the RootHub\n");
 		return -ENODEV;
@@ -933,11 +840,7 @@ static int ehset_single_step_set_feature(struct usb_hcd *hcd, int port)
 	if (!urb)
 		goto cleanup;
 
-<<<<<<< HEAD
-	/* Now complete just the SETUP stage */
-=======
 	/* Submit just the SETUP stage */
->>>>>>> android-3.18
 	retval = submit_single_step_set_feature(hcd, urb, 1);
 	if (retval)
 		goto out1;
@@ -948,13 +851,8 @@ static int ehset_single_step_set_feature(struct usb_hcd *hcd, int port)
 		goto out1;
 	}
 	msleep(15 * 1000);
-<<<<<<< HEAD
-	/* Complete remaining DATA and status stages */
-	/* No need to free the URB, we can reuse the same */
-=======
 
 	/* Complete remaining DATA and STATUS stages using the same URB */
->>>>>>> android-3.18
 	urb->status = -EINPROGRESS;
 	usb_get_urb(urb);
 	atomic_inc(&urb->use_count);
@@ -973,11 +871,7 @@ cleanup:
 	kfree(buf);
 	return retval;
 }
-<<<<<<< HEAD
-#endif
-=======
 #endif /* CONFIG_USB_HCD_TEST_MODE */
->>>>>>> android-3.18
 /*-------------------------------------------------------------------------*/
 
 int ehci_hub_control(
@@ -1306,17 +1200,8 @@ int ehci_hub_control(
 			 */
 			temp &= ~PORT_WKCONN_E;
 			temp |= PORT_WKDISC_E | PORT_WKOC_E;
-<<<<<<< HEAD
-			if (ehci->susp_sof_bug)
-				ehci_writel(ehci, temp, status_reg);
-			else
-				ehci_writel(ehci, temp | PORT_SUSPEND,
-						status_reg);
-			if (hostpc_reg) {
-=======
 			ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
 			if (ehci->has_tdi_phy_lpm) {
->>>>>>> android-3.18
 				spin_unlock_irqrestore(&ehci->lock, flags);
 				msleep(5);/* 5ms for HCD enter low pwr mode */
 				spin_lock_irqsave(&ehci->lock, flags);
@@ -1383,10 +1268,6 @@ int ehci_hub_control(
 		 * about the EHCI-specific stuff.
 		 */
 		case USB_PORT_FEAT_TEST:
-<<<<<<< HEAD
-			if (selector && selector <= 5) {
-				ehci_quiesce(ehci);
-=======
 #ifdef CONFIG_USB_HCD_TEST_MODE
 			if (selector == EHSET_TEST_SINGLE_STEP_SET_FEATURE) {
 				spin_unlock_irqrestore(&ehci->lock, flags);
@@ -1401,7 +1282,6 @@ int ehci_hub_control(
 			spin_unlock_irqrestore(&ehci->lock, flags);
 			ehci_quiesce(ehci);
 			spin_lock_irqsave(&ehci->lock, flags);
->>>>>>> android-3.18
 
 			/* Put all enabled ports into suspend */
 				while (ports--) {
@@ -1422,19 +1302,6 @@ int ehci_hub_control(
 				temp |= selector << 16;
 				ehci_writel(ehci, temp, status_reg);
 			}
-<<<<<<< HEAD
-#ifdef CONFIG_USB_EHCI_EHSET
-			else if (selector
-				  == EHSET_TEST_SINGLE_STEP_SET_FEATURE) {
-				spin_unlock_irqrestore(&ehci->lock, flags);
-				retval = ehset_single_step_set_feature(hcd,
-								   wIndex);
-				spin_lock_irqsave(&ehci->lock, flags);
-			}
-#endif
-			else
-				goto error;
-=======
 
 			spin_unlock_irqrestore(&ehci->lock, flags);
 			ehci_halt(ehci);
@@ -1443,7 +1310,6 @@ int ehci_hub_control(
 			temp = ehci_readl(ehci, status_reg);
 			temp |= selector << 16;
 			ehci_writel(ehci, temp, status_reg);
->>>>>>> android-3.18
 			break;
 		default:
 			goto error;

@@ -29,10 +29,6 @@
 #include <linux/atomic.h>
 #include <linux/device.h>
 #include <linux/io.h>
-<<<<<<< HEAD
-#include <linux/irqreturn.h>
-=======
->>>>>>> android-3.18
 #include <uapi/linux/pci.h>
 
 #include <linux/pci_ids.h>
@@ -172,9 +168,6 @@ enum pci_dev_flags {
 	/* Device configuration is irrevocably lost if disabled into D3 */
 	PCI_DEV_FLAGS_NO_D3 = (__force pci_dev_flags_t) (1 << 1),
 	/* Provide indication device is assigned by a Virtual Machine Manager */
-<<<<<<< HEAD
-	PCI_DEV_FLAGS_ASSIGNED = (__force pci_dev_flags_t) 4,
-=======
 	PCI_DEV_FLAGS_ASSIGNED = (__force pci_dev_flags_t) (1 << 2),
 	/* Flag for quirk use to store if quirk-specific ACS is enabled */
 	PCI_DEV_FLAGS_ACS_ENABLED_QUIRK = (__force pci_dev_flags_t) (1 << 3),
@@ -186,7 +179,6 @@ enum pci_dev_flags {
 	PCI_DEV_FLAGS_NO_BUS_RESET = (__force pci_dev_flags_t) (1 << 6),
 	/* Do not use PM reset even if device advertises NoSoftRst- */
 	PCI_DEV_FLAGS_NO_PM_RESET = (__force pci_dev_flags_t) (1 << 7),
->>>>>>> android-3.18
 	/* Get VPD from function 0 VPD */
 	PCI_DEV_FLAGS_VPD_REF_F0 = (__force pci_dev_flags_t) (1 << 8),
 };
@@ -1888,8 +1880,6 @@ int pci_for_each_dma_alias(struct pci_dev *pdev,
 			   int (*fn)(struct pci_dev *pdev,
 				     u16 alias, void *data), void *data);
 
-<<<<<<< HEAD
-=======
 /* helper functions for operation of device flag */
 static inline void pci_set_dev_assigned(struct pci_dev *pdev)
 {
@@ -1903,5 +1893,4 @@ static inline bool pci_is_dev_assigned(struct pci_dev *pdev)
 {
 	return (pdev->dev_flags & PCI_DEV_FLAGS_ASSIGNED) == PCI_DEV_FLAGS_ASSIGNED;
 }
->>>>>>> android-3.18
 #endif /* LINUX_PCI_H */

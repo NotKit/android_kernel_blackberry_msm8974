@@ -526,11 +526,8 @@ typedef efi_status_t efi_query_capsule_caps_t(efi_capsule_header_t **capsules,
 					      u64 *max_size,
 					      int *reset_type);
 typedef efi_status_t efi_query_variable_store_t(u32 attributes, unsigned long size);
-<<<<<<< HEAD
-=======
 
 void efi_native_runtime_setup(void);
->>>>>>> android-3.18
 
 /*
  *  EFI Configuration Table and GUID definitions
@@ -864,17 +861,11 @@ extern void efi_memmap_walk (efi_freemem_callback_t callback, void *arg);
 extern void efi_gettimeofday (struct timespec *ts);
 extern void efi_enter_virtual_mode (void);	/* switch EFI to virtual mode, if possible */
 #ifdef CONFIG_X86
-<<<<<<< HEAD
-extern void efi_free_boot_services(void);
-extern efi_status_t efi_query_variable_store(u32 attributes, unsigned long size);
-#else
-=======
 extern void efi_late_init(void);
 extern void efi_free_boot_services(void);
 extern efi_status_t efi_query_variable_store(u32 attributes, unsigned long size);
 #else
 static inline void efi_late_init(void) {}
->>>>>>> android-3.18
 static inline void efi_free_boot_services(void) {}
 
 static inline efi_status_t efi_query_variable_store(u32 attributes, unsigned long size)
@@ -882,13 +873,10 @@ static inline efi_status_t efi_query_variable_store(u32 attributes, unsigned lon
 	return EFI_SUCCESS;
 }
 #endif
-<<<<<<< HEAD
-=======
 extern void __iomem *efi_lookup_mapped_addr(u64 phys_addr);
 extern int efi_config_init(efi_config_table_type_t *arch_tables);
 extern int efi_config_parse_tables(void *config_tables, int count, int sz,
 				   efi_config_table_type_t *arch_tables);
->>>>>>> android-3.18
 extern u64 efi_get_iobase (void);
 extern u32 efi_mem_type (unsigned long phys_addr);
 extern u64 efi_mem_attributes (unsigned long phys_addr);
@@ -952,23 +940,6 @@ extern int __init efi_setup_pcdp_console(char *);
 #define EFI_RUNTIME_SERVICES	3	/* Can we use runtime services? */
 #define EFI_MEMMAP		4	/* Can we use EFI memory map? */
 #define EFI_64BIT		5	/* Is the firmware 64-bit? */
-<<<<<<< HEAD
-
-#ifdef CONFIG_EFI
-# ifdef CONFIG_X86
-extern int efi_enabled(int facility);
-# else
-static inline int efi_enabled(int facility)
-{
-	return 1;
-}
-# endif
-#else
-static inline int efi_enabled(int facility)
-{
-	return 0;
-}
-=======
 #define EFI_PARAVIRT		6	/* Access is via a paravirt interface */
 #define EFI_ARCH_1		7	/* First arch-specific bit */
 
@@ -988,7 +959,6 @@ static inline bool efi_enabled(int feature)
 }
 static inline void
 efi_reboot(enum reboot_mode reboot_mode, const char *__unused) {}
->>>>>>> android-3.18
 #endif
 
 /*
@@ -1083,27 +1053,15 @@ struct efivar_operations {
 	efi_get_variable_t *get_variable;
 	efi_get_next_variable_t *get_next_variable;
 	efi_set_variable_t *set_variable;
-<<<<<<< HEAD
-=======
 	efi_set_variable_nonblocking_t *set_variable_nonblocking;
->>>>>>> android-3.18
 	efi_query_variable_store_t *query_variable_store;
 };
 
 struct efivars {
 	/*
 	 * ->lock protects two things:
-<<<<<<< HEAD
-	 * 1) ->list - adds, removals, reads, writes
-	 * 2) ops.[gs]et_variable() calls.
-	 * It must not be held when creating sysfs entries or calling kmalloc.
-	 * ops.get_next_variable() is only called from register_efivars()
-	 * or efivar_update_sysfs_entries(),
-	 * which is protected by the BKL, so that path is safe.
-=======
 	 * 1) efivarfs_list and efivars_sysfs_list
 	 * 2) ->ops calls
->>>>>>> android-3.18
 	 */
 	spinlock_t lock;
 	struct kset *kset;

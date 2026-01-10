@@ -5418,11 +5418,7 @@ bnx2_free_tx_skbs(struct bnx2 *bp)
 			int k, last;
 
 			if (skb == NULL) {
-<<<<<<< HEAD
-				j = NEXT_TX_BD(j);
-=======
 				j = BNX2_NEXT_TX_BD(j);
->>>>>>> android-3.18
 				continue;
 			}
 
@@ -5434,15 +5430,9 @@ bnx2_free_tx_skbs(struct bnx2 *bp)
 			tx_buf->skb = NULL;
 
 			last = tx_buf->nr_frags;
-<<<<<<< HEAD
-			j = NEXT_TX_BD(j);
-			for (k = 0; k < last; k++, j = NEXT_TX_BD(j)) {
-				tx_buf = &txr->tx_buf_ring[TX_RING_IDX(j)];
-=======
 			j = BNX2_NEXT_TX_BD(j);
 			for (k = 0; k < last; k++, j = BNX2_NEXT_TX_BD(j)) {
 				tx_buf = &txr->tx_buf_ring[BNX2_TX_RING_IDX(j)];
->>>>>>> android-3.18
 				dma_unmap_page(&bp->pdev->dev,
 					dma_unmap_addr(tx_buf, mapping),
 					skb_frag_size(&skb_shinfo(skb)->frags[k]),

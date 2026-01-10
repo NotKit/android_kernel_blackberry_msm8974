@@ -1016,21 +1016,12 @@ void __init setup_arch(char **cmdline_p)
 #endif
 #ifdef CONFIG_EFI
 	if (!strncmp((char *)&boot_params.efi_info.efi_loader_signature,
-<<<<<<< HEAD
-		     "EL32", 4)) {
-		set_bit(EFI_BOOT, &x86_efi_facility);
-	} else if (!strncmp((char *)&boot_params.efi_info.efi_loader_signature,
-		     "EL64", 4)) {
-		set_bit(EFI_BOOT, &x86_efi_facility);
-		set_bit(EFI_64BIT, &x86_efi_facility);
-=======
 		     EFI32_LOADER_SIGNATURE, 4)) {
 		set_bit(EFI_BOOT, &efi.flags);
 	} else if (!strncmp((char *)&boot_params.efi_info.efi_loader_signature,
 		     EFI64_LOADER_SIGNATURE, 4)) {
 		set_bit(EFI_BOOT, &efi.flags);
 		set_bit(EFI_64BIT, &efi.flags);
->>>>>>> android-3.18
 	}
 
 	if (efi_enabled(EFI_BOOT))
@@ -1211,47 +1202,15 @@ void __init setup_arch(char **cmdline_p)
 	reserve_real_mode();
 
 	trim_platform_memory_ranges();
-<<<<<<< HEAD
-
-	init_gbpages();
-=======
 	trim_low_memory_range();
->>>>>>> android-3.18
 
 	init_mem_mapping();
 
-<<<<<<< HEAD
-#ifdef CONFIG_X86_64
-	if (max_pfn > max_low_pfn) {
-		int i;
-		unsigned long start, end;
-		unsigned long start_pfn, end_pfn;
-
-		for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn,
-							 NULL) {
-
-			end = PFN_PHYS(end_pfn);
-			if (end <= (1UL<<32))
-				continue;
-
-			start = PFN_PHYS(start_pfn);
-			max_pfn_mapped = init_memory_mapping(
-						max((1UL<<32), start), end);
-		}
-
-		/* can we preseve max_low_pfn ?*/
-		max_low_pfn = max_pfn;
-	}
-#endif
-	memblock.current_limit = get_max_mapped();
-	dma_contiguous_reserve(0);
-=======
 	early_trap_pf_init();
 
 	setup_real_mode();
 
 	memblock_set_current_limit(get_max_mapped());
->>>>>>> android-3.18
 
 	/*
 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
@@ -1368,24 +1327,11 @@ void __init setup_arch(char **cmdline_p)
 
 	arch_init_ideal_nops();
 
-<<<<<<< HEAD
-#ifdef CONFIG_EFI
-	/* Once setup is done above, unmap the EFI memory map on
-	 * mismatched firmware/kernel archtectures since there is no
-	 * support for runtime services.
-	 */
-	if (efi_enabled(EFI_BOOT) &&
-	    IS_ENABLED(CONFIG_X86_64) != efi_enabled(EFI_64BIT)) {
-		pr_info("efi: Setup done, disabling due to 32/64-bit mismatch\n");
-		efi_unmap_memmap();
-	}
-=======
 	register_refined_jiffies(CLOCK_TICK_RATE);
 
 #ifdef CONFIG_EFI
 	if (efi_enabled(EFI_BOOT))
 		efi_apply_memmap_quirks();
->>>>>>> android-3.18
 #endif
 }
 

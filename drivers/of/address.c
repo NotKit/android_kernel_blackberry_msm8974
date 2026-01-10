@@ -450,14 +450,6 @@ static struct of_bus *of_match_bus(struct device_node *np)
 	return NULL;
 }
 
-<<<<<<< HEAD
-static int of_empty_ranges_quirk(void)
-{
-	if (IS_ENABLED(CONFIG_PPC)) {
-		/* To save cycles, we cache the result */
-		static int quirk_state = -1;
-
-=======
 static int of_empty_ranges_quirk(struct device_node *np)
 {
 	if (IS_ENABLED(CONFIG_PPC)) {
@@ -469,7 +461,6 @@ static int of_empty_ranges_quirk(struct device_node *np)
 			return true;
 
 		/* Make quirk cached */
->>>>>>> android-3.18
 		if (quirk_state < 0)
 			quirk_state =
 				of_machine_is_compatible("Power Macintosh") ||
@@ -504,11 +495,7 @@ static int of_translate_one(struct device_node *parent, struct of_bus *bus,
 	 * This code is only enabled on powerpc. --gcl
 	 */
 	ranges = of_get_property(parent, rprop, &rlen);
-<<<<<<< HEAD
-	if (ranges == NULL && !of_empty_ranges_quirk()) {
-=======
 	if (ranges == NULL && !of_empty_ranges_quirk(parent)) {
->>>>>>> android-3.18
 		pr_err("OF: no ranges; cannot translate\n");
 		return 1;
 	}

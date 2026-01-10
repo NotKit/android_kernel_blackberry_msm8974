@@ -921,35 +921,6 @@ bool RFbSetPower(
 		byPwr = pDevice->abyCCKPwrTbl[uCH];
 		byPwrdBm = pDevice->abyCCKDefaultPwr[uCH];
 		break;
-<<<<<<< HEAD
-    case RATE_6M:
-    case RATE_9M:
-    case RATE_12M:
-    case RATE_18M:
-        byPwr = pDevice->abyOFDMPwrTbl[uCH];
-        if (pDevice->byRFType == RF_UW2452) {
-            byDec = byPwr + 14;
-        } else {
-            byDec = byPwr + 10;
-        }
-        if (byDec >= pDevice->byMaxPwrLevel) {
-            byDec = pDevice->byMaxPwrLevel-1;
-        }
-        if (pDevice->byRFType == RF_UW2452) {
-            byPwrdBm = byDec - byPwr;
-            byPwrdBm /= 3;
-        } else {
-            byPwrdBm = byDec - byPwr;
-            byPwrdBm >>= 1;
-        }
-        byPwrdBm += pDevice->abyOFDMDefaultPwr[uCH];
-        byPwr = byDec;
-//PLICE_DEBUG->
-	//byPwr+=5;
-//PLICE_DEBUG<-
-
-//printk("Rate <24:byPwr is %d\n",byPwr);
-=======
 	case RATE_6M:
 	case RATE_9M:
 	case RATE_12M:
@@ -973,7 +944,6 @@ bool RFbSetPower(
 
 		byPwrdBm += pDevice->abyOFDMDefaultPwr[uCH];
 		byPwr = byDec;
->>>>>>> android-3.18
 		break;
 	case RATE_24M:
 	case RATE_36M:

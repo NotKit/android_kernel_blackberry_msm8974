@@ -138,30 +138,11 @@ fgraph_trace:
 	bne	t1, t3, ftrace_graph_caller
 	 nop
 #endif
-<<<<<<< HEAD
-	b	ftrace_stub
-#ifdef CONFIG_32BIT
-	 addiu sp, sp, 8
-#else
-	 nop
-#endif
-
-static_trace:
-	MCOUNT_SAVE_REGS
-=======
->>>>>>> android-3.18
 
 #ifdef CONFIG_32BIT
 	addiu sp, sp, 8
 #endif
 
-<<<<<<< HEAD
-	MCOUNT_RESTORE_REGS
-#ifdef CONFIG_32BIT
-	addiu sp, sp, 8
-#endif
-=======
->>>>>>> android-3.18
 	.globl ftrace_stub
 ftrace_stub:
 	RETURN_BACK

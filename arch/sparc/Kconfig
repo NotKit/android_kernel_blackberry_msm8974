@@ -28,17 +28,10 @@ config SPARC
 	select HAVE_DMA_ATTRS
 	select HAVE_DMA_API_DEBUG
 	select HAVE_ARCH_JUMP_LABEL if SPARC64
-<<<<<<< HEAD
-	select HAVE_GENERIC_HARDIRQS
-=======
->>>>>>> android-3.18
 	select GENERIC_IRQ_SHOW
 	select ARCH_WANT_IPC_PARSE_VERSION
 	select GENERIC_PCI_IOMAP
 	select HAVE_NMI_WATCHDOG if SPARC64
-<<<<<<< HEAD
-	select GENERIC_STRNCPY_FROM_USER
-=======
 	select HAVE_BPF_JIT
 	select HAVE_DEBUG_BUGVERBOSE
 	select GENERIC_SMP_IDLE_THREAD
@@ -50,7 +43,6 @@ config SPARC
 	select ODD_RT_SIGACTION
 	select OLD_SIGSUSPEND
 	select ARCH_HAS_SG_CHAIN
->>>>>>> android-3.18
 
 config SPARC32
 	def_bool !64BIT

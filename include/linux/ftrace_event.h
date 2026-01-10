@@ -85,12 +85,9 @@ struct trace_iterator {
 
 	cpumask_var_t		started;
 
-<<<<<<< HEAD
-=======
 	/* it's true when current open file is snapshot */
 	bool			snapshot;
 
->>>>>>> android-3.18
 	/* The below is zeroed out in pipe_read */
 	struct trace_seq	seq;
 	struct trace_entry	*ent;

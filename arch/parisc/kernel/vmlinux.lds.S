@@ -65,15 +65,8 @@ SECTIONS
 	/* freed after init ends here */
 
 	_text = .;		/* Text and read-only data */
-<<<<<<< HEAD
-	.head ALIGN(16) : {
-		HEAD_TEXT
-	} = 0
-	.text ALIGN(16) : {
-=======
 	_stext = .;
 	.text ALIGN(PAGE_SIZE) : {
->>>>>>> android-3.18
 		TEXT_TEXT
 		SCHED_TEXT
 		LOCK_TEXT
@@ -88,11 +81,7 @@ SECTIONS
 		*(.lock.text)		/* out-of-line lock text */
 		*(.gnu.warning)
 	}
-<<<<<<< HEAD
-	/* End of text section */
-=======
 	. = ALIGN(PAGE_SIZE);
->>>>>>> android-3.18
 	_etext = .;
 	/* End of text section */
 

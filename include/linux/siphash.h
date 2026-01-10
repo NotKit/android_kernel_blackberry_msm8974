@@ -5,13 +5,9 @@
  * SipHash: a fast short-input PRF
  * https://131002.net/siphash/
  *
-<<<<<<< HEAD
- * This implementation is specifically for SipHash2-4.
-=======
  * This implementation is specifically for SipHash2-4 for a secure PRF
  * and HalfSipHash1-3/SipHash1-3 for an insecure PRF only suitable for
  * hashtables.
->>>>>>> android-3.18
  */
 
 #ifndef _LINUX_SIPHASH_H
@@ -93,8 +89,6 @@ static inline u64 siphash(const void *data, size_t len,
 	return ___siphash_aligned(data, len, key);
 }
 
-<<<<<<< HEAD
-=======
 #define HSIPHASH_ALIGNMENT __alignof__(unsigned long)
 typedef struct {
 	unsigned long key[2];
@@ -148,5 +142,4 @@ static inline u32 hsiphash(const void *data, size_t len,
 	return ___hsiphash_aligned(data, len, key);
 }
 
->>>>>>> android-3.18
 #endif /* _LINUX_SIPHASH_H */

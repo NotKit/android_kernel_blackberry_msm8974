@@ -333,14 +333,7 @@ static int psb_driver_load(struct drm_device *dev, unsigned long flags)
 	PSB_WSGX32(0x20000000, PSB_CR_PDS_EXEC_BASE);
 	PSB_WSGX32(0x30000000, PSB_CR_BIF_3D_REQ_BASE);
 
-<<<<<<< HEAD
-/*	igd_opregion_init(&dev_priv->opregion_dev); */
-/*	acpi_video_register(); */
-	if (dev_priv->lid_state)
-		psb_lid_timer_init(dev_priv);
-=======
 	acpi_video_register();
->>>>>>> android-3.18
 
 	/* Setup vertical blanking handling */
 	ret = drm_vblank_init(dev, dev_priv->num_pipe);

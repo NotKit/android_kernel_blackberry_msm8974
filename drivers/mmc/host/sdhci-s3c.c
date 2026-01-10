@@ -644,18 +644,7 @@ static int sdhci_s3c_remove(struct platform_device *pdev)
 	pm_runtime_dont_use_autosuspend(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
 
-<<<<<<< HEAD
-	for (ptr = 0; ptr < MAX_BUS_CLK; ptr++) {
-		if (sc->clk_bus[ptr]) {
-			clk_disable(sc->clk_bus[ptr]);
-			clk_put(sc->clk_bus[ptr]);
-		}
-	}
-	clk_disable(sc->clk_io);
-	clk_put(sc->clk_io);
-=======
 	clk_disable_unprepare(sc->clk_io);
->>>>>>> android-3.18
 
 	sdhci_free_host(host);
 

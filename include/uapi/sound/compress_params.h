@@ -51,29 +51,14 @@
 #ifndef __SND_COMPRESS_PARAMS_H
 #define __SND_COMPRESS_PARAMS_H
 
-<<<<<<< HEAD
-=======
 #include <linux/types.h>
 
->>>>>>> android-3.18
 /* AUDIO CODECS SUPPORTED */
 #define MAX_NUM_CODECS 32
 #define MAX_NUM_CODEC_DESCRIPTORS 32
 #define MAX_NUM_BITRATES 32
 #define MAX_NUM_SAMPLE_RATES 32
 
-<<<<<<< HEAD
-/* compressed TX */
-#define MAX_NUM_FRAMES_PER_BUFFER 1
-#define COMPRESSED_META_DATA_MODE 0x10
-#define META_DATA_LEN_BYTES 36
-#define Q6_AC3_DECODER	0x00010BF6
-#define Q6_EAC3_DECODER 0x00010C3C
-#define Q6_DTS		0x00010D88
-#define Q6_DTS_LBR	0x00010DBB
-
-=======
->>>>>>> android-3.18
 /* Codecs are listed linearly to allow for extensibility */
 #define SND_AUDIOCODEC_PCM                   ((__u32) 0x00000001)
 #define SND_AUDIOCODEC_MP3                   ((__u32) 0x00000002)
@@ -88,22 +73,7 @@
 #define SND_AUDIOCODEC_IEC61937              ((__u32) 0x0000000B)
 #define SND_AUDIOCODEC_G723_1                ((__u32) 0x0000000C)
 #define SND_AUDIOCODEC_G729                  ((__u32) 0x0000000D)
-<<<<<<< HEAD
-#define SND_AUDIOCODEC_AC3                   ((__u32) 0x0000000E)
-#define SND_AUDIOCODEC_DTS                   ((__u32) 0x0000000F)
-#define SND_AUDIOCODEC_AC3_PASS_THROUGH      ((__u32) 0x00000010)
-#define SND_AUDIOCODEC_WMA_PRO               ((__u32) 0x00000011)
-#define SND_AUDIOCODEC_DTS_PASS_THROUGH      ((__u32) 0x00000012)
-#define SND_AUDIOCODEC_DTS_LBR               ((__u32) 0x00000013)
-#define SND_AUDIOCODEC_DTS_TRANSCODE_LOOPBACK ((__u32) 0x00000014)
-#define SND_AUDIOCODEC_PASS_THROUGH          ((__u32) 0x00000015)
-#define SND_AUDIOCODEC_MP2                   ((__u32) 0x00000016)
-#define SND_AUDIOCODEC_DTS_LBR_PASS_THROUGH  ((__u32) 0x00000017)
-#define SND_AUDIOCODEC_EAC3                  ((__u32) 0x00000018)
-#define SND_AUDIOCODEC_MAX  SND_AUDIOCODEC_EAC3
-=======
 #define SND_AUDIOCODEC_MAX                   SND_AUDIOCODEC_G729
->>>>>>> android-3.18
 
 /*
  * Profile and modes are listed with bit masks. This allows for a
@@ -269,15 +239,6 @@
 
 struct snd_enc_wma {
 	__u32 super_block_align; /* WMA Type-specific data */
-<<<<<<< HEAD
-	__u32 bits_per_sample;
-	__u32 channelmask;
-	__u32 encodeopt;
-	__u32 encodeopt1;
-	__u32 encodeopt2;
-	__u32 avg_bit_rate;
-=======
->>>>>>> android-3.18
 };
 
 
@@ -354,34 +315,12 @@ struct snd_enc_generic {
 	__s32 reserved[15];
 } __attribute__((packed, aligned(4)));
 
-<<<<<<< HEAD
-struct snd_dec_ddp {
-	__u32 params_length;
-	__u32 params_id[18];
-	__u32 params_value[18];
-} __attribute__((packed, aligned(4)));
-
-struct snd_dec_flac {
-	__u16 sample_size;
-	__u16 min_blk_size;
-	__u16 max_blk_size;
-	__u16 min_frame_size;
-	__u16 max_frame_size;
-} __attribute__((packed, aligned(4)));
-
-=======
->>>>>>> android-3.18
 union snd_codec_options {
 	struct snd_enc_wma wma;
 	struct snd_enc_vorbis vorbis;
 	struct snd_enc_real real;
 	struct snd_enc_flac flac;
 	struct snd_enc_generic generic;
-<<<<<<< HEAD
-	struct snd_dec_ddp ddp;
-	struct snd_dec_flac flac_dec;
-=======
->>>>>>> android-3.18
 } __attribute__((packed, aligned(4)));
 
 /** struct snd_codec_desc - description of codec capabilities
@@ -429,11 +368,7 @@ struct snd_codec_desc {
  *		this field and the channelMode field, the channelMode field
  *		overrides.
  * @sample_rate: Audio sample rate of input data in Hz, use values like 48000
-<<<<<<< HEAD
- *             for this.
-=======
  *		for this.
->>>>>>> android-3.18
  * @bit_rate: Bitrate of encoded data. May be ignored by decoders
  * @rate_control: Encoding rate control. See SND_RATECONTROLMODE defines.
  *               Encoders may rely on profiles for quality levels.

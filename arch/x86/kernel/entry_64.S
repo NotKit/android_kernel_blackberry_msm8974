@@ -54,12 +54,9 @@
 #include <asm/irqflags.h>
 #include <asm/paravirt.h>
 #include <asm/percpu.h>
-<<<<<<< HEAD
-=======
 #include <asm/asm.h>
 #include <asm/context_tracking.h>
 #include <asm/smap.h>
->>>>>>> android-3.18
 #include <asm/pgtable_types.h>
 #include <linux/err.h>
 
@@ -367,11 +364,7 @@ ENTRY(ret_from_fork)
 	RESTORE_REST
 
 	testl $3, CS-ARGOFFSET(%rsp)		# from kernel_thread?
-<<<<<<< HEAD
-	jz   retint_restore_args
-=======
 	jz   1f
->>>>>>> android-3.18
 
 	/*
 	 * By the time we get here, we have no idea whether our pt_regs,
@@ -947,14 +940,6 @@ ENTRY(retint_kernel)
 #endif
 	CFI_ENDPROC
 END(common_interrupt)
-<<<<<<< HEAD
-
-/*
- * End of kprobes section
- */
-       .popsection
-=======
->>>>>>> android-3.18
 
 /*
  * APIC interrupts.
@@ -1293,15 +1278,9 @@ apicinterrupt3 HYPERVISOR_CALLBACK_VECTOR \
 	hyperv_callback_vector hyperv_vector_handler
 #endif /* CONFIG_HYPERV */
 
-<<<<<<< HEAD
-paranoidzeroentry_ist debug do_debug DEBUG_STACK
-paranoidzeroentry_ist int3 do_int3 DEBUG_STACK
-errorentry stack_segment do_stack_segment
-=======
 idtentry debug do_debug has_error_code=0 paranoid=1 shift_ist=DEBUG_STACK
 idtentry int3 do_int3 has_error_code=0 paranoid=1 shift_ist=DEBUG_STACK
 idtentry stack_segment do_stack_segment has_error_code=1
->>>>>>> android-3.18
 #ifdef CONFIG_XEN
 idtentry xen_debug do_debug has_error_code=0
 idtentry xen_int3 do_int3 has_error_code=0

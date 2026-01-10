@@ -89,56 +89,7 @@ static int vnt_cmd_complete(struct vnt_private *priv)
 
 	vnt_cmd_timer_wait(priv, 0);
 
-<<<<<<< HEAD
-    pTxPacket = (PSTxMgmtPacket)pMgmt->pbyMgmtPacketPool;
-    memset(pTxPacket, 0, sizeof(STxMgmtPacket) + WLAN_PROBEREQ_FR_MAXLEN);
-    pTxPacket->p80211Header = (PUWLAN_80211HDR)((PBYTE)pTxPacket + sizeof(STxMgmtPacket));
-    sFrame.pBuf = (PBYTE)pTxPacket->p80211Header;
-    sFrame.len = WLAN_PROBEREQ_FR_MAXLEN;
-    vMgrEncodeProbeRequest(&sFrame);
-    sFrame.pHdr->sA3.wFrameCtl = cpu_to_le16(
-        (
-        WLAN_SET_FC_FTYPE(WLAN_TYPE_MGR) |
-        WLAN_SET_FC_FSTYPE(WLAN_FSTYPE_PROBEREQ)
-        ));
-    memcpy( sFrame.pHdr->sA3.abyAddr1, pScanBSSID, WLAN_ADDR_LEN);
-    memcpy( sFrame.pHdr->sA3.abyAddr2, pMgmt->abyMACAddr, WLAN_ADDR_LEN);
-    memcpy( sFrame.pHdr->sA3.abyAddr3, pScanBSSID, WLAN_BSSID_LEN);
-    // Copy the SSID, pSSID->len=0 indicate broadcast SSID
-    sFrame.pSSID = (PWLAN_IE_SSID)(sFrame.pBuf + sFrame.len);
-    sFrame.len += pSSID->len + WLAN_IEHDR_LEN;
-    memcpy(sFrame.pSSID, pSSID, pSSID->len + WLAN_IEHDR_LEN);
-    sFrame.pSuppRates = (PWLAN_IE_SUPP_RATES)(sFrame.pBuf + sFrame.len);
-    sFrame.len += pCurrRates->len + WLAN_IEHDR_LEN;
-    memcpy(sFrame.pSuppRates, pCurrRates, pCurrRates->len + WLAN_IEHDR_LEN);
-    // Copy the extension rate set
-    if (pDevice->byBBType == BB_TYPE_11G) {
-        sFrame.pExtSuppRates = (PWLAN_IE_SUPP_RATES)(sFrame.pBuf + sFrame.len);
-        sFrame.len += pCurrExtSuppRates->len + WLAN_IEHDR_LEN;
-        memcpy(sFrame.pExtSuppRates, pCurrExtSuppRates, pCurrExtSuppRates->len + WLAN_IEHDR_LEN);
-    }
-    pTxPacket->cbMPDULen = sFrame.len;
-    pTxPacket->cbPayloadLen = sFrame.len - WLAN_HDR_ADDR3_LEN;
-
-    return pTxPacket;
-}
-
-void vCommandTimerWait(void *hDeviceContext, unsigned long MSecond)
-{
-	PSDevice pDevice = (PSDevice)hDeviceContext;
-
-	init_timer(&pDevice->sTimerCommand);
-
-	pDevice->sTimerCommand.data = (unsigned long)pDevice;
-	pDevice->sTimerCommand.function = (TimerFunction)vRunCommand;
-	pDevice->sTimerCommand.expires = RUN_AT((MSecond * HZ) / 1000);
-
-	add_timer(&pDevice->sTimerCommand);
-
-	return;
-=======
 	return true;
->>>>>>> android-3.18
 }
 
 void vnt_run_command(struct work_struct *work)

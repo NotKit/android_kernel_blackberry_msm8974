@@ -896,13 +896,8 @@ long arch_ptrace(struct task_struct *child, long request,
  */
 asmlinkage long syscall_trace_enter(struct pt_regs *regs, long syscall)
 {
-<<<<<<< HEAD
-	/* do the secure computing check first */
-	secure_computing_strict(regs->regs[2]);
-=======
 	long ret = 0;
 	user_exit();
->>>>>>> android-3.18
 
 	if (secure_computing(NULL) == -1)
 		return -1;

@@ -309,11 +309,7 @@ void notrace restore_interrupts(void)
  * being re-enabled and generally sanitized the lazy irq state,
  * and in the latter case it will leave with interrupts hard
  * disabled and marked as such, so the local_irq_enable() call
-<<<<<<< HEAD
- * in cpu_idle() will properly re-enable everything.
-=======
  * in arch_cpu_idle() will properly re-enable everything.
->>>>>>> android-3.18
  */
 bool prep_irq_for_idle(void)
 {

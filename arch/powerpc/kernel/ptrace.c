@@ -1771,11 +1771,8 @@ long do_syscall_trace_enter(struct pt_regs *regs)
 {
 	long ret = 0;
 
-<<<<<<< HEAD
-=======
 	user_exit();
 
->>>>>>> android-3.18
 	secure_computing_strict(regs->gpr[0]);
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE) &&

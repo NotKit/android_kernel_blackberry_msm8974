@@ -27,11 +27,7 @@
 #include <linux/debugfs.h>
 #include <linux/ctype.h>
 #include <linux/efi.h>
-<<<<<<< HEAD
-#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
-=======
 #include <linux/suspend.h>
->>>>>>> android-3.18
 #include <acpi/video.h>
 
 /*
@@ -1550,8 +1546,6 @@ static struct dmi_system_id __initdata samsung_dmi_table[] = {
 	},
 	{
 	 .callback = samsung_dmi_matched,
-<<<<<<< HEAD
-=======
 	 .ident = "X360",
 	 .matches = {
 		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
@@ -1562,18 +1556,13 @@ static struct dmi_system_id __initdata samsung_dmi_table[] = {
 	},
 	{
 	 .callback = samsung_dmi_matched,
->>>>>>> android-3.18
 	 .ident = "N250P",
 	 .matches = {
 		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
 		DMI_MATCH(DMI_PRODUCT_NAME, "N250P"),
 		DMI_MATCH(DMI_BOARD_NAME, "N250P"),
 		},
-<<<<<<< HEAD
-	 .driver_data = &samsung_broken_acpi_video,
-=======
 	 .driver_data = &samsung_use_native_backlight,
->>>>>>> android-3.18
 	},
 	{
 	 .callback = samsung_dmi_matched,
@@ -1585,8 +1574,6 @@ static struct dmi_system_id __initdata samsung_dmi_table[] = {
 		},
 	 .driver_data = &samsung_broken_acpi_video,
 	},
-<<<<<<< HEAD
-=======
 	{
 	 .callback = samsung_dmi_matched,
 	 .ident = "730U3E/740U3E",
@@ -1596,7 +1583,6 @@ static struct dmi_system_id __initdata samsung_dmi_table[] = {
 		},
 	 .driver_data = &samsung_np740u3e,
 	},
->>>>>>> android-3.18
 	{ },
 };
 MODULE_DEVICE_TABLE(dmi, samsung_dmi_table);

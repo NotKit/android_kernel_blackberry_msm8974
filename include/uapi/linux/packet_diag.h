@@ -16,11 +16,8 @@ struct packet_diag_req {
 #define PACKET_SHOW_MCLIST	0x00000002 /* A set of packet_diag_mclist-s */
 #define PACKET_SHOW_RING_CFG	0x00000004 /* Rings configuration parameters */
 #define PACKET_SHOW_FANOUT	0x00000008
-<<<<<<< HEAD
-=======
 #define PACKET_SHOW_MEMINFO	0x00000010
 #define PACKET_SHOW_FILTER	0x00000020
->>>>>>> android-3.18
 
 struct packet_diag_msg {
 	__u8	pdiag_family;
@@ -32,21 +29,12 @@ struct packet_diag_msg {
 };
 
 enum {
-<<<<<<< HEAD
-=======
 	/* PACKET_DIAG_NONE, standard nl API requires this attribute!  */
->>>>>>> android-3.18
 	PACKET_DIAG_INFO,
 	PACKET_DIAG_MCLIST,
 	PACKET_DIAG_RX_RING,
 	PACKET_DIAG_TX_RING,
 	PACKET_DIAG_FANOUT,
-<<<<<<< HEAD
-
-	PACKET_DIAG_MAX,
-};
-
-=======
 	PACKET_DIAG_UID,
 	PACKET_DIAG_MEMINFO,
 	PACKET_DIAG_FILTER,
@@ -56,7 +44,6 @@ enum {
 
 #define PACKET_DIAG_MAX (__PACKET_DIAG_MAX - 1)
 
->>>>>>> android-3.18
 struct packet_diag_info {
 	__u32	pdi_index;
 	__u32	pdi_version;
@@ -77,11 +64,7 @@ struct packet_diag_mclist {
 	__u32	pdmc_count;
 	__u16	pdmc_type;
 	__u16	pdmc_alen;
-<<<<<<< HEAD
-	__u8	pdmc_addr[MAX_ADDR_LEN];
-=======
 	__u8	pdmc_addr[32]; /* MAX_ADDR_LEN */
->>>>>>> android-3.18
 };
 
 struct packet_diag_ring {

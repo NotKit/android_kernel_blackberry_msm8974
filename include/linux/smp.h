@@ -107,42 +107,8 @@ void wake_up_all_idle_cpus(void);
  */
 void __init call_function_init(void);
 void generic_smp_call_function_single_interrupt(void);
-<<<<<<< HEAD
-void ipi_call_lock(void);
-void ipi_call_unlock(void);
-void ipi_call_lock_irq(void);
-void ipi_call_unlock_irq(void);
-
 #define generic_smp_call_function_interrupt \
 	generic_smp_call_function_single_interrupt
-#else
-static inline void call_function_init(void) { }
-#endif
-
-/*
- * Call a function on all processors
- */
-int on_each_cpu(smp_call_func_t func, void *info, int wait);
-
-/*
- * Call a function on processors specified by mask, which might include
- * the local one.
- */
-void on_each_cpu_mask(const struct cpumask *mask, smp_call_func_t func,
-		void *info, bool wait);
-
-/*
- * Call a function on each processor for which the supplied function
- * cond_func returns a positive value. This may include the local
- * processor.
- */
-void on_each_cpu_cond(bool (*cond_func)(int cpu, void *info),
-		smp_call_func_t func, void *info, bool wait,
-		gfp_t gfp_flags);
-=======
-#define generic_smp_call_function_interrupt \
-	generic_smp_call_function_single_interrupt
->>>>>>> android-3.18
 
 /*
  * Mark the boot cpu "online" so that it can call console drivers in

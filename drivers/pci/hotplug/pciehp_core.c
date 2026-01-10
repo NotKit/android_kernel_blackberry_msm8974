@@ -41,11 +41,7 @@
 bool pciehp_debug;
 bool pciehp_poll_mode;
 int pciehp_poll_time;
-<<<<<<< HEAD
-bool pciehp_force;
-=======
 static bool pciehp_force;
->>>>>>> android-3.18
 
 #define DRIVER_VERSION	"0.4"
 #define DRIVER_AUTHOR	"Dan Zink <dan.zink@compaq.com>, Greg Kroah-Hartman <greg@kroah.com>, Dely Sy <dely.l.sy@intel.com>"
@@ -377,13 +373,8 @@ static int __init pcied_init(void)
 
 	pciehp_firmware_init();
 	retval = pcie_port_service_register(&hpdriver_portdrv);
-<<<<<<< HEAD
- 	dbg("pcie_port_service_register = %d\n", retval);
-  	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
-=======
 	dbg("pcie_port_service_register = %d\n", retval);
 	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
->>>>>>> android-3.18
 	if (retval)
 		dbg("Failure to register service\n");
 

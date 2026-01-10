@@ -22,8 +22,6 @@
 /* Extensions */
 
 #define VFIO_TYPE1_IOMMU		1
-<<<<<<< HEAD
-=======
 #define VFIO_SPAPR_TCE_IOMMU		2
 #define VFIO_TYPE1v2_IOMMU		3
 /*
@@ -37,7 +35,6 @@
 
 /* Two-stage IOMMU */
 #define VFIO_TYPE1_NESTING_IOMMU	6	/* Implies v2 */
->>>>>>> android-3.18
 
 /*
  * The IOCTL interface is designed for extensibility by embedding the
@@ -319,8 +316,6 @@ enum {
 	VFIO_PCI_BAR5_REGION_INDEX,
 	VFIO_PCI_ROM_REGION_INDEX,
 	VFIO_PCI_CONFIG_REGION_INDEX,
-<<<<<<< HEAD
-=======
 	/*
 	 * Expose VGA regions defined for PCI base class 03, subclass 00.
 	 * This includes I/O port ranges 0x3b0 to 0x3bb and 0x3c0 to 0x3df
@@ -330,7 +325,6 @@ enum {
 	 * between described ranges are unimplemented.
 	 */
 	VFIO_PCI_VGA_REGION_INDEX,
->>>>>>> android-3.18
 	VFIO_PCI_NUM_REGIONS
 };
 
@@ -338,11 +332,6 @@ enum {
 	VFIO_PCI_INTX_IRQ_INDEX,
 	VFIO_PCI_MSI_IRQ_INDEX,
 	VFIO_PCI_MSIX_IRQ_INDEX,
-<<<<<<< HEAD
-	VFIO_PCI_NUM_IRQS
-};
-
-=======
 	VFIO_PCI_ERR_IRQ_INDEX,
 	VFIO_PCI_NUM_IRQS
 };
@@ -385,7 +374,6 @@ struct vfio_pci_hot_reset {
 
 #define VFIO_DEVICE_PCI_HOT_RESET	_IO(VFIO_TYPE, VFIO_BASE + 13)
 
->>>>>>> android-3.18
 /* -------- API for Type1 VFIO IOMMU -------- */
 
 /**
@@ -424,12 +412,6 @@ struct vfio_iommu_type1_dma_map {
 #define VFIO_IOMMU_MAP_DMA _IO(VFIO_TYPE, VFIO_BASE + 13)
 
 /**
-<<<<<<< HEAD
- * VFIO_IOMMU_UNMAP_DMA - _IOW(VFIO_TYPE, VFIO_BASE + 14, struct vfio_dma_unmap)
- *
- * Unmap IO virtual addresses using the provided struct vfio_dma_unmap.
- * Caller sets argsz.
-=======
  * VFIO_IOMMU_UNMAP_DMA - _IOWR(VFIO_TYPE, VFIO_BASE + 14,
  *							struct vfio_dma_unmap)
  *
@@ -438,7 +420,6 @@ struct vfio_iommu_type1_dma_map {
  * field.  No guarantee is made to the user that arbitrary unmaps of iova
  * or size different from those used in the original mapping call will
  * succeed.
->>>>>>> android-3.18
  */
 struct vfio_iommu_type1_dma_unmap {
 	__u32	argsz;
@@ -449,8 +430,6 @@ struct vfio_iommu_type1_dma_unmap {
 
 #define VFIO_IOMMU_UNMAP_DMA _IO(VFIO_TYPE, VFIO_BASE + 14)
 
-<<<<<<< HEAD
-=======
 /*
  * IOCTLs to enable/disable IOMMU container usage.
  * No parameters are supported.
@@ -515,5 +494,4 @@ struct vfio_eeh_pe_op {
 
 /* ***************************************************************** */
 
->>>>>>> android-3.18
 #endif /* _UAPIVFIO_H */

@@ -25,12 +25,6 @@
 #include "phy.h"
 #include "workarounds.h"
 #include "selftest.h"
-<<<<<<< HEAD
-
-/* Hardware control for SFC4000 (aka Falcon). */
-
-static int falcon_reset_hw(struct efx_nic *efx, enum reset_type method);
-=======
 #include "mdio_10g.h"
 
 /* Hardware control for SFC4000 (aka Falcon). */
@@ -307,7 +301,6 @@ struct falcon_nvconfig {
 
 static int falcon_reset_hw(struct efx_nic *efx, enum reset_type method);
 static void falcon_reconfigure_mac_wrapper(struct efx_nic *efx);
->>>>>>> android-3.18
 
 static const unsigned int
 /* "Large" EEPROM device: Atmel AT25640 or similar
@@ -1905,13 +1898,8 @@ falcon_b0_test_chip(struct efx_nic *efx, struct efx_self_tests *tests)
 	efx_reset_down(efx, reset_method);
 
 	tests->registers =
-<<<<<<< HEAD
-		efx_nic_test_registers(efx, falcon_b0_register_tests,
-				       ARRAY_SIZE(falcon_b0_register_tests))
-=======
 		efx_farch_test_registers(efx, falcon_b0_register_tests,
 					 ARRAY_SIZE(falcon_b0_register_tests))
->>>>>>> android-3.18
 		? -1 : 1;
 
 	rc = falcon_reset_hw(efx, reset_method);
@@ -2715,12 +2703,9 @@ const struct efx_nic_type falcon_a1_nic_type = {
 	.fini_dmaq = efx_farch_fini_dmaq,
 	.prepare_flush = falcon_prepare_flush,
 	.finish_flush = efx_port_dummy_op_void,
-<<<<<<< HEAD
-=======
 	.prepare_flr = efx_port_dummy_op_void,
 	.finish_flr = efx_farch_finish_flr,
 	.describe_stats = falcon_describe_nic_stats,
->>>>>>> android-3.18
 	.update_stats = falcon_update_nic_stats,
 	.start_stats = falcon_start_nic_stats,
 	.pull_stats = falcon_pull_nic_stats,
@@ -2814,12 +2799,9 @@ const struct efx_nic_type falcon_b0_nic_type = {
 	.fini_dmaq = efx_farch_fini_dmaq,
 	.prepare_flush = falcon_prepare_flush,
 	.finish_flush = efx_port_dummy_op_void,
-<<<<<<< HEAD
-=======
 	.prepare_flr = efx_port_dummy_op_void,
 	.finish_flr = efx_farch_finish_flr,
 	.describe_stats = falcon_describe_nic_stats,
->>>>>>> android-3.18
 	.update_stats = falcon_update_nic_stats,
 	.start_stats = falcon_start_nic_stats,
 	.pull_stats = falcon_pull_nic_stats,

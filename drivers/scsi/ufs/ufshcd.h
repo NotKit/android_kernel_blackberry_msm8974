@@ -52,10 +52,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/clk.h>
 #include <linux/completion.h>
-<<<<<<< HEAD
-=======
 #include <linux/regulator/consumer.h>
->>>>>>> android-3.18
 
 #include <asm/irq.h>
 #include <asm/byteorder.h>
@@ -72,8 +69,6 @@
 #define UFSHCD "ufshcd"
 #define UFSHCD_DRIVER_VERSION "0.2"
 
-<<<<<<< HEAD
-=======
 struct ufs_hba;
 
 enum dev_cmd_type {
@@ -81,7 +76,6 @@ enum dev_cmd_type {
 	DEV_CMD_TYPE_QUERY		= 0x1,
 };
 
->>>>>>> android-3.18
 /**
  * struct uic_command - UIC command structure
  * @command: UIC command
@@ -102,12 +96,6 @@ struct uic_command {
 	struct completion done;
 };
 
-<<<<<<< HEAD
-/**
- * struct ufshcd_lrb - local reference block
- * @utr_descriptor_ptr: UTRD address of the command
- * @ucd_cmd_ptr: UCD address of the command
-=======
 /* Used to differentiate the power management options */
 enum ufs_pm_op {
 	UFS_RUNTIME_PM,
@@ -160,7 +148,6 @@ struct ufs_pm_lvl_states {
  * struct ufshcd_lrb - local reference block
  * @utr_descriptor_ptr: UTRD address of the command
  * @ucd_req_ptr: UCD address of the command
->>>>>>> android-3.18
  * @ucd_rsp_ptr: Response UPIU address for this command
  * @ucd_prdt_ptr: PRDT address of the command
  * @cmd: pointer to SCSI command
@@ -170,18 +157,11 @@ struct ufs_pm_lvl_states {
  * @command_type: SCSI, UFS, Query.
  * @task_tag: Task tag of the command
  * @lun: LUN of the command
-<<<<<<< HEAD
- */
-struct ufshcd_lrb {
-	struct utp_transfer_req_desc *utr_descriptor_ptr;
-	struct utp_upiu_cmd *ucd_cmd_ptr;
-=======
  * @intr_cmd: Interrupt command (doesn't participate in interrupt aggregation)
  */
 struct ufshcd_lrb {
 	struct utp_transfer_req_desc *utr_descriptor_ptr;
 	struct utp_upiu_req *ucd_req_ptr;
->>>>>>> android-3.18
 	struct utp_upiu_rsp *ucd_rsp_ptr;
 	struct ufshcd_sg_entry *ucd_prdt_ptr;
 
@@ -192,11 +172,6 @@ struct ufshcd_lrb {
 
 	int command_type;
 	int task_tag;
-<<<<<<< HEAD
-	unsigned int lun;
-};
-
-=======
 	u8 lun; /* UPIU LUN id field is only 8-bit wide */
 	bool intr_cmd;
 };
@@ -347,7 +322,6 @@ struct ufs_clk_scaling {
 struct ufs_init_prefetch {
 	u32 icc_level;
 };
->>>>>>> android-3.18
 
 /**
  * struct ufs_hba - per adapter private structure
@@ -361,27 +335,13 @@ struct ufs_init_prefetch {
  * @host: Scsi_Host instance of the driver
  * @dev: device handle
  * @lrb: local reference block
-<<<<<<< HEAD
-=======
  * @lrb_in_use: lrb in use
->>>>>>> android-3.18
  * @outstanding_tasks: Bits representing outstanding task requests
  * @outstanding_reqs: Bits representing outstanding transfer requests
  * @capabilities: UFS Controller Capabilities
  * @nutrs: Transfer Request Queue depth supported by controller
  * @nutmrs: Task Management Queue depth supported by controller
  * @ufs_version: UFS Version to which controller complies
-<<<<<<< HEAD
- * @irq: Irq number of the controller
- * @active_uic_cmd: handle of active UIC command
- * @uic_cmd_mutex: mutex for uic command
- * @ufshcd_tm_wait_queue: wait queue for task management
- * @tm_condition: condition variable for task management
- * @ufshcd_state: UFSHCD states
- * @intr_mask: Interrupt Mask Bits
- * @feh_workq: Work queue for fatal controller error handling
- * @errors: HBA errors
-=======
  * @vops: pointer to variant specific operations
  * @priv: pointer to variant specific private data
  * @irq: Irq number of the controller
@@ -411,7 +371,6 @@ struct ufs_init_prefetch {
  * @clk_list_head: UFS host controller clocks list node head
  * @pwr_info: holds current power mode
  * @max_pwr_info: keeps the device max valid pwm
->>>>>>> android-3.18
  */
 struct ufs_hba {
 	void __iomem *mmio_base;
@@ -428,10 +387,6 @@ struct ufs_hba {
 
 	struct Scsi_Host *host;
 	struct device *dev;
-<<<<<<< HEAD
-
-	struct ufshcd_lrb *lrb;
-=======
 	/*
 	 * This field is to keep a reference to "scsi_device" corresponding to
 	 * "UFS device" W-LU.
@@ -448,7 +403,6 @@ struct ufs_hba {
 
 	struct ufshcd_lrb *lrb;
 	unsigned long lrb_in_use;
->>>>>>> android-3.18
 
 	unsigned long outstanding_tasks;
 	unsigned long outstanding_reqs;
@@ -457,26 +411,6 @@ struct ufs_hba {
 	int nutrs;
 	int nutmrs;
 	u32 ufs_version;
-<<<<<<< HEAD
-	unsigned int irq;
-
-	struct uic_command *active_uic_cmd;
-	struct mutex uic_cmd_mutex;
-
-	wait_queue_head_t ufshcd_tm_wait_queue;
-	unsigned long tm_condition;
-
-	u32 ufshcd_state;
-	u32 intr_mask;
-
-	/* Work Queues */
-	struct work_struct feh_workq;
-
-	/* HBA Errors */
-	u32 errors;
-};
-
-=======
 	struct ufs_hba_variant_ops *vops;
 	void *priv;
 	unsigned int irq;
@@ -571,16 +505,11 @@ static inline bool ufshcd_can_autobkops_during_suspend(struct ufs_hba *hba)
 	return hba->caps & UFSHCD_CAP_AUTO_BKOPS_SUSPEND;
 }
 
->>>>>>> android-3.18
 #define ufshcd_writel(hba, val, reg)	\
 	writel((val), (hba)->mmio_base + (reg))
 #define ufshcd_readl(hba, reg)	\
 	readl((hba)->mmio_base + (reg))
 
-<<<<<<< HEAD
-int ufshcd_init(struct device *, struct ufs_hba ** , void __iomem * ,
-			unsigned int);
-=======
 /**
  * ufshcd_rmwl - read modify write into a register
  * @hba - per adapter instance
@@ -600,7 +529,6 @@ static inline void ufshcd_rmwl(struct ufs_hba *hba, u32 mask, u32 val, u32 reg)
 
 int ufshcd_alloc_host(struct device *, struct ufs_hba **);
 int ufshcd_init(struct ufs_hba * , void __iomem * , unsigned int);
->>>>>>> android-3.18
 void ufshcd_remove(struct ufs_hba *);
 
 /**
@@ -612,8 +540,6 @@ static inline void ufshcd_hba_stop(struct ufs_hba *hba)
 	ufshcd_writel(hba, CONTROLLER_DISABLE,  REG_CONTROLLER_ENABLE);
 }
 
-<<<<<<< HEAD
-=======
 static inline void check_upiu_size(void)
 {
 	BUILD_BUG_ON(ALIGNED_UPIU_SIZE <
@@ -684,5 +610,4 @@ static inline int ufshcd_dme_peer_get(struct ufs_hba *hba,
 
 int ufshcd_hold(struct ufs_hba *hba, bool async);
 void ufshcd_release(struct ufs_hba *hba);
->>>>>>> android-3.18
 #endif /* End of Header */

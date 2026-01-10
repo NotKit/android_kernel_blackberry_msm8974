@@ -1405,15 +1405,9 @@ next_ndp:
 		/* sanity checking */
 		if (((offset + len) > skb_in->len) ||
 				(len > ctx->rx_max) || (len < ETH_HLEN)) {
-<<<<<<< HEAD
-			pr_debug("invalid frame detected (ignored)"
-					"offset[%u]=%u, length=%u, skb=%pK\n",
-					x, offset, len, skb_in);
-=======
 			netif_dbg(dev, rx_err, dev->net,
 				  "invalid frame detected (ignored) offset[%u]=%u, length=%u, skb=%p\n",
 				  x, offset, len, skb_in);
->>>>>>> android-3.18
 			if (!x)
 				goto err_ndp;
 			break;

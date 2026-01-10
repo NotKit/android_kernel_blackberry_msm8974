@@ -168,16 +168,10 @@ int gpmi_init(struct gpmi_nand_data *this)
 
 	/*
 	 * Reset BCH here, too. We got failures otherwise :(
-<<<<<<< HEAD
-	 * See later BCH reset for explanation of MX23 handling
-	 */
-	ret = gpmi_reset_block(r->bch_regs, GPMI_IS_MX23(this));
-=======
 	 * See later BCH reset for explanation of MX23 and MX28 handling
 	 */
 	ret = gpmi_reset_block(r->bch_regs,
 			       GPMI_IS_MX23(this) || GPMI_IS_MX28(this));
->>>>>>> android-3.18
 	if (ret)
 		goto err_out;
 

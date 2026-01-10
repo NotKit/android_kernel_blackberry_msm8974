@@ -78,12 +78,8 @@ int spk_key_echo, spk_say_word_ctl;
 int spk_say_ctrl, spk_bell_pos;
 short spk_punc_mask;
 int spk_punc_level, spk_reading_punc;
-<<<<<<< HEAD
-char spk_str_caps_start[MAXVARLEN + 1] = "\0", spk_str_caps_stop[MAXVARLEN + 1] = "\0";
-=======
 char spk_str_caps_start[MAXVARLEN + 1] = "\0";
 char spk_str_caps_stop[MAXVARLEN + 1] = "\0";
->>>>>>> android-3.18
 const struct st_bits_data spk_punc_info[] = {
 	{"none", "", 0},
 	{"some", "/$%&@", SOME},
@@ -98,12 +94,8 @@ const struct st_bits_data spk_punc_info[] = {
 
 static char mark_cut_flag;
 #define MAX_KEY 160
-<<<<<<< HEAD
-u_char *spk_our_keys[MAX_KEY], *spk_shift_table;
-=======
 static u_char *spk_shift_table;
 u_char *spk_our_keys[MAX_KEY];
->>>>>>> android-3.18
 u_char spk_key_buf[600];
 const u_char spk_key_defaults[] = {
 #include "speakupmap.h"
@@ -291,10 +283,7 @@ static void bleep(u_short val)
 	};
 	short freq;
 	int time = spk_bleep_time;
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	freq = vals[val % 12];
 	if (val > 11)
 		freq *= (1 << (val / 12));
@@ -441,10 +430,7 @@ static void speak_char(u_char ch)
 {
 	char *cp = spk_characters[ch];
 	struct var_t *direct = spk_get_var(DIRECT);
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	if (direct && direct->u.n.value) {
 		if (IS_CHAR(ch, B_CAP)) {
 			spk_pitch_shift++;
@@ -604,10 +590,7 @@ static void say_word(struct vc_data *vc)
 {
 	u_long cnt = get_word(vc);
 	u_short saved_punc_mask = spk_punc_mask;
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	if (cnt == 0)
 		return;
 	spk_punc_mask = PUNC;
@@ -774,10 +757,7 @@ static void say_line(struct vc_data *vc)
 	int i = get_line(vc);
 	char *cp;
 	u_short saved_punc_mask = spk_punc_mask;
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	if (i == 0) {
 		synth_printf("%s\n", spk_msg_get(MSG_BLANK));
 		return;
@@ -824,10 +804,7 @@ static int say_from_to(struct vc_data *vc, u_long from, u_long to,
 	int i = 0;
 	u_char tmp;
 	u_short saved_punc_mask = spk_punc_mask;
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	spk_old_attr = spk_attr;
 	spk_attr = get_attributes((u_short *) from);
 	while (from < to) {
@@ -1194,11 +1171,7 @@ static void do_handle_shift(struct vc_data *vc, u_char value, char up_flag)
 	}
 	if (spk_say_ctrl && value < NUM_CTL_LABELS)
 		synth_printf("%s", spk_msg_get(MSG_CTL_START + value));
-<<<<<<< HEAD
-	spk_unlock(flags);
-=======
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 }
 
 static void do_handle_latin(struct vc_data *vc, u_char value, char up_flag)
@@ -1810,11 +1783,7 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 	if (on_off < 2)
 		synth_printf("%s %s\n",
 			     label, spk_msg_get(MSG_STATUS_START + on_off));
-<<<<<<< HEAD
-	spk_unlock(flags);
-=======
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 }
 
 static int inc_dec_var(u_char value)
@@ -1908,10 +1877,7 @@ static void speakup_win_enable(struct vc_data *vc)
 static void speakup_bits(struct vc_data *vc)
 {
 	int val = this_speakup_key - (FIRST_EDIT_BITS - 1);
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	if (spk_special_handler != NULL || val < 1 || val > 6) {
 		synth_printf("%s\n", spk_msg_get(MSG_ERROR));
 		return;
@@ -2009,10 +1975,6 @@ static void speakup_goto(struct vc_data *vc)
 	}
 	synth_printf("%s\n", spk_msg_get(MSG_GOTO));
 	spk_special_handler = handle_goto;
-<<<<<<< HEAD
-	return;
-=======
->>>>>>> android-3.18
 }
 
 static void speakup_help(struct vc_data *vc)
@@ -2106,11 +2068,7 @@ speakup_key(struct vc_data *vc, int shift_state, int keycode, u_short keysym,
 	if (keycode >= MAX_KEY)
 		goto no_map;
 	key_info = spk_our_keys[keycode];
-<<<<<<< HEAD
-	if (key_info == 0)
-=======
 	if (!key_info)
->>>>>>> android-3.18
 		goto no_map;
 	/* Check valid read all mode keys */
 	if ((cursor_track == read_all_mode) && (!up_flag)) {
@@ -2346,11 +2304,7 @@ static int __init speakup_init(void)
 	     (var->var_id >= 0) && (var->var_id < MAXVARS); var++)
 		speakup_register_var(var);
 	for (i = 1; spk_punc_info[i].mask != 0; i++)
-<<<<<<< HEAD
-		spk_set_mask_bits(0, i, 2);
-=======
 		spk_set_mask_bits(NULL, i, 2);
->>>>>>> android-3.18
 
 	spk_set_key_info(spk_key_defaults, spk_key_buf);
 

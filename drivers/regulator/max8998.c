@@ -437,11 +437,7 @@ static int max8998_set_voltage_buck_time_sel(struct regulator_dev *rdev,
 
 	difference = (new_selector - old_selector) * desc->step / 1000;
 	if (difference > 0)
-<<<<<<< HEAD
-		udelay(DIV_ROUND_UP(difference, (val & 0x0f) + 1));
-=======
 		return DIV_ROUND_UP(difference, (val & 0x0f) + 1);
->>>>>>> android-3.18
 
 	return 0;
 }

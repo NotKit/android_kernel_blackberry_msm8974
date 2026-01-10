@@ -368,13 +368,8 @@ static inline int plx_pci_check_sja1000(const struct sja1000_priv *priv)
 	 */
 	if ((priv->read_reg(priv, REG_CR) & REG_CR_BASICCAN_INITIAL_MASK) ==
 	    REG_CR_BASICCAN_INITIAL &&
-<<<<<<< HEAD
-	    (priv->read_reg(priv, SJA1000_REG_SR) == REG_SR_BASICCAN_INITIAL) &&
-	    (priv->read_reg(priv, REG_IR) == REG_IR_BASICCAN_INITIAL))
-=======
 	    (priv->read_reg(priv, SJA1000_SR) == REG_SR_BASICCAN_INITIAL) &&
 	    (priv->read_reg(priv, SJA1000_IR) == REG_IR_BASICCAN_INITIAL))
->>>>>>> android-3.18
 		flag = 1;
 
 	/* Bring the SJA1000 into the PeliCAN mode*/
@@ -384,15 +379,9 @@ static inline int plx_pci_check_sja1000(const struct sja1000_priv *priv)
 	 * Check registers after reset in the PeliCAN mode.
 	 * See states on p. 23 of the Datasheet.
 	 */
-<<<<<<< HEAD
-	if (priv->read_reg(priv, REG_MOD) == REG_MOD_PELICAN_INITIAL &&
-	    priv->read_reg(priv, SJA1000_REG_SR) == REG_SR_PELICAN_INITIAL &&
-	    priv->read_reg(priv, REG_IR) == REG_IR_PELICAN_INITIAL)
-=======
 	if (priv->read_reg(priv, SJA1000_MOD) == REG_MOD_PELICAN_INITIAL &&
 	    priv->read_reg(priv, SJA1000_SR) == REG_SR_PELICAN_INITIAL &&
 	    priv->read_reg(priv, SJA1000_IR) == REG_IR_PELICAN_INITIAL)
->>>>>>> android-3.18
 		return flag;
 
 	return 0;

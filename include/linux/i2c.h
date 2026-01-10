@@ -585,8 +585,6 @@ static inline int i2c_adapter_id(struct i2c_adapter *adap)
 			i2c_del_driver)
 
 #endif /* I2C */
-<<<<<<< HEAD
-=======
 
 #if IS_ENABLED(CONFIG_OF)
 /* must call put_device() when done with returned i2c_client device */
@@ -608,5 +606,4 @@ static inline struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node
 }
 #endif /* CONFIG_OF */
 
->>>>>>> android-3.18
 #endif /* _LINUX_I2C_H */

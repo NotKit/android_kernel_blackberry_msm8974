@@ -30,18 +30,11 @@
 #ifndef __LINUX_RCUTREE_H
 #define __LINUX_RCUTREE_H
 
-<<<<<<< HEAD
-extern void rcu_init(void);
-extern void rcu_note_context_switch(int cpu);
-extern int rcu_needs_cpu(int cpu, unsigned long *delta_jiffies);
-extern void rcu_cpu_stall_reset(void);
-=======
 void rcu_note_context_switch(int cpu);
 #ifndef CONFIG_RCU_NOCB_CPU_ALL
 int rcu_needs_cpu(int cpu, unsigned long *delta_jiffies);
 #endif /* #ifndef CONFIG_RCU_NOCB_CPU_ALL */
 void rcu_cpu_stall_reset(void);
->>>>>>> android-3.18
 
 /*
  * Note a virtualization-based context switch.  This is simply a
@@ -53,15 +46,9 @@ static inline void rcu_virt_note_context_switch(int cpu)
 	rcu_note_context_switch(cpu);
 }
 
-<<<<<<< HEAD
-extern void synchronize_rcu_bh(void);
-extern void synchronize_sched_expedited(void);
-extern void synchronize_rcu_expedited(void);
-=======
 void synchronize_rcu_bh(void);
 void synchronize_sched_expedited(void);
 void synchronize_rcu_expedited(void);
->>>>>>> android-3.18
 
 void kfree_call_rcu(struct rcu_head *head, void (*func)(struct rcu_head *rcu));
 

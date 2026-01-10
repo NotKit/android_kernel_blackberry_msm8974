@@ -29,10 +29,6 @@
 #include <linux/tty.h>
 #include <linux/mutex.h>
 #include <linux/sysrq.h>
-<<<<<<< HEAD
-#include <linux/pps_kernel.h>
-#include <uapi/linux/serial_core.h>
-=======
 #include <uapi/linux/serial_core.h>
 
 #ifdef CONFIG_SERIAL_CORE_CONSOLE
@@ -41,7 +37,6 @@
 #else
 #define uart_console(port)      (0)
 #endif
->>>>>>> android-3.18
 
 struct uart_port;
 struct serial_struct;
@@ -71,10 +66,6 @@ struct uart_ops {
 	void		(*set_ldisc)(struct uart_port *, int new);
 	void		(*pm)(struct uart_port *, unsigned int state,
 			      unsigned int oldstate);
-<<<<<<< HEAD
-	int		(*set_wake)(struct uart_port *, unsigned int state);
-=======
->>>>>>> android-3.18
 	void		(*wake_peer)(struct uart_port *);
 
 	/*

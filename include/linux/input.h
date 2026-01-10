@@ -72,12 +72,6 @@ struct input_value {
  * @timer: timer for software autorepeat
  * @rep: current values for autorepeat parameters (delay, rate)
  * @mt: pointer to multitouch state
-<<<<<<< HEAD
- * @mtsize: number of MT slots the device uses
- * @slot: MT slot currently being transmitted
- * @trkid: stores MT tracking ID for the current contact
-=======
->>>>>>> android-3.18
  * @absinfo: array of &struct input_absinfo elements holding information
  *	about absolute axes (current value, min, max, flat, fuzz,
  *	resolution)
@@ -161,15 +155,7 @@ struct input_dev {
 
 	int rep[REP_CNT];
 
-<<<<<<< HEAD
-	struct input_mt_slot *mt;
-
-	int mtsize;
-	int slot;
-	int trkid;
-=======
 	struct input_mt *mt;
->>>>>>> android-3.18
 
 	struct input_absinfo *absinfo;
 
@@ -199,11 +185,8 @@ struct input_dev {
 	unsigned int num_vals;
 	unsigned int max_vals;
 	struct input_value *vals;
-<<<<<<< HEAD
-=======
 
 	bool devres_managed;
->>>>>>> android-3.18
 };
 #define to_input_dev(d) container_of(d, struct input_dev, dev)
 
@@ -276,10 +259,6 @@ struct input_handle;
  * @start: starts handler for given handle. This function is called by
  *	input core right after connect() method and also when a process
  *	that "grabbed" a device releases it
-<<<<<<< HEAD
- * @fops: file operations this driver implements
-=======
->>>>>>> android-3.18
  * @legacy_minors: set to %true by drivers using legacy minor ranges
  * @minor: beginning of range of 32 legacy minors for devices this driver
  *	can provide
@@ -315,10 +294,6 @@ struct input_handler {
 	void (*disconnect)(struct input_handle *handle);
 	void (*start)(struct input_handle *handle);
 
-<<<<<<< HEAD
-	const struct file_operations *fops;
-=======
->>>>>>> android-3.18
 	bool legacy_minors;
 	int minor;
 	const char *name;

@@ -75,31 +75,12 @@
 #define KVM_HPAGE_MASK(x)	(~(KVM_HPAGE_SIZE(x) - 1))
 #define KVM_PAGES_PER_HPAGE(x)	(KVM_HPAGE_SIZE(x) / PAGE_SIZE)
 
-<<<<<<< HEAD
-#define DE_VECTOR 0
-#define DB_VECTOR 1
-#define BP_VECTOR 3
-#define OF_VECTOR 4
-#define BR_VECTOR 5
-#define UD_VECTOR 6
-#define NM_VECTOR 7
-#define DF_VECTOR 8
-#define TS_VECTOR 10
-#define NP_VECTOR 11
-#define SS_VECTOR 12
-#define GP_VECTOR 13
-#define PF_VECTOR 14
-#define MF_VECTOR 16
-#define AC_VECTOR 17
-#define MC_VECTOR 18
-=======
 static inline gfn_t gfn_to_index(gfn_t gfn, gfn_t base_gfn, int level)
 {
 	/* KVM_HPAGE_GFN_SHIFT(PT_PAGE_TABLE_LEVEL) must be 0. */
 	return (gfn >> KVM_HPAGE_GFN_SHIFT(level)) -
 		(base_gfn >> KVM_HPAGE_GFN_SHIFT(level));
 }
->>>>>>> android-3.18
 
 #define SELECTOR_TI_MASK (1 << 2)
 #define SELECTOR_RPL_MASK 0x03
@@ -452,11 +433,8 @@ struct kvm_vcpu_arch {
 	unsigned int hw_tsc_khz;
 	struct gfn_to_hva_cache pv_time;
 	bool pv_time_enabled;
-<<<<<<< HEAD
-=======
 	/* set guest stopped flag in pvclock flags field */
 	bool pvclock_set_guest_stopped_request;
->>>>>>> android-3.18
 
 	struct {
 		u64 msr_val;
@@ -594,11 +572,8 @@ struct kvm_arch {
 	struct kvm_ioapic *vioapic;
 	struct kvm_pit *vpit;
 	atomic_t vapics_in_nmi_mode;
-<<<<<<< HEAD
-=======
 	struct mutex apic_map_lock;
 	struct kvm_apic_map *apic_map;
->>>>>>> android-3.18
 
 	unsigned int tss_addr;
 	bool apic_access_page_done;

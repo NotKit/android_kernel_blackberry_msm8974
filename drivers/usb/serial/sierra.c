@@ -286,11 +286,6 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x1199, 0x68A3, 0xFF, 0xFF, 0xFF),
 	  .driver_info = (kernel_ulong_t)&direct_ip_interface_blacklist
 	},
-<<<<<<< HEAD
-	/* Sierra Wireless Direct IP modems */
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x1199, 0x68A3, 0xFF, 0xFF, 0xFF),
-	  .driver_info = (kernel_ulong_t)&direct_ip_interface_blacklist
-	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x1199, 0x68AA, 0xFF, 0xFF, 0xFF),
 	  .driver_info = (kernel_ulong_t)&direct_ip_interface_blacklist
 	},
@@ -299,16 +294,6 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x0F3D, 0x68AA, 0xFF, 0xFF, 0xFF),
 	  .driver_info = (kernel_ulong_t)&direct_ip_interface_blacklist
 	},
-=======
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x1199, 0x68AA, 0xFF, 0xFF, 0xFF),
-	  .driver_info = (kernel_ulong_t)&direct_ip_interface_blacklist
-	},
-	{ USB_DEVICE(0x1199, 0x68AB) }, /* Sierra Wireless AR8550 */
-	/* AT&T Direct IP LTE modems */
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x0F3D, 0x68AA, 0xFF, 0xFF, 0xFF),
-	  .driver_info = (kernel_ulong_t)&direct_ip_interface_blacklist
-	},
->>>>>>> android-3.18
 	/* Airprime/Sierra Wireless Direct IP modems */
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x0F3D, 0x68A3, 0xFF, 0xFF, 0xFF),
 	  .driver_info = (kernel_ulong_t)&direct_ip_interface_blacklist
@@ -433,11 +418,6 @@ static int sierra_tiocmset(struct tty_struct *tty,
 static void sierra_release_urb(struct urb *urb)
 {
 	if (urb) {
-<<<<<<< HEAD
-		port =  urb->context;
-		dev_dbg(&port->dev, "%s: %pK\n", __func__, urb);
-=======
->>>>>>> android-3.18
 		kfree(urb->transfer_buffer);
 		usb_free_urb(urb);
 	}
@@ -589,11 +569,6 @@ static void sierra_indat_callback(struct urb *urb)
 	endpoint = usb_pipeendpoint(urb->pipe);
 	port = urb->context;
 
-<<<<<<< HEAD
-	dev_dbg(&port->dev, "%s: %pK\n", __func__, urb);
-
-=======
->>>>>>> android-3.18
 	if (status) {
 		dev_dbg(&port->dev, "%s: nonzero status: %d on"
 			" endpoint %02x\n", __func__, status, endpoint);
@@ -779,19 +754,9 @@ static struct urb *sierra_setup_urb(struct usb_serial *serial, int endpoint,
 			usb_sndbulkpipe(serial->dev, endpoint) | dir,
 			buf, len, callback, ctx);
 
-<<<<<<< HEAD
-		/* debug */
-		dev_dbg(&serial->dev->dev, "%s %c u : %pK d:%pK\n", __func__,
-				dir == USB_DIR_IN ? 'i' : 'o', urb, buf);
-	} else {
-		dev_dbg(&serial->dev->dev, "%s %c u:%pK d:%pK\n", __func__,
-				dir == USB_DIR_IN ? 'i' : 'o', urb, buf);
-
-=======
 		dev_dbg(&serial->dev->dev, "%s %c u : %p d:%p\n", __func__,
 				dir == USB_DIR_IN ? 'i' : 'o', urb, buf);
 	} else {
->>>>>>> android-3.18
 		sierra_release_urb(urb);
 		urb = NULL;
 	}
@@ -804,50 +769,11 @@ static void sierra_close(struct usb_serial_port *port)
 	int i;
 	struct usb_serial *serial = port->serial;
 	struct sierra_port_private *portdata;
-<<<<<<< HEAD
-	struct sierra_intf_private *intfdata = port->serial->private;
-	struct urb *urb;
-
-=======
 	struct sierra_intf_private *intfdata = usb_get_serial_data(serial);
 	struct urb *urb;
->>>>>>> android-3.18
 
 	portdata = usb_get_serial_port_data(port);
 
-<<<<<<< HEAD
-	portdata->rts_state = 0;
-	portdata->dtr_state = 0;
-
-	if (serial->dev) {
-		mutex_lock(&serial->disc_mutex);
-		if (!serial->disconnected) {
-			/* odd error handling due to pm counters */
-			if (!usb_autopm_get_interface(serial->interface))
-				sierra_send_setup(port);
-			else
-				usb_autopm_get_interface_no_resume(serial->interface);
-				
-		}
-		mutex_unlock(&serial->disc_mutex);
-		spin_lock_irq(&intfdata->susp_lock);
-		portdata->opened = 0;
-		if (--intfdata->open_ports == 0)
-			serial->interface->needs_remote_wakeup = 0;
-		spin_unlock_irq(&intfdata->susp_lock);
-
-		for (;;) {
-			urb = usb_get_from_anchor(&portdata->delayed);
-			if (!urb)
-				break;
-			kfree(urb->transfer_buffer);
-			usb_free_urb(urb);
-			usb_autopm_put_interface_async(serial->interface);
-			spin_lock(&portdata->lock);
-			portdata->outstanding_urbs--;
-			spin_unlock(&portdata->lock);
-		}
-=======
 	/*
 	 * Need to take susp_lock to make sure port is not already being
 	 * resumed, but no need to hold it due to ASYNC_INITIALIZED.
@@ -871,7 +797,6 @@ static void sierra_close(struct usb_serial_port *port)
 
 	sierra_stop_rx_urbs(port);
 	usb_kill_anchored_urbs(&portdata->active);
->>>>>>> android-3.18
 
 	for (i = 0; i < portdata->num_in_urbs; i++) {
 		sierra_release_urb(portdata->in_urbs[i]);
@@ -907,16 +832,8 @@ static int sierra_open(struct tty_struct *tty, struct usb_serial_port *port)
 	err = sierra_submit_rx_urbs(port, GFP_KERNEL);
 	if (err)
 		goto err_submit;
-<<<<<<< HEAD
-
-	sierra_send_setup(port);
 
 	spin_lock_irq(&intfdata->susp_lock);
-	portdata->opened = 1;
-=======
-
-	spin_lock_irq(&intfdata->susp_lock);
->>>>>>> android-3.18
 	if (++intfdata->open_ports == 1)
 		serial->interface->needs_remote_wakeup = 1;
 	spin_unlock_irq(&intfdata->susp_lock);
@@ -949,16 +866,7 @@ static void sierra_dtr_rts(struct usb_serial_port *port, int on)
 
 static int sierra_startup(struct usb_serial *serial)
 {
-<<<<<<< HEAD
-	struct usb_serial_port *port;
 	struct sierra_intf_private *intfdata;
-	struct sierra_port_private *portdata;
-	struct sierra_iface_info *himemoryp = NULL;
-	int i;
-	u8 ifnum;
-=======
-	struct sierra_intf_private *intfdata;
->>>>>>> android-3.18
 
 	intfdata = kzalloc(sizeof(*intfdata), GFP_KERNEL);
 	if (!intfdata)
@@ -983,53 +891,6 @@ static int sierra_startup(struct usb_serial *serial)
 	if (nmea)
 		sierra_vsc_set_nmea(serial->dev, 1);
 
-<<<<<<< HEAD
-	/* Now setup per port private data */
-	for (i = 0; i < serial->num_ports; i++) {
-		port = serial->port[i];
-		portdata = kzalloc(sizeof(*portdata), GFP_KERNEL);
-		if (!portdata) {
-			dev_dbg(&port->dev, "%s: kmalloc for "
-				"sierra_port_private (%d) failed!\n",
-				__func__, i);
-			goto err;
-		}
-		spin_lock_init(&portdata->lock);
-		init_usb_anchor(&portdata->active);
-		init_usb_anchor(&portdata->delayed);
-		ifnum = i;
-		/* Assume low memory requirements */
-		portdata->num_out_urbs = N_OUT_URB;
-		portdata->num_in_urbs  = N_IN_URB;
-
-		/* Determine actual memory requirements */
-		if (serial->num_ports == 1) {
-			/* Get interface number for composite device */
-			ifnum = sierra_calc_interface(serial);
-			himemoryp =
-			    (struct sierra_iface_info *)&typeB_interface_list;
-			if (is_himemory(ifnum, himemoryp)) {
-				portdata->num_out_urbs = N_OUT_URB_HM;
-				portdata->num_in_urbs  = N_IN_URB_HM;
-			}
-		}
-		else {
-			himemoryp =
-			    (struct sierra_iface_info *)&typeA_interface_list;
-			if (is_himemory(i, himemoryp)) {
-				portdata->num_out_urbs = N_OUT_URB_HM;
-				portdata->num_in_urbs  = N_IN_URB_HM;
-			}
-		}
-		dev_dbg(&serial->dev->dev,
-			"Memory usage (urbs) interface #%d, in=%d, out=%d\n",
-			ifnum,portdata->num_in_urbs, portdata->num_out_urbs );
-		/* Set the port private data pointer */
-		usb_set_serial_port_data(port, portdata);
-	}
-
-=======
->>>>>>> android-3.18
 	return 0;
 err:
 	for (--i; i >= 0; --i) {
@@ -1060,19 +921,6 @@ static int sierra_port_probe(struct usb_serial_port *port)
 	if (!portdata)
 		return -ENOMEM;
 
-<<<<<<< HEAD
-	for (i = 0; i < serial->num_ports; ++i) {
-		port = serial->port[i];
-		if (!port)
-			continue;
-		portdata = usb_get_serial_port_data(port);
-		if (!portdata)
-			continue;
-		usb_set_serial_port_data(port, NULL);
-		kfree(portdata);
-	}
-	kfree(serial->private);
-=======
 	spin_lock_init(&portdata->lock);
 	init_usb_anchor(&portdata->active);
 	init_usb_anchor(&portdata->delayed);
@@ -1117,7 +965,6 @@ static int sierra_port_remove(struct usb_serial_port *port)
 	kfree(portdata);
 
 	return 0;
->>>>>>> android-3.18
 }
 
 #ifdef CONFIG_PM
@@ -1208,29 +1055,8 @@ static int sierra_resume(struct usb_serial *serial)
 	for (i = 0; i < serial->num_ports; i++) {
 		port = serial->port[i];
 
-<<<<<<< HEAD
-		if (!portdata)
-			continue;
-
-		while ((urb = usb_get_from_anchor(&portdata->delayed))) {
-			usb_anchor_urb(urb, &portdata->active);
-			intfdata->in_flight++;
-			err = usb_submit_urb(urb, GFP_ATOMIC);
-			if (err < 0) {
-				intfdata->in_flight--;
-				usb_unanchor_urb(urb);
-				kfree(urb->transfer_buffer);
-				usb_free_urb(urb);
-				spin_lock(&portdata->lock);
-				portdata->outstanding_urbs--;
-				spin_unlock(&portdata->lock);
-				continue;
-			}
-		}
-=======
 		if (!test_bit(ASYNCB_INITIALIZED, &port->port.flags))
 			continue;
->>>>>>> android-3.18
 
 		err = sierra_submit_delayed_urbs(port);
 		if (err)

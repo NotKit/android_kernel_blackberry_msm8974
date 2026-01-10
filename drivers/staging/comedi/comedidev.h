@@ -265,20 +265,8 @@ struct comedi_device {
 
 	struct fasync_struct *async_queue;
 
-<<<<<<< HEAD
-	int (*open) (struct comedi_device *dev);
-	void (*close) (struct comedi_device *dev);
-};
-
-struct comedi_device_file_info {
-	struct comedi_device *device;
-	struct comedi_subdevice *read_subdevice;
-	struct comedi_subdevice *write_subdevice;
-	struct device *hardware_device;
-=======
 	int (*open)(struct comedi_device *dev);
 	void (*close)(struct comedi_device *dev);
->>>>>>> android-3.18
 };
 
 /*

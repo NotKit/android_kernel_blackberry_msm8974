@@ -169,18 +169,12 @@ struct blkif_request_discard {
 struct blkif_request_other {
 	uint8_t      _pad1;
 	blkif_vdev_t _pad2;        /* only for read/write requests         */
-<<<<<<< HEAD
-#ifdef CONFIG_X86_64
-=======
 #ifndef CONFIG_X86_32
->>>>>>> android-3.18
 	uint32_t     _pad3;        /* offsetof(blkif_req..,u.other.id)==8*/
 #endif
 	uint64_t     id;           /* private guest value, echoed in resp  */
 } __attribute__((__packed__));
 
-<<<<<<< HEAD
-=======
 struct blkif_request_indirect {
 	uint8_t        indirect_op;
 	uint16_t       nr_segments;
@@ -199,17 +193,13 @@ struct blkif_request_indirect {
 #endif
 } __attribute__((__packed__));
 
->>>>>>> android-3.18
 struct blkif_request {
 	uint8_t        operation;    /* BLKIF_OP_???                         */
 	union {
 		struct blkif_request_rw rw;
 		struct blkif_request_discard discard;
 		struct blkif_request_other other;
-<<<<<<< HEAD
-=======
 		struct blkif_request_indirect indirect;
->>>>>>> android-3.18
 	} u;
 } __attribute__((__packed__));
 

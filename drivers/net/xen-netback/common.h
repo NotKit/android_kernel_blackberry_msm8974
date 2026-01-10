@@ -195,10 +195,7 @@ struct xenvif_queue { /* Per-queue data for xenvif */
 	unsigned long   remaining_credit;
 	struct timer_list credit_timeout;
 	u64 credit_window_start;
-<<<<<<< HEAD
-=======
 	bool rate_limited;
->>>>>>> android-3.18
 
 	/* Statistics */
 	struct xenvif_stats stats;
@@ -341,16 +338,8 @@ extern unsigned int xenvif_max_queues;
 extern struct dentry *xen_netback_dbg_root;
 #endif
 
-<<<<<<< HEAD
-/* Prevent the device from generating any further traffic. */
-void xenvif_carrier_off(struct xenvif *vif);
-
-/* Returns number of ring slots required to send an skb to the frontend */
-unsigned int xen_netbk_count_skb_slots(struct xenvif *vif, struct sk_buff *skb);
-=======
 void xenvif_skb_zerocopy_prepare(struct xenvif_queue *queue,
 				 struct sk_buff *skb);
 void xenvif_skb_zerocopy_complete(struct xenvif_queue *queue);
->>>>>>> android-3.18
 
 #endif /* __XEN_NETBACK__COMMON_H__ */

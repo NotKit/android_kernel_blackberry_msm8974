@@ -1,8 +1,6 @@
 # UAPI Header export list
 include include/uapi/asm-generic/Kbuild.asm
 
-<<<<<<< HEAD
-=======
 header-y += auxvec.h
 header-y += bitsperlong.h
 header-y += bootx.h
@@ -46,4 +44,3 @@ header-y += tm.h
 header-y += types.h
 header-y += ucontext.h
 header-y += unistd.h
->>>>>>> android-3.18

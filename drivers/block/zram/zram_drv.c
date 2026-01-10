@@ -43,22 +43,6 @@ static const char *default_compressor = "lzo";
 /* Module params (documentation at end) */
 static unsigned int num_devices = 1;
 
-<<<<<<< HEAD
-#define ZRAM_ATTR_RO(name)						\
-static ssize_t zram_attr_##name##_show(struct device *d,		\
-				struct device_attribute *attr, char *b)	\
-{									\
-	struct zram *zram = dev_to_zram(d);				\
-	return scnprintf(b, PAGE_SIZE, "%llu\n",			\
-		(u64)atomic64_read(&zram->stats.name));			\
-}									\
-static struct device_attribute dev_attr_##name =			\
-	__ATTR(name, S_IRUGO, zram_attr_##name##_show, NULL);
-
-static inline int init_done(struct zram *zram)
-{
-	return zram->meta != NULL;
-=======
 static inline void deprecated_attr_warn(const char *name)
 {
 	pr_warn_once("%d (%s) Attribute %s (and others) will be removed. %s\n",
@@ -83,7 +67,6 @@ static DEVICE_ATTR_RO(name);
 static inline bool init_done(struct zram *zram)
 {
 	return zram->disksize;
->>>>>>> android-3.18
 }
 
 static inline struct zram *dev_to_zram(struct device *dev)
@@ -91,8 +74,6 @@ static inline struct zram *dev_to_zram(struct device *dev)
 	return (struct zram *)dev_to_disk(dev)->private_data;
 }
 
-<<<<<<< HEAD
-=======
 static ssize_t compact_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t len)
 {
@@ -114,7 +95,6 @@ static ssize_t compact_store(struct device *dev,
 	return len;
 }
 
->>>>>>> android-3.18
 static ssize_t disksize_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -141,10 +121,7 @@ static ssize_t orig_data_size_show(struct device *dev,
 {
 	struct zram *zram = dev_to_zram(dev);
 
-<<<<<<< HEAD
-=======
 	deprecated_attr_warn("orig_data_size");
->>>>>>> android-3.18
 	return scnprintf(buf, PAGE_SIZE, "%llu\n",
 		(u64)(atomic64_read(&zram->stats.pages_stored)) << PAGE_SHIFT);
 }
@@ -154,16 +131,6 @@ static ssize_t mem_used_total_show(struct device *dev,
 {
 	u64 val = 0;
 	struct zram *zram = dev_to_zram(dev);
-<<<<<<< HEAD
-	struct zram_meta *meta = zram->meta;
-
-	down_read(&zram->init_lock);
-	if (init_done(zram))
-		val = zs_get_total_size_bytes(meta->mem_pool);
-	up_read(&zram->init_lock);
-
-	return scnprintf(buf, PAGE_SIZE, "%llu\n", val);
-=======
 
 	deprecated_attr_warn("mem_used_total");
 	down_read(&zram->init_lock);
@@ -174,7 +141,6 @@ static ssize_t mem_used_total_show(struct device *dev,
 	up_read(&zram->init_lock);
 
 	return scnprintf(buf, PAGE_SIZE, "%llu\n", val << PAGE_SHIFT);
->>>>>>> android-3.18
 }
 
 static ssize_t max_comp_streams_show(struct device *dev,
@@ -190,8 +156,6 @@ static ssize_t max_comp_streams_show(struct device *dev,
 	return scnprintf(buf, PAGE_SIZE, "%d\n", val);
 }
 
-<<<<<<< HEAD
-=======
 static ssize_t mem_limit_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -261,7 +225,6 @@ static ssize_t mem_used_max_store(struct device *dev,
 	return len;
 }
 
->>>>>>> android-3.18
 static ssize_t max_comp_streams_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t len)
 {
@@ -323,29 +286,18 @@ static ssize_t comp_algorithm_store(struct device *dev,
 static int zram_test_flag(struct zram_meta *meta, u32 index,
 			enum zram_pageflags flag)
 {
-<<<<<<< HEAD
-	return meta->table[index].flags & BIT(flag);
-=======
 	return meta->table[index].value & BIT(flag);
->>>>>>> android-3.18
 }
 
 static void zram_set_flag(struct zram_meta *meta, u32 index,
 			enum zram_pageflags flag)
 {
-<<<<<<< HEAD
-	meta->table[index].flags |= BIT(flag);
-=======
 	meta->table[index].value |= BIT(flag);
->>>>>>> android-3.18
 }
 
 static void zram_clear_flag(struct zram_meta *meta, u32 index,
 			enum zram_pageflags flag)
 {
-<<<<<<< HEAD
-	meta->table[index].flags &= ~BIT(flag);
-=======
 	meta->table[index].value &= ~BIT(flag);
 }
 
@@ -360,7 +312,6 @@ static void zram_set_obj_size(struct zram_meta *meta,
 	unsigned long flags = meta->table[index].value >> ZRAM_FLAG_SHIFT;
 
 	meta->table[index].value = (flags << ZRAM_FLAG_SHIFT) | size;
->>>>>>> android-3.18
 }
 
 static inline int is_partial_io(struct bio_vec *bvec)
@@ -371,21 +322,6 @@ static inline int is_partial_io(struct bio_vec *bvec)
 /*
  * Check if request is within bounds and aligned on zram logical blocks.
  */
-<<<<<<< HEAD
-static inline int valid_io_request(struct zram *zram, struct bio *bio)
-{
-	u64 start, end, bound;
-
-	/* unaligned request */
-	if (unlikely(bio->bi_sector &
-		     (ZRAM_SECTOR_PER_LOGICAL_BLOCK - 1)))
-		return 0;
-	if (unlikely(bio->bi_size & (ZRAM_LOGICAL_BLOCK_SIZE - 1)))
-		return 0;
-
-	start = bio->bi_sector;
-	end = start + (bio->bi_size >> SECTOR_SHIFT);
-=======
 static inline int valid_io_request(struct zram *zram,
 		sector_t start, unsigned int size)
 {
@@ -398,7 +334,6 @@ static inline int valid_io_request(struct zram *zram,
 		return 0;
 
 	end = start + (size >> SECTOR_SHIFT);
->>>>>>> android-3.18
 	bound = zram->disksize >> SECTOR_SHIFT;
 	/* out of range range */
 	if (unlikely(start >= bound || end > bound || start > end))
@@ -408,10 +343,6 @@ static inline int valid_io_request(struct zram *zram,
 	return 1;
 }
 
-<<<<<<< HEAD
-static void zram_meta_free(struct zram_meta *meta)
-{
-=======
 static void zram_meta_free(struct zram_meta *meta, u64 disksize)
 {
 	size_t num_pages = disksize >> PAGE_SHIFT;
@@ -427,20 +358,11 @@ static void zram_meta_free(struct zram_meta *meta, u64 disksize)
 		zs_free(meta->mem_pool, handle);
 	}
 
->>>>>>> android-3.18
 	zs_destroy_pool(meta->mem_pool);
 	vfree(meta->table);
 	kfree(meta);
 }
 
-<<<<<<< HEAD
-static struct zram_meta *zram_meta_alloc(u64 disksize)
-{
-	size_t num_pages;
-	struct zram_meta *meta = kmalloc(sizeof(*meta), GFP_KERNEL);
-	if (!meta)
-		goto out;
-=======
 static struct zram_meta *zram_meta_alloc(int device_id, u64 disksize)
 {
 	size_t num_pages;
@@ -449,33 +371,11 @@ static struct zram_meta *zram_meta_alloc(int device_id, u64 disksize)
 
 	if (!meta)
 		return NULL;
->>>>>>> android-3.18
 
 	num_pages = disksize >> PAGE_SHIFT;
 	meta->table = vzalloc(num_pages * sizeof(*meta->table));
 	if (!meta->table) {
 		pr_err("Error allocating zram address table\n");
-<<<<<<< HEAD
-		goto free_meta;
-	}
-
-	meta->mem_pool = zs_create_pool(GFP_NOIO | __GFP_HIGHMEM);
-	if (!meta->mem_pool) {
-		pr_err("Error creating memory pool\n");
-		goto free_table;
-	}
-
-	rwlock_init(&meta->tb_lock);
-	return meta;
-
-free_table:
-	vfree(meta->table);
-free_meta:
-	kfree(meta);
-	meta = NULL;
-out:
-	return meta;
-=======
 		goto out_error;
 	}
 
@@ -504,7 +404,6 @@ static inline bool zram_meta_get(struct zram *zram)
 static inline void zram_meta_put(struct zram *zram)
 {
 	atomic_dec(&zram->refcount);
->>>>>>> android-3.18
 }
 
 static void update_position(u32 *index, int *offset, struct bio_vec *bvec)
@@ -544,16 +443,12 @@ static void handle_zero_page(struct bio_vec *bvec)
 	flush_dcache_page(page);
 }
 
-<<<<<<< HEAD
-/* NOTE: caller should hold meta->tb_lock with write-side */
-=======
 
 /*
  * To protect concurrent access to the same index entry,
  * caller should hold this table index entry's bit_spinlock to
  * indicate this index entry is accessing.
  */
->>>>>>> android-3.18
 static void zram_free_page(struct zram *zram, size_t index)
 {
 	struct zram_meta *meta = zram->meta;
@@ -573,20 +468,12 @@ static void zram_free_page(struct zram *zram, size_t index)
 
 	zs_free(meta->mem_pool, handle);
 
-<<<<<<< HEAD
-	atomic64_sub(meta->table[index].size, &zram->stats.compr_data_size);
-	atomic64_dec(&zram->stats.pages_stored);
-
-	meta->table[index].handle = 0;
-	meta->table[index].size = 0;
-=======
 	atomic64_sub(zram_get_obj_size(meta, index),
 			&zram->stats.compr_data_size);
 	atomic64_dec(&zram->stats.pages_stored);
 
 	meta->table[index].handle = 0;
 	zram_set_obj_size(meta, index, 0);
->>>>>>> android-3.18
 }
 
 static int zram_decompress_page(struct zram *zram, char *mem, u32 index)
@@ -595,17 +482,6 @@ static int zram_decompress_page(struct zram *zram, char *mem, u32 index)
 	unsigned char *cmem;
 	struct zram_meta *meta = zram->meta;
 	unsigned long handle;
-<<<<<<< HEAD
-	u16 size;
-
-	read_lock(&meta->tb_lock);
-	handle = meta->table[index].handle;
-	size = meta->table[index].size;
-
-	if (!handle || zram_test_flag(meta, index, ZRAM_ZERO)) {
-		read_unlock(&meta->tb_lock);
-		clear_page(mem);
-=======
 	size_t size;
 
 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
@@ -615,33 +491,20 @@ static int zram_decompress_page(struct zram *zram, char *mem, u32 index)
 	if (!handle || zram_test_flag(meta, index, ZRAM_ZERO)) {
 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
 		memset(mem, 0, PAGE_SIZE);
->>>>>>> android-3.18
 		return 0;
 	}
 
 	cmem = zs_map_object(meta->mem_pool, handle, ZS_MM_RO);
 	if (size == PAGE_SIZE)
-<<<<<<< HEAD
-		copy_page(mem, cmem);
-	else
-		ret = zcomp_decompress(zram->comp, cmem, size, mem);
-	zs_unmap_object(meta->mem_pool, handle);
-	read_unlock(&meta->tb_lock);
-=======
 		memcpy(mem, cmem, PAGE_SIZE);
 	else
 		ret = zcomp_decompress(zram->comp, cmem, size, mem);
 	zs_unmap_object(meta->mem_pool, handle);
 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
->>>>>>> android-3.18
 
 	/* Should NEVER happen. Return bio error if it does. */
 	if (unlikely(ret)) {
 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
-<<<<<<< HEAD
-		atomic64_inc(&zram->stats.failed_reads);
-=======
->>>>>>> android-3.18
 		return ret;
 	}
 
@@ -649,11 +512,7 @@ static int zram_decompress_page(struct zram *zram, char *mem, u32 index)
 }
 
 static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
-<<<<<<< HEAD
-			  u32 index, int offset, struct bio *bio)
-=======
 			  u32 index, int offset)
->>>>>>> android-3.18
 {
 	int ret;
 	struct page *page;
@@ -661,16 +520,6 @@ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 	struct zram_meta *meta = zram->meta;
 	page = bvec->bv_page;
 
-<<<<<<< HEAD
-	read_lock(&meta->tb_lock);
-	if (unlikely(!meta->table[index].handle) ||
-			zram_test_flag(meta, index, ZRAM_ZERO)) {
-		read_unlock(&meta->tb_lock);
-		handle_zero_page(bvec);
-		return 0;
-	}
-	read_unlock(&meta->tb_lock);
-=======
 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
 	if (unlikely(!meta->table[index].handle) ||
 			zram_test_flag(meta, index, ZRAM_ZERO)) {
@@ -679,7 +528,6 @@ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 		return 0;
 	}
 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
->>>>>>> android-3.18
 
 	if (is_partial_io(bvec))
 		/* Use  a temporary buffer to decompress the page */
@@ -713,8 +561,6 @@ out_cleanup:
 	return ret;
 }
 
-<<<<<<< HEAD
-=======
 static inline void update_used_max(struct zram *zram,
 					const unsigned long pages)
 {
@@ -730,7 +576,6 @@ static inline void update_used_max(struct zram *zram,
 	} while (old_max != cur_max);
 }
 
->>>>>>> android-3.18
 static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 			   int offset)
 {
@@ -742,10 +587,7 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 	struct zram_meta *meta = zram->meta;
 	struct zcomp_strm *zstrm;
 	bool locked = false;
-<<<<<<< HEAD
-=======
 	unsigned long alloced_pages;
->>>>>>> android-3.18
 
 	page = bvec->bv_page;
 	if (is_partial_io(bvec)) {
@@ -780,17 +622,10 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 		if (user_mem)
 			kunmap_atomic(user_mem);
 		/* Free memory associated with this sector now. */
-<<<<<<< HEAD
-		write_lock(&zram->meta->tb_lock);
-		zram_free_page(zram, index);
-		zram_set_flag(meta, index, ZRAM_ZERO);
-		write_unlock(&zram->meta->tb_lock);
-=======
 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
 		zram_free_page(zram, index);
 		zram_set_flag(meta, index, ZRAM_ZERO);
 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
->>>>>>> android-3.18
 
 		atomic64_inc(&zram->stats.zero_pages);
 		ret = 0;
@@ -822,8 +657,6 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 		ret = -ENOMEM;
 		goto out;
 	}
-<<<<<<< HEAD
-=======
 
 	alloced_pages = zs_get_total_pages(meta->mem_pool);
 	if (zram->limit_pages && alloced_pages > zram->limit_pages) {
@@ -834,16 +667,11 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 
 	update_used_max(zram, alloced_pages);
 
->>>>>>> android-3.18
 	cmem = zs_map_object(meta->mem_pool, handle, ZS_MM_WO);
 
 	if ((clen == PAGE_SIZE) && !is_partial_io(bvec)) {
 		src = kmap_atomic(page);
-<<<<<<< HEAD
-		copy_page(cmem, src);
-=======
 		memcpy(cmem, src, PAGE_SIZE);
->>>>>>> android-3.18
 		kunmap_atomic(src);
 	} else {
 		memcpy(cmem, src, clen);
@@ -857,21 +685,12 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 	 * Free memory associated with this sector
 	 * before overwriting unused sectors.
 	 */
-<<<<<<< HEAD
-	write_lock(&zram->meta->tb_lock);
-	zram_free_page(zram, index);
-
-	meta->table[index].handle = handle;
-	meta->table[index].size = clen;
-	write_unlock(&zram->meta->tb_lock);
-=======
 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
 	zram_free_page(zram, index);
 
 	meta->table[index].handle = handle;
 	zram_set_obj_size(meta, index, clen);
 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
->>>>>>> android-3.18
 
 	/* Update stats */
 	atomic64_add(clen, &zram->stats.compr_data_size);
@@ -881,25 +700,10 @@ out:
 		zcomp_strm_release(zram->comp, zstrm);
 	if (is_partial_io(bvec))
 		kfree(uncmem);
-<<<<<<< HEAD
-	if (ret)
-		atomic64_inc(&zram->stats.failed_writes);
-=======
->>>>>>> android-3.18
 	return ret;
 }
 
 static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
-<<<<<<< HEAD
-			int offset, struct bio *bio)
-{
-	int ret;
-	int rw = bio_data_dir(bio);
-
-	if (rw == READ) {
-		atomic64_inc(&zram->stats.num_reads);
-		ret = zram_bvec_read(zram, bvec, index, offset, bio);
-=======
 			int offset, int rw)
 {
 	int ret;
@@ -907,14 +711,11 @@ static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
 	if (rw == READ) {
 		atomic64_inc(&zram->stats.num_reads);
 		ret = zram_bvec_read(zram, bvec, index, offset);
->>>>>>> android-3.18
 	} else {
 		atomic64_inc(&zram->stats.num_writes);
 		ret = zram_bvec_write(zram, bvec, index, offset);
 	}
 
-<<<<<<< HEAD
-=======
 	if (unlikely(ret)) {
 		if (rw == READ)
 			atomic64_inc(&zram->stats.failed_reads);
@@ -922,7 +723,6 @@ static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
 			atomic64_inc(&zram->stats.failed_writes);
 	}
 
->>>>>>> android-3.18
 	return ret;
 }
 
@@ -934,12 +734,8 @@ static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
 static void zram_bio_discard(struct zram *zram, u32 index,
 			     int offset, struct bio *bio)
 {
-<<<<<<< HEAD
-	size_t n = bio->bi_size;
-=======
 	size_t n = bio->bi_iter.bi_size;
 	struct zram_meta *meta = zram->meta;
->>>>>>> android-3.18
 
 	/*
 	 * zram manages data in physical block size units. Because logical block
@@ -952,48 +748,23 @@ static void zram_bio_discard(struct zram *zram, u32 index,
 	 * skipping this logical block is appropriate here.
 	 */
 	if (offset) {
-<<<<<<< HEAD
-		if (n < offset)
-			return;
-
-		n -= offset;
-=======
 		if (n <= (PAGE_SIZE - offset))
 			return;
 
 		n -= (PAGE_SIZE - offset);
->>>>>>> android-3.18
 		index++;
 	}
 
 	while (n >= PAGE_SIZE) {
-<<<<<<< HEAD
-		/*
-		 * Discard request can be large so the lock hold times could be
-		 * lengthy.  So take the lock once per page.
-		 */
-		write_lock(&zram->meta->tb_lock);
-		zram_free_page(zram, index);
-		write_unlock(&zram->meta->tb_lock);
-=======
 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
 		zram_free_page(zram, index);
 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
 		atomic64_inc(&zram->stats.notify_free);
->>>>>>> android-3.18
 		index++;
 		n -= PAGE_SIZE;
 	}
 }
 
-<<<<<<< HEAD
-static void zram_reset_device(struct zram *zram, bool reset_capacity)
-{
-	size_t index;
-	struct zram_meta *meta;
-
-	down_write(&zram->init_lock);
-=======
 static void zram_reset_device(struct zram *zram)
 {
 	struct zram_meta *meta;
@@ -1004,36 +775,12 @@ static void zram_reset_device(struct zram *zram)
 
 	zram->limit_pages = 0;
 
->>>>>>> android-3.18
 	if (!init_done(zram)) {
 		up_write(&zram->init_lock);
 		return;
 	}
 
 	meta = zram->meta;
-<<<<<<< HEAD
-	/* Free all pages that are still in this zram device */
-	for (index = 0; index < zram->disksize >> PAGE_SHIFT; index++) {
-		unsigned long handle = meta->table[index].handle;
-		if (!handle)
-			continue;
-
-		zs_free(meta->mem_pool, handle);
-	}
-
-	zcomp_destroy(zram->comp);
-	zram->max_comp_streams = 1;
-
-	zram_meta_free(zram->meta);
-	zram->meta = NULL;
-	/* Reset stats */
-	memset(&zram->stats, 0, sizeof(zram->stats));
-
-	zram->disksize = 0;
-	if (reset_capacity)
-		set_capacity(zram->disk, 0);
-	up_write(&zram->init_lock);
-=======
 	comp = zram->comp;
 	disksize = zram->disksize;
 	/*
@@ -1060,7 +807,6 @@ static void zram_reset_device(struct zram *zram)
 	/* I/O operation under all of CPU are done so let's free */
 	zram_meta_free(meta, disksize);
 	zcomp_destroy(comp);
->>>>>>> android-3.18
 }
 
 static ssize_t disksize_store(struct device *dev,
@@ -1077,11 +823,7 @@ static ssize_t disksize_store(struct device *dev,
 		return -EINVAL;
 
 	disksize = PAGE_ALIGN(disksize);
-<<<<<<< HEAD
-	meta = zram_meta_alloc(disksize);
-=======
 	meta = zram_meta_alloc(zram->disk->first_minor, disksize);
->>>>>>> android-3.18
 	if (!meta)
 		return -ENOMEM;
 
@@ -1100,18 +842,13 @@ static ssize_t disksize_store(struct device *dev,
 		goto out_destroy_comp;
 	}
 
-<<<<<<< HEAD
-=======
 	init_waitqueue_head(&zram->io_done);
 	atomic_set(&zram->refcount, 1);
->>>>>>> android-3.18
 	zram->meta = meta;
 	zram->comp = comp;
 	zram->disksize = disksize;
 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
 	up_write(&zram->init_lock);
-<<<<<<< HEAD
-=======
 
 	/*
 	 * Revalidate disk out of the init_lock to avoid lockdep splat.
@@ -1120,18 +857,13 @@ static ssize_t disksize_store(struct device *dev,
 	 */
 	revalidate_disk(zram->disk);
 
->>>>>>> android-3.18
 	return len;
 
 out_destroy_comp:
 	up_write(&zram->init_lock);
 	zcomp_destroy(comp);
 out_free_meta:
-<<<<<<< HEAD
-	zram_meta_free(meta);
-=======
 	zram_meta_free(meta, disksize);
->>>>>>> android-3.18
 	return err;
 }
 
@@ -1149,14 +881,9 @@ static ssize_t reset_store(struct device *dev,
 	if (!bdev)
 		return -ENOMEM;
 
-<<<<<<< HEAD
-	/* Do not reset an active device! */
-	if (bdev->bd_holders) {
-=======
 	mutex_lock(&bdev->bd_mutex);
 	/* Do not reset an active device! */
 	if (bdev->bd_openers) {
->>>>>>> android-3.18
 		ret = -EBUSY;
 		goto out;
 	}
@@ -1172,14 +899,6 @@ static ssize_t reset_store(struct device *dev,
 
 	/* Make sure all pending I/O is finished */
 	fsync_bdev(bdev);
-<<<<<<< HEAD
-	bdput(bdev);
-
-	zram_reset_device(zram, true);
-	return len;
-
-out:
-=======
 	zram_reset_device(zram);
 
 	mutex_unlock(&bdev->bd_mutex);
@@ -1190,21 +909,12 @@ out:
 
 out:
 	mutex_unlock(&bdev->bd_mutex);
->>>>>>> android-3.18
 	bdput(bdev);
 	return ret;
 }
 
 static void __zram_make_request(struct zram *zram, struct bio *bio)
 {
-<<<<<<< HEAD
-	int offset, i;
-	u32 index;
-	struct bio_vec *bvec;
-
-	index = bio->bi_sector >> SECTORS_PER_PAGE_SHIFT;
-	offset = (bio->bi_sector &
-=======
 	int offset, rw;
 	u32 index;
 	struct bio_vec bvec;
@@ -1212,7 +922,6 @@ static void __zram_make_request(struct zram *zram, struct bio *bio)
 
 	index = bio->bi_iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
 	offset = (bio->bi_iter.bi_sector &
->>>>>>> android-3.18
 		  (SECTORS_PER_PAGE - 1)) << SECTOR_SHIFT;
 
 	if (unlikely(bio->bi_rw & REQ_DISCARD)) {
@@ -1221,42 +930,17 @@ static void __zram_make_request(struct zram *zram, struct bio *bio)
 		return;
 	}
 
-<<<<<<< HEAD
-	bio_for_each_segment(bvec, bio, i) {
-		int max_transfer_size = PAGE_SIZE - offset;
-
-		if (bvec->bv_len > max_transfer_size) {
-=======
 	rw = bio_data_dir(bio);
 	bio_for_each_segment(bvec, bio, iter) {
 		int max_transfer_size = PAGE_SIZE - offset;
 
 		if (bvec.bv_len > max_transfer_size) {
->>>>>>> android-3.18
 			/*
 			 * zram_bvec_rw() can only make operation on a single
 			 * zram page. Split the bio vector.
 			 */
 			struct bio_vec bv;
 
-<<<<<<< HEAD
-			bv.bv_page = bvec->bv_page;
-			bv.bv_len = max_transfer_size;
-			bv.bv_offset = bvec->bv_offset;
-
-			if (zram_bvec_rw(zram, &bv, index, offset, bio) < 0)
-				goto out;
-
-			bv.bv_len = bvec->bv_len - max_transfer_size;
-			bv.bv_offset += max_transfer_size;
-			if (zram_bvec_rw(zram, &bv, index + 1, 0, bio) < 0)
-				goto out;
-		} else
-			if (zram_bvec_rw(zram, bvec, index, offset, bio) < 0)
-				goto out;
-
-		update_position(&index, &offset, bvec);
-=======
 			bv.bv_page = bvec.bv_page;
 			bv.bv_len = max_transfer_size;
 			bv.bv_offset = bvec.bv_offset;
@@ -1273,7 +957,6 @@ static void __zram_make_request(struct zram *zram, struct bio *bio)
 				goto out;
 
 		update_position(&index, &offset, &bvec);
->>>>>>> android-3.18
 	}
 
 	set_bit(BIO_UPTODATE, &bio->bi_flags);
@@ -1291,24 +974,6 @@ static void zram_make_request(struct request_queue *queue, struct bio *bio)
 {
 	struct zram *zram = queue->queuedata;
 
-<<<<<<< HEAD
-	down_read(&zram->init_lock);
-	if (unlikely(!init_done(zram)))
-		goto error;
-
-	if (!valid_io_request(zram, bio)) {
-		atomic64_inc(&zram->stats.invalid_io);
-		goto error;
-	}
-
-	__zram_make_request(zram, bio);
-	up_read(&zram->init_lock);
-
-	return;
-
-error:
-	up_read(&zram->init_lock);
-=======
 	if (unlikely(!zram_meta_get(zram)))
 		goto error;
 
@@ -1324,7 +989,6 @@ error:
 put_zram:
 	zram_meta_put(zram);
 error:
->>>>>>> android-3.18
 	bio_io_error(bio);
 }
 
@@ -1337,30 +1001,6 @@ static void zram_slot_free_notify(struct block_device *bdev,
 	zram = bdev->bd_disk->private_data;
 	meta = zram->meta;
 
-<<<<<<< HEAD
-	write_lock(&meta->tb_lock);
-	zram_free_page(zram, index);
-	write_unlock(&meta->tb_lock);
-	atomic64_inc(&zram->stats.notify_free);
-}
-
-static const struct block_device_operations zram_devops = {
-	.swap_slot_free_notify = zram_slot_free_notify,
-	.owner = THIS_MODULE
-};
-
-static DEVICE_ATTR(disksize, S_IRUGO | S_IWUSR,
-		disksize_show, disksize_store);
-static DEVICE_ATTR(initstate, S_IRUGO, initstate_show, NULL);
-static DEVICE_ATTR(reset, S_IWUSR, NULL, reset_store);
-static DEVICE_ATTR(orig_data_size, S_IRUGO, orig_data_size_show, NULL);
-static DEVICE_ATTR(mem_used_total, S_IRUGO, mem_used_total_show, NULL);
-static DEVICE_ATTR(max_comp_streams, S_IRUGO | S_IWUSR,
-		max_comp_streams_show, max_comp_streams_store);
-static DEVICE_ATTR(comp_algorithm, S_IRUGO | S_IWUSR,
-		comp_algorithm_show, comp_algorithm_store);
-
-=======
 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
 	zram_free_page(zram, index);
 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
@@ -1475,7 +1115,6 @@ static ssize_t mm_stat_show(struct device *dev,
 
 static DEVICE_ATTR_RO(io_stat);
 static DEVICE_ATTR_RO(mm_stat);
->>>>>>> android-3.18
 ZRAM_ATTR_RO(num_reads);
 ZRAM_ATTR_RO(num_writes);
 ZRAM_ATTR_RO(failed_reads);
@@ -1493,27 +1132,19 @@ static struct attribute *zram_disk_attrs[] = {
 	&dev_attr_num_writes.attr,
 	&dev_attr_failed_reads.attr,
 	&dev_attr_failed_writes.attr,
-<<<<<<< HEAD
-=======
 	&dev_attr_compact.attr,
->>>>>>> android-3.18
 	&dev_attr_invalid_io.attr,
 	&dev_attr_notify_free.attr,
 	&dev_attr_zero_pages.attr,
 	&dev_attr_orig_data_size.attr,
 	&dev_attr_compr_data_size.attr,
 	&dev_attr_mem_used_total.attr,
-<<<<<<< HEAD
-	&dev_attr_max_comp_streams.attr,
-	&dev_attr_comp_algorithm.attr,
-=======
 	&dev_attr_mem_limit.attr,
 	&dev_attr_mem_used_max.attr,
 	&dev_attr_max_comp_streams.attr,
 	&dev_attr_comp_algorithm.attr,
 	&dev_attr_io_stat.attr,
 	&dev_attr_mm_stat.attr,
->>>>>>> android-3.18
 	NULL,
 };
 
@@ -1521,10 +1152,6 @@ static struct attribute_group zram_disk_attr_group = {
 	.attrs = zram_disk_attrs,
 };
 
-<<<<<<< HEAD
-static int create_device(struct zram *zram, int device_id)
-{
-=======
 static const struct attribute_group *zram_disk_attr_groups[] = {
 	&zram_disk_attr_group,
 	NULL,
@@ -1533,58 +1160,36 @@ static const struct attribute_group *zram_disk_attr_groups[] = {
 static int create_device(struct zram *zram, int device_id)
 {
 	struct request_queue *queue;
->>>>>>> android-3.18
 	int ret = -ENOMEM;
 
 	init_rwsem(&zram->init_lock);
 
-<<<<<<< HEAD
-	zram->queue = blk_alloc_queue(GFP_KERNEL);
-	if (!zram->queue) {
-=======
 	queue = blk_alloc_queue(GFP_KERNEL);
 	if (!queue) {
->>>>>>> android-3.18
 		pr_err("Error allocating disk queue for device %d\n",
 			device_id);
 		goto out;
 	}
 
-<<<<<<< HEAD
-	blk_queue_make_request(zram->queue, zram_make_request);
-	zram->queue->queuedata = zram;
-=======
 	blk_queue_make_request(queue, zram_make_request);
->>>>>>> android-3.18
 
 	 /* gendisk structure */
 	zram->disk = alloc_disk(1);
 	if (!zram->disk) {
 		pr_warn("Error allocating disk structure for device %d\n",
 			device_id);
-<<<<<<< HEAD
-=======
 		ret = -ENOMEM;
->>>>>>> android-3.18
 		goto out_free_queue;
 	}
 
 	zram->disk->major = zram_major;
 	zram->disk->first_minor = device_id;
 	zram->disk->fops = &zram_devops;
-<<<<<<< HEAD
-	zram->disk->queue = zram->queue;
-	zram->disk->private_data = zram;
-	snprintf(zram->disk->disk_name, 16, "zram%d", device_id);
-
-	__set_bit(QUEUE_FLAG_FAST, &zram->disk->queue->queue_flags);
-=======
 	zram->disk->queue = queue;
 	zram->disk->queue->queuedata = zram;
 	zram->disk->private_data = zram;
 	snprintf(zram->disk->disk_name, 16, "zram%d", device_id);
 
->>>>>>> android-3.18
 	/* Actual capacity set using syfs (/sys/block/zram<id>/disksize */
 	set_capacity(zram->disk, 0);
 	/* zram devices sort of resembles non-rotational disks */
@@ -1601,11 +1206,8 @@ static int create_device(struct zram *zram, int device_id)
 	blk_queue_io_opt(zram->disk->queue, PAGE_SIZE);
 	zram->disk->queue->limits.discard_granularity = PAGE_SIZE;
 	zram->disk->queue->limits.max_discard_sectors = UINT_MAX;
-<<<<<<< HEAD
-=======
 	zram->disk->queue->limits.max_sectors = SECTORS_PER_PAGE;
 	zram->disk->queue->limits.chunk_sectors = 0;
->>>>>>> android-3.18
 	/*
 	 * zram_bio_discard() will clear all logical blocks if logical block
 	 * size is identical with physical block size(PAGE_SIZE). But if it is
@@ -1620,50 +1222,20 @@ static int create_device(struct zram *zram, int device_id)
 		zram->disk->queue->limits.discard_zeroes_data = 0;
 	queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, zram->disk->queue);
 
-<<<<<<< HEAD
-	add_disk(zram->disk);
-
-	ret = sysfs_create_group(&disk_to_dev(zram->disk)->kobj,
-				&zram_disk_attr_group);
-	if (ret < 0) {
-		pr_warn("Error creating sysfs group");
-		goto out_free_disk;
-	}
-=======
 	disk_to_dev(zram->disk)->groups = zram_disk_attr_groups;
 	add_disk(zram->disk);
 
->>>>>>> android-3.18
 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
 	zram->meta = NULL;
 	zram->max_comp_streams = 1;
 	return 0;
 
-<<<<<<< HEAD
-out_free_disk:
-	del_gendisk(zram->disk);
-	put_disk(zram->disk);
-out_free_queue:
-	blk_cleanup_queue(zram->queue);
-=======
 out_free_queue:
 	blk_cleanup_queue(queue);
->>>>>>> android-3.18
 out:
 	return ret;
 }
 
-<<<<<<< HEAD
-static void destroy_device(struct zram *zram)
-{
-	sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
-			&zram_disk_attr_group);
-
-	del_gendisk(zram->disk);
-	put_disk(zram->disk);
-
-	blk_cleanup_queue(zram->queue);
-=======
 static void destroy_devices(unsigned int nr)
 {
 	struct zram *zram;
@@ -1682,7 +1254,6 @@ static void destroy_devices(unsigned int nr)
 	kfree(zram_devices);
 	unregister_blkdev(zram_major, "zram");
 	pr_info("Destroyed %u device(s)\n", nr);
->>>>>>> android-3.18
 }
 
 static int __init zram_init(void)
@@ -1692,56 +1263,25 @@ static int __init zram_init(void)
 	if (num_devices > max_num_devices) {
 		pr_warn("Invalid value for num_devices: %u\n",
 				num_devices);
-<<<<<<< HEAD
-		ret = -EINVAL;
-		goto out;
-=======
 		return -EINVAL;
->>>>>>> android-3.18
 	}
 
 	zram_major = register_blkdev(0, "zram");
 	if (zram_major <= 0) {
 		pr_warn("Unable to get major number\n");
-<<<<<<< HEAD
-		ret = -EBUSY;
-		goto out;
-=======
 		return -EBUSY;
->>>>>>> android-3.18
 	}
 
 	/* Allocate the device array and initialize each one */
 	zram_devices = kzalloc(num_devices * sizeof(struct zram), GFP_KERNEL);
 	if (!zram_devices) {
-<<<<<<< HEAD
-		ret = -ENOMEM;
-		goto unregister;
-=======
 		unregister_blkdev(zram_major, "zram");
 		return -ENOMEM;
->>>>>>> android-3.18
 	}
 
 	for (dev_id = 0; dev_id < num_devices; dev_id++) {
 		ret = create_device(&zram_devices[dev_id], dev_id);
 		if (ret)
-<<<<<<< HEAD
-			goto free_devices;
-	}
-
-	pr_info("Created %u device(s) ...\n", num_devices);
-
-	return 0;
-
-free_devices:
-	while (dev_id)
-		destroy_device(&zram_devices[--dev_id]);
-	kfree(zram_devices);
-unregister:
-	unregister_blkdev(zram_major, "zram");
-out:
-=======
 			goto out_error;
 	}
 
@@ -1750,34 +1290,12 @@ out:
 
 out_error:
 	destroy_devices(dev_id);
->>>>>>> android-3.18
 	return ret;
 }
 
 static void __exit zram_exit(void)
 {
-<<<<<<< HEAD
-	int i;
-	struct zram *zram;
-
-	for (i = 0; i < num_devices; i++) {
-		zram = &zram_devices[i];
-
-		destroy_device(zram);
-		/*
-		 * Shouldn't access zram->disk after destroy_device
-		 * because destroy_device already released zram->disk.
-		 */
-		zram_reset_device(zram, false);
-	}
-
-	unregister_blkdev(zram_major, "zram");
-
-	kfree(zram_devices);
-	pr_debug("Cleanup done!\n");
-=======
 	destroy_devices(num_devices);
->>>>>>> android-3.18
 }
 
 module_init(zram_init);

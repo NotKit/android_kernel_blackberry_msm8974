@@ -47,13 +47,6 @@ L3_START_KERNEL = pud_index(__START_KERNEL_map)
 	.code64
 	.globl startup_64
 startup_64:
-<<<<<<< HEAD
-
-	/* Sanitize CPU configuration */
-	call verify_cpu
-
-=======
->>>>>>> android-3.18
 	/*
 	 * At this point the CPU runs in 64bit mode CS.L = 1 CS.D = 0,
 	 * and someone has loaded an identity mapped page table
@@ -179,13 +172,8 @@ ENTRY(secondary_startup_64)
 	 * after the boot processor executes this code.
 	 */
 
-<<<<<<< HEAD
-	/* Sanitize CPU configuration */
-	call verify_cpu
-=======
 	movq	$(init_level4_pgt - __START_KERNEL_map), %rax
 1:
->>>>>>> android-3.18
 
 	/* Enable PAE mode and PGE */
 	movl	$(X86_CR4_PAE | X86_CR4_PGE), %ecx
@@ -298,9 +286,6 @@ ENTRY(secondary_startup_64)
 	pushq	%rax		# target address in negative space
 	lretq
 
-<<<<<<< HEAD
-#include "verify_cpu.S"
-=======
 #ifdef CONFIG_HOTPLUG_CPU
 /*
  * Boot CPU0 entry point. It's called from play_dead(). Everything has been set
@@ -316,7 +301,6 @@ ENTRY(start_cpu0)
 	lretq
 ENDPROC(start_cpu0)
 #endif
->>>>>>> android-3.18
 
 	/* SMP bootup changes these two */
 	__REFDATA

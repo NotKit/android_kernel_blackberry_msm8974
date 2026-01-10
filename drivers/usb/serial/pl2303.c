@@ -47,10 +47,7 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_HCR331) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_MOTOROLA) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_ZTEK) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_TB) },
->>>>>>> android-3.18
 	{ USB_DEVICE(IODATA_VENDOR_ID, IODATA_PRODUCT_ID) },
 	{ USB_DEVICE(IODATA_VENDOR_ID, IODATA_PRODUCT_ID_RSAQ5) },
 	{ USB_DEVICE(ATEN_VENDOR_ID, ATEN_PRODUCT_ID) },
@@ -68,18 +65,12 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(DCU10_VENDOR_ID, DCU10_PRODUCT_ID) },
 	{ USB_DEVICE(SITECOM_VENDOR_ID, SITECOM_PRODUCT_ID) },
 	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_ID) },
-<<<<<<< HEAD
-	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_SX1) },
-	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X65) },
-	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X75) },
-=======
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_SX1),
 		.driver_info = PL2303_QUIRK_UART_STATE_IDX0 },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X65),
 		.driver_info = PL2303_QUIRK_UART_STATE_IDX0 },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X75),
 		.driver_info = PL2303_QUIRK_UART_STATE_IDX0 },
->>>>>>> android-3.18
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_EF81) },
 	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_ID_S81) }, /* Benq/Siemens S81 */
 	{ USB_DEVICE(SYNTECH_VENDOR_ID, SYNTECH_PRODUCT_ID) },
@@ -96,11 +87,6 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(YCCABLE_VENDOR_ID, YCCABLE_PRODUCT_ID) },
 	{ USB_DEVICE(SUPERIAL_VENDOR_ID, SUPERIAL_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LD220_PRODUCT_ID) },
-<<<<<<< HEAD
-	{ USB_DEVICE(HP_VENDOR_ID, HP_LD960_PRODUCT_ID) },
-	{ USB_DEVICE(HP_VENDOR_ID, HP_LCM220_PRODUCT_ID) },
-	{ USB_DEVICE(HP_VENDOR_ID, HP_LCM960_PRODUCT_ID) },
-=======
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LD220TA_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LD381_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LD381GC_PRODUCT_ID) },
@@ -111,7 +97,6 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LM920_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LM940_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_TD620_PRODUCT_ID) },
->>>>>>> android-3.18
 	{ USB_DEVICE(CRESSI_VENDOR_ID, CRESSI_EDY_PRODUCT_ID) },
 	{ USB_DEVICE(ZEAGLE_VENDOR_ID, ZEAGLE_N2ITION3_PRODUCT_ID) },
 	{ USB_DEVICE(SONY_VENDOR_ID, SONY_QN3USB_PRODUCT_ID) },
@@ -275,32 +260,6 @@ static int pl2303_startup(struct usb_serial *serial)
 	else if (serial->dev->descriptor.bDeviceClass == 0x00)
 		type = TYPE_01;		/* type 1 */
 	else if (serial->dev->descriptor.bDeviceClass == 0xFF)
-<<<<<<< HEAD
-		type = type_1;
-	dbg("device type: %d", type);
-
-	for (i = 0; i < serial->num_ports; ++i) {
-		priv = kzalloc(sizeof(struct pl2303_private), GFP_KERNEL);
-		if (!priv)
-			goto cleanup;
-		spin_lock_init(&priv->lock);
-		priv->type = type;
-		usb_set_serial_port_data(serial->port[i], priv);
-	}
-
-	pl2303_vendor_read(0x8484, 0, serial, buf);
-	pl2303_vendor_write(0x0404, 0, serial);
-	pl2303_vendor_read(0x8484, 0, serial, buf);
-	pl2303_vendor_read(0x8383, 0, serial, buf);
-	pl2303_vendor_read(0x8484, 0, serial, buf);
-	pl2303_vendor_write(0x0404, 1, serial);
-	pl2303_vendor_read(0x8484, 0, serial, buf);
-	pl2303_vendor_read(0x8383, 0, serial, buf);
-	pl2303_vendor_write(0, 1, serial);
-	pl2303_vendor_write(1, 0, serial);
-	if (type == HX)
-		pl2303_vendor_write(2, 0x44, serial);
-=======
 		type = TYPE_01;		/* type 1 */
 	dev_dbg(&serial->interface->dev, "device type: %d\n", type);
 
@@ -322,7 +281,6 @@ static int pl2303_startup(struct usb_serial *serial)
 	pl2303_vendor_write(serial, 1, 0);
 	if (spriv->quirks & PL2303_QUIRK_LEGACY)
 		pl2303_vendor_write(serial, 2, 0x24);
->>>>>>> android-3.18
 	else
 		pl2303_vendor_write(serial, 2, 0x44);
 
@@ -531,38 +489,20 @@ static void pl2303_set_termios(struct tty_struct *tty,
 	int ret;
 	u8 control;
 
-<<<<<<< HEAD
-	dbg("%s -  port %d", __func__, port->number);
-
-	/* The PL2303 is reported to lose bytes if you change
-	   serial settings even to the same values as before. Thus
-	   we actually need to filter in this specific case */
-
-	if (old_termios && !tty_termios_hw_change(tty->termios, old_termios))
-=======
 	if (old_termios && !tty_termios_hw_change(&tty->termios, old_termios))
->>>>>>> android-3.18
 		return;
 
 	buf = kzalloc(7, GFP_KERNEL);
 	if (!buf) {
 		/* Report back no change occurred */
 		if (old_termios)
-<<<<<<< HEAD
-			*tty->termios = *old_termios;
-=======
 			tty->termios = *old_termios;
->>>>>>> android-3.18
 		return;
 	}
 
 	pl2303_get_line_request(port, buf);
 
-<<<<<<< HEAD
-	switch (cflag & CSIZE) {
-=======
 	switch (C_CSIZE(tty)) {
->>>>>>> android-3.18
 	case CS5:
 		buf[6] = 5;
 		break;
@@ -575,14 +515,8 @@ static void pl2303_set_termios(struct tty_struct *tty,
 	default:
 	case CS8:
 		buf[6] = 8;
-<<<<<<< HEAD
-		break;
-	}
-	dbg("%s - data bits = %d", __func__, buf[6]);
-=======
 	}
 	dev_dbg(&port->dev, "data bits = %d\n", buf[6]);
->>>>>>> android-3.18
 
 	/* For reference buf[0]:buf[3] baud rate value */
 	pl2303_encode_baud_rate(tty, port, &buf[0]);
@@ -798,49 +732,7 @@ static int pl2303_carrier_raised(struct usb_serial_port *port)
 
 	if (priv->line_status & UART_DCD)
 		return 1;
-<<<<<<< HEAD
-	return 0;
-}
 
-static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
-{
-	struct pl2303_private *priv = usb_get_serial_port_data(port);
-	unsigned long flags;
-	unsigned int prevstatus;
-	unsigned int status;
-	unsigned int changed;
-
-	spin_lock_irqsave(&priv->lock, flags);
-	prevstatus = priv->line_status;
-	spin_unlock_irqrestore(&priv->lock, flags);
-
-	while (1) {
-		interruptible_sleep_on(&port->delta_msr_wait);
-		/* see if a signal did it */
-		if (signal_pending(current))
-			return -ERESTARTSYS;
-
-		if (port->serial->disconnected)
-			return -EIO;
-
-		spin_lock_irqsave(&priv->lock, flags);
-		status = priv->line_status;
-		spin_unlock_irqrestore(&priv->lock, flags);
-
-		changed = prevstatus ^ status;
-
-		if (((arg & TIOCM_RNG) && (changed & UART_RING)) ||
-		    ((arg & TIOCM_DSR) && (changed & UART_DSR)) ||
-		    ((arg & TIOCM_CD)  && (changed & UART_DCD)) ||
-		    ((arg & TIOCM_CTS) && (changed & UART_CTS))) {
-			return 0;
-		}
-		prevstatus = status;
-	}
-	/* NOTREACHED */
-=======
-
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -920,10 +812,6 @@ static void pl2303_update_line_status(struct usb_serial_port *port,
 
 	if (status & UART_BREAK_ERROR)
 		usb_serial_handle_break(port);
-<<<<<<< HEAD
-	wake_up_interruptible(&port->delta_msr_wait);
-=======
->>>>>>> android-3.18
 
 	if (delta & UART_STATE_MSR_MASK) {
 		if (delta & UART_CTS)
@@ -1000,10 +888,6 @@ static void pl2303_process_read_urb(struct urb *urb)
 	line_status = priv->line_status;
 	priv->line_status &= ~UART_STATE_TRANSIENT_MASK;
 	spin_unlock_irqrestore(&priv->lock, flags);
-<<<<<<< HEAD
-	wake_up_interruptible(&port->delta_msr_wait);
-=======
->>>>>>> android-3.18
 
 	if (!urb->actual_length)
 		return;

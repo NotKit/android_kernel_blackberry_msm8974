@@ -242,11 +242,7 @@ static inline void play_dead(void)
 #ifdef CONFIG_X86_64
 void enter_idle(void)
 {
-<<<<<<< HEAD
-	percpu_write(is_idle, 1);
-=======
 	this_cpu_write(is_idle, 1);
->>>>>>> android-3.18
 	idle_notifier_call_chain(IDLE_START);
 }
 

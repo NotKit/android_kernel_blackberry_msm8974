@@ -1296,12 +1296,9 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	if (ios->clock) {
 		unsigned int clock_min = ~0U;
 		int clkdiv;
-<<<<<<< HEAD
-=======
 
 		clk_prepare(host->mck);
 		unprepare_clk = true;
->>>>>>> android-3.18
 
 		spin_lock_bh(&host->lock);
 		if (!host->mode_reg) {
@@ -2535,10 +2532,7 @@ static int __exit atmci_remove(struct platform_device *pdev)
 	atmci_readl(host, ATMCI_SR);
 	clk_disable_unprepare(host->mck);
 
-<<<<<<< HEAD
-=======
 	del_timer_sync(&host->timer);
->>>>>>> android-3.18
 	if (host->dma.chan)
 		dma_release_channel(host->dma.chan);
 

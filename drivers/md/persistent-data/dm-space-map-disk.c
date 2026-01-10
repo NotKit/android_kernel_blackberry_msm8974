@@ -283,25 +283,6 @@ bad:
 	kfree(smd);
 	return ERR_PTR(r);
 }
-<<<<<<< HEAD
-
-struct dm_space_map *dm_sm_disk_create(struct dm_transaction_manager *tm,
-				       dm_block_t nr_blocks)
-{
-	struct dm_space_map *sm = dm_sm_disk_create_real(tm, nr_blocks);
-	struct dm_space_map *smc;
-
-	if (IS_ERR_OR_NULL(sm))
-		return sm;
-
-	smc = dm_sm_checker_create_fresh(sm);
-	if (IS_ERR(smc))
-		dm_sm_destroy(sm);
-
-	return smc;
-}
-=======
->>>>>>> android-3.18
 EXPORT_SYMBOL_GPL(dm_sm_disk_create);
 
 struct dm_space_map *dm_sm_disk_open(struct dm_transaction_manager *tm,

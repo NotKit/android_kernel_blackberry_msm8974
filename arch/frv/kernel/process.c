@@ -61,26 +61,10 @@ static void core_sleep_idle(void)
 
 void arch_cpu_idle(void)
 {
-<<<<<<< HEAD
-	/* endless idle loop with no priority at all */
-	while (1) {
-		rcu_idle_enter();
-		while (!need_resched()) {
-			check_pgt_cache();
-
-			if (!frv_dma_inprogress && idle)
-				idle();
-		}
-		rcu_idle_exit();
-
-		schedule_preempt_disabled();
-	}
-=======
 	if (!frv_dma_inprogress)
 		core_sleep_idle();
 	else
 		local_irq_enable();
->>>>>>> android-3.18
 }
 
 void machine_restart(char * __unused)

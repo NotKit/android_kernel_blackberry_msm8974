@@ -608,8 +608,6 @@ static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
 }
 #endif
 
-<<<<<<< HEAD
-=======
 #ifndef pmd_move_must_withdraw
 static inline int pmd_move_must_withdraw(spinlock_t *new_pmd_ptl,
 					 spinlock_t *old_pmd_ptl)
@@ -622,7 +620,6 @@ static inline int pmd_move_must_withdraw(spinlock_t *new_pmd_ptl,
 }
 #endif
 
->>>>>>> android-3.18
 /*
  * This function is meant to be used by sites walking pagetables with
  * the mmap_sem hold in read mode to protect against MADV_DONTNEED and

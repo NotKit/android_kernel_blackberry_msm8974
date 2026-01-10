@@ -4,12 +4,6 @@
 #include <linux/netfilter.h>
 #include <linux/netfilter/nf_conntrack_tuple_common.h>
 
-<<<<<<< HEAD
-#define NF_NAT_RANGE_MAP_IPS		1
-#define NF_NAT_RANGE_PROTO_SPECIFIED	2
-#define NF_NAT_RANGE_PROTO_RANDOM	4
-#define NF_NAT_RANGE_PERSISTENT		8
-=======
 #define NF_NAT_RANGE_MAP_IPS			(1 << 0)
 #define NF_NAT_RANGE_PROTO_SPECIFIED		(1 << 1)
 #define NF_NAT_RANGE_PROTO_RANDOM		(1 << 2)
@@ -23,7 +17,6 @@
 	(NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED |	\
 	 NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PERSISTENT |	\
 	 NF_NAT_RANGE_PROTO_RANDOM_FULLY)
->>>>>>> android-3.18
 
 struct nf_nat_ipv4_range {
 	unsigned int			flags;

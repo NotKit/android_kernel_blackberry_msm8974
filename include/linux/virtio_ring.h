@@ -1,11 +1,6 @@
 #ifndef _LINUX_VIRTIO_RING_H
 #define _LINUX_VIRTIO_RING_H
 
-<<<<<<< HEAD
-#include <linux/irqreturn.h>
-#include <uapi/linux/virtio_ring.h>
-
-=======
 #include <asm/barrier.h>
 #include <linux/irqreturn.h>
 #include <uapi/linux/virtio_ring.h>
@@ -67,7 +62,6 @@ static inline void virtio_wmb(bool weak_barriers)
 }
 #endif
 
->>>>>>> android-3.18
 struct virtio_device;
 struct virtqueue;
 

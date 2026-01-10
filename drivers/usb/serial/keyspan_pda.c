@@ -699,31 +699,9 @@ static int keyspan_pda_fake_startup(struct usb_serial *serial)
 			fw_name);
 		return -ENOENT;
 	}
-<<<<<<< HEAD
-	record = (const struct ihex_binrec *)fw->data;
-
-	while (record) {
-		response = ezusb_writememory(serial, be32_to_cpu(record->addr),
-					     (unsigned char *)record->data,
-					     be16_to_cpu(record->len), 0xa0);
-		if (response < 0) {
-			dev_err(&serial->dev->dev, "ezusb_writememory failed "
-				"for Keyspan PDA firmware (%d %04X %pK %d)\n",
-				response, be32_to_cpu(record->addr),
-				record->data, be16_to_cpu(record->len));
-			break;
-		}
-		record = ihex_next_binrec(record);
-	}
-	release_firmware(fw);
-	/* bring device out of reset. Renumeration will occur in a moment
-	   and the new device will bind to the real driver */
-	response = ezusb_set_reset(serial, 0);
-=======
 
 	/* after downloading firmware Renumeration will occur in a
 	  moment and the new device will bind to the real driver */
->>>>>>> android-3.18
 
 	/* we want this device to fail to have a driver assigned to it. */
 	return 1;

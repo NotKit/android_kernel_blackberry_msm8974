@@ -75,22 +75,9 @@ static void for_each_companion(struct pci_dev *pdev, struct usb_hcd *hcd,
 				PCI_SLOT(companion->devfn) != slot)
 			continue;
 
-<<<<<<< HEAD
-		companion_hcd = pci_get_drvdata(companion);
-		if (!companion_hcd || !companion_hcd->self.root_hub)
-			continue;
-
-		/* For SET_HS_COMPANION, store a pointer to the EHCI bus in
-		 * the OHCI/UHCI companion bus structure.
-		 * For CLEAR_HS_COMPANION, clear the pointer to the EHCI bus
-		 * in the OHCI/UHCI companion bus structure.
-		 * For WAIT_FOR_COMPANIONS, wait until the OHCI/UHCI
-		 * companion controllers have fully resumed.
-=======
 		/*
 		 * Companion device should be either UHCI,OHCI or EHCI host
 		 * controller, otherwise skip.
->>>>>>> android-3.18
 		 */
 		if (companion->class != CL_UHCI && companion->class != CL_OHCI &&
 				companion->class != CL_EHCI)
@@ -219,11 +206,7 @@ int usb_hcd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	 * The xHCI driver has its own irq management
 	 * make sure irq setup is not touched for xhci in generic hcd code
 	 */
-<<<<<<< HEAD
-	if ((driver->flags & HCD_MASK) != HCD_USB3) {
-=======
 	if ((driver->flags & HCD_MASK) < HCD_USB3) {
->>>>>>> android-3.18
 		if (!dev->irq) {
 			dev_err(&dev->dev,
 			"Found HC with no IRQ. Check BIOS/PCI %s setup!\n",
@@ -284,9 +267,6 @@ int usb_hcd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 
 	pci_set_master(dev);
 
-<<<<<<< HEAD
-	retval = usb_add_hcd(hcd, hcd_irq, IRQF_SHARED);
-=======
 	/* Note: dev_set_drvdata must be called while holding the rwsem */
 	if (dev->class == CL_EHCI) {
 		down_write(&companions_rwsem);
@@ -308,7 +288,6 @@ int usb_hcd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 		up_read(&companions_rwsem);
 	}
 
->>>>>>> android-3.18
 	if (retval != 0)
 		goto unmap_registers;
 	device_wakeup_enable(hcd->self.controller);

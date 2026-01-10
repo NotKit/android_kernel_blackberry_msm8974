@@ -251,13 +251,8 @@ struct ad_system {
 #define SLAVE_AD_INFO(slave) ((slave)->ad_info)
 
 struct ad_bond_info {
-<<<<<<< HEAD
-	struct ad_system system;	    /* 802.3ad system structure */
-	u32 agg_select_timer;	    // Timer to select aggregator after all adapter's hand shakes
-=======
 	struct ad_system system;	/* 802.3ad system structure */
 	u32 agg_select_timer;		/* Timer to select aggregator after all adapter's hand shakes */
->>>>>>> android-3.18
 	u16 aggregator_identifier;
 };
 

@@ -90,39 +90,7 @@ static int cpuidle_find_deepest_state(struct cpuidle_driver *drv,
 }
 
 /**
-<<<<<<< HEAD
- * cpuidle_enter_state - enter the state and update stats
- * @dev: cpuidle device for this cpu
- * @drv: cpuidle driver for this cpu
- * @next_state: index into drv->states of the state to enter
- */
-int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
-		int next_state)
-{
-	int entered_state;
-
-	entered_state = cpuidle_enter_ops(dev, drv, next_state);
-
-	if (entered_state >= 0) {
-		/* Update cpuidle counters */
-		/* This can be moved to within driver enter routine
-		 * but that results in multiple copies of same code.
-		 */
-		dev->states_usage[entered_state].time +=
-				(unsigned long long)dev->last_residency;
-		dev->states_usage[entered_state].usage++;
-	} else {
-		dev->last_residency = 0;
-	}
-
-	return entered_state;
-}
-
-/**
- * cpuidle_idle_call - the main idle loop
-=======
  * cpuidle_enter_freeze - Enter an idle state suitable for suspend-to-idle.
->>>>>>> android-3.18
  *
  * Find the deepest state available and enter it.
  */
@@ -163,24 +131,11 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 	trace_cpu_idle_rcuidle(index, dev->cpu);
 	time_start = ktime_get();
 
-<<<<<<< HEAD
-	if (cpuidle_state_is_coupled(dev, drv, next_state))
-		entered_state = cpuidle_enter_state_coupled(dev, drv,
-							    next_state);
-	else
-		entered_state = cpuidle_enter_state(dev, drv, next_state);
-=======
 	entered_state = target_state->enter(dev, drv, index);
->>>>>>> android-3.18
 
 	time_end = ktime_get();
 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, dev->cpu);
 
-<<<<<<< HEAD
-	/* give the governor an opportunity to reflect on the outcome */
-	if (cpuidle_curr_governor->reflect)
-		cpuidle_curr_governor->reflect(dev, entered_state);
-=======
 	/* The cpu is no longer idle or about to enter idle. */
 	sched_idle_set_state(NULL, -1);
 
@@ -206,7 +161,6 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 
 	return entered_state;
 }
->>>>>>> android-3.18
 
 /**
  * cpuidle_select - ask the cpuidle framework to choose an idle state
@@ -437,26 +391,6 @@ static int __cpuidle_register_device(struct cpuidle_device *dev)
 
 	per_cpu(cpuidle_devices, dev->cpu) = dev;
 	list_add(&dev->device_list, &cpuidle_detected_devices);
-<<<<<<< HEAD
-	ret = cpuidle_add_sysfs(cpu_dev);
-	if (ret)
-		goto err_sysfs;
-
-	ret = cpuidle_coupled_register_device(dev);
-	if (ret)
-		goto err_coupled;
-
-	dev->registered = 1;
-	return 0;
-
-err_coupled:
-	cpuidle_remove_sysfs(cpu_dev);
-	wait_for_completion(&dev->kobj_unregister);
-err_sysfs:
-	list_del(&dev->device_list);
-	per_cpu(cpuidle_devices, dev->cpu) = NULL;
-	module_put(cpuidle_driver->owner);
-=======
 
 	ret = cpuidle_coupled_register_device(dev);
 	if (ret)
@@ -464,7 +398,6 @@ err_sysfs:
 	else
 		dev->registered = 1;
 
->>>>>>> android-3.18
 	return ret;
 }
 
@@ -529,26 +462,16 @@ void cpuidle_unregister_device(struct cpuidle_device *dev)
 
 	cpuidle_remove_sysfs(dev);
 
-<<<<<<< HEAD
-	cpuidle_coupled_unregister_device(dev);
-
-	cpuidle_resume_and_unlock();
-=======
 	__cpuidle_unregister_device(dev);
 
 	cpuidle_coupled_unregister_device(dev);
->>>>>>> android-3.18
 
 	cpuidle_resume_and_unlock();
 }
 
 EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
 
-<<<<<<< HEAD
-/*
-=======
 /**
->>>>>>> android-3.18
  * cpuidle_unregister: unregister a driver and the devices. This function
  * can be used only if the driver has been previously registered through
  * the cpuidle_register function.
@@ -560,11 +483,7 @@ void cpuidle_unregister(struct cpuidle_driver *drv)
 	int cpu;
 	struct cpuidle_device *device;
 
-<<<<<<< HEAD
-	for_each_possible_cpu(cpu) {
-=======
 	for_each_cpu(cpu, drv->cpumask) {
->>>>>>> android-3.18
 		device = &per_cpu(cpuidle_dev, cpu);
 		cpuidle_unregister_device(device);
 	}
@@ -572,61 +491,6 @@ void cpuidle_unregister(struct cpuidle_driver *drv)
 	cpuidle_unregister_driver(drv);
 }
 EXPORT_SYMBOL_GPL(cpuidle_unregister);
-<<<<<<< HEAD
-
-/**
- * cpuidle_register: registers the driver and the cpu devices with the
- * coupled_cpus passed as parameter. This function is used for all common
- * initialization pattern there are in the arch specific drivers. The
- * devices is globally defined in this file.
- *
- * @drv         : a valid pointer to a struct cpuidle_driver
- * @coupled_cpus: a cpumask for the coupled states
- *
- * Returns 0 on success, < 0 otherwise
- */
-int cpuidle_register(struct cpuidle_driver *drv,
-		     const struct cpumask *const coupled_cpus)
-{
-	int ret, cpu;
-	struct cpuidle_device *device;
-
-	ret = cpuidle_register_driver(drv);
-	if (ret) {
-		pr_err("failed to register cpuidle driver\n");
-		return ret;
-	}
-
-	for_each_possible_cpu(cpu) {
-		device = &per_cpu(cpuidle_dev, cpu);
-		device->cpu = cpu;
-
-#ifdef CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED
-		/*
-		 * On multiplatform for ARM, the coupled idle states could
-		 * enabled in the kernel even if the cpuidle driver does not
-		 * use it. Note, coupled_cpus is a struct copy.
-		 */
-		if (coupled_cpus)
-			device->coupled_cpus = *coupled_cpus;
-#endif
-		ret = cpuidle_register_device(device);
-		if (!ret)
-			continue;
-
-		pr_err("Failed to register cpuidle device for cpu%d\n", cpu);
-
-		cpuidle_unregister(drv);
-		break;
-	}
-
-	return ret;
-}
-EXPORT_SYMBOL_GPL(cpuidle_register);
-
-#ifdef CONFIG_SMP
-=======
->>>>>>> android-3.18
 
 /**
  * cpuidle_register: registers the driver and the cpu devices with the

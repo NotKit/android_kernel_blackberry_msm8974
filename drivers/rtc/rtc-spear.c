@@ -427,21 +427,6 @@ static int spear_rtc_remove(struct platform_device *pdev)
 	spear_rtc_disable_interrupt(config);
 	clk_disable_unprepare(config->clk);
 	device_init_wakeup(&pdev->dev, 0);
-<<<<<<< HEAD
-	irq = platform_get_irq(pdev, 0);
-	if (irq)
-		free_irq(irq, pdev);
-	clk_disable(config->clk);
-	clk_put(config->clk);
-	iounmap(config->ioaddr);
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res)
-		release_mem_region(res->start, resource_size(res));
-	platform_set_drvdata(pdev, NULL);
-	rtc_device_unregister(config->rtc);
-	kfree(config);
-=======
->>>>>>> android-3.18
 
 	return 0;
 }

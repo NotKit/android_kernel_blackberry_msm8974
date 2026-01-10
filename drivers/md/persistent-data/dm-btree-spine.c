@@ -164,8 +164,6 @@ int ro_step(struct ro_spine *s, dm_block_t new_child)
 	return r;
 }
 
-<<<<<<< HEAD
-=======
 void ro_pop(struct ro_spine *s)
 {
 	BUG_ON(!s->count);
@@ -173,7 +171,6 @@ void ro_pop(struct ro_spine *s)
 	unlock_block(s->info, s->nodes[s->count]);
 }
 
->>>>>>> android-3.18
 struct btree_node *ro_node(struct ro_spine *s)
 {
 	struct dm_block *block;
@@ -253,11 +250,7 @@ int shadow_root(struct shadow_spine *s)
 	return s->root;
 }
 
-<<<<<<< HEAD
-static void le64_inc(void *context, void *value_le)
-=======
 static void le64_inc(void *context, const void *value_le)
->>>>>>> android-3.18
 {
 	struct dm_transaction_manager *tm = context;
 	__le64 v_le;
@@ -266,11 +259,7 @@ static void le64_inc(void *context, const void *value_le)
 	dm_tm_inc(tm, le64_to_cpu(v_le));
 }
 
-<<<<<<< HEAD
-static void le64_dec(void *context, void *value_le)
-=======
 static void le64_dec(void *context, const void *value_le)
->>>>>>> android-3.18
 {
 	struct dm_transaction_manager *tm = context;
 	__le64 v_le;
@@ -279,11 +268,7 @@ static void le64_dec(void *context, const void *value_le)
 	dm_tm_dec(tm, le64_to_cpu(v_le));
 }
 
-<<<<<<< HEAD
-static int le64_equal(void *context, void *value1_le, void *value2_le)
-=======
 static int le64_equal(void *context, const void *value1_le, const void *value2_le)
->>>>>>> android-3.18
 {
 	__le64 v1_le, v2_le;
 

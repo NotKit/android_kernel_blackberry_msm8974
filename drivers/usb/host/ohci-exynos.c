@@ -46,19 +46,6 @@ static int exynos_ohci_get_phy(struct device *dev,
 	int phy_number;
 	int ret;
 
-<<<<<<< HEAD
-	ohci_dbg(ohci, "ohci_exynos_start, ohci:%pK", ohci);
-
-	ret = ohci_init(ohci);
-	if (ret < 0)
-		return ret;
-
-	ret = ohci_run(ohci);
-	if (ret < 0) {
-		err("can't start %s", hcd->self.bus_name);
-		ohci_stop(hcd);
-		return ret;
-=======
 	/* Get PHYs for the controller */
 	for_each_available_child_of_node(dev->of_node, child) {
 		ret = of_property_read_u32(child, "reg", &phy_number);
@@ -89,7 +76,6 @@ static int exynos_ohci_get_phy(struct device *dev,
 				return ret;
 			}
 		}
->>>>>>> android-3.18
 	}
 
 	return 0;

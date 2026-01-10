@@ -951,11 +951,6 @@ mwifiex_cmd_timeout_func(unsigned long function_context)
 			adapter->cmd_wait_q.status = -ETIMEDOUT;
 			wake_up_interruptible(&adapter->cmd_wait_q.wait);
 			mwifiex_cancel_pending_ioctl(adapter);
-<<<<<<< HEAD
-			/* reset cmd_sent flag to unblock new commands */
-			adapter->cmd_sent = false;
-=======
->>>>>>> android-3.18
 		}
 	}
 	if (adapter->hw_status == MWIFIEX_HW_STATUS_INITIALIZING)

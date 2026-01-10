@@ -262,13 +262,6 @@ void rcu_sched_qs(void);
 void rcu_bh_qs(void);
 void rcu_check_callbacks(int cpu, int user);
 struct notifier_block;
-<<<<<<< HEAD
-extern void rcu_idle_enter(void);
-extern void rcu_idle_exit(void);
-extern void rcu_irq_enter(void);
-extern void rcu_irq_exit(void);
-extern void exit_rcu(void);
-=======
 void rcu_idle_enter(void);
 void rcu_idle_exit(void);
 void rcu_irq_enter(void);
@@ -303,7 +296,6 @@ static inline void rcu_init_nohz(void)
 {
 }
 #endif /* #else #ifdef CONFIG_RCU_NOCB_CPU */
->>>>>>> android-3.18
 
 /**
  * RCU_NONIDLE - Indicate idle-loop code that needs RCU readers

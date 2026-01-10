@@ -286,12 +286,9 @@ struct hid_item {
 #define HID_QUIRK_BADPAD			0x00000020
 #define HID_QUIRK_MULTI_INPUT			0x00000040
 #define HID_QUIRK_HIDINPUT_FORCE		0x00000080
-<<<<<<< HEAD
-=======
 #define HID_QUIRK_NO_EMPTY_INPUT		0x00000100
 #define HID_QUIRK_NO_INIT_INPUT_REPORTS		0x00000200
 #define HID_QUIRK_ALWAYS_POLL			0x00000400
->>>>>>> android-3.18
 #define HID_QUIRK_SKIP_OUTPUT_REPORTS		0x00010000
 #define HID_QUIRK_SKIP_OUTPUT_REPORT_ID		0x00020000
 #define HID_QUIRK_NO_OUTPUT_REPORTS_ON_INTR_EP	0x00040000
@@ -302,11 +299,6 @@ struct hid_item {
 
 /*
  * HID device groups
-<<<<<<< HEAD
- */
-#define HID_GROUP_GENERIC			0x0001
-#define HID_GROUP_MULTITOUCH			0x0002
-=======
  *
  * Note: HID_GROUP_ANY is declared in linux/mod_devicetable.h
  * and has a value of 0x0000
@@ -325,7 +317,6 @@ struct hid_item {
  * Vendor specific HID device groups
  */
 #define HID_GROUP_WACOM				0x0101
->>>>>>> android-3.18
 
 /*
  * This is the global environment of the parser. This information is
@@ -593,11 +584,8 @@ struct hid_descriptor {
 	.bus = BUS_USB, .vendor = (ven), .product = (prod)
 #define HID_BLUETOOTH_DEVICE(ven, prod)					\
 	.bus = BUS_BLUETOOTH, .vendor = (ven), .product = (prod)
-<<<<<<< HEAD
-=======
 #define HID_I2C_DEVICE(ven, prod)				\
 	.bus = BUS_I2C, .vendor = (ven), .product = (prod)
->>>>>>> android-3.18
 
 #define HID_REPORT_ID(rep) \
 	.report_type = (rep)
@@ -792,18 +780,11 @@ u8 *hid_alloc_report_buf(struct hid_report *report, gfp_t flags);
 struct hid_device *hid_allocate_device(void);
 struct hid_report *hid_register_report(struct hid_device *device, unsigned type, unsigned id);
 int hid_parse_report(struct hid_device *hid, __u8 *start, unsigned size);
-<<<<<<< HEAD
-int hid_open_report(struct hid_device *device);
-=======
->>>>>>> android-3.18
 struct hid_report *hid_validate_values(struct hid_device *hid,
 				       unsigned int type, unsigned int id,
 				       unsigned int field_index,
 				       unsigned int report_counts);
-<<<<<<< HEAD
-=======
 int hid_open_report(struct hid_device *device);
->>>>>>> android-3.18
 int hid_check_keys_pressed(struct hid_device *hid);
 int hid_connect(struct hid_device *hid, unsigned int connect_mask);
 void hid_disconnect(struct hid_device *hid);
@@ -1011,11 +992,6 @@ static inline int hid_hw_power(struct hid_device *hdev, int level)
 	return hdev->ll_driver->power ? hdev->ll_driver->power(hdev, level) : 0;
 }
 
-<<<<<<< HEAD
-int hid_report_raw_event(struct hid_device *hid, int type, u8 *data, int size,
-		int interrupt);
-=======
->>>>>>> android-3.18
 
 /**
  * hid_hw_request - send report request to device

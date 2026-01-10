@@ -41,8 +41,6 @@
 
 static struct iscsi_login *iscsi_login_init_conn(struct iscsi_conn *conn)
 {
-<<<<<<< HEAD
-=======
 	struct iscsi_login *login;
 
 	login = kzalloc(sizeof(struct iscsi_login), GFP_KERNEL);
@@ -73,7 +71,6 @@ static struct iscsi_login *iscsi_login_init_conn(struct iscsi_conn *conn)
 		goto out_rsp_buf;
 	}
 
->>>>>>> android-3.18
 	init_waitqueue_head(&conn->queues_wq);
 	INIT_LIST_HEAD(&conn->conn_list);
 	INIT_LIST_HEAD(&conn->conn_cmd_list);
@@ -1037,11 +1034,6 @@ int iscsit_setup_np(
 	return 0;
 fail:
 	np->np_socket = NULL;
-<<<<<<< HEAD
-	if (sock)
-		sock_release(sock);
-	return ret;
-=======
 	sock_release(sock);
 	return ret;
 }
@@ -1275,18 +1267,12 @@ old_sess_out:
 
 	iscsit_put_transport(conn->conn_transport);
 	kfree(conn);
->>>>>>> android-3.18
 }
 
 static int __iscsi_target_login_thread(struct iscsi_np *np)
 {
-<<<<<<< HEAD
-	u8 buffer[ISCSI_HDR_LEN], iscsi_opcode, zero_tsih = 0;
-	int err, ret = 0, stop;
-=======
 	u8 *buffer, zero_tsih = 0;
 	int ret = 0, rc;
->>>>>>> android-3.18
 	struct iscsi_conn *conn = NULL;
 	struct iscsi_login *login;
 	struct iscsi_portal_group *tpg = NULL;
@@ -1295,10 +1281,6 @@ static int __iscsi_target_login_thread(struct iscsi_np *np)
 	bool new_sess = false;
 
 	flush_signals(current);
-<<<<<<< HEAD
-	sock = np->np_socket;
-=======
->>>>>>> android-3.18
 
 	spin_lock_bh(&np->np_thread_lock);
 	if (atomic_dec_if_positive(&np->np_reset_count) >= 0) {
@@ -1354,23 +1336,6 @@ static int __iscsi_target_login_thread(struct iscsi_np *np)
 		conn = NULL;
 		goto out;
 	}
-<<<<<<< HEAD
-	iscsi_start_login_thread_timer(np);
-
-	conn = kzalloc(sizeof(struct iscsi_conn), GFP_KERNEL);
-	if (!conn) {
-		pr_err("Could not allocate memory for"
-			" new connection\n");
-		sock_release(new_sock);
-		/* Get another socket */
-		return 1;
-	}
-
-	pr_debug("Moving to TARG_CONN_STATE_FREE.\n");
-	conn->conn_state = TARG_CONN_STATE_FREE;
-	conn->sock = new_sock;
-
-=======
 	/*
 	 * Perform the remaining iSCSI connection initialization items..
 	 */
@@ -1381,7 +1346,6 @@ static int __iscsi_target_login_thread(struct iscsi_np *np)
 
 	iscsi_start_login_thread_timer(np);
 
->>>>>>> android-3.18
 	pr_debug("Moving to TARG_CONN_STATE_XPT_UP.\n");
 	conn->conn_state = TARG_CONN_STATE_XPT_UP;
 	/*
@@ -1501,49 +1465,9 @@ new_sess_out:
 	new_sess = true;
 old_sess_out:
 	iscsi_stop_login_thread_timer(np);
-<<<<<<< HEAD
-	/*
-	 * If login negotiation fails check if the Time2Retain timer
-	 * needs to be restarted.
-	 */
-	if (!zero_tsih && conn->sess) {
-		spin_lock_bh(&conn->sess->conn_lock);
-		if (conn->sess->session_state == TARG_SESS_STATE_FAILED) {
-			struct se_portal_group *se_tpg =
-					&ISCSI_TPG_C(conn)->tpg_se_tpg;
-
-			atomic_set(&conn->sess->session_continuation, 0);
-			spin_unlock_bh(&conn->sess->conn_lock);
-			spin_lock_bh(&se_tpg->session_lock);
-			iscsit_start_time2retain_handler(conn->sess);
-			spin_unlock_bh(&se_tpg->session_lock);
-		} else
-			spin_unlock_bh(&conn->sess->conn_lock);
-		iscsit_dec_session_usage_count(conn->sess);
-	}
-
-	if (!IS_ERR(conn->conn_rx_hash.tfm))
-		crypto_free_hash(conn->conn_rx_hash.tfm);
-	if (!IS_ERR(conn->conn_tx_hash.tfm))
-		crypto_free_hash(conn->conn_tx_hash.tfm);
-
-	if (conn->conn_cpumask)
-		free_cpumask_var(conn->conn_cpumask);
-
-	kfree(conn->conn_ops);
-
-	if (conn->param_list) {
-		iscsi_release_param_list(conn->param_list);
-		conn->param_list = NULL;
-	}
-	if (conn->sock)
-		sock_release(conn->sock);
-	kfree(conn);
-=======
 	tpg_np = conn->tpg_np;
 	iscsi_target_login_sess_out(conn, zero_tsih, new_sess);
 	new_sess = false;
->>>>>>> android-3.18
 
 	if (tpg) {
 		iscsit_deaccess_np(np, tpg, tpg_np);

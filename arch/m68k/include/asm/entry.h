@@ -35,10 +35,6 @@
 #if defined(MACH_ATARI_ONLY)
 	/* block out HSYNC = ipl 2 on the atari */
 #define ALLOWINT	(~0x500)
-<<<<<<< HEAD
-#define	MAX_NOINT_IPL	3
-=======
->>>>>>> android-3.18
 #else
 	/* portable version */
 #define ALLOWINT	(~0x700)

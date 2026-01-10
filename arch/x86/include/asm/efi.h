@@ -62,15 +62,6 @@ extern u64 asmlinkage efi_call(void *fp, ...);
 
 #define efi_call_phys(f, args...)		efi_call((f), args)
 
-<<<<<<< HEAD
-extern int add_efi_memmap;
-extern unsigned long x86_efi_facility;
-extern void efi_set_executable(efi_memory_desc_t *md, bool executable);
-extern int efi_memblock_x86_reserve_range(void);
-extern void efi_call_phys_prelog(void);
-extern void efi_call_phys_epilog(void);
-extern void efi_unmap_memmap(void);
-=======
 #define efi_call_virt(f, ...)						\
 ({									\
 	efi_status_t __s;						\
@@ -83,7 +74,6 @@ extern void efi_unmap_memmap(void);
 	preempt_enable();						\
 	__s;								\
 })
->>>>>>> android-3.18
 
 /*
  * All X86_64 virt calls return non-void values. Thus, use non-void call for

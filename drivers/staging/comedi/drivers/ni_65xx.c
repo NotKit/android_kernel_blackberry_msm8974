@@ -442,22 +442,6 @@ static int ni_65xx_dio_insn_bits(struct comedi_device *dev,
 				 struct comedi_insn *insn,
 				 unsigned int *data)
 {
-<<<<<<< HEAD
-	int base_bitfield_channel;
-	unsigned read_bits = 0;
-	int last_port_offset = ni_65xx_port_by_channel(s->n_chan - 1);
-	int port_offset;
-
-	if (insn->n != 2)
-		return -EINVAL;
-	base_bitfield_channel = CR_CHAN(insn->chanspec);
-	for (port_offset = ni_65xx_port_by_channel(base_bitfield_channel);
-	     port_offset <= last_port_offset; port_offset++) {
-		unsigned port = sprivate(s)->base_port + port_offset;
-		int base_port_channel = port_offset * ni_65xx_channels_per_port;
-		unsigned port_mask, port_data, port_read_bits;
-		int bitshift = base_port_channel - base_bitfield_channel;
-=======
 	unsigned long base_port = (unsigned long)s->private;
 	unsigned int base_chan = CR_CHAN(insn->chanspec);
 	int last_port_offset = NI_65XX_CHAN_TO_PORT(s->n_chan - 1);
@@ -470,7 +454,6 @@ static int ni_65xx_dio_insn_bits(struct comedi_device *dev,
 		int base_port_channel = NI_65XX_PORT_TO_CHAN(port_offset);
 		unsigned port_mask, port_data, bits;
 		int bitshift = base_port_channel - base_chan;
->>>>>>> android-3.18
 
 		if (bitshift >= 32)
 			break;

@@ -801,9 +801,6 @@ struct mlx4_steer {
 };
 
 enum {
-<<<<<<< HEAD
-	MLX4_PCI_DEV_IS_VF              = 1 << 0,
-=======
 	MLX4_PCI_DEV_IS_VF		= 1 << 0,
 	MLX4_PCI_DEV_FORCE_SENSE_PORT	= 1 << 1,
 };
@@ -811,7 +808,6 @@ enum {
 enum {
 	MLX4_NO_RR	= 0,
 	MLX4_USE_RR	= 1,
->>>>>>> android-3.18
 };
 
 struct mlx4_priv {

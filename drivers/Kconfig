@@ -14,7 +14,7 @@ source "drivers/pnp/Kconfig"
 
 source "drivers/block/Kconfig"
 
-source "drivers/google/Kconfig"
+# source "drivers/google/Kconfig"
 
 source "drivers/ide/Kconfig"
 
@@ -26,7 +26,7 @@ source "drivers/target/Kconfig"
 
 source "drivers/message/fusion/Kconfig"
 
-source "drivers/ieee1394/Kconfig"
+# source "drivers/ieee1394/Kconfig"
 
 source "drivers/message/i2o/Kconfig"
 
@@ -36,7 +36,7 @@ source "drivers/net/Kconfig"
 
 source "drivers/isdn/Kconfig"
 
-source "drivers/telephony/Kconfig"
+# source "drivers/telephony/Kconfig"
 
 source "drivers/input/Kconfig"
 
@@ -96,7 +96,7 @@ source "drivers/leds/Kconfig"
 
 source "drivers/accessibility/Kconfig"
 
-source "drivers/infiniBand/Kconfig"
+# source "drivers/infiniBand/Kconfig"
 
 source "drivers/edac/Kconfig"
 

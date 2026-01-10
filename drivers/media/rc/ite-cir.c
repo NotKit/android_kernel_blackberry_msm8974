@@ -1480,11 +1480,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
 	/* input device for IR remote (and tx) */
 	rdev = rc_allocate_device();
 	if (!rdev)
-<<<<<<< HEAD
-		goto failure;
-=======
 		goto exit_free_dev_rdev;
->>>>>>> android-3.18
 	itdev->rdev = rdev;
 
 	ret = -ENODEV;

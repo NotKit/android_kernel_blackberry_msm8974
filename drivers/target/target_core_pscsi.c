@@ -500,11 +500,7 @@ static int pscsi_configure_device(struct se_device *dev)
 			if (!sh) {
 				pr_err("pSCSI: Unable to locate"
 					" pdv_host_id: %d\n", pdv->pdv_host_id);
-<<<<<<< HEAD
-				return ERR_PTR(-EINVAL);
-=======
 				return -EINVAL;
->>>>>>> android-3.18
 			}
 			pdv->pdv_lld_host = sh;
 		}
@@ -941,10 +937,6 @@ pscsi_map_sg(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
 				bio = NULL;
 			}
 
-<<<<<<< HEAD
-			len -= bytes;
-=======
->>>>>>> android-3.18
 			data_len -= bytes;
 		}
 	}

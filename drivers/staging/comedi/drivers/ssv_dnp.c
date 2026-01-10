@@ -172,66 +172,6 @@ static void dnp_detach(struct comedi_device *dev)
 	outb(0x00, CSCDR);
 	outb(PCMR, CSCIR);
 	outb((inb(CSCDR) & 0xAA), CSCDR);
-<<<<<<< HEAD
-
-	/* announce that we are finished                                     */
-	printk(KERN_INFO "comedi%d: dnp: remove\n", dev->minor);
-
-	return 0;
-
-}
-
-/* ------------------------------------------------------------------------- */
-/* The insn_bits interface allows packed reading/writing of DIO channels.    */
-/* The comedi core can convert between insn_bits and insn_read/write, so you */
-/* are able to use these instructions as well.                               */
-/* ------------------------------------------------------------------------- */
-
-static int dnp_dio_insn_bits(struct comedi_device *dev,
-			     struct comedi_subdevice *s,
-			     struct comedi_insn *insn, unsigned int *data)
-{
-
-	if (insn->n != 2)
-		return -EINVAL;	/* insn uses data[0] and data[1]     */
-
-	/* The insn data is a mask in data[0] and the new data in data[1],   */
-	/* each channel cooresponding to a bit.                              */
-
-	/* Ports A and B are straight forward: each bit corresponds to an    */
-	/* output pin with the same order. Port C is different: bits 0...3   */
-	/* correspond to bits 4...7 of the output register (PCDR).           */
-
-	if (data[0]) {
-
-		outb(PADR, CSCIR);
-		outb((inb(CSCDR)
-		      & ~(u8) (data[0] & 0x0000FF))
-		     | (u8) (data[1] & 0x0000FF), CSCDR);
-
-		outb(PBDR, CSCIR);
-		outb((inb(CSCDR)
-		      & ~(u8) ((data[0] & 0x00FF00) >> 8))
-		     | (u8) ((data[1] & 0x00FF00) >> 8), CSCDR);
-
-		outb(PCDR, CSCIR);
-		outb((inb(CSCDR)
-		      & ~(u8) ((data[0] & 0x0F0000) >> 12))
-		     | (u8) ((data[1] & 0x0F0000) >> 12), CSCDR);
-	}
-
-	/* on return, data[1] contains the value of the digital input lines. */
-	outb(PADR, CSCIR);
-	data[1] = inb(CSCDR);
-	outb(PBDR, CSCIR);
-	data[1] += inb(CSCDR) << 8;
-	outb(PCDR, CSCIR);
-	data[1] += ((inb(CSCDR) & 0xF0) << 12);
-
-	return 2;
-
-=======
->>>>>>> android-3.18
 }
 
 static struct comedi_driver dnp_driver = {

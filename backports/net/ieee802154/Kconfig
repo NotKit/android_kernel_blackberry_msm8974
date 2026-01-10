@@ -22,6 +22,6 @@ config BACKPORT_IEEE802154_SOCKET
 	  for 802.15.4 dataframes. Also RAW socket interface to build MAC
 	  header from userspace.
 
-source "$BACKPORT_DIR/net/ieee802154/6lowpan/Kconfig"
+# source "$BACKPORT_DIR/net/ieee802154/6lowpan/Kconfig"
 
 endif

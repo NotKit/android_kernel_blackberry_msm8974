@@ -17,10 +17,7 @@
 #include <linux/interrupt.h>
 #include <linux/irq.h>
 #include <linux/sched_clock.h>
-<<<<<<< HEAD
-=======
 #include <plat/time.h>
->>>>>>> android-3.18
 
 /*
  * MBus bridge block registers.

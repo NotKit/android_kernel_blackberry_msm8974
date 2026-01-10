@@ -3244,11 +3244,8 @@ static int set_geometry(unsigned int cmd, struct floppy_struct *g,
 	    (int)g->head <= 0 ||
 	    /* check for overflow in max_sector */
 	    (int)(g->sect * g->head) <= 0 ||
-<<<<<<< HEAD
-=======
 	    /* check for zero in F_SECT_PER_TRACK */
 	    (unsigned char)((g->sect << 2) >> FD_SIZECODE(g)) == 0 ||
->>>>>>> android-3.18
 	    g->track <= 0 || g->track > UDP->tracks >> STRETCH(g) ||
 	    /* check if reserved bits are set */
 	    (g->stretch & ~(FD_STRETCH | FD_SWAPSIDES | FD_SECTBASEMASK)) != 0)
@@ -4557,14 +4554,8 @@ static int __init do_floppy_init(void)
 			goto out_put_disk;
 		}
 
-<<<<<<< HEAD
-		disks[dr]->queue = blk_init_queue(do_fd_request, &floppy_lock);
-		if (!disks[dr]->queue) {
-			put_disk(disks[dr]);
-=======
 		disks[drive]->queue = blk_init_queue(do_fd_request, &floppy_lock);
 		if (!disks[drive]->queue) {
->>>>>>> android-3.18
 			err = -ENOMEM;
 			goto out_put_disk;
 		}
@@ -4724,23 +4715,13 @@ out_unreg_platform_dev:
 	platform_device_unregister(&floppy_device[drive]);
 out_remove_drives:
 	while (drive--) {
-<<<<<<< HEAD
-		if ((allowed_drive_mask & (1 << drive)) &&
-		    fdc_state[FDC(drive)].version != FDC_NONE) {
-=======
 		if (floppy_available(drive)) {
->>>>>>> android-3.18
 			del_gendisk(disks[drive]);
 			device_remove_file(&floppy_device[drive].dev, &dev_attr_cmos);
 			platform_device_unregister(&floppy_device[drive]);
 		}
 	}
-<<<<<<< HEAD
-out_flush_work:
-	flush_work_sync(&floppy_work);
-=======
 out_release_dma:
->>>>>>> android-3.18
 	if (atomic_read(&usage_count))
 		floppy_release_irq_and_dma();
 out_unreg_region:

@@ -351,10 +351,6 @@ bool rtl92cu_rx_query_desc(struct ieee80211_hw *hw,
 	}
 	/*rx_status->qual = stats->signal; */
 	rx_status->signal = stats->recvsignalpower + 10;
-<<<<<<< HEAD
-	/*rx_status->noise = -stats->noise; */
-=======
->>>>>>> android-3.18
 	return true;
 }
 

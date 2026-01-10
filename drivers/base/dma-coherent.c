@@ -10,11 +10,7 @@
 struct dma_coherent_mem {
 	void		*virt_base;
 	dma_addr_t	device_base;
-<<<<<<< HEAD
-	phys_addr_t	pfn_base;
-=======
 	unsigned long	pfn_base;
->>>>>>> android-3.18
 	int		size;
 	int		flags;
 	unsigned long	*bitmap;
@@ -53,15 +49,7 @@ static int dma_init_coherent_memory(phys_addr_t phys_addr, dma_addr_t device_add
 	dma_mem->flags = flags;
 	spin_lock_init(&dma_mem->spinlock);
 
-<<<<<<< HEAD
-	dev->dma_mem->virt_base = mem_base;
-	dev->dma_mem->device_base = device_addr;
-	dev->dma_mem->pfn_base = PFN_DOWN(bus_addr);
-	dev->dma_mem->size = pages;
-	dev->dma_mem->flags = flags;
-=======
 	*mem = dma_mem;
->>>>>>> android-3.18
 
 	if (flags & DMA_MEMORY_MAP)
 		return DMA_MEMORY_MAP;
@@ -247,22 +235,13 @@ EXPORT_SYMBOL(dma_release_from_coherent);
  * @vma:	vm_area for the userspace memory
  * @vaddr:	cpu address returned by dma_alloc_from_coherent
  * @size:	size of the memory buffer allocated by dma_alloc_from_coherent
-<<<<<<< HEAD
-=======
  * @ret:	result from remap_pfn_range()
->>>>>>> android-3.18
  *
  * This checks whether the memory was allocated from the per-device
  * coherent memory pool and if so, maps that memory to the provided vma.
  *
-<<<<<<< HEAD
- * Returns 1 if we correctly mapped the memory, or 0 if
- * dma_release_coherent() should proceed with mapping memory from
- * generic pools.
-=======
  * Returns 1 if we correctly mapped the memory, or 0 if the caller should
  * proceed with mapping memory from generic pools.
->>>>>>> android-3.18
  */
 int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
 			   void *vaddr, size_t size, int *ret)
@@ -278,11 +257,7 @@ int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
 
 		*ret = -ENXIO;
 		if (off < count && user_count <= count - off) {
-<<<<<<< HEAD
-			unsigned pfn = mem->pfn_base + start + off;
-=======
 			unsigned long pfn = mem->pfn_base + start + off;
->>>>>>> android-3.18
 			*ret = remap_pfn_range(vma, vma->vm_start, pfn,
 					       user_count << PAGE_SHIFT,
 					       vma->vm_page_prot);
@@ -292,8 +267,6 @@ int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
 	return 0;
 }
 EXPORT_SYMBOL(dma_mmap_from_coherent);
-<<<<<<< HEAD
-=======
 
 /*
  * Support for reserved memory regions defined in device tree
@@ -352,4 +325,3 @@ static int __init rmem_dma_setup(struct reserved_mem *rmem)
 }
 RESERVEDMEM_OF_DECLARE(dma, "shared-dma-pool", rmem_dma_setup);
 #endif
->>>>>>> android-3.18

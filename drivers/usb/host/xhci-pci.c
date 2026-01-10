@@ -37,10 +37,7 @@
 /* Device for a quirk */
 #define PCI_VENDOR_ID_FRESCO_LOGIC	0x1b73
 #define PCI_DEVICE_ID_FRESCO_LOGIC_PDK	0x1000
-<<<<<<< HEAD
-=======
 #define PCI_DEVICE_ID_FRESCO_LOGIC_FL1009	0x1009
->>>>>>> android-3.18
 #define PCI_DEVICE_ID_FRESCO_LOGIC_FL1400	0x1400
 
 #define PCI_VENDOR_ID_ETRON		0x1b6f
@@ -107,19 +104,8 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 				"must be suspended extra slowly",
 				pdev->revision);
 		}
-<<<<<<< HEAD
-		if (pdev->device == PCI_DEVICE_ID_FRESCO_LOGIC_PDK &&
-				pdev->revision == 0x4) {
-			xhci->quirks |= XHCI_SLOW_SUSPEND;
-			xhci_dbg(xhci,
-				"QUIRK: Fresco Logic xHC revision %u"
-				"must be suspended extra slowly",
-				pdev->revision);
-		}
-=======
 		if (pdev->device == PCI_DEVICE_ID_FRESCO_LOGIC_PDK)
 			xhci->quirks |= XHCI_BROKEN_STREAMS;
->>>>>>> android-3.18
 		/* Fresco Logic confirms: all revisions of this chip do not
 		 * support MSI, even though some of them claim to in their PCI
 		 * capabilities.
@@ -149,16 +135,11 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 	if (pdev->vendor == PCI_VENDOR_ID_AMD)
 		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
 
-<<<<<<< HEAD
-	if (pdev->vendor == PCI_VENDOR_ID_INTEL)
-		xhci->quirks |= XHCI_AVOID_BEI;
-=======
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL) {
 		xhci->quirks |= XHCI_LPM_SUPPORT;
 		xhci->quirks |= XHCI_INTEL_HOST;
 		xhci->quirks |= XHCI_AVOID_BEI;
 	}
->>>>>>> android-3.18
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 			pdev->device == PCI_DEVICE_ID_INTEL_PANTHERPOINT_XHCI) {
 		xhci->quirks |= XHCI_EP_LIMIT_QUIRK;
@@ -173,16 +154,6 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 		 * PPT chipsets.
 		 */
 		xhci->quirks |= XHCI_SPURIOUS_REBOOT;
-<<<<<<< HEAD
-		xhci->quirks |= XHCI_SPURIOUS_WAKEUP;
-	}
-	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
-		(pdev->device == PCI_DEVICE_ID_INTEL_SUNRISEPOINT_LP_XHCI ||
-		 pdev->device == PCI_DEVICE_ID_INTEL_SUNRISEPOINT_H_XHCI ||
-		 pdev->device == PCI_DEVICE_ID_INTEL_CHERRYVIEW_XHCI)) {
-		xhci->quirks |= XHCI_PME_STUCK_QUIRK;
-=======
->>>>>>> android-3.18
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 		(pdev->device == PCI_DEVICE_ID_INTEL_LYNXPOINT_LP_XHCI ||
@@ -215,12 +186,6 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 	if (pdev->vendor == PCI_VENDOR_ID_ETRON &&
 			pdev->device == PCI_DEVICE_ID_EJ168) {
 		xhci->quirks |= XHCI_RESET_ON_RESUME;
-<<<<<<< HEAD
-		xhci_dbg(xhci, "QUIRK: Resetting on resume\n");
-		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
-	}
-	if (pdev->vendor == PCI_VENDOR_ID_RENESAS &&
-=======
 		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
 		xhci->quirks |= XHCI_BROKEN_STREAMS;
 	}
@@ -228,7 +193,6 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 			pdev->device == 0x0014)
 		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
 	if (pdev->vendor == PCI_VENDOR_ID_RENESAS &&
->>>>>>> android-3.18
 			pdev->device == 0x0015)
 		xhci->quirks |= XHCI_RESET_ON_RESUME;
 	if (pdev->vendor == PCI_VENDOR_ID_VIA)
@@ -251,22 +215,6 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 				"QUIRK: Resetting on resume");
 }
 
-<<<<<<< HEAD
-/*
- * Make sure PME works on some Intel xHCI controllers by writing 1 to clear
- * the Internal PME flag bit in vendor specific PMCTRL register at offset 0x80a4
- */
-static void xhci_pme_quirk(struct xhci_hcd *xhci)
-{
-	u32 val;
-	void __iomem *reg;
-
-	reg = (void __iomem *) xhci->cap_regs + 0x80a4;
-	val = readl(reg);
-	writel(val | BIT(28), reg);
-	readl(reg);
-}
-=======
 #ifdef CONFIG_ACPI
 static void xhci_pme_acpi_rtd3_enable(struct pci_dev *dev)
 {
@@ -279,7 +227,6 @@ static void xhci_pme_acpi_rtd3_enable(struct pci_dev *dev)
 #else
 	static void xhci_pme_acpi_rtd3_enable(struct pci_dev *dev) { }
 #endif /* CONFIG_ACPI */
->>>>>>> android-3.18
 
 /* called during probe() after chip reset completes */
 static int xhci_pci_setup(struct usb_hcd *hcd)
@@ -394,13 +341,6 @@ static void xhci_pci_remove(struct pci_dev *dev)
 
 	usb_hcd_pci_remove(dev);
 
-<<<<<<< HEAD
-	/* Workaround for spurious wakeups at shutdown with HSW */
-	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
-		pci_set_power_state(dev, PCI_D3hot);
-
-=======
->>>>>>> android-3.18
 	kfree(xhci);
 }
 
@@ -473,13 +413,7 @@ static int xhci_pci_suspend(struct usb_hcd *hcd, bool do_wakeup)
 		pdev->no_d3cold = true;
 
 	if (xhci->quirks & XHCI_PME_STUCK_QUIRK)
-<<<<<<< HEAD
-		xhci_pme_quirk(xhci);
-
-	retval = xhci_suspend(xhci, do_wakeup);
-=======
 		xhci_pme_quirk(hcd);
->>>>>>> android-3.18
 
 	if (xhci->quirks & XHCI_SSIC_PORT_UNUSED)
 		xhci_ssic_port_unused_quirk(hcd, true);
@@ -515,18 +449,8 @@ static int xhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
 	 * xHCI host controllers) have been resumed.
 	 */
 
-<<<<<<< HEAD
-	if (xhci->quirks & XHCI_PME_STUCK_QUIRK)
-		xhci_pme_quirk(xhci);
-
-	retval = xhci_resume(xhci, hibernated);
-	return retval;
-}
-#endif /* CONFIG_PM */
-=======
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL)
 		usb_enable_intel_xhci_ports(pdev);
->>>>>>> android-3.18
 
 	if (xhci->quirks & XHCI_SSIC_PORT_UNUSED)
 		xhci_ssic_port_unused_quirk(hcd, false);

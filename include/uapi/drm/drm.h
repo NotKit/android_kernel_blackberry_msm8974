@@ -36,11 +36,7 @@
 #ifndef _DRM_H_
 #define _DRM_H_
 
-<<<<<<< HEAD
-#if defined(__KERNEL__) || defined(_LINUX) || defined(__linux__)
-=======
 #if defined(__KERNEL__) || defined(__linux__)
->>>>>>> android-3.18
 
 #include <linux/types.h>
 #include <asm/ioctl.h>
@@ -185,10 +181,6 @@ enum drm_map_type {
 	_DRM_AGP = 3,		  /**< AGP/GART */
 	_DRM_SCATTER_GATHER = 4,  /**< Scatter/gather memory for PCI DMA */
 	_DRM_CONSISTENT = 5,	  /**< Consistent memory for PCI DMA */
-<<<<<<< HEAD
-	_DRM_GEM = 6,		  /**< GEM object */
-=======
->>>>>>> android-3.18
 };
 
 /**
@@ -618,8 +610,6 @@ struct drm_gem_open {
 	__u64 size;
 };
 
-<<<<<<< HEAD
-=======
 #define DRM_CAP_DUMB_BUFFER		0x1
 #define DRM_CAP_VBLANK_HIGH_CRTC	0x2
 #define DRM_CAP_DUMB_PREFERRED_DEPTH	0x3
@@ -641,15 +631,12 @@ struct drm_gem_open {
 #define DRM_CAP_CURSOR_WIDTH		0x8
 #define DRM_CAP_CURSOR_HEIGHT		0x9
 
->>>>>>> android-3.18
 /** DRM_IOCTL_GET_CAP ioctl argument type */
 struct drm_get_cap {
 	__u64 capability;
 	__u64 value;
 };
 
-<<<<<<< HEAD
-=======
 /**
  * DRM_CLIENT_CAP_STEREO_3D
  *
@@ -673,7 +660,6 @@ struct drm_set_client_cap {
 	__u64 value;
 };
 
->>>>>>> android-3.18
 #define DRM_CLOEXEC O_CLOEXEC
 struct drm_prime_handle {
 	__u32 handle;
@@ -685,11 +671,7 @@ struct drm_prime_handle {
 	__s32 fd;
 };
 
-<<<<<<< HEAD
-#include "drm_mode.h"
-=======
 #include <drm/drm_mode.h>
->>>>>>> android-3.18
 
 #define DRM_IOCTL_BASE			'd'
 #define DRM_IO(nr)			_IO(DRM_IOCTL_BASE,nr)
@@ -710,10 +692,7 @@ struct drm_prime_handle {
 #define DRM_IOCTL_GEM_FLINK		DRM_IOWR(0x0a, struct drm_gem_flink)
 #define DRM_IOCTL_GEM_OPEN		DRM_IOWR(0x0b, struct drm_gem_open)
 #define DRM_IOCTL_GET_CAP		DRM_IOWR(0x0c, struct drm_get_cap)
-<<<<<<< HEAD
-=======
 #define DRM_IOCTL_SET_CLIENT_CAP	DRM_IOW( 0x0d, struct drm_set_client_cap)
->>>>>>> android-3.18
 
 #define DRM_IOCTL_SET_UNIQUE		DRM_IOW( 0x10, struct drm_unique)
 #define DRM_IOCTL_AUTH_MAGIC		DRM_IOW( 0x11, struct drm_auth)
@@ -776,13 +755,8 @@ struct drm_prime_handle {
 #define DRM_IOCTL_MODE_SETGAMMA		DRM_IOWR(0xA5, struct drm_mode_crtc_lut)
 #define DRM_IOCTL_MODE_GETENCODER	DRM_IOWR(0xA6, struct drm_mode_get_encoder)
 #define DRM_IOCTL_MODE_GETCONNECTOR	DRM_IOWR(0xA7, struct drm_mode_get_connector)
-<<<<<<< HEAD
-#define DRM_IOCTL_MODE_ATTACHMODE	DRM_IOWR(0xA8, struct drm_mode_mode_cmd)
-#define DRM_IOCTL_MODE_DETACHMODE	DRM_IOWR(0xA9, struct drm_mode_mode_cmd)
-=======
 #define DRM_IOCTL_MODE_ATTACHMODE	DRM_IOWR(0xA8, struct drm_mode_mode_cmd) /* deprecated (never worked) */
 #define DRM_IOCTL_MODE_DETACHMODE	DRM_IOWR(0xA9, struct drm_mode_mode_cmd) /* deprecated (never worked) */
->>>>>>> android-3.18
 
 #define DRM_IOCTL_MODE_GETPROPERTY	DRM_IOWR(0xAA, struct drm_mode_get_property)
 #define DRM_IOCTL_MODE_SETPROPERTY	DRM_IOWR(0xAB, struct drm_mode_connector_set_property)
@@ -800,12 +774,6 @@ struct drm_prime_handle {
 #define DRM_IOCTL_MODE_GETPLANE	DRM_IOWR(0xB6, struct drm_mode_get_plane)
 #define DRM_IOCTL_MODE_SETPLANE	DRM_IOWR(0xB7, struct drm_mode_set_plane)
 #define DRM_IOCTL_MODE_ADDFB2		DRM_IOWR(0xB8, struct drm_mode_fb_cmd2)
-<<<<<<< HEAD
-
-/**
- * Device specific ioctls should only be in their respective headers
- * The device specific ioctl range is from 0x40 to 0x99.
-=======
 #define DRM_IOCTL_MODE_OBJ_GETPROPERTIES	DRM_IOWR(0xB9, struct drm_mode_obj_get_properties)
 #define DRM_IOCTL_MODE_OBJ_SETPROPERTY	DRM_IOWR(0xBA, struct drm_mode_obj_set_property)
 #define DRM_IOCTL_MODE_CURSOR2		DRM_IOWR(0xBB, struct drm_mode_cursor2)
@@ -813,7 +781,6 @@ struct drm_prime_handle {
 /**
  * Device specific ioctls should only be in their respective headers
  * The device specific ioctl range is from 0x40 to 0x9f.
->>>>>>> android-3.18
  * Generic IOCTLS restart at 0xA0.
  *
  * \sa drmCommandNone(), drmCommandRead(), drmCommandWrite(), and
@@ -851,14 +818,6 @@ struct drm_event_vblank {
 	__u32 reserved;
 };
 
-<<<<<<< HEAD
-#define DRM_CAP_DUMB_BUFFER 0x1
-#define DRM_CAP_VBLANK_HIGH_CRTC 0x2
-#define DRM_CAP_DUMB_PREFERRED_DEPTH 0x3
-#define DRM_CAP_DUMB_PREFER_SHADOW 0x4
-
-=======
->>>>>>> android-3.18
 /* typedef area */
 #ifndef __KERNEL__
 typedef struct drm_clip_rect drm_clip_rect_t;

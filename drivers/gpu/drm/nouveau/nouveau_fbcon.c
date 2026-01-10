@@ -545,21 +545,12 @@ nouveau_fbcon_init(struct drm_device *dev)
 	fbcon->dev = dev;
 	drm->fbcon = fbcon;
 
-<<<<<<< HEAD
-	ret = drm_fb_helper_init(dev, &nfbdev->helper,
-				 dev->mode_config.num_crtc, 4);
-	if (ret) {
-		kfree(nfbdev);
-		return ret;
-	}
-=======
 	drm_fb_helper_prepare(dev, &fbcon->helper, &nouveau_fbcon_helper_funcs);
 
 	ret = drm_fb_helper_init(dev, &fbcon->helper,
 				 dev->mode_config.num_crtc, 4);
 	if (ret)
 		goto free;
->>>>>>> android-3.18
 
 	ret = drm_fb_helper_single_add_all_connectors(&fbcon->helper);
 	if (ret)

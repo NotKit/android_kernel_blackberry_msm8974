@@ -1079,13 +1079,6 @@ static int mirror_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	}
 
 	ti->private = ms;
-<<<<<<< HEAD
-	ti->split_io = dm_rh_get_region_size(ms->rh);
-	ti->num_flush_requests = 1;
-	ti->num_discard_requests = 1;
-	ti->discard_zeroes_data_unsupported = 1;
-=======
->>>>>>> android-3.18
 
 	r = dm_set_target_max_io_len(ti, dm_rh_get_region_size(ms->rh));
 	if (r)
@@ -1223,11 +1216,7 @@ static int mirror_end_io(struct dm_target *ti, struct bio *bio, int error)
 	 */
 	if (rw == WRITE) {
 		if (!(bio->bi_rw & (REQ_FLUSH | REQ_DISCARD)))
-<<<<<<< HEAD
-			dm_rh_dec(ms->rh, map_context->ll);
-=======
 			dm_rh_dec(ms->rh, bio_record->write_region);
->>>>>>> android-3.18
 		return error;
 	}
 
@@ -1373,11 +1362,7 @@ static char device_status_char(struct mirror *m)
 
 
 static void mirror_status(struct dm_target *ti, status_type_t type,
-<<<<<<< HEAD
-			  char *result, unsigned int maxlen)
-=======
 			  unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	unsigned int m, sz = 0;
 	struct mirror_set *ms = (struct mirror_set *) ti->private;

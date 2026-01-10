@@ -697,13 +697,6 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 	switch (connector->connector_type) {
 	case DRM_MODE_CONNECTOR_DVII:
 	case DRM_MODE_CONNECTOR_HDMIB: /* HDMI-B is basically DL-DVI; analog works fine */
-<<<<<<< HEAD
-		if (drm_detect_hdmi_monitor(radeon_connector->edid) &&
-		    radeon_audio &&
-		    !ASIC_IS_DCE6(rdev)) /* remove once we support DCE6 */
-			return ATOM_ENCODER_MODE_HDMI;
-		else if (radeon_connector->use_digital)
-=======
 		if (radeon_audio != 0) {
 			if (radeon_connector->use_digital &&
 			    (radeon_connector->audio == RADEON_AUDIO_ENABLE))
@@ -716,7 +709,6 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 			else
 				return ATOM_ENCODER_MODE_CRT;
 		} else if (radeon_connector->use_digital) {
->>>>>>> android-3.18
 			return ATOM_ENCODER_MODE_DVI;
 		} else {
 			return ATOM_ENCODER_MODE_CRT;
@@ -725,13 +717,6 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 	case DRM_MODE_CONNECTOR_DVID:
 	case DRM_MODE_CONNECTOR_HDMIA:
 	default:
-<<<<<<< HEAD
-		if (drm_detect_hdmi_monitor(radeon_connector->edid) &&
-		    radeon_audio &&
-		    !ASIC_IS_DCE6(rdev)) /* remove once we support DCE6 */
-			return ATOM_ENCODER_MODE_HDMI;
-		else
-=======
 		if (radeon_audio != 0) {
 			if (radeon_connector->audio == RADEON_AUDIO_ENABLE)
 				return ATOM_ENCODER_MODE_HDMI;
@@ -741,7 +726,6 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 			else
 				return ATOM_ENCODER_MODE_DVI;
 		} else {
->>>>>>> android-3.18
 			return ATOM_ENCODER_MODE_DVI;
 		}
 		break;
@@ -753,13 +737,6 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 		if ((dig_connector->dp_sink_type == CONNECTOR_OBJECT_ID_DISPLAYPORT) ||
 		    (dig_connector->dp_sink_type == CONNECTOR_OBJECT_ID_eDP)) {
 			return ATOM_ENCODER_MODE_DP;
-<<<<<<< HEAD
-		else if (drm_detect_hdmi_monitor(radeon_connector->edid) &&
-			 radeon_audio &&
-			 !ASIC_IS_DCE6(rdev)) /* remove once we support DCE6 */
-			return ATOM_ENCODER_MODE_HDMI;
-		else
-=======
 		} else if (radeon_audio != 0) {
 			if (radeon_connector->audio == RADEON_AUDIO_ENABLE)
 				return ATOM_ENCODER_MODE_HDMI;
@@ -769,7 +746,6 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 			else
 				return ATOM_ENCODER_MODE_DVI;
 		} else {
->>>>>>> android-3.18
 			return ATOM_ENCODER_MODE_DVI;
 		}
 		break;
@@ -1679,34 +1655,13 @@ radeon_atom_encoder_dpms_dig(struct drm_encoder *encoder, int mode)
 					atombios_external_encoder_setup(encoder, ext_encoder,
 									EXTERNAL_ENCODER_ACTION_V3_ENCODER_SETUP);
 			}
-<<<<<<< HEAD
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_ENABLE, 0, 0);
 		} else if (ASIC_IS_DCE4(rdev)) {
 			/* setup and enable the encoder */
 			atombios_dig_encoder_setup(encoder, ATOM_ENCODER_CMD_SETUP, 0);
-			/* enable the transmitter */
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_ENABLE, 0, 0);
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_ENABLE_OUTPUT, 0, 0);
-=======
-		} else if (ASIC_IS_DCE4(rdev)) {
-			/* setup and enable the encoder */
-			atombios_dig_encoder_setup(encoder, ATOM_ENCODER_CMD_SETUP, 0);
->>>>>>> android-3.18
 		} else {
 			/* setup and enable the encoder and transmitter */
 			atombios_dig_encoder_setup(encoder, ATOM_ENABLE, 0);
 			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_SETUP, 0, 0);
-<<<<<<< HEAD
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_ENABLE, 0, 0);
-			/* some dce3.x boards have a bug in their transmitter control table.
-			 * ACTION_ENABLE_OUTPUT can probably be dropped since ACTION_ENABLE
-			 * does the same thing and more.
-			 */
-			if ((rdev->family != CHIP_RV710) && (rdev->family != CHIP_RV730) &&
-			    (rdev->family != CHIP_RS780) && (rdev->family != CHIP_RS880))
-				atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_ENABLE_OUTPUT, 0, 0);
-=======
->>>>>>> android-3.18
 		}
 		if (ENCODER_MODE_IS_DP(atombios_get_encoder_mode(encoder)) && connector) {
 			if (connector->connector_type == DRM_MODE_CONNECTOR_eDP) {
@@ -1731,26 +1686,8 @@ radeon_atom_encoder_dpms_dig(struct drm_encoder *encoder, int mode)
 	case DRM_MODE_DPMS_STANDBY:
 	case DRM_MODE_DPMS_SUSPEND:
 	case DRM_MODE_DPMS_OFF:
-<<<<<<< HEAD
-		if (ASIC_IS_DCE41(rdev) || ASIC_IS_DCE5(rdev)) {
-			/* disable the transmitter */
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_DISABLE, 0, 0);
-		} else if (ASIC_IS_DCE4(rdev)) {
-			/* disable the transmitter */
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_DISABLE_OUTPUT, 0, 0);
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_DISABLE, 0, 0);
-		} else {
-			/* disable the encoder and transmitter */
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_DISABLE_OUTPUT, 0, 0);
-			atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_DISABLE, 0, 0);
-			atombios_dig_encoder_setup(encoder, ATOM_DISABLE, 0);
-		}
-		if (ENCODER_MODE_IS_DP(atombios_get_encoder_mode(encoder)) && connector) {
-			if (ASIC_IS_DCE4(rdev))
-=======
 		if (ASIC_IS_DCE4(rdev)) {
 			if (ENCODER_MODE_IS_DP(atombios_get_encoder_mode(encoder)) && connector)
->>>>>>> android-3.18
 				atombios_dig_encoder_setup(encoder, ATOM_ENCODER_CMD_DP_VIDEO_OFF, 0);
 		}
 		if (ext_encoder)
@@ -2087,12 +2024,9 @@ static int radeon_atom_pick_dig_encoder(struct drm_encoder *encoder)
 			else
 				return 4;
 			break;
-<<<<<<< HEAD
-=======
 		case ENCODER_OBJECT_ID_INTERNAL_UNIPHY3:
 			return 6;
 			break;
->>>>>>> android-3.18
 		}
 	} else if (ASIC_IS_DCE4(rdev)) {
 		/* DCE4/5 */

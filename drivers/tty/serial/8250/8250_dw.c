@@ -173,14 +173,8 @@ static int dw8250_handle_irq(struct uart_port *p)
 	if (serial8250_handle_irq(p, iir)) {
 		return 1;
 	} else if ((iir & UART_IIR_BUSY) == UART_IIR_BUSY) {
-<<<<<<< HEAD
-		/* Clear the USR and write the LCR again. */
-		(void)p->serial_in(p, UART_USR);
-		p->serial_out(p, UART_LCR, d->last_lcr);
-=======
 		/* Clear the USR */
 		(void)p->serial_in(p, d->usr_reg);
->>>>>>> android-3.18
 
 		return 1;
 	}

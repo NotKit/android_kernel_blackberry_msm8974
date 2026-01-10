@@ -335,12 +335,8 @@ static struct sl811h_ep	*start(struct sl811 *sl811, u8 bank)
 	}
 
 	if (unlikely(list_empty(&ep->hep->urb_list))) {
-<<<<<<< HEAD
-		DBG("empty %pK queue?\n", ep);
-=======
 		dev_dbg(sl811_to_hcd(sl811)->self.controller,
 			"empty %p queue?\n", ep);
->>>>>>> android-3.18
 		return NULL;
 	}
 
@@ -393,12 +389,8 @@ static struct sl811h_ep	*start(struct sl811 *sl811, u8 bank)
 		status_packet(sl811, ep, urb, bank, control);
 		break;
 	default:
-<<<<<<< HEAD
-		DBG("bad ep%pK pid %02x\n", ep, ep->nextpid);
-=======
 		dev_dbg(sl811_to_hcd(sl811)->self.controller,
 			"bad ep%p pid %02x\n", ep, ep->nextpid);
->>>>>>> android-3.18
 		ep = NULL;
 	}
 	return ep;
@@ -454,12 +446,8 @@ static void finish_request(
 	}
 
 	/* periodic deschedule */
-<<<<<<< HEAD
-	DBG("deschedule qh%d/%pK branch %d\n", ep->period, ep, ep->branch);
-=======
 	dev_dbg(sl811_to_hcd(sl811)->self.controller,
 		"deschedule qh%d/%p branch %d\n", ep->period, ep, ep->branch);
->>>>>>> android-3.18
 	for (i = ep->branch; i < PERIODIC_SIZE; i += ep->period) {
 		struct sl811h_ep	*temp;
 		struct sl811h_ep	**prev = &sl811->periodic[i];
@@ -932,12 +920,8 @@ static int sl811h_urb_enqueue(
 		 * to share the faster parts of the tree without needing
 		 * dummy/placeholder nodes
 		 */
-<<<<<<< HEAD
-		DBG("schedule qh%d/%pK branch %d\n", ep->period, ep, ep->branch);
-=======
 		dev_dbg(hcd->self.controller, "schedule qh%d/%p branch %d\n",
 			ep->period, ep, ep->branch);
->>>>>>> android-3.18
 		for (i = ep->branch; i < PERIODIC_SIZE; i += ep->period) {
 			struct sl811h_ep	**prev = &sl811->periodic[i];
 			struct sl811h_ep	*here = *prev;
@@ -1030,12 +1014,8 @@ static int sl811h_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 		if (urb)
 			finish_request(sl811, ep, urb, 0);
 		else
-<<<<<<< HEAD
-			VDBG("dequeue, urb %pK active %s; wait4irq\n", urb,
-=======
 			dev_dbg(sl811_to_hcd(sl811)->self.controller,
 				"dequeue, urb %p active %s; wait4irq\n", urb,
->>>>>>> android-3.18
 				(sl811->active_a == ep) ? "A" : "B");
 	} else
 		retval = -EINVAL;
@@ -1056,11 +1036,7 @@ sl811h_endpoint_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
 	if (!list_empty(&hep->urb_list))
 		msleep(3);
 	if (!list_empty(&hep->urb_list))
-<<<<<<< HEAD
-		WARNING("ep %pK not empty?\n", ep);
-=======
 		dev_warn(hcd->self.controller, "ep %p not empty?\n", ep);
->>>>>>> android-3.18
 
 	kfree(ep);
 	hep->hcpriv = NULL;

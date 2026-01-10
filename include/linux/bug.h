@@ -115,13 +115,6 @@ static inline enum bug_trap_type report_bug(unsigned long bug_addr,
 
 #endif	/* CONFIG_GENERIC_BUG */
 
-<<<<<<< HEAD
-#ifdef CONFIG_PANIC_ON_DATA_CORRUPTION
-#define PANIC_CORRUPTION 1
-#else
-#define PANIC_CORRUPTION 0
-#endif  /* CONFIG_PANIC_ON_DATA_CORRUPTION */
-=======
 /*
  * Since detected data corruption should stop operation on the affected
  * structures. Return value must be checked and sanely acted on by caller.
@@ -140,5 +133,4 @@ static inline __must_check bool check_data_corruption(bool v) { return v; }
 		corruption;						 \
 	}))
 
->>>>>>> android-3.18
 #endif	/* _LINUX_BUG_H */

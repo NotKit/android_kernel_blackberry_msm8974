@@ -604,19 +604,8 @@ int kvm_s390_handle_wait(struct kvm_vcpu *vcpu)
 		goto no_timer;
 	}
 
-<<<<<<< HEAD
-	now = get_clock() + vcpu->arch.sie_block->epoch;
-	if (vcpu->arch.sie_block->ckc < now) {
-		__unset_cpu_idle(vcpu);
-		return 0;
-	}
-
-	sltime = tod_to_ns(vcpu->arch.sie_block->ckc - now);
-
-=======
 	now = get_tod_clock_fast() + vcpu->arch.sie_block->epoch;
 	sltime = tod_to_ns(vcpu->arch.sie_block->ckc - now);
->>>>>>> android-3.18
 	hrtimer_start(&vcpu->arch.ckc_timer, ktime_set (0, sltime) , HRTIMER_MODE_REL);
 	VCPU_EVENT(vcpu, 5, "enabled wait via clock comparator: %llx ns", sltime);
 no_timer:

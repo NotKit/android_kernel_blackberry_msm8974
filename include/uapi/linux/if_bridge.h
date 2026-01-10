@@ -14,11 +14,8 @@
 #define _UAPI_LINUX_IF_BRIDGE_H
 
 #include <linux/types.h>
-<<<<<<< HEAD
-=======
 #include <linux/if_ether.h>
 #include <linux/in6.h>
->>>>>>> android-3.18
 
 #define SYSFS_BRIDGE_ATTR	"bridge"
 #define SYSFS_BRIDGE_FDB	"brforward"
@@ -93,11 +90,7 @@ struct __port_info {
 };
 
 struct __fdb_entry {
-<<<<<<< HEAD
-	__u8 mac_addr[6];
-=======
 	__u8 mac_addr[ETH_ALEN];
->>>>>>> android-3.18
 	__u8 port_no;
 	__u8 is_local;
 	__u32 ageing_timer_value;
@@ -106,8 +99,6 @@ struct __fdb_entry {
 	__u16 unused;
 };
 
-<<<<<<< HEAD
-=======
 /* Bridge Flags */
 #define BRIDGE_FLAGS_MASTER	1	/* Bridge command to/from master */
 #define BRIDGE_FLAGS_SELF	2	/* Bridge command to/from lowerdev */
@@ -203,6 +194,5 @@ enum {
 	__MDBA_SET_ENTRY_MAX,
 };
 #define MDBA_SET_ENTRY_MAX (__MDBA_SET_ENTRY_MAX - 1)
->>>>>>> android-3.18
 
 #endif /* _UAPI_LINUX_IF_BRIDGE_H */

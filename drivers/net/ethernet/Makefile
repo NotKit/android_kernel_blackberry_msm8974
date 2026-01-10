@@ -47,12 +47,7 @@ obj-$(CONFIG_NET_VENDOR_MARVELL) += marvell/
 obj-$(CONFIG_NET_VENDOR_MELLANOX) += mellanox/
 obj-$(CONFIG_NET_VENDOR_MICREL) += micrel/
 obj-$(CONFIG_NET_VENDOR_MICROCHIP) += microchip/
-<<<<<<< HEAD
-obj-$(CONFIG_MIPS_SIM_NET) += mipsnet.o
-obj-$(CONFIG_ARCH_MSM) += msm/
-=======
 obj-$(CONFIG_NET_VENDOR_MOXART) += moxa/
->>>>>>> android-3.18
 obj-$(CONFIG_NET_VENDOR_MYRI) += myricom/
 obj-$(CONFIG_FEALNX) += fealnx.o
 obj-$(CONFIG_NET_VENDOR_NATSEMI) += natsemi/

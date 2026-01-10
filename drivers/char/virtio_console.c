@@ -576,11 +576,7 @@ static ssize_t __send_control_msg(struct ports_device *portdev, u32 port_id,
 	sg_init_one(sg, &cpkt, sizeof(cpkt));
 
 	spin_lock(&portdev->c_ovq_lock);
-<<<<<<< HEAD
-	if (virtqueue_add_buf(vq, sg, 1, 0, &cpkt, GFP_ATOMIC) >= 0) {
-=======
 	if (virtqueue_add_outbuf(vq, sg, 1, &cpkt, GFP_ATOMIC) == 0) {
->>>>>>> android-3.18
 		virtqueue_kick(vq);
 		while (!virtqueue_get_buf(vq, &len)
 			&& !virtqueue_is_broken(vq))
@@ -1592,14 +1588,8 @@ static void unplug_port(struct port *port)
 	device_destroy(pdrvdata.class, port->dev->devt);
 	cdev_del(port->cdev);
 
-<<<<<<< HEAD
-	kfree(port->name);
-
-	debugfs_remove(port->debugfs_file);
-=======
 	debugfs_remove(port->debugfs_file);
 	kfree(port->name);
->>>>>>> android-3.18
 
 	/*
 	 * Locks around here are not necessary - a port can't be
@@ -1770,8 +1760,6 @@ static void control_work_handler(struct work_struct *work)
 		}
 	}
 	spin_unlock(&portdev->c_ivq_lock);
-<<<<<<< HEAD
-=======
 }
 
 static void flush_bufs(struct virtqueue *vq, bool can_sleep)
@@ -1781,7 +1769,6 @@ static void flush_bufs(struct virtqueue *vq, bool can_sleep)
 
 	while ((buf = virtqueue_get_buf(vq, &len)))
 		free_buf(buf, can_sleep);
->>>>>>> android-3.18
 }
 
 static void out_intr(struct virtqueue *vq)
@@ -1864,28 +1851,15 @@ static void config_work_handler(struct work_struct *work)
 {
 	struct ports_device *portdev;
 
-<<<<<<< HEAD
-	portdev = container_of(work, struct ports_device, control_work);
-=======
 	portdev = container_of(work, struct ports_device, config_work);
->>>>>>> android-3.18
 	if (!use_multiport(portdev)) {
 		struct virtio_device *vdev;
 		struct port *port;
 		u16 rows, cols;
 
 		vdev = portdev->vdev;
-<<<<<<< HEAD
-		vdev->config->get(vdev,
-				  offsetof(struct virtio_console_config, cols),
-				  &cols, sizeof(u16));
-		vdev->config->get(vdev,
-				  offsetof(struct virtio_console_config, rows),
-				  &rows, sizeof(u16));
-=======
 		virtio_cread(vdev, struct virtio_console_config, cols, &cols);
 		virtio_cread(vdev, struct virtio_console_config, rows, &rows);
->>>>>>> android-3.18
 
 		port = find_port_by_id(portdev, 0);
 		set_console_size(port, rows, cols);
@@ -2103,20 +2077,6 @@ static int virtcons_probe(struct virtio_device *vdev)
 	INIT_LIST_HEAD(&portdev->ports);
 	INIT_LIST_HEAD(&portdev->list);
 
-<<<<<<< HEAD
-	INIT_WORK(&portdev->config_work, &config_work_handler);
-	INIT_WORK(&portdev->control_work, &control_work_handler);
-
-	if (multiport) {
-		unsigned int nr_added_bufs;
-
-		spin_lock_init(&portdev->c_ivq_lock);
-		spin_lock_init(&portdev->c_ovq_lock);
-
-		nr_added_bufs = fill_queue(portdev->c_ivq,
-					   &portdev->c_ivq_lock);
-		if (!nr_added_bufs) {
-=======
 	virtio_device_ready(portdev->vdev);
 
 	INIT_WORK(&portdev->config_work, &config_work_handler);
@@ -2128,7 +2088,6 @@ static int virtcons_probe(struct virtio_device *vdev)
 
 		err = fill_queue(portdev->c_ivq, &portdev->c_ivq_lock);
 		if (err < 0) {
->>>>>>> android-3.18
 			dev_err(&vdev->dev,
 				"Error allocating buffers for control queue\n");
 			/*
@@ -2178,46 +2137,6 @@ fail:
 	return err;
 }
 
-<<<<<<< HEAD
-static void virtcons_remove(struct virtio_device *vdev)
-{
-	struct ports_device *portdev;
-	struct port *port, *port2;
-
-	portdev = vdev->priv;
-
-	spin_lock_irq(&pdrvdata_lock);
-	list_del(&portdev->list);
-	spin_unlock_irq(&pdrvdata_lock);
-
-	/* Disable interrupts for vqs */
-	vdev->config->reset(vdev);
-	/* Finish up work that's lined up */
-	if (use_multiport(portdev))
-		cancel_work_sync(&portdev->control_work);
-	else
-		cancel_work_sync(&portdev->config_work);
-
-	list_for_each_entry_safe(port, port2, &portdev->ports, list)
-		unplug_port(port);
-
-	unregister_chrdev(portdev->chr_major, "virtio-portsdev");
-
-	/*
-	 * When yanking out a device, we immediately lose the
-	 * (device-side) queues.  So there's no point in keeping the
-	 * guest side around till we drop our final reference.  This
-	 * also means that any ports which are in an open state will
-	 * have to just stop using the port, as the vqs are going
-	 * away.
-	 */
-	remove_controlq_data(portdev);
-	remove_vqs(portdev);
-	kfree(portdev);
-}
-
-=======
->>>>>>> android-3.18
 static struct virtio_device_id id_table[] = {
 	{ VIRTIO_ID_CONSOLE, VIRTIO_DEV_ANY_ID },
 	{ 0 },

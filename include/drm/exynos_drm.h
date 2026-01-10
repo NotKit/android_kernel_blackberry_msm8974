@@ -15,11 +15,7 @@
 #define _EXYNOS_DRM_H_
 
 #include <uapi/drm/exynos_drm.h>
-<<<<<<< HEAD
-
-=======
 #include <video/videomode.h>
->>>>>>> android-3.18
 
 /**
  * A structure for lcd panel information.

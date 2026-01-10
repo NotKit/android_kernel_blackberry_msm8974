@@ -32,43 +32,6 @@
 
 #include "device.h"
 
-<<<<<<< HEAD
-/*---------------------  Export Definitions -------------------------*/
-typedef struct tagSINTData {
-    BYTE    byTSR0;
-    BYTE    byPkt0;
-    WORD    wTime0;
-    BYTE    byTSR1;
-    BYTE    byPkt1;
-    WORD    wTime1;
-    BYTE    byTSR2;
-    BYTE    byPkt2;
-    WORD    wTime2;
-    BYTE    byTSR3;
-    BYTE    byPkt3;
-    WORD    wTime3;
-    DWORD   dwLoTSF;
-    DWORD   dwHiTSF;
-    BYTE    byISR0;
-    BYTE    byISR1;
-    BYTE    byRTSSuccess;
-    BYTE    byRTSFail;
-    BYTE    byACKFail;
-    BYTE    byFCSErr;
-    BYTE    abySW[2];
-} __attribute__ ((__packed__))
-SINTData, *PSINTData;
-
-
-/*---------------------  Export Classes  ----------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
-
-/*---------------------  Export Functions  --------------------------*/
-
-void INTvWorkItem(void *Context);
-void INTnsProcessData(PSDevice pDevice);
-=======
 struct vnt_interrupt_data {
 	u8 tsr0;
 	u8 pkt0;
@@ -94,6 +57,5 @@ struct vnt_interrupt_data {
 
 void vnt_int_start_interrupt(struct vnt_private *);
 void vnt_int_process_data(struct vnt_private *);
->>>>>>> android-3.18
 
 #endif /* __INT_H__ */

@@ -31,8 +31,6 @@ static struct map_desc cns3xxx_io_desc[] __initdata = {
 		.virtual	= CNS3XXX_TC11MP_SCU_BASE_VIRT,
 		.pfn		= __phys_to_pfn(CNS3XXX_TC11MP_SCU_BASE),
 		.length		= SZ_8K,
-<<<<<<< HEAD
-=======
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= CNS3XXX_TIMER1_2_3_BASE_VIRT,
@@ -43,7 +41,6 @@ static struct map_desc cns3xxx_io_desc[] __initdata = {
 		.virtual	= CNS3XXX_MISC_BASE_VIRT,
 		.pfn		= __phys_to_pfn(CNS3XXX_MISC_BASE),
 		.length		= SZ_4K,
->>>>>>> android-3.18
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= CNS3XXX_PM_BASE_VIRT,

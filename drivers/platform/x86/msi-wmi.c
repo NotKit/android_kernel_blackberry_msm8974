@@ -215,22 +215,6 @@ static void msi_wmi_notify(u32 value, void *context)
 					 "Last press was %lld us ago\n",
 					 key->code, ktime_to_us(diff));
 				goto msi_wmi_notify_exit;
-<<<<<<< HEAD
-			}
-			last_pressed[key->code - SCANCODE_BASE] = cur;
-
-			if (key->type == KE_KEY &&
-			/* Brightness is served via acpi video driver */
-			(!acpi_video_backlight_support() ||
-			(key->code != MSI_WMI_BRIGHTNESSUP &&
-			key->code != MSI_WMI_BRIGHTNESSDOWN))) {
-				pr_debug("Send key: 0x%X - "
-					 "Input layer keycode: %d\n",
-					 key->code, key->keycode);
-				sparse_keymap_report_entry(msi_wmi_input_dev,
-						key, 1, true);
-=======
->>>>>>> android-3.18
 			}
 			last_pressed = cur;
 		}

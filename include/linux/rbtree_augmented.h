@@ -24,10 +24,7 @@
 #ifndef _LINUX_RBTREE_AUGMENTED_H
 #define _LINUX_RBTREE_AUGMENTED_H
 
-<<<<<<< HEAD
-=======
 #include <linux/compiler.h>
->>>>>>> android-3.18
 #include <linux/rbtree.h>
 
 /*
@@ -46,8 +43,6 @@ struct rb_augment_callbacks {
 
 extern void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new));
-<<<<<<< HEAD
-=======
 /*
  * Fixup the rbtree and update the augmented information when rebalancing.
  *
@@ -58,7 +53,6 @@ extern void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
  * a user provided function to update the augmented information on the
  * affected subtrees.
  */
->>>>>>> android-3.18
 static inline void
 rb_insert_augmented(struct rb_node *node, struct rb_root *root,
 		    const struct rb_augment_callbacks *augment)

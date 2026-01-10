@@ -7,13 +7,10 @@
 #ifndef _ASM_X86_REQUIRED_FEATURES_H
 #include <asm/required-features.h>
 #endif
-<<<<<<< HEAD
-=======
 
 #ifndef _ASM_X86_DISABLED_FEATURES_H
 #include <asm/disabled-features.h>
 #endif
->>>>>>> android-3.18
 
 #define NCAPINTS	16	/* N 32-bit words worth of info */
 #define NBUGINTS	1	/* N 32-bit bug flags */
@@ -185,17 +182,6 @@
  *
  * Reuse free bits when adding new feature flags!
  */
-<<<<<<< HEAD
-#define X86_FEATURE_IDA		(7*32+ 0) /* Intel Dynamic Acceleration */
-#define X86_FEATURE_ARAT	(7*32+ 1) /* Always Running APIC Timer */
-#define X86_FEATURE_CPB		(7*32+ 2) /* AMD Core Performance Boost */
-#define X86_FEATURE_EPB		(7*32+ 3) /* IA32_ENERGY_PERF_BIAS support */
-#define X86_FEATURE_XSAVEOPT	(7*32+ 4) /* Optimized Xsave */
-#define X86_FEATURE_PLN		(7*32+ 5) /* Intel Power Limit Notification */
-#define X86_FEATURE_PTS		(7*32+ 6) /* Intel Package Thermal Status */
-#define X86_FEATURE_DTHERM	(7*32+ 7) /* Digital Thermal Sensor */
-#define X86_FEATURE_HW_PSTATE	(7*32+ 8) /* AMD HW-PState */
-=======
 
 #define X86_FEATURE_CPB		( 7*32+ 2) /* AMD Core Performance Boost */
 #define X86_FEATURE_EPB		( 7*32+ 3) /* IA32_ENERGY_PERF_BIAS support */
@@ -206,7 +192,6 @@
 
 #define X86_FEATURE_RETPOLINE	( 7*32+29) /* Generic Retpoline mitigation for Spectre variant 2 */
 #define X86_FEATURE_RETPOLINE_AMD ( 7*32+30) /* AMD Retpoline mitigation for Spectre variant 2 */
->>>>>>> android-3.18
 
 /* Virtualization flags: Linux defined, word 8 */
 #define X86_FEATURE_TPR_SHADOW  ( 8*32+ 0) /* Intel TPR Shadow */
@@ -452,9 +437,6 @@ extern bool __static_cpu_has_safe(u16 bit);
  */
 static __always_inline __pure bool __static_cpu_has(u16 bit)
 {
-<<<<<<< HEAD
-#if __GNUC__ > 4 || __GNUC_MINOR__ >= 5
-=======
 #ifdef CC_HAVE_ASM_GOTO
 
 #ifdef CONFIG_X86_DEBUG_STATIC_CPU_HAS
@@ -478,7 +460,6 @@ static __always_inline __pure bool __static_cpu_has(u16 bit)
 
 #endif
 
->>>>>>> android-3.18
 		asm_volatile_goto("1: jmp %l[t_no]\n"
 			 "2:\n"
 			 ".section .altinstructions,\"a\"\n"

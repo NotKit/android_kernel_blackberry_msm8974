@@ -111,56 +111,7 @@ int vnt_control_in(struct vnt_private *priv, u8 request, u16 value,
 
 	kfree(usb_buffer);
 
-<<<<<<< HEAD
-int PIPEnsControlOut(
-     PSDevice     pDevice,
-     BYTE         byRequest,
-     WORD         wValue,
-     WORD         wIndex,
-     WORD         wLength,
-     PBYTE        pbyBuffer
-    )
-{
-	int ntStatus = 0;
-    int ii;
-
-    if (pDevice->Flags & fMP_DISCONNECTED)
-        return STATUS_FAILURE;
-
-    if (pDevice->Flags & fMP_CONTROL_WRITES)
-        return STATUS_FAILURE;
-
-	if (pDevice->Flags & fMP_CONTROL_READS)
-		return STATUS_FAILURE;
-
-	MP_SET_FLAG(pDevice, fMP_CONTROL_WRITES);
-
-	pDevice->sUsbCtlRequest.bRequestType = 0x40;
-	pDevice->sUsbCtlRequest.bRequest = byRequest;
-	pDevice->sUsbCtlRequest.wValue = cpu_to_le16p(&wValue);
-	pDevice->sUsbCtlRequest.wIndex = cpu_to_le16p(&wIndex);
-	pDevice->sUsbCtlRequest.wLength = cpu_to_le16p(&wLength);
-	pDevice->pControlURB->transfer_flags |= URB_ASYNC_UNLINK;
-    pDevice->pControlURB->actual_length = 0;
-    // Notice, pbyBuffer limited point to variable buffer, can't be constant.
-  	usb_fill_control_urb(pDevice->pControlURB, pDevice->usb,
-			 usb_sndctrlpipe(pDevice->usb , 0), (char *) &pDevice->sUsbCtlRequest,
-			 pbyBuffer, wLength, s_nsControlInUsbIoCompleteWrite, pDevice);
-
-	ntStatus = usb_submit_urb(pDevice->pControlURB, GFP_ATOMIC);
-	if (ntStatus != 0) {
-		DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO
-			"control send request submission failed: %d\n",
-				ntStatus);
-		MP_CLEAR_FLAG(pDevice, fMP_CONTROL_WRITES);
-		return STATUS_FAILURE;
-	}
-
-	spin_unlock_irq(&pDevice->lock);
-    for (ii = 0; ii <= USB_CTL_WAIT; ii ++) {
-=======
 	mutex_unlock(&priv->usb_lock);
->>>>>>> android-3.18
 
 	if (status < (int)length)
 		return STATUS_FAILURE;
@@ -170,63 +121,8 @@ int PIPEnsControlOut(
 
 void vnt_control_in_u8(struct vnt_private *priv, u8 reg, u8 reg_off, u8 *data)
 {
-<<<<<<< HEAD
-	int ntStatus = 0;
-    int ii;
-
-    if (pDevice->Flags & fMP_DISCONNECTED)
-        return STATUS_FAILURE;
-
-    if (pDevice->Flags & fMP_CONTROL_READS)
-	return STATUS_FAILURE;
-
-	if (pDevice->Flags & fMP_CONTROL_WRITES)
-		return STATUS_FAILURE;
-
-	MP_SET_FLAG(pDevice, fMP_CONTROL_READS);
-
-	pDevice->sUsbCtlRequest.bRequestType = 0xC0;
-	pDevice->sUsbCtlRequest.bRequest = byRequest;
-	pDevice->sUsbCtlRequest.wValue = cpu_to_le16p(&wValue);
-	pDevice->sUsbCtlRequest.wIndex = cpu_to_le16p(&wIndex);
-	pDevice->sUsbCtlRequest.wLength = cpu_to_le16p(&wLength);
-	pDevice->pControlURB->transfer_flags |= URB_ASYNC_UNLINK;
-    pDevice->pControlURB->actual_length = 0;
-	usb_fill_control_urb(pDevice->pControlURB, pDevice->usb,
-			 usb_rcvctrlpipe(pDevice->usb , 0), (char *) &pDevice->sUsbCtlRequest,
-			 pbyBuffer, wLength, s_nsControlInUsbIoCompleteRead, pDevice);
-
-	ntStatus = usb_submit_urb(pDevice->pControlURB, GFP_ATOMIC);
-	if (ntStatus != 0) {
-		DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO
-			"control request submission failed: %d\n", ntStatus);
-		MP_CLEAR_FLAG(pDevice, fMP_CONTROL_READS);
-		return STATUS_FAILURE;
-	}
-
-	spin_unlock_irq(&pDevice->lock);
-    for (ii = 0; ii <= USB_CTL_WAIT; ii ++) {
-
-	if (pDevice->Flags & fMP_CONTROL_READS)
-		mdelay(1);
-	else
-		break;
-
-	if (ii >= USB_CTL_WAIT) {
-		DBG_PRT(MSG_LEVEL_DEBUG,
-			KERN_INFO "control rcv request submission timeout\n");
-            spin_lock_irq(&pDevice->lock);
-            MP_CLEAR_FLAG(pDevice, fMP_CONTROL_READS);
-            return STATUS_FAILURE;
-        }
-    }
-	spin_lock_irq(&pDevice->lock);
-
-    return ntStatus;
-=======
 	vnt_control_in(priv, MESSAGE_TYPE_READ,
 			reg_off, reg, sizeof(u8), data);
->>>>>>> android-3.18
 }
 
 static void vnt_start_interrupt_urb_complete(struct urb *urb)

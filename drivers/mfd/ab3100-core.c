@@ -920,14 +920,9 @@ static int ab3100_probe(struct i2c_client *client,
 	if (err)
 		goto exit_no_setup;
 
-<<<<<<< HEAD
-	err = request_threaded_irq(client->irq, NULL, ab3100_irq_handler,
-				IRQF_ONESHOT, "ab3100-core", ab3100);
-=======
 	err = devm_request_threaded_irq(&client->dev,
 					client->irq, NULL, ab3100_irq_handler,
 					IRQF_ONESHOT, "ab3100-core", ab3100);
->>>>>>> android-3.18
 	if (err)
 		goto exit_no_irq;
 

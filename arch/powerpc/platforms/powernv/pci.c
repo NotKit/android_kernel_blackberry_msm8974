@@ -111,11 +111,7 @@ static void pnv_teardown_msi_irqs(struct pci_dev *pdev)
 		hwirq = virq_to_hw(entry->irq);
 		irq_set_msi_desc(entry->irq, NULL);
 		irq_dispose_mapping(entry->irq);
-<<<<<<< HEAD
-		pnv_put_msi(phb, hwirq);
-=======
 		msi_bitmap_free_hwirqs(&phb->msi_bmp, hwirq - phb->msi_base, 1);
->>>>>>> android-3.18
 	}
 }
 #endif /* CONFIG_PCI_MSI */

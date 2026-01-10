@@ -1,8 +1,6 @@
 # UAPI Header export list
 include include/uapi/asm-generic/Kbuild.asm
 
-<<<<<<< HEAD
-=======
 header-y += bitsperlong.h
 header-y += byteorder.h
 header-y += kvm_para.h
@@ -15,4 +13,3 @@ header-y += signal.h
 header-y += swab.h
 header-y += unistd.h
 header-y += user.h
->>>>>>> android-3.18

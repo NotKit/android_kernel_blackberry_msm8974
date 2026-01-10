@@ -519,51 +519,9 @@ static int __ath9k_hw_init(struct ath_hw *ah)
 	struct ath_common *common = ath9k_hw_common(ah);
 	int r = 0;
 
-<<<<<<< HEAD
-	ath9k_hw_read_revisions(ah);
-
-	/*
-	 * Read back AR_WA into a permanent copy and set bits 14 and 17.
-	 * We need to do this to avoid RMW of this register. We cannot
-	 * read the reg when chip is asleep.
-	 */
-	ah->WARegVal = REG_READ(ah, AR_WA);
-	ah->WARegVal |= (AR_WA_D3_L1_DISABLE |
-			 AR_WA_ASPM_TIMER_BASED_DISABLE);
-
-	if (!ath9k_hw_set_reset_reg(ah, ATH9K_RESET_POWER_ON)) {
-		ath_err(common, "Couldn't reset chip\n");
-		return -EIO;
-	}
-
-	if (AR_SREV_9462(ah))
-		ah->WARegVal &= ~AR_WA_D3_L1_DISABLE;
-
-	ath9k_hw_init_defaults(ah);
-	ath9k_hw_init_config(ah);
-
-	ath9k_hw_attach_ops(ah);
-
-	if (!ath9k_hw_setpower(ah, ATH9K_PM_AWAKE)) {
-		ath_err(common, "Couldn't wakeup chip\n");
-		return -EIO;
-	}
-
-	if (NR_CPUS > 1 && ah->config.serialize_regmode == SER_REG_MODE_AUTO) {
-		if (ah->hw_version.macVersion == AR_SREV_VERSION_5416_PCI ||
-		    ((AR_SREV_9160(ah) || AR_SREV_9280(ah) || AR_SREV_9287(ah)) &&
-		     !ah->is_pciexpress)) {
-			ah->config.serialize_regmode =
-				SER_REG_MODE_ON;
-		} else {
-			ah->config.serialize_regmode =
-				SER_REG_MODE_OFF;
-		}
-=======
 	if (!ath9k_hw_read_revisions(ah)) {
 		ath_err(common, "Could not read hardware revisions");
 		return -EOPNOTSUPP;
->>>>>>> android-3.18
 	}
 
 	switch (ah->hw_version.macVersion) {
@@ -681,11 +639,8 @@ int ath9k_hw_init(struct ath_hw *ah)
 	case AR9300_DEVID_AR9580:
 	case AR9300_DEVID_AR9462:
 	case AR9485_DEVID_AR1111:
-<<<<<<< HEAD
-=======
 	case AR9300_DEVID_AR9565:
 	case AR9300_DEVID_AR953X:
->>>>>>> android-3.18
 		break;
 	default:
 		if (common->bus_ops->ath_bus_type == ATH_USB)
@@ -1837,16 +1792,8 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 		ath9k_hw_getnf(ah, ah->curchan);
 
 	ah->caldata = caldata;
-<<<<<<< HEAD
-	if (caldata &&
-	    (chan->channel != caldata->channel ||
-	     (chan->channelFlags & ~CHANNEL_CW_INT) !=
-	     (caldata->channelFlags & ~CHANNEL_CW_INT) ||
-	     chan->chanmode != caldata->chanmode)) {
-=======
 	if (caldata && (chan->channel != caldata->channel ||
 			chan->channelFlags != caldata->channelFlags)) {
->>>>>>> android-3.18
 		/* Operating channel changed, reset channel calibration data */
 		memset(caldata, 0, sizeof(*caldata));
 		ath9k_init_nfcal_hist_buffer(ah, chan);

@@ -502,36 +502,6 @@ static int search_for_mapped_con(void)
 }
 
 static int do_fbcon_takeover(int show_logo)
-<<<<<<< HEAD
-{
-	int err, i;
-
-	if (!num_registered_fb)
-		return -ENODEV;
-
-	if (!show_logo)
-		logo_shown = FBCON_LOGO_DONTSHOW;
-
-	for (i = first_fb_vc; i <= last_fb_vc; i++)
-		con2fb_map[i] = info_idx;
-
-	err = do_take_over_console(&fb_con, first_fb_vc, last_fb_vc,
-				fbcon_is_default);
-
-	if (err) {
-		for (i = first_fb_vc; i <= last_fb_vc; i++)
-			con2fb_map[i] = -1;
-		info_idx = -1;
-	} else {
-		fbcon_has_console_bind = 1;
-	}
-
-	return err;
-}
-
-static int fbcon_takeover(int show_logo)
-=======
->>>>>>> android-3.18
 {
 	int err, i;
 
@@ -1180,12 +1150,9 @@ finished:
 	if (free_font)
 		vc->vc_font.data = NULL;
 
-<<<<<<< HEAD
-=======
 	if (vc->vc_hi_font_mask)
 		set_vc_hi_font(vc, false);
 
->>>>>>> android-3.18
 	if (!con_is_bound(&fb_con))
 		fbcon_exit();
 

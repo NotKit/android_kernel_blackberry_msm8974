@@ -382,11 +382,7 @@ static void do_catch_up(struct spk_synth *synth)
 
 	jiffy_delta = spk_get_var(JIFFY);
 	delay_time = spk_get_var(DELAY);
-<<<<<<< HEAD
-	spk_lock(flags);
-=======
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 	jiffy_delta_val = jiffy_delta->u.n.value;
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	jiff_max = jiffies + jiffy_delta_val;

@@ -209,12 +209,8 @@ static const struct intel_device_info intel_sandybridge_d_info = {
 	.has_fbc = 1,
 	.ring_mask = RENDER_RING | BSD_RING | BLT_RING,
 	.has_llc = 1,
-<<<<<<< HEAD
-	.has_force_wake = 1,
-=======
 	GEN_DEFAULT_PIPEOFFSETS,
 	CURSOR_OFFSETS,
->>>>>>> android-3.18
 };
 
 static const struct intel_device_info intel_sandybridge_m_info = {
@@ -223,12 +219,8 @@ static const struct intel_device_info intel_sandybridge_m_info = {
 	.has_fbc = 1,
 	.ring_mask = RENDER_RING | BSD_RING | BLT_RING,
 	.has_llc = 1,
-<<<<<<< HEAD
-	.has_force_wake = 1,
-=======
 	GEN_DEFAULT_PIPEOFFSETS,
 	CURSOR_OFFSETS,
->>>>>>> android-3.18
 };
 
 #define GEN7_FEATURES  \
@@ -310,15 +302,11 @@ static const struct intel_device_info intel_broadwell_d_info = {
 	.need_gfx_hws = 1, .has_hotplug = 1,
 	.ring_mask = RENDER_RING | BSD_RING | BLT_RING | VEBOX_RING,
 	.has_llc = 1,
-<<<<<<< HEAD
-	.has_force_wake = 1,
-=======
 	.has_ddi = 1,
 	.has_fpga_dbg = 1,
 	.has_fbc = 1,
 	GEN_DEFAULT_PIPEOFFSETS,
 	IVB_CURSOR_OFFSETS,
->>>>>>> android-3.18
 };
 
 static const struct intel_device_info intel_broadwell_m_info = {
@@ -326,15 +314,11 @@ static const struct intel_device_info intel_broadwell_m_info = {
 	.need_gfx_hws = 1, .has_hotplug = 1,
 	.ring_mask = RENDER_RING | BSD_RING | BLT_RING | VEBOX_RING,
 	.has_llc = 1,
-<<<<<<< HEAD
-	.has_force_wake = 1,
-=======
 	.has_ddi = 1,
 	.has_fpga_dbg = 1,
 	.has_fbc = 1,
 	GEN_DEFAULT_PIPEOFFSETS,
 	IVB_CURSOR_OFFSETS,
->>>>>>> android-3.18
 };
 
 static const struct intel_device_info intel_broadwell_gt3d_info = {
@@ -1727,55 +1711,3 @@ MODULE_AUTHOR("Intel Corporation");
 
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL and additional rights");
-<<<<<<< HEAD
-
-/* We give fast paths for the really cool registers */
-#define NEEDS_FORCE_WAKE(dev_priv, reg) \
-	((HAS_FORCE_WAKE((dev_priv)->dev)) && \
-        ((reg) < 0x40000) &&            \
-        ((reg) != FORCEWAKE))
-
-#define __i915_read(x, y) \
-u##x i915_read##x(struct drm_i915_private *dev_priv, u32 reg) { \
-	u##x val = 0; \
-	if (NEEDS_FORCE_WAKE((dev_priv), (reg))) { \
-		unsigned long irqflags; \
-		spin_lock_irqsave(&dev_priv->gt_lock, irqflags); \
-		if (dev_priv->forcewake_count == 0) \
-			dev_priv->display.force_wake_get(dev_priv); \
-		val = read##y(dev_priv->regs + reg); \
-		if (dev_priv->forcewake_count == 0) \
-			dev_priv->display.force_wake_put(dev_priv); \
-		spin_unlock_irqrestore(&dev_priv->gt_lock, irqflags); \
-	} else { \
-		val = read##y(dev_priv->regs + reg); \
-	} \
-	trace_i915_reg_rw(false, reg, val, sizeof(val)); \
-	return val; \
-}
-
-__i915_read(8, b)
-__i915_read(16, w)
-__i915_read(32, l)
-__i915_read(64, q)
-#undef __i915_read
-
-#define __i915_write(x, y) \
-void i915_write##x(struct drm_i915_private *dev_priv, u32 reg, u##x val) { \
-	u32 __fifo_ret = 0; \
-	trace_i915_reg_rw(true, reg, val, sizeof(val)); \
-	if (NEEDS_FORCE_WAKE((dev_priv), (reg))) { \
-		__fifo_ret = __gen6_gt_wait_for_fifo(dev_priv); \
-	} \
-	write##y(val, dev_priv->regs + reg); \
-	if (unlikely(__fifo_ret)) { \
-		gen6_gt_check_fifodbg(dev_priv); \
-	} \
-}
-__i915_write(8, b)
-__i915_write(16, w)
-__i915_write(32, l)
-__i915_write(64, q)
-#undef __i915_write
-=======
->>>>>>> android-3.18

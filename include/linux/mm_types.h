@@ -282,19 +282,10 @@ struct vm_area_struct {
 	 */
 	union {
 		struct {
-<<<<<<< HEAD
-			struct list_head list;
-			void *parent;	/* aligns with prio_tree_node parent */
-			struct vm_area_struct *head;
-		} vm_set;
-
-		struct raw_prio_tree_node prio_tree_node;
-=======
 			struct rb_node rb;
 			unsigned long rb_subtree_last;
 		} linear;
 		struct list_head nonlinear;
->>>>>>> android-3.18
 		const char __user *anon_name;
 	} shared;
 
@@ -437,12 +428,7 @@ struct mm_struct {
 	struct user_namespace *user_ns;
 
 	/* store ref to file /proc/<pid>/exe symlink points to */
-<<<<<<< HEAD
-	struct file __rcu *exe_file;
-	unsigned long num_exe_file_vmas;
-=======
 	struct file *exe_file;
->>>>>>> android-3.18
 #ifdef CONFIG_MMU_NOTIFIER
 	struct mmu_notifier_mm *mmu_notifier_mm;
 #endif
@@ -492,8 +478,6 @@ static inline cpumask_t *mm_cpumask(struct mm_struct *mm)
 	return mm->cpu_vm_mask_var;
 }
 
-<<<<<<< HEAD
-=======
 #if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
 /*
  * Memory barriers to keep this state in sync are graciously provided by
@@ -548,7 +532,6 @@ enum tlb_flush_reason {
 	TLB_LOCAL_MM_SHOOTDOWN,
 	NR_TLB_FLUSH_REASONS,
 };
->>>>>>> android-3.18
 
 /* Return the name for an anonymous mapping or NULL for a file-backed mapping */
 static inline const char __user *vma_get_anon_name(struct vm_area_struct *vma)

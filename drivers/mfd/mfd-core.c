@@ -151,8 +151,6 @@ static int mfd_add_device(struct device *parent, int id,
 
 	pdev->dev.parent = parent;
 	pdev->dev.type = &mfd_dev_type;
-<<<<<<< HEAD
-=======
 	pdev->dev.dma_mask = parent->dma_mask;
 	pdev->dev.dma_parms = parent->dma_parms;
 	pdev->dev.coherent_dma_mask = parent->coherent_dma_mask;
@@ -174,7 +172,6 @@ static int mfd_add_device(struct device *parent, int id,
 	}
 
 	mfd_acpi_add_device(cell, pdev);
->>>>>>> android-3.18
 
 	if (cell->pdata_size) {
 		ret = platform_device_add_data(pdev,
@@ -296,12 +293,9 @@ static int mfd_remove_devices_fn(struct device *dev, void *c)
 	pdev = to_platform_device(dev);
 	cell = mfd_get_cell(pdev);
 
-<<<<<<< HEAD
-=======
 	regulator_bulk_unregister_supply_alias(dev, cell->parent_supplies,
 					       cell->num_parent_supplies);
 
->>>>>>> android-3.18
 	/* find the base address of usage_count pointers (for freeing) */
 	if (!*usage_count || (cell->usage_count < *usage_count))
 		*usage_count = cell->usage_count;

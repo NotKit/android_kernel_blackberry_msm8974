@@ -605,46 +605,7 @@ static const u32 al2230_power_table[AL2230_PWR_IDX_LEN] = {
  */
 int vnt_rf_write_embedded(struct vnt_private *priv, u32 data)
 {
-<<<<<<< HEAD
-BOOL    bResult = TRUE;
-BYTE    byPwr = pDevice->byCCKPwr;
-
-    if (pDevice->dwDiagRefCount != 0) {
-        return TRUE;
-    }
-
-	if (uCH == 0)
-		return -EINVAL;
-
-    switch (uRATE) {
-    case RATE_1M:
-    case RATE_2M:
-    case RATE_5M:
-    case RATE_11M:
-        byPwr = pDevice->abyCCKPwrTbl[uCH-1];
-        break;
-    case RATE_6M:
-    case RATE_9M:
-    case RATE_18M:
-    case RATE_24M:
-    case RATE_36M:
-    case RATE_48M:
-    case RATE_54M:
-        if (uCH > CB_MAX_CHANNEL_24G) {
-            byPwr = pDevice->abyOFDMAPwrTbl[uCH-15];
-        } else {
-            byPwr = pDevice->abyOFDMPwrTbl[uCH-1];
-        }
-        break;
-    }
-
-    bResult = RFbRawSetPower(pDevice, byPwr, uRATE);
-
-    return bResult;
-}
-=======
 	u8 reg_data[4];
->>>>>>> android-3.18
 
 	data |= (VNT_RF_REG_LEN << 3) | IFREGCTL_REGW;
 

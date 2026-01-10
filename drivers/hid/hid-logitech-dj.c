@@ -27,10 +27,6 @@
 #include <linux/module.h>
 #include <linux/usb.h>
 #include <asm/unaligned.h>
-<<<<<<< HEAD
-#include "usbhid/usbhid.h"
-=======
->>>>>>> android-3.18
 #include "hid-ids.h"
 #include "hid-logitech-dj.h"
 
@@ -197,12 +193,6 @@ static const u8 hid_reportid_size_map[NUMBER_OF_HID_REPORTS] = {
 
 static struct hid_ll_driver logi_dj_ll_driver;
 
-<<<<<<< HEAD
-static int logi_dj_output_hidraw_report(struct hid_device *hid, u8 * buf,
-					size_t count,
-					unsigned char report_type);
-=======
->>>>>>> android-3.18
 static int logi_dj_recv_query_paired_devices(struct dj_receiver_dev *djrcv_dev);
 
 static void logi_dj_recv_destroy_djhid_device(struct dj_receiver_dev *djrcv_dev,
@@ -395,21 +385,6 @@ static void logi_dj_recv_forward_null_report(struct dj_receiver_dev *djrcv_dev,
 
 	djdev = djrcv_dev->paired_dj_devices[dj_report->device_index];
 
-<<<<<<< HEAD
-	if (!djdev) {
-		dbg_hid("djrcv_dev->paired_dj_devices[dj_report->device_index]"
-			" is NULL, index %d\n", dj_report->device_index);
-		kfifo_in(&djrcv_dev->notif_fifo, dj_report, sizeof(struct dj_report));
-
-		if (schedule_work(&djrcv_dev->work) == 0) {
-			dbg_hid("%s: did not schedule the work item, was already "
-			"queued\n", __func__);
-		}
-		return;
-	}
-
-=======
->>>>>>> android-3.18
 	memset(reportbuffer, 0, sizeof(reportbuffer));
 
 	for (i = 0; i < NUMBER_OF_HID_REPORTS; i++) {
@@ -434,21 +409,6 @@ static void logi_dj_recv_forward_report(struct dj_receiver_dev *djrcv_dev,
 
 	dj_device = djrcv_dev->paired_dj_devices[dj_report->device_index];
 
-<<<<<<< HEAD
-	if (dj_device == NULL) {
-		dbg_hid("djrcv_dev->paired_dj_devices[dj_report->device_index]"
-			" is NULL, index %d\n", dj_report->device_index);
-		kfifo_in(&djrcv_dev->notif_fifo, dj_report, sizeof(struct dj_report));
-
-		if (schedule_work(&djrcv_dev->work) == 0) {
-			dbg_hid("%s: did not schedule the work item, was already "
-			"queued\n", __func__);
-		}
-		return;
-	}
-
-=======
->>>>>>> android-3.18
 	if ((dj_report->report_type > ARRAY_SIZE(hid_reportid_size_map) - 1) ||
 	    (hid_reportid_size_map[dj_report->report_type] == 0)) {
 		dbg_hid("invalid report type:%x\n", dj_report->report_type);
@@ -471,17 +431,10 @@ static int logi_dj_recv_send_report(struct dj_receiver_dev *djrcv_dev,
 	struct hid_report_enum *output_report_enum;
 	u8 *data = (u8 *)(&dj_report->device_index);
 	unsigned int i;
-<<<<<<< HEAD
 
 	output_report_enum = &hdev->report_enum[HID_OUTPUT_REPORT];
 	report = output_report_enum->report_id_hash[REPORT_ID_DJ_SHORT];
 
-=======
-
-	output_report_enum = &hdev->report_enum[HID_OUTPUT_REPORT];
-	report = output_report_enum->report_id_hash[REPORT_ID_DJ_SHORT];
-
->>>>>>> android-3.18
 	if (!report) {
 		dev_err(&hdev->dev, "%s: unable to find dj report\n", __func__);
 		return -ENODEV;
@@ -489,15 +442,9 @@ static int logi_dj_recv_send_report(struct dj_receiver_dev *djrcv_dev,
 
 	for (i = 0; i < DJREPORT_SHORT_LENGTH - 1; i++)
 		report->field[0]->value[i] = data[i];
-<<<<<<< HEAD
-
-	usbhid_submit_report(hdev, report, USB_DIR_OUT);
-
-=======
 
 	hid_hw_request(hdev, report, HID_REQ_SET_REPORT);
 
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -506,13 +453,10 @@ static int logi_dj_recv_query_paired_devices(struct dj_receiver_dev *djrcv_dev)
 	struct dj_report *dj_report;
 	int retval;
 
-<<<<<<< HEAD
-=======
 	/* no need to protect djrcv_dev->querying_devices */
 	if (djrcv_dev->querying_devices)
 		return 0;
 
->>>>>>> android-3.18
 	dj_report = kzalloc(sizeof(struct dj_report), GFP_KERNEL);
 	if (!dj_report)
 		return -ENOMEM;
@@ -541,8 +485,6 @@ static int logi_dj_recv_switch_to_dj_mode(struct dj_receiver_dev *djrcv_dev,
 	dj_report->report_params[CMD_SWITCH_PARAM_TIMEOUT_SECONDS] = (u8)timeout;
 	retval = logi_dj_recv_send_report(djrcv_dev, dj_report);
 	kfree(dj_report);
-<<<<<<< HEAD
-=======
 
 	/*
 	 * Ugly sleep to work around a USB 3.0 bug when the receiver is still
@@ -551,7 +493,6 @@ static int logi_dj_recv_switch_to_dj_mode(struct dj_receiver_dev *djrcv_dev,
 	 */
 	msleep(50);
 
->>>>>>> android-3.18
 	return retval;
 }
 
@@ -736,10 +677,6 @@ static int logi_dj_raw_event(struct hid_device *hdev,
 	}
 
 	spin_lock_irqsave(&djrcv_dev->lock, flags);
-<<<<<<< HEAD
-	switch (dj_report->report_type) {
-	case REPORT_TYPE_NOTIF_DEVICE_PAIRED:
-=======
 
 	if (!djrcv_dev->paired_dj_devices[dj_report->device_index]) {
 		/* received an event for an unknown device, bail out */
@@ -751,7 +688,6 @@ static int logi_dj_raw_event(struct hid_device *hdev,
 	case REPORT_TYPE_NOTIF_DEVICE_PAIRED:
 		/* pairing notifications are handled above the switch */
 		break;
->>>>>>> android-3.18
 	case REPORT_TYPE_NOTIF_DEVICE_UNPAIRED:
 		logi_dj_recv_queue_notification(djrcv_dev, dj_report);
 		break;

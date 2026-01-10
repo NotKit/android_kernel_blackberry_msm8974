@@ -1337,10 +1337,6 @@ static int raid_map(struct dm_target *ti, struct bio *bio)
 	return DM_MAPIO_SUBMITTED;
 }
 
-<<<<<<< HEAD
-static void raid_status(struct dm_target *ti, status_type_t type,
-			char *result, unsigned maxlen)
-=======
 static const char *decipher_sync_action(struct mddev *mddev)
 {
 	if (test_bit(MD_RECOVERY_FROZEN, &mddev->recovery))
@@ -1368,7 +1364,6 @@ static const char *decipher_sync_action(struct mddev *mddev)
 
 static void raid_status(struct dm_target *ti, status_type_t type,
 			unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	struct raid_set *rs = ti->private;
 	unsigned raid_param_cnt = 1; /* at least 1 for chunksize */
@@ -1538,8 +1533,6 @@ static void raid_status(struct dm_target *ti, status_type_t type,
 				DMEMIT(" -");
 		}
 	}
-<<<<<<< HEAD
-=======
 }
 
 static int raid_message(struct dm_target *ti, unsigned argc, char **argv)
@@ -1594,7 +1587,6 @@ static int raid_message(struct dm_target *ti, unsigned argc, char **argv)
 		md_wakeup_thread(mddev->thread);
 
 	return 0;
->>>>>>> android-3.18
 }
 
 static int raid_iterate_devices(struct dm_target *ti,

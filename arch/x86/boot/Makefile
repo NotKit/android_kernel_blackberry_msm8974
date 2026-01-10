@@ -38,12 +38,8 @@ targets		+= $(setup-y)
 hostprogs-y	:= tools/build
 hostprogs-$(CONFIG_X86_FEATURE_NAMES) += mkcpustr
 
-<<<<<<< HEAD
-HOST_EXTRACFLAGS += -I$(srctree)/tools/include $(USERINCLUDE) \
-=======
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include \
 		    -include include/generated/autoconf.h \
->>>>>>> android-3.18
 	            -D__EXPORTED_HEADERS__
 
 ifdef CONFIG_X86_FEATURE_NAMES
@@ -59,24 +55,7 @@ clean-files += cpustr.h
 
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
-# How to compile the 16-bit code.  Note we always compile for -march=i386,
-# that way we can complain to the user if the CPU is insufficient.
-KBUILD_CFLAGS	:= $(USERINCLUDE) -m32 -g -Os -D_SETUP -D__KERNEL__ \
-		   -DDISABLE_BRANCH_PROFILING \
-		   -Wall -Wstrict-prototypes \
-		   -march=i386 -mregparm=3 \
-		   -include $(srctree)/$(src)/code16gcc.h \
-		   -fno-strict-aliasing -fomit-frame-pointer \
-		   -mno-mmx -mno-sse \
-		   $(call cc-option, -ffreestanding) \
-		   $(call cc-option, -fno-toplevel-reorder,\
-		   $(call cc-option, -fno-unit-at-a-time)) \
-		   $(call cc-option, -fno-stack-protector) \
-		   $(call cc-option, -mpreferred-stack-boundary=2)
-=======
 KBUILD_CFLAGS	:= $(USERINCLUDE) $(REALMODE_CFLAGS) -D_SETUP
->>>>>>> android-3.18
 KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
 GCOV_PROFILE := n
 

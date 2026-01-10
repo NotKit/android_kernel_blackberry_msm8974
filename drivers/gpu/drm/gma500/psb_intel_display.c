@@ -427,55 +427,14 @@ struct drm_display_mode *psb_intel_crtc_mode_get(struct drm_device *dev,
 	return mode;
 }
 
-<<<<<<< HEAD
-void psb_intel_crtc_destroy(struct drm_crtc *crtc)
-{
-	struct psb_intel_crtc *psb_intel_crtc = to_psb_intel_crtc(crtc);
-	struct gtt_range *gt;
-
-	/* Unpin the old GEM object */
-	if (psb_intel_crtc->cursor_obj) {
-		gt = container_of(psb_intel_crtc->cursor_obj,
-						struct gtt_range, gem);
-		psb_gtt_unpin(gt);
-		drm_gem_object_unreference(psb_intel_crtc->cursor_obj);
-		psb_intel_crtc->cursor_obj = NULL;
-	}
-	kfree(psb_intel_crtc->crtc_state);
-	drm_crtc_cleanup(crtc);
-	kfree(psb_intel_crtc);
-}
-
-static void psb_intel_crtc_disable(struct drm_crtc *crtc)
-{
-	struct gtt_range *gt;
-	struct drm_crtc_helper_funcs *crtc_funcs = crtc->helper_private;
-
-	crtc_funcs->dpms(crtc, DRM_MODE_DPMS_OFF);
-
-	if (crtc->fb) {
-		gt = to_psb_fb(crtc->fb)->gtt;
-		psb_gtt_unpin(gt);
-	}
-}
-
-=======
->>>>>>> android-3.18
 const struct drm_crtc_helper_funcs psb_intel_helper_funcs = {
 	.dpms = gma_crtc_dpms,
 	.mode_fixup = gma_crtc_mode_fixup,
 	.mode_set = psb_intel_crtc_mode_set,
-<<<<<<< HEAD
-	.mode_set_base = psb_intel_pipe_set_base,
-	.prepare = psb_intel_crtc_prepare,
-	.commit = psb_intel_crtc_commit,
-	.disable = psb_intel_crtc_disable,
-=======
 	.mode_set_base = gma_pipe_set_base,
 	.prepare = gma_crtc_prepare,
 	.commit = gma_crtc_commit,
 	.disable = gma_crtc_disable,
->>>>>>> android-3.18
 };
 
 const struct drm_crtc_funcs psb_intel_crtc_funcs = {

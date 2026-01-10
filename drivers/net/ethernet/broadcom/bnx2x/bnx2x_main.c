@@ -10614,12 +10614,8 @@ static void bnx2x_prev_interrupted_dmae(struct bnx2x *bp)
 	if (!CHIP_IS_E1x(bp)) {
 		u32 val = REG_RD(bp, PGLUE_B_REG_PGLUE_B_INT_STS);
 		if (val & PGLUE_B_PGLUE_B_INT_STS_REG_WAS_ERROR_ATTN) {
-<<<<<<< HEAD
-			BNX2X_ERR("was error bit was found to be set in pglueb upon startup. Clearing");
-=======
 			DP(BNX2X_MSG_SP,
 			   "'was error' bit was found to be set in pglueb upon startup. Clearing\n");
->>>>>>> android-3.18
 			REG_WR(bp, PGLUE_B_REG_WAS_ERROR_PF_7_0_CLR,
 			       1 << BP_FUNC(bp));
 		}
@@ -12752,8 +12748,6 @@ static int bnx2x_init_dev(struct bnx2x *bp, struct pci_dev *pdev,
 	/* Set PCIe reset type to fundamental for EEH recovery */
 	pdev->needs_freset = 1;
 
-<<<<<<< HEAD
-=======
 	/* AER (Advanced Error reporting) configuration */
 	rc = pci_enable_pcie_error_reporting(pdev);
 	if (!rc)
@@ -12761,7 +12755,6 @@ static int bnx2x_init_dev(struct bnx2x *bp, struct pci_dev *pdev,
 	else
 		BNX2X_DEV_INFO("Failed To configure PCIe AER [%d]\n", rc);
 
->>>>>>> android-3.18
 	/*
 	 * Clean the following indirect addresses for all functions since it
 	 * is not used by the driver.

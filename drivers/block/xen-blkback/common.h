@@ -95,8 +95,6 @@ struct blkif_x86_32_request_other {
 	uint64_t       id;           /* private guest value, echoed in resp  */
 } __attribute__((__packed__));
 
-<<<<<<< HEAD
-=======
 struct blkif_x86_32_request_indirect {
 	uint8_t        indirect_op;
 	uint16_t       nr_segments;
@@ -115,17 +113,13 @@ struct blkif_x86_32_request_indirect {
 	uint64_t       _pad2;        /* make it 64 byte aligned */
 } __attribute__((__packed__));
 
->>>>>>> android-3.18
 struct blkif_x86_32_request {
 	uint8_t        operation;    /* BLKIF_OP_???                         */
 	union {
 		struct blkif_x86_32_request_rw rw;
 		struct blkif_x86_32_request_discard discard;
 		struct blkif_x86_32_request_other other;
-<<<<<<< HEAD
-=======
 		struct blkif_x86_32_request_indirect indirect;
->>>>>>> android-3.18
 	} u;
 } __attribute__((__packed__));
 
@@ -156,8 +150,6 @@ struct blkif_x86_64_request_other {
 	uint64_t       id;           /* private guest value, echoed in resp  */
 } __attribute__((__packed__));
 
-<<<<<<< HEAD
-=======
 struct blkif_x86_64_request_indirect {
 	uint8_t        indirect_op;
 	uint16_t       nr_segments;
@@ -177,17 +169,13 @@ struct blkif_x86_64_request_indirect {
 	uint32_t       _pad3;        /* make it 64 byte aligned */
 } __attribute__((__packed__));
 
->>>>>>> android-3.18
 struct blkif_x86_64_request {
 	uint8_t        operation;    /* BLKIF_OP_???                         */
 	union {
 		struct blkif_x86_64_request_rw rw;
 		struct blkif_x86_64_request_discard discard;
 		struct blkif_x86_64_request_other other;
-<<<<<<< HEAD
-=======
 		struct blkif_x86_64_request_indirect indirect;
->>>>>>> android-3.18
 	} u;
 } __attribute__((__packed__));
 
@@ -303,19 +291,6 @@ struct xen_blkif {
 
 	/* statistics */
 	unsigned long		st_print;
-<<<<<<< HEAD
-	int			st_rd_req;
-	int			st_wr_req;
-	int			st_oo_req;
-	int			st_f_req;
-	int			st_ds_req;
-	int			st_rd_sect;
-	int			st_wr_sect;
-
-	wait_queue_head_t	waiting_to_free;
-	/* Thread shutdown wait queue. */
-	wait_queue_head_t	shutdown_wq;
-=======
 	unsigned long long			st_rd_req;
 	unsigned long long			st_wr_req;
 	unsigned long long			st_oo_req;
@@ -360,7 +335,6 @@ struct pending_req {
 	struct grant_page	*indirect_pages[MAX_INDIRECT_PAGES];
 	struct seg_buf		seg[MAX_INDIRECT_SEGMENTS];
 	struct bio		*biolist[MAX_INDIRECT_SEGMENTS];
->>>>>>> android-3.18
 };
 
 
@@ -401,15 +375,9 @@ void xen_blkbk_unmap_purged_grants(struct work_struct *work);
 static inline void blkif_get_x86_32_req(struct blkif_request *dst,
 					struct blkif_x86_32_request *src)
 {
-<<<<<<< HEAD
-	int i, n = BLKIF_MAX_SEGMENTS_PER_REQUEST;
-	dst->operation = ACCESS_ONCE(src->operation);
-	switch (dst->operation) {
-=======
 	int i, n = BLKIF_MAX_SEGMENTS_PER_REQUEST, j;
 	dst->operation = src->operation;
 	switch (src->operation) {
->>>>>>> android-3.18
 	case BLKIF_OP_READ:
 	case BLKIF_OP_WRITE:
 	case BLKIF_OP_WRITE_BARRIER:
@@ -455,15 +423,9 @@ static inline void blkif_get_x86_32_req(struct blkif_request *dst,
 static inline void blkif_get_x86_64_req(struct blkif_request *dst,
 					struct blkif_x86_64_request *src)
 {
-<<<<<<< HEAD
-	int i, n = BLKIF_MAX_SEGMENTS_PER_REQUEST;
-	dst->operation = ACCESS_ONCE(src->operation);
-	switch (dst->operation) {
-=======
 	int i, n = BLKIF_MAX_SEGMENTS_PER_REQUEST, j;
 	dst->operation = src->operation;
 	switch (src->operation) {
->>>>>>> android-3.18
 	case BLKIF_OP_READ:
 	case BLKIF_OP_WRITE:
 	case BLKIF_OP_WRITE_BARRIER:

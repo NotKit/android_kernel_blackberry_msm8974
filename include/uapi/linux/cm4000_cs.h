@@ -2,10 +2,7 @@
 #define _UAPI_CM4000_H_
 
 #include <linux/types.h>
-<<<<<<< HEAD
-=======
 #include <linux/ioctl.h>
->>>>>>> android-3.18
 
 #define	MAX_ATR			33
 

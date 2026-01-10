@@ -1012,15 +1012,8 @@ static int vortex_init_one(struct pci_dev *pdev,
 		goto out;
 
 	rc = pci_request_regions(pdev, DRV_NAME);
-<<<<<<< HEAD
-	if (rc < 0) {
-		pci_disable_device(pdev);
-		goto out;
-	}
-=======
 	if (rc < 0)
 		goto out_disable;
->>>>>>> android-3.18
 
 	unit = vortex_cards_found;
 
@@ -1037,28 +1030,14 @@ static int vortex_init_one(struct pci_dev *pdev,
 	if (!ioaddr) /* If mapping fails, fall-back to BAR 0... */
 		ioaddr = pci_iomap(pdev, 0, 0);
 	if (!ioaddr) {
-<<<<<<< HEAD
-		pci_release_regions(pdev);
-		pci_disable_device(pdev);
-=======
->>>>>>> android-3.18
 		rc = -ENOMEM;
 		goto out_release;
 	}
 
 	rc = vortex_probe1(&pdev->dev, ioaddr, pdev->irq,
 			   ent->driver_data, unit);
-<<<<<<< HEAD
-	if (rc < 0) {
-		pci_iounmap(pdev, ioaddr);
-		pci_release_regions(pdev);
-		pci_disable_device(pdev);
-		goto out;
-	}
-=======
 	if (rc < 0)
 		goto out_iounmap;
->>>>>>> android-3.18
 
 	vortex_cards_found++;
 	goto out;

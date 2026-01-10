@@ -524,8 +524,6 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
 }
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_ATI, 0x4385, sb600_disable_hpet_bar);
 
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_HPET_TIMER
 static void sb600_hpet_quirk(struct pci_dev *dev)
 {
@@ -539,7 +537,6 @@ static void sb600_hpet_quirk(struct pci_dev *dev)
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ATI, 0x4385, sb600_hpet_quirk);
 #endif
 
->>>>>>> android-3.18
 /*
  * Twinhead H12Y needs us to block out a region otherwise we map devices
  * there and any access kills the box.
@@ -548,11 +545,7 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ATI, 0x4385, sb600_hpet_quirk);
  *
  * Match off the LPC and svid/sdid (older kernels lose the bridge subvendor)
  */
-<<<<<<< HEAD
-static void __devinit twinhead_reserve_killing_zone(struct pci_dev *dev)
-=======
 static void twinhead_reserve_killing_zone(struct pci_dev *dev)
->>>>>>> android-3.18
 {
         if (dev->subsystem_vendor == 0x14FF && dev->subsystem_device == 0xA003) {
                 pr_info("Reserving memory on Twinhead H12Y\n");
@@ -560,8 +553,6 @@ static void twinhead_reserve_killing_zone(struct pci_dev *dev)
         }
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x27B9, twinhead_reserve_killing_zone);
-<<<<<<< HEAD
-=======
 
 /*
  * Device [1022:7914]
@@ -587,4 +578,3 @@ static void pci_bdwep_bar(struct pci_dev *dev)
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x6f60, pci_bdwep_bar);
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x6fa0, pci_bdwep_bar);
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x6fc0, pci_bdwep_bar);
->>>>>>> android-3.18

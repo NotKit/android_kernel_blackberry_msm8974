@@ -593,64 +593,6 @@ void __kprobes do_dat_exception(struct pt_regs *regs)
 		do_fault_error(regs, fault);
 }
 
-<<<<<<< HEAD
-#ifdef CONFIG_64BIT
-void __kprobes do_asce_exception(struct pt_regs *regs)
-{
-	struct mm_struct *mm = current->mm;
-	struct vm_area_struct *vma;
-	unsigned long trans_exc_code;
-
-	trans_exc_code = regs->int_parm_long;
-	if (unlikely(!user_space_fault(trans_exc_code) || in_atomic() || !mm))
-		goto no_context;
-
-	down_read(&mm->mmap_sem);
-	vma = find_vma(mm, trans_exc_code & __FAIL_ADDR_MASK);
-	up_read(&mm->mmap_sem);
-
-	if (vma) {
-		update_mm(mm, current);
-		return;
-	}
-
-	/* User mode accesses just cause a SIGSEGV */
-	if (regs->psw.mask & PSW_MASK_PSTATE) {
-		do_sigsegv(regs, SEGV_MAPERR);
-		return;
-	}
-
-no_context:
-	do_no_context(regs);
-}
-#endif
-
-int __handle_fault(unsigned long uaddr, unsigned long pgm_int_code, int write)
-{
-	struct pt_regs regs;
-	int access, fault;
-
-	/* Emulate a uaccess fault from kernel mode. */
-	regs.psw.mask = psw_kernel_bits | PSW_MASK_DAT | PSW_MASK_MCHECK;
-	if (!irqs_disabled())
-		regs.psw.mask |= PSW_MASK_IO | PSW_MASK_EXT;
-	regs.psw.addr = (unsigned long) __builtin_return_address(0);
-	regs.psw.addr |= PSW_ADDR_AMODE;
-	regs.int_code = pgm_int_code;
-	regs.int_parm_long = (uaddr & PAGE_MASK) | 2;
-	access = write ? VM_WRITE : VM_READ;
-	fault = do_exception(&regs, access);
-	/*
-	 * Since the fault happened in kernel mode while performing a uaccess
-	 * all we need to do now is emulating a fixup in case "fault" is not
-	 * zero.
-	 * For the calling uaccess functions this results always in -EFAULT.
-	 */
-	return fault ? -EFAULT : 0;
-}
-
-=======
->>>>>>> android-3.18
 #ifdef CONFIG_PFAULT 
 /*
  * 'pfault' pseudo page faults routines.
@@ -774,17 +716,11 @@ static void pfault_interrupt(struct ext_code ext_code,
 		}
 	} else {
 		/* signal bit not set -> a real page is missing. */
-<<<<<<< HEAD
-		if (tsk->thread.pfault_wait == 1) {
-			/* Already on the list with a reference: put to sleep */
-			set_task_state(tsk, TASK_UNINTERRUPTIBLE);
-=======
 		if (WARN_ON_ONCE(tsk != current))
 			goto out;
 		if (tsk->thread.pfault_wait == 1) {
 			/* Already on the list with a reference: put to sleep */
 			__set_task_state(tsk, TASK_UNINTERRUPTIBLE);
->>>>>>> android-3.18
 			set_tsk_need_resched(tsk);
 		} else if (tsk->thread.pfault_wait == -1) {
 			/* Completion interrupt was faster than the initial

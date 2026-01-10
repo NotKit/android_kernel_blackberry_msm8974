@@ -41,10 +41,7 @@
 #include <linux/kthread.h>
 #include <linux/delay.h>
 #include <linux/slab.h>
-<<<<<<< HEAD
-=======
 #include <linux/random.h>
->>>>>>> android-3.18
 #include <asm/uaccess.h>
 
 
@@ -58,9 +55,6 @@ static struct task_struct *hwrng_fill;
 static LIST_HEAD(rng_list);
 static DEFINE_MUTEX(rng_mutex);
 static int data_avail;
-<<<<<<< HEAD
-static u8 *rng_buffer;
-=======
 static u8 *rng_buffer, *rng_fillbuf;
 static unsigned short current_quality;
 static unsigned short default_quality; /* = 0; default to "off" */
@@ -76,14 +70,11 @@ static void start_khwrngd(void);
 
 static inline int rng_get_data(struct hwrng *rng, u8 *buffer, size_t size,
 			       int wait);
->>>>>>> android-3.18
 
 static size_t rng_buffer_size(void)
 {
 	return SMP_CACHE_BYTES < 32 ? 32 : SMP_CACHE_BYTES;
 }
-<<<<<<< HEAD
-=======
 
 static void add_early_randomness(struct hwrng *rng)
 {
@@ -94,7 +85,6 @@ static void add_early_randomness(struct hwrng *rng)
 	if (bytes_read > 0)
 		add_device_randomness(rng_buffer, bytes_read);
 }
->>>>>>> android-3.18
 
 static inline int hwrng_init(struct hwrng *rng)
 {
@@ -399,8 +389,6 @@ int hwrng_register(struct hwrng *rng)
 		if (!rng_buffer)
 			goto out_unlock;
 	}
-<<<<<<< HEAD
-=======
 	if (!rng_fillbuf) {
 		rng_fillbuf = kmalloc(rng_buffer_size(), GFP_KERNEL);
 		if (!rng_fillbuf) {
@@ -408,7 +396,6 @@ int hwrng_register(struct hwrng *rng)
 			goto out_unlock;
 		}
 	}
->>>>>>> android-3.18
 
 	/* Must not register two RNGs with the same name. */
 	err = -EEXIST;

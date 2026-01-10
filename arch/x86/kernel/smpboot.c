@@ -215,16 +215,6 @@ static void notrace start_secondary(void *unused)
 #endif
 
 	/*
-<<<<<<< HEAD
-	 * We need to hold call_lock, so there is no inconsistency
-	 * between the time smp_call_function() determines number of
-	 * IPI recipients, and the time when the determination is made
-	 * for which cpus receive the IPI. Holding this
-	 * lock helps us to not include this cpu in a currently in progress
-	 * smp_call_function().
-	 *
-=======
->>>>>>> android-3.18
 	 * We need to hold vector_lock so there the set of online cpus
 	 * does not change while we are assigning vectors to cpus.  Holding
 	 * this lock ensures we don't half assign or remove an irq from a cpu.
@@ -936,11 +926,7 @@ int native_cpu_up(unsigned int cpu, struct task_struct *tidle)
 	/* the FPU context is blank, nobody can own it */
 	__cpu_disable_lazy_restore(cpu);
 
-<<<<<<< HEAD
-	err = do_boot_cpu(apicid, cpu);
-=======
 	err = do_boot_cpu(apicid, cpu, tidle);
->>>>>>> android-3.18
 	if (err) {
 		pr_err("do_boot_cpu failed(%d) to wakeup CPU#%u\n", err, cpu);
 		return -EIO;

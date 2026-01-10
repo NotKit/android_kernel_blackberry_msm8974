@@ -790,8 +790,6 @@ int vmbus_request_offers(void)
 
 cleanup:
 	kfree(msginfo);
-<<<<<<< HEAD
-=======
 
 	return ret;
 }
@@ -846,7 +844,6 @@ static void invoke_sc_cb(struct vmbus_channel *primary_channel)
 
 	if (primary_channel->sc_creation_callback == NULL)
 		return;
->>>>>>> android-3.18
 
 	list_for_each_safe(cur, tmp, &primary_channel->sc_list) {
 		cur_channel = list_entry(cur, struct vmbus_channel, sc_list);

@@ -823,11 +823,7 @@ static int rpmsg_recv_single(struct virtproc_info *vrp, struct device *dev,
 		/* farewell, ept, we don't need you anymore */
 		kref_put(&ept->refcount, __ept_release);
 	} else
-<<<<<<< HEAD
-		dev_warn(dev, "msg received with no recepient\n");
-=======
 		dev_warn(dev, "msg received with no recipient\n");
->>>>>>> android-3.18
 
 	/* publish the real size of the buffer */
 	sg_init_one(&sg, msg, RPMSG_BUF_SIZE);

@@ -31,14 +31,10 @@
 
 static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status)
 {
-<<<<<<< HEAD
-	struct pps_device *pps = pps_lookup_dev(tty);
-=======
 	struct pps_device *pps;
 	struct pps_event_time ts;
 
 	pps_get_ts(&ts);
->>>>>>> android-3.18
 
 	pps = pps_lookup_dev(tty);
 	/*
@@ -106,12 +102,9 @@ static void pps_tty_close(struct tty_struct *tty)
 
 	alias_n_tty_close(tty);
 
-<<<<<<< HEAD
-=======
 	if (WARN_ON(!pps))
 		return;
 
->>>>>>> android-3.18
 	dev_info(pps->dev, "removed\n");
 	pps_unregister_source(pps);
 }

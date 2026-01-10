@@ -662,13 +662,8 @@ int amd_iommu_bind_pasid(struct pci_dev *pdev, int pasid,
 	init_waitqueue_head(&pasid_state->wq);
 	spin_lock_init(&pasid_state->lock);
 
-<<<<<<< HEAD
-	pasid_state->task         = task;
-	pasid_state->mm           = get_task_mm(task);
-=======
 	mm                        = get_task_mm(task);
 	pasid_state->mm           = mm;
->>>>>>> android-3.18
 	pasid_state->device_state = dev_state;
 	pasid_state->pasid        = pasid;
 	pasid_state->invalid      = true; /* Mark as valid only if we are

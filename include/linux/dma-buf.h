@@ -67,12 +67,9 @@ struct dma_buf_attachment;
  * 	  mapping needs to be coherent - if the exporter doesn't directly
  * 	  support this, it needs to fake coherency by shooting down any ptes
  * 	  when transitioning away from the cpu domain.
-<<<<<<< HEAD
-=======
  * @vmap: [optional] creates a virtual mapping for the buffer into kernel
  *	  address space. Same restrictions as for vmap and friends apply.
  * @vunmap: [optional] unmaps a vmap from the buffer
->>>>>>> android-3.18
  */
 struct dma_buf_ops {
 	int (*attach)(struct dma_buf *, struct device *,
@@ -106,12 +103,9 @@ struct dma_buf_ops {
 	void (*kunmap)(struct dma_buf *, unsigned long, void *);
 
 	int (*mmap)(struct dma_buf *, struct vm_area_struct *vma);
-<<<<<<< HEAD
-=======
 
 	void *(*vmap)(struct dma_buf *);
 	void (*vunmap)(struct dma_buf *, void *vaddr);
->>>>>>> android-3.18
 };
 
 /**
@@ -210,101 +204,6 @@ void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
 void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
 void *dma_buf_kmap(struct dma_buf *, unsigned long);
 void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
-<<<<<<< HEAD
-
-int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
-		 unsigned long);
-#else
-
-static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-							struct device *dev)
-{
-	return ERR_PTR(-ENODEV);
-}
-
-static inline void dma_buf_detach(struct dma_buf *dmabuf,
-				  struct dma_buf_attachment *dmabuf_attach)
-{
-	return;
-}
-
-static inline struct dma_buf *dma_buf_export(void *priv,
-					     const struct dma_buf_ops *ops,
-					     size_t size, int flags)
-{
-	return ERR_PTR(-ENODEV);
-}
-
-static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
-{
-	return -ENODEV;
-}
-
-static inline struct dma_buf *dma_buf_get(int fd)
-{
-	return ERR_PTR(-ENODEV);
-}
-
-static inline void dma_buf_put(struct dma_buf *dmabuf)
-{
-	return;
-}
-
-static inline struct sg_table *dma_buf_map_attachment(
-	struct dma_buf_attachment *attach, enum dma_data_direction write)
-{
-	return ERR_PTR(-ENODEV);
-}
-
-static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
-			struct sg_table *sg, enum dma_data_direction dir)
-{
-	return;
-}
-
-static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-					   size_t start, size_t len,
-					   enum dma_data_direction dir)
-{
-	return -ENODEV;
-}
-
-static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-					  size_t start, size_t len,
-					  enum dma_data_direction dir)
-{
-}
-
-static inline void *dma_buf_kmap_atomic(struct dma_buf *dmabuf,
-					unsigned long pnum)
-{
-	return NULL;
-}
-
-static inline void dma_buf_kunmap_atomic(struct dma_buf *dmabuf,
-					 unsigned long pnum, void *vaddr)
-{
-}
-
-static inline void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long pnum)
-{
-	return NULL;
-}
-
-static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
-				  unsigned long pnum, void *vaddr)
-{
-}
-
-static inline int dma_buf_mmap(struct dma_buf *dmabuf,
-			       struct vm_area_struct *vma,
-			       unsigned long pgoff)
-{
-	return -ENODEV;
-}
-#endif /* CONFIG_DMA_SHARED_BUFFER */
-=======
->>>>>>> android-3.18
 
 int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
 		 unsigned long);

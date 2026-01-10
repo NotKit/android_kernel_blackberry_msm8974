@@ -217,11 +217,7 @@ static ssize_t regmap_read_debugfs(struct regmap *map, unsigned int from,
 		/* If we're in the region the user is trying to read */
 		if (p >= *ppos) {
 			/* ...but not beyond it */
-<<<<<<< HEAD
-			if (buf_pos + 1 + tot_len >= count)
-=======
 			if (buf_pos + map->debugfs_tot_len > count)
->>>>>>> android-3.18
 				break;
 
 			/* Format the register */
@@ -480,15 +476,6 @@ static const struct file_operations regmap_access_fops = {
 
 void regmap_debugfs_init(struct regmap *map, const char *name)
 {
-<<<<<<< HEAD
-	const char *devname = "dummy";
-
-	if (map->dev)
-		devname = dev_name(map->dev);
-
-	map->debugfs = debugfs_create_dir(devname,
-					  regmap_debugfs_root);
-=======
 	struct rb_node *next;
 	struct regmap_range_node *range_node;
 	const char *devname = "dummy";
@@ -522,7 +509,6 @@ void regmap_debugfs_init(struct regmap *map, const char *name)
 	}
 
 	map->debugfs = debugfs_create_dir(name, regmap_debugfs_root);
->>>>>>> android-3.18
 	if (!map->debugfs) {
 		dev_warn(map->dev, "Failed to create debugfs directory\n");
 		return;

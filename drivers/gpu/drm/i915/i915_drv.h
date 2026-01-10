@@ -494,76 +494,6 @@ struct drm_i915_display_funcs {
 	/* display clock increase/decrease */
 	/* pll clock increase/decrease */
 
-<<<<<<< HEAD
-struct intel_device_info {
-	u8 gen;
-	u8 is_mobile:1;
-	u8 is_i85x:1;
-	u8 is_i915g:1;
-	u8 is_i945gm:1;
-	u8 is_g33:1;
-	u8 need_gfx_hws:1;
-	u8 is_g4x:1;
-	u8 is_pineview:1;
-	u8 is_broadwater:1;
-	u8 is_crestline:1;
-	u8 is_ivybridge:1;
-	u8 has_force_wake:1;
-	u8 has_fbc:1;
-	u8 has_pipe_cxsr:1;
-	u8 has_hotplug:1;
-	u8 cursor_needs_physical:1;
-	u8 has_overlay:1;
-	u8 overlay_needs_physical:1;
-	u8 supports_tv:1;
-	u8 has_bsd_ring:1;
-	u8 has_blt_ring:1;
-	u8 has_llc:1;
-};
-
-#define I915_PPGTT_PD_ENTRIES 512
-#define I915_PPGTT_PT_ENTRIES 1024
-struct i915_hw_ppgtt {
-	unsigned num_pd_entries;
-	struct page **pt_pages;
-	uint32_t pd_offset;
-	dma_addr_t *pt_dma_addr;
-	dma_addr_t scratch_page_dma_addr;
-};
-
-enum no_fbc_reason {
-	FBC_NO_OUTPUT, /* no outputs enabled to compress */
-	FBC_STOLEN_TOO_SMALL, /* not enough space to hold compressed buffers */
-	FBC_UNSUPPORTED_MODE, /* interlace or doublescanned mode */
-	FBC_MODE_TOO_LARGE, /* mode too large for compression */
-	FBC_BAD_PLANE, /* fbc not supported on plane */
-	FBC_NOT_TILED, /* buffer not tiled */
-	FBC_MULTIPLE_PIPES, /* more than one pipe active */
-	FBC_MODULE_PARAM,
-};
-
-enum intel_pch {
-	PCH_IBX,	/* Ibexpeak PCH */
-	PCH_CPT,	/* Cougarpoint PCH */
-};
-
-#define QUIRK_PIPEA_FORCE (1<<0)
-#define QUIRK_LVDS_SSC_DISABLE (1<<1)
-#define QUIRK_INVERT_BRIGHTNESS (1<<2)
-#define QUIRK_NO_PCH_PWM_ENABLE (1<<3)
-
-struct intel_fbdev;
-struct intel_fbc_work;
-
-struct intel_gmbus {
-	struct i2c_adapter adapter;
-	bool force_bit;
-	bool has_gpio;
-	u32 reg0;
-	u32 gpio_reg;
-	struct i2c_algo_bit_data bit_algo;
-	struct drm_i915_private *dev_priv;
-=======
 	int (*setup_backlight)(struct intel_connector *connector);
 	uint32_t (*get_backlight)(struct intel_connector *connector);
 	void (*set_backlight)(struct intel_connector *connector,
@@ -591,7 +521,6 @@ struct intel_uncore_funcs {
 				uint32_t val, bool trace);
 	void (*mmio_writeq)(struct drm_i915_private *dev_priv, off_t offset,
 				uint64_t val, bool trace);
->>>>>>> android-3.18
 };
 
 struct intel_uncore {
@@ -722,30 +651,12 @@ struct intel_context {
 	struct list_head link;
 };
 
-<<<<<<< HEAD
-	/* Feature bits from the VBIOS */
-	unsigned int int_tv_support:1;
-	unsigned int lvds_dither:1;
-	unsigned int lvds_vbt:1;
-	unsigned int int_crt_support:1;
-	unsigned int lvds_use_ssc:1;
-	unsigned int display_clock_mode:1;
-	int lvds_ssc_freq;
-	unsigned int bios_lvds_val; /* initial [PCH_]LVDS reg val in VBIOS */
-	unsigned int lvds_val; /* used for checking LVDS channel mode */
-	struct {
-		int rate;
-		int lanes;
-		int preemphasis;
-		int vswing;
-=======
 struct i915_fbc {
 	unsigned long size;
 	unsigned threshold;
 	unsigned int fb_id;
 	enum plane plane;
 	int y;
->>>>>>> android-3.18
 
 	struct drm_mm_node compressed_fb;
 	struct drm_mm_node *compressed_llb;
@@ -2265,13 +2176,7 @@ struct drm_i915_cmd_table {
 #define HAS_PCH_NOP(dev) (INTEL_PCH_TYPE(dev) == PCH_NOP)
 #define HAS_PCH_SPLIT(dev) (INTEL_PCH_TYPE(dev) != PCH_NONE)
 
-<<<<<<< HEAD
-#define HAS_FORCE_WAKE(dev) (INTEL_INFO(dev)->has_force_wake)
-
-#include "i915_trace.h"
-=======
 #define HAS_GMCH_DISPLAY(dev) (INTEL_INFO(dev)->gen < 5 || IS_VALLEYVIEW(dev))
->>>>>>> android-3.18
 
 /* DPF == dynamic parity feature */
 #define HAS_L3_DPF(dev) (IS_IVYBRIDGE(dev) || IS_HASWELL(dev))
@@ -2887,12 +2792,8 @@ static inline void intel_unregister_dsm_handler(void) { return; }
 #endif /* CONFIG_ACPI */
 
 /* modesetting */
-<<<<<<< HEAD
-extern void i915_redisable_vga(struct drm_device *dev);
-=======
 extern void intel_modeset_init_hw(struct drm_device *dev);
 extern void intel_modeset_suspend_hw(struct drm_device *dev);
->>>>>>> android-3.18
 extern void intel_modeset_init(struct drm_device *dev);
 extern void intel_modeset_gem_init(struct drm_device *dev);
 extern void intel_modeset_cleanup(struct drm_device *dev);
@@ -2937,45 +2838,6 @@ extern void intel_display_print_error_state(struct drm_i915_error_state_buf *e,
  * must be set to prevent GT core from power down and stale values being
  * returned.
  */
-<<<<<<< HEAD
-void gen6_gt_force_wake_get(struct drm_i915_private *dev_priv);
-void gen6_gt_force_wake_put(struct drm_i915_private *dev_priv);
-int __gen6_gt_wait_for_fifo(struct drm_i915_private *dev_priv);
-
-#define __i915_read(x, y) \
-	u##x i915_read##x(struct drm_i915_private *dev_priv, u32 reg);
-
-__i915_read(8, b)
-__i915_read(16, w)
-__i915_read(32, l)
-__i915_read(64, q)
-#undef __i915_read
-
-#define __i915_write(x, y) \
-	void i915_write##x(struct drm_i915_private *dev_priv, u32 reg, u##x val);
-
-__i915_write(8, b)
-__i915_write(16, w)
-__i915_write(32, l)
-__i915_write(64, q)
-#undef __i915_write
-
-#define I915_READ8(reg)		i915_read8(dev_priv, (reg))
-#define I915_WRITE8(reg, val)	i915_write8(dev_priv, (reg), (val))
-
-#define I915_READ16(reg)	i915_read16(dev_priv, (reg))
-#define I915_WRITE16(reg, val)	i915_write16(dev_priv, (reg), (val))
-#define I915_READ16_NOTRACE(reg)	readw(dev_priv->regs + (reg))
-#define I915_WRITE16_NOTRACE(reg, val)	writew(val, dev_priv->regs + (reg))
-
-#define I915_READ(reg)		i915_read32(dev_priv, (reg))
-#define I915_WRITE(reg, val)	i915_write32(dev_priv, (reg), (val))
-#define I915_READ_NOTRACE(reg)		readl(dev_priv->regs + (reg))
-#define I915_WRITE_NOTRACE(reg, val)	writel(val, dev_priv->regs + (reg))
-
-#define I915_WRITE64(reg, val)	i915_write64(dev_priv, (reg), (val))
-#define I915_READ64(reg)	i915_read64(dev_priv, (reg))
-=======
 void gen6_gt_force_wake_get(struct drm_i915_private *dev_priv, int fw_engine);
 void gen6_gt_force_wake_put(struct drm_i915_private *dev_priv, int fw_engine);
 void assert_force_wake_inactive(struct drm_i915_private *dev_priv);
@@ -3045,7 +2907,6 @@ int vlv_freq_opcode(struct drm_i915_private *dev_priv, int val);
 		tmp = I915_READ(upper_reg);				\
 	} while (upper != tmp);						\
 	(u64)upper << 32 | lower; })
->>>>>>> android-3.18
 
 #define POSTING_READ(reg)	(void)I915_READ_NOTRACE(reg)
 #define POSTING_READ16(reg)	(void)I915_READ16_NOTRACE(reg)

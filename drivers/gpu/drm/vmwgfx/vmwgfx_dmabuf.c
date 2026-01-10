@@ -304,13 +304,7 @@ void vmw_bo_pin(struct ttm_buffer_object *bo, bool pin)
 	uint32_t old_mem_type = bo->mem.mem_type;
 	int ret;
 
-<<<<<<< HEAD
-	BUG_ON(!atomic_read(&bo->reserved));
-	BUG_ON(old_mem_type != TTM_PL_VRAM &&
-	       old_mem_type != VMW_PL_GMR);
-=======
 	lockdep_assert_held(&bo->resv->lock.base);
->>>>>>> android-3.18
 
 	pl.fpfn = 0;
 	pl.lpfn = 0;

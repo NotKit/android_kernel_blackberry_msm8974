@@ -298,22 +298,6 @@ static ssize_t max_read_buffer_kb_show(struct device *csdev,
 		size = s->async->max_bufsize / 1024;
 	mutex_unlock(&dev->mutex);
 
-<<<<<<< HEAD
-	/* Device config is special, because it must work on
-	 * an unconfigured device. */
-	if (cmd == COMEDI_DEVCONFIG) {
-		if (minor >= COMEDI_NUM_BOARD_MINORS) {
-			/* Device config not appropriate on non-board minors. */
-			rc = -ENOTTY;
-			goto done;
-		}
-		rc = do_devconfig_ioctl(dev,
-					(struct comedi_devconfig __user *)arg);
-		if (rc == 0)
-			/* Evade comedi_auto_unconfig(). */
-			dev_file_info->hardware_device = NULL;
-		goto done;
-=======
 	comedi_dev_put(dev);
 	return snprintf(buf, PAGE_SIZE, "%u\n", size);
 }
@@ -638,7 +622,6 @@ void comedi_device_cancel_all(struct comedi_device *dev)
 		s = &dev->subdevices[i];
 		if (s->async)
 			do_cancel(dev, s);
->>>>>>> android-3.18
 	}
 }
 
@@ -699,45 +682,10 @@ static int do_devconfig_ioctl(struct comedi_device *dev,
 
 	it.board_name[COMEDI_NAMELEN - 1] = 0;
 
-<<<<<<< HEAD
-	if (comedi_aux_data(it.options, 0) &&
-	    it.options[COMEDI_DEVCONF_AUX_DATA_LENGTH]) {
-		int bit_shift;
-		aux_len = it.options[COMEDI_DEVCONF_AUX_DATA_LENGTH];
-		if (aux_len < 0)
-			return -EFAULT;
-
-		aux_data = vmalloc(aux_len);
-		if (!aux_data)
-			return -ENOMEM;
-
-		if (copy_from_user(aux_data,
-				   comedi_aux_data(it.options, 0), aux_len)) {
-			vfree(aux_data);
-			return -EFAULT;
-		}
-		it.options[COMEDI_DEVCONF_AUX_DATA_LO] =
-		    (unsigned long)aux_data;
-		if (sizeof(void *) > sizeof(int)) {
-			bit_shift = sizeof(int) * 8;
-			it.options[COMEDI_DEVCONF_AUX_DATA_HI] =
-			    ((unsigned long)aux_data) >> bit_shift;
-		} else
-			it.options[COMEDI_DEVCONF_AUX_DATA_HI] = 0;
-	}
-
-	ret = comedi_device_attach(dev, &it);
-	if (ret == 0) {
-		if (!try_module_get(dev->driver->module)) {
-			comedi_device_detach(dev);
-			ret = -ENOSYS;
-		}
-=======
 	if (it.options[COMEDI_DEVCONF_AUX_DATA_LENGTH]) {
 		dev_warn(dev->class_dev,
 			 "comedi_config --init_data is deprecated\n");
 		return -EINVAL;
->>>>>>> android-3.18
 	}
 
 	if (dev->minor >= comedi_num_legacy_minors)
@@ -1563,39 +1511,6 @@ static int do_cmd_ioctl(struct comedi_device *dev,
 		dev_dbg(dev->class_dev, "subdevice busy\n");
 		return -EBUSY;
 	}
-<<<<<<< HEAD
-
-	/* make sure channel/gain list isn't too long */
-	if (user_cmd.chanlist_len > s->len_chanlist) {
-		DPRINTK("channel/gain list too long %u > %d\n",
-			user_cmd.chanlist_len, s->len_chanlist);
-		return -EINVAL;
-	}
-
-	/* make sure channel/gain list isn't too short */
-	if (user_cmd.chanlist_len < 1) {
-		DPRINTK("channel/gain list too short %u < 1\n",
-			user_cmd.chanlist_len);
-		return -EINVAL;
-	}
-
-	async->cmd = user_cmd;
-	async->cmd.data = NULL;
-	/* load channel/gain list */
-	async->cmd.chanlist =
-	    kmalloc(async->cmd.chanlist_len * sizeof(int), GFP_KERNEL);
-	if (!async->cmd.chanlist) {
-		DPRINTK("allocation failed\n");
-		return -ENOMEM;
-	}
-
-	if (copy_from_user(async->cmd.chanlist, user_cmd.chanlist,
-			   async->cmd.chanlist_len * sizeof(int))) {
-		DPRINTK("fault reading chanlist\n");
-		ret = -EFAULT;
-		goto cleanup;
-	}
-=======
 
 	/* make sure channel/gain list isn't too short */
 	if (cmd.chanlist_len < 1) {
@@ -1606,7 +1521,6 @@ static int do_cmd_ioctl(struct comedi_device *dev,
 
 	async->cmd = cmd;
 	async->cmd.data = NULL;
->>>>>>> android-3.18
 
 	/* load channel/gain list */
 	ret = __comedi_get_user_chanlist(dev, s, user_chanlist, &async->cmd);
@@ -1821,11 +1735,6 @@ static int do_cancel_ioctl(struct comedi_device *dev, unsigned long arg,
 		return -EBUSY;
 
 	ret = do_cancel(dev, s);
-<<<<<<< HEAD
-	if (comedi_get_subdevice_runflags(s) & SRF_USER)
-		wake_up_interruptible(&s->async->wait_head);
-=======
->>>>>>> android-3.18
 
 	return ret;
 }
@@ -2094,36 +2003,13 @@ static unsigned int comedi_poll(struct file *file, poll_table *wait)
 		goto done;
 	}
 
-<<<<<<< HEAD
-	mask = 0;
-	read_subdev = comedi_get_read_subdevice(dev_file_info);
-	if (read_subdev && read_subdev->async) {
-		poll_wait(file, &read_subdev->async->wait_head, wait);
-		if (!read_subdev->busy
-		    || comedi_buf_read_n_available(read_subdev->async) > 0
-		    || !(comedi_get_subdevice_runflags(read_subdev) &
-			 SRF_RUNNING)) {
-=======
 	s = comedi_read_subdevice(dev, minor);
 	if (s && s->async) {
 		poll_wait(file, &s->async->wait_head, wait);
 		if (!s->busy || !comedi_is_subdevice_running(s) ||
 		    comedi_buf_read_n_available(s) > 0)
->>>>>>> android-3.18
 			mask |= POLLIN | POLLRDNORM;
 	}
-<<<<<<< HEAD
-	write_subdev = comedi_get_write_subdevice(dev_file_info);
-	if (write_subdev && write_subdev->async) {
-		poll_wait(file, &write_subdev->async->wait_head, wait);
-		comedi_buf_write_alloc(write_subdev->async,
-				       write_subdev->async->prealloc_bufsz);
-		if (!write_subdev->busy
-		    || !(comedi_get_subdevice_runflags(write_subdev) &
-			 SRF_RUNNING)
-		    || comedi_buf_write_n_allocated(write_subdev->async) >=
-		    bytes_per_sample(write_subdev->async->subdevice)) {
-=======
 
 	s = comedi_write_subdevice(dev, minor);
 	if (s && s->async) {
@@ -2133,7 +2019,6 @@ static unsigned int comedi_poll(struct file *file, poll_table *wait)
 		comedi_buf_write_alloc(s, s->async->prealloc_bufsz);
 		if (!s->busy || !comedi_is_subdevice_running(s) ||
 		    comedi_buf_write_n_allocated(s) >= bps)
->>>>>>> android-3.18
 			mask |= POLLOUT | POLLWRNORM;
 	}
 
@@ -2166,13 +2051,8 @@ static ssize_t comedi_write(struct file *file, const char __user *buf,
 		goto out;
 	}
 
-<<<<<<< HEAD
-	s = comedi_get_write_subdevice(dev_file_info);
-	if (s == NULL || s->async == NULL) {
-=======
 	s = comedi_write_subdevice(dev, minor);
 	if (!s || !s->async) {
->>>>>>> android-3.18
 		retval = -EIO;
 		goto out;
 	}
@@ -2193,22 +2073,12 @@ static ssize_t comedi_write(struct file *file, const char __user *buf,
 
 		if (!comedi_is_subdevice_running(s)) {
 			if (count == 0) {
-<<<<<<< HEAD
-				mutex_lock(&dev->mutex);
-				if (comedi_get_subdevice_runflags(s) &
-					SRF_ERROR) {
-=======
 				struct comedi_subdevice *new_s;
 
 				if (comedi_is_subdevice_in_error(s))
->>>>>>> android-3.18
 					retval = -EPIPE;
 				else
 					retval = 0;
-<<<<<<< HEAD
-				}
-				do_become_nonbusy(dev, s);
-=======
 				/*
 				 * To avoid deadlock, cannot acquire dev->mutex
 				 * while dev->attach_lock is held.  Need to
@@ -2234,7 +2104,6 @@ static ssize_t comedi_write(struct file *file, const char __user *buf,
 				    old_detach_count == dev->detach_count &&
 				    s == new_s && new_s->async == async)
 					do_become_nonbusy(dev, s);
->>>>>>> android-3.18
 				mutex_unlock(&dev->mutex);
 			}
 			break;
@@ -2318,13 +2187,8 @@ static ssize_t comedi_read(struct file *file, char __user *buf, size_t nbytes,
 		goto out;
 	}
 
-<<<<<<< HEAD
-	s = comedi_get_read_subdevice(dev_file_info);
-	if (s == NULL || s->async == NULL) {
-=======
 	s = comedi_read_subdevice(dev, minor);
 	if (!s || !s->async) {
->>>>>>> android-3.18
 		retval = -EIO;
 		goto out;
 	}
@@ -2350,25 +2214,12 @@ static ssize_t comedi_read(struct file *file, char __user *buf, size_t nbytes,
 			n = m;
 
 		if (n == 0) {
-<<<<<<< HEAD
-			if (!(comedi_get_subdevice_runflags(s) & SRF_RUNNING)) {
-				mutex_lock(&dev->mutex);
-				do_become_nonbusy(dev, s);
-				if (comedi_get_subdevice_runflags(s) &
-				    SRF_ERROR) {
-=======
 			if (!comedi_is_subdevice_running(s)) {
 				if (comedi_is_subdevice_in_error(s))
->>>>>>> android-3.18
 					retval = -EPIPE;
 				else
 					retval = 0;
-<<<<<<< HEAD
-				}
-				mutex_unlock(&dev->mutex);
-=======
 				become_nonbusy = true;
->>>>>>> android-3.18
 				break;
 			}
 			if (file->f_flags & O_NONBLOCK) {
@@ -2406,37 +2257,6 @@ static ssize_t comedi_read(struct file *file, char __user *buf, size_t nbytes,
 		buf += n;
 		break;		/* makes device work like a pipe */
 	}
-<<<<<<< HEAD
-	if (!(comedi_get_subdevice_runflags(s) & (SRF_ERROR | SRF_RUNNING))) {
-		mutex_lock(&dev->mutex);
-		if (async->buf_read_count - async->buf_write_count == 0)
-			do_become_nonbusy(dev, s);
-		mutex_unlock(&dev->mutex);
-	}
-	set_current_state(TASK_RUNNING);
-	remove_wait_queue(&async->wait_head, &wait);
-
-done:
-	return count ? count : retval;
-}
-
-/*
-   This function restores a subdevice to an idle state.
- */
-void do_become_nonbusy(struct comedi_device *dev, struct comedi_subdevice *s)
-{
-	struct comedi_async *async = s->async;
-
-	comedi_set_subdevice_runflags(s, SRF_RUNNING, 0);
-	if (async) {
-		comedi_reset_async_buf(async);
-		async->inttrig = NULL;
-		kfree(async->cmd.chanlist);
-		async->cmd.chanlist = NULL;
-	} else {
-		printk(KERN_ERR
-		       "BUG: (?) do_become_nonbusy called with async=0\n");
-=======
 	remove_wait_queue(&async->wait_head, &wait);
 	set_current_state(TASK_RUNNING);
 	if (become_nonbusy || comedi_is_subdevice_idle(s)) {
@@ -2463,7 +2283,6 @@ void do_become_nonbusy(struct comedi_device *dev, struct comedi_subdevice *s)
 				do_become_nonbusy(dev, s);
 		}
 		mutex_unlock(&dev->mutex);
->>>>>>> android-3.18
 	}
 out:
 	if (attach_locked)
@@ -2610,22 +2429,6 @@ struct comedi_device *comedi_alloc_board_minor(struct device *hardware_device)
 	struct device *csdev;
 	unsigned i;
 
-<<<<<<< HEAD
-	info = kzalloc(sizeof(struct comedi_device_file_info), GFP_KERNEL);
-	if (info == NULL)
-		return -ENOMEM;
-	info->device = kzalloc(sizeof(struct comedi_device), GFP_KERNEL);
-	if (info->device == NULL) {
-		kfree(info);
-		return -ENOMEM;
-	}
-	info->hardware_device = hardware_device;
-	comedi_device_init(info->device);
-	spin_lock_irqsave(&comedi_file_info_table_lock, flags);
-	for (i = 0; i < COMEDI_NUM_BOARD_MINORS; ++i) {
-		if (comedi_file_info_table[i] == NULL) {
-			comedi_file_info_table[i] = info;
-=======
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 	if (dev == NULL)
 		return ERR_PTR(-ENOMEM);
@@ -2637,7 +2440,6 @@ struct comedi_device *comedi_alloc_board_minor(struct device *hardware_device)
 	     i < COMEDI_NUM_BOARD_MINORS; ++i) {
 		if (comedi_board_minor_table[i] == NULL) {
 			comedi_board_minor_table[i] = dev;
->>>>>>> android-3.18
 			break;
 		}
 	}
@@ -2684,29 +2486,7 @@ void comedi_release_hardware_device(struct device *hardware_device)
 	}
 }
 
-<<<<<<< HEAD
-int comedi_find_board_minor(struct device *hardware_device)
-{
-	int minor;
-	struct comedi_device_file_info *info;
-
-	for (minor = 0; minor < COMEDI_NUM_BOARD_MINORS; minor++) {
-		spin_lock(&comedi_file_info_table_lock);
-		info = comedi_file_info_table[minor];
-		if (info && info->hardware_device == hardware_device) {
-			spin_unlock(&comedi_file_info_table_lock);
-			return minor;
-		}
-		spin_unlock(&comedi_file_info_table_lock);
-	}
-	return -ENODEV;
-}
-
-int comedi_alloc_subdevice_minor(struct comedi_device *dev,
-				 struct comedi_subdevice *s)
-=======
 int comedi_alloc_subdevice_minor(struct comedi_subdevice *s)
->>>>>>> android-3.18
 {
 	struct comedi_device *dev = s->device;
 	struct device *csdev;

@@ -3,16 +3,6 @@ menu "Remoteproc drivers"
 # REMOTEPROC gets selected by whoever wants it
 config REMOTEPROC
 	tristate
-<<<<<<< HEAD
-	depends on EXPERIMENTAL
-	select FW_CONFIG
-	select VIRTIO
-
-config OMAP_REMOTEPROC
-	tristate "OMAP remoteproc support"
-	depends on EXPERIMENTAL
-	depends on ARCH_OMAP4
-=======
 	depends on HAS_DMA
 	select CRC32
 	select FW_LOADER
@@ -23,7 +13,6 @@ config OMAP_REMOTEPROC
 	tristate "OMAP remoteproc support"
 	depends on HAS_DMA
 	depends on ARCH_OMAP4 || SOC_OMAP5
->>>>>>> android-3.18
 	depends on OMAP_IOMMU
 	select REMOTEPROC
 	select MAILBOX

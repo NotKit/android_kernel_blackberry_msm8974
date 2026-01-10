@@ -891,11 +891,7 @@ void rt2x00queue_index_inc(struct queue_entry *entry, enum queue_index index)
 	spin_unlock_irqrestore(&queue->index_lock, irqflags);
 }
 
-<<<<<<< HEAD
-void rt2x00queue_pause_queue_nocheck(struct data_queue *queue)
-=======
 static void rt2x00queue_pause_queue_nocheck(struct data_queue *queue)
->>>>>>> android-3.18
 {
 	switch (queue->qid) {
 	case QID_AC_VO:

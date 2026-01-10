@@ -28,27 +28,6 @@
 #define AUTOFS_MIN_PROTO_VERSION	AUTOFS_PROTO_VERSION
 
 /*
-<<<<<<< HEAD
- * Architectures where both 32- and 64-bit binaries can be executed
- * on 64-bit kernels need this.  This keeps the structure format
- * uniform, and makes sure the wait_queue_token isn't too big to be
- * passed back down to the kernel.
- *
- * This assumes that on these architectures:
- * mode     32 bit    64 bit
- * -------------------------
- * int      32 bit    32 bit
- * long     32 bit    64 bit
- *
- * If so, 32-bit user-space code should be backwards compatible.
- */
-
-#if defined(__sparc__) || defined(__mips__) || defined(__x86_64__) \
- || defined(__powerpc__) || defined(__s390__)
-typedef unsigned int autofs_wqt_t;
-#else
-typedef unsigned long autofs_wqt_t;
-=======
  * The wait_queue_token (autofs_wqt_t) is part of a structure which is passed
  * back to the kernel via ioctl from userspace. On architectures where 32- and
  * 64-bit userspace binaries can be executed it's important that the size of
@@ -59,7 +38,6 @@ typedef unsigned long autofs_wqt_t;
 typedef unsigned long autofs_wqt_t;
 #else
 typedef unsigned int autofs_wqt_t;
->>>>>>> android-3.18
 #endif
 
 /* Packet types */

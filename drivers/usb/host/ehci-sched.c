@@ -547,13 +547,8 @@ static void qh_link_periodic(struct ehci_hcd *ehci, struct ehci_qh *qh)
 	unsigned	i;
 	unsigned	period = qh->ps.period;
 
-<<<<<<< HEAD
-	dev_dbg (&qh->dev->dev,
-		"link qh%d-%04x/%pK start %d [%d/%d us]\n",
-=======
 	dev_dbg(&qh->ps.udev->dev,
 		"link qh%d-%04x/%p start %d [%d/%d us]\n",
->>>>>>> android-3.18
 		period, hc32_to_cpup(ehci, &qh->hw->hw_info2)
 			& (QH_CMASK | QH_SMASK),
 		qh, qh->ps.phase, qh->ps.usecs, qh->ps.c_usecs);
@@ -645,15 +640,9 @@ static void qh_unlink_periodic(struct ehci_hcd *ehci, struct ehci_qh *qh)
 		? ((qh->ps.usecs + qh->ps.c_usecs) / qh->ps.bw_period)
 		: (qh->ps.usecs * 8);
 
-<<<<<<< HEAD
-	dev_dbg (&qh->dev->dev,
-		"unlink qh%d-%04x/%pK start %d [%d/%d us]\n",
-		qh->period,
-=======
 	dev_dbg(&qh->ps.udev->dev,
 		"unlink qh%d-%04x/%p start %d [%d/%d us]\n",
 		qh->ps.period,
->>>>>>> android-3.18
 		hc32_to_cpup(ehci, &qh->hw->hw_info2) & (QH_CMASK | QH_SMASK),
 		qh, qh->ps.phase, qh->ps.usecs, qh->ps.c_usecs);
 
@@ -761,13 +750,8 @@ static void end_unlink_intr(struct ehci_hcd *ehci, struct ehci_qh *qh)
 		 *
 		 * FIXME kill the now-dysfunctional queued urbs
 		 */
-<<<<<<< HEAD
-		if (rc != 0)
-			ehci_err(ehci, "can't reschedule qh %pK, err %d\n",
-=======
 		else {
 			ehci_err(ehci, "can't reschedule qh %p, err %d\n",
->>>>>>> android-3.18
 					qh, rc);
 		}
 	}
@@ -916,16 +900,6 @@ static int qh_schedule(struct ehci_hcd *ehci, struct ehci_qh *qh)
 			}
 		}
 
-<<<<<<< HEAD
-		/* reset S-frame and (maybe) C-frame masks */
-		hw->hw_info2 &= cpu_to_hc32(ehci, ~(QH_CMASK | QH_SMASK));
-		hw->hw_info2 |= qh->period
-			? cpu_to_hc32(ehci, 1 << uframe)
-			: cpu_to_hc32(ehci, QH_SMASK);
-		hw->hw_info2 |= c_mask;
-	} else
-		ehci_dbg (ehci, "reused qh %pK schedule\n", qh);
-=======
 	/* qh->ps.bw_period == 0 means every uframe */
 	} else {
 		status = check_intr_schedule(ehci, 0, 0, qh, &c_mask, tt);
@@ -946,7 +920,6 @@ static int qh_schedule(struct ehci_hcd *ehci, struct ehci_qh *qh)
 	hw->hw_info2 &= cpu_to_hc32(ehci, ~(QH_CMASK | QH_SMASK));
 	hw->hw_info2 |= cpu_to_hc32(ehci, qh->ps.cs_mask);
 	reserve_release_intr_bandwidth(ehci, qh, 1);
->>>>>>> android-3.18
 
 done:
 	return status;
@@ -1538,12 +1511,6 @@ iso_stream_schedule (
 	if (!stream->highspeed)
 		span <<= 3;
 
-<<<<<<< HEAD
-	if (span > mod - SCHEDULE_SLOP) {
-		ehci_dbg (ehci, "iso request %pK too long\n", urb);
-		status = -EFBIG;
-		goto fail;
-=======
 	/* Start a new isochronous stream? */
 	if (unlikely(empty && !hcd_periodic_completion_in_progress(
 			ehci_to_hcd(ehci), urb->ep))) {
@@ -1604,7 +1571,6 @@ iso_stream_schedule (
 
 		stream->next_uframe = start;
 		new_stream = true;
->>>>>>> android-3.18
 	}
 
 	now = ehci_read_frame_index(ehci) & (mod - 1);
@@ -1630,25 +1596,6 @@ iso_stream_schedule (
 	if (unlikely(new_stream))
 		goto do_ASAP;
 
-<<<<<<< HEAD
-		/* Fell behind (by up to twice the slop amount)?
-		 * We decide based on the time of the last currently-scheduled
-		 * slot, not the time of the next available slot.
-		 */
-		excess = (stream->next_uframe - period - next) & (mod - 1);
-		if (excess >= mod - 2 * SCHEDULE_SLOP)
-			start = next + excess - mod + period *
-					DIV_ROUND_UP(mod - excess, period);
-		else
-			start = next + excess + period;
-		if (start - now >= mod) {
-			ehci_dbg(ehci, "request %pK would overflow (%d+%d >= %d)\n",
-					urb, start - now - period, period,
-					mod);
-			status = -EFBIG;
-			goto fail;
-		}
-=======
 	/*
 	 * Typical case: reuse current schedule, stream may still be active.
 	 * Hopefully there are no gaps from the host falling behind
@@ -1663,7 +1610,6 @@ iso_stream_schedule (
 				urb, stream->next_uframe, base, period, mod);
 		status = -EFBIG;
 		goto fail;
->>>>>>> android-3.18
 	}
 
 	/* Is the next packet scheduled after the base time? */
@@ -1674,37 +1620,6 @@ iso_stream_schedule (
 				(urb->transfer_flags & URB_ISO_ASAP)))
 			goto do_ASAP;
 
-<<<<<<< HEAD
-		/* find a uframe slot with enough bandwidth.
-		 * Early uframes are more precious because full-speed
-		 * iso IN transfers can't use late uframes,
-		 * and therefore they should be allocated last.
-		 */
-		next = start;
-		start += period;
-		do {
-			start--;
-			/* check schedule: enough space? */
-			if (stream->highspeed) {
-				if (itd_slot_ok(ehci, mod, start,
-						stream->usecs, period))
-					done = 1;
-			} else {
-				if ((start % 8) >= 6)
-					continue;
-				if (sitd_slot_ok(ehci, mod, stream,
-						start, sched, period))
-					done = 1;
-			}
-		} while (start > next && !done);
-
-		/* no room in the schedule */
-		if (!done) {
-			ehci_dbg(ehci, "iso resched full %pK (now %d max %d)\n",
-				urb, now, now + mod);
-			status = -ENOSPC;
-			goto fail;
-=======
 		/* Otherwise use start, if it's not in the past */
 		if (likely(start >= now2))
 			goto use_start;
@@ -1733,7 +1648,6 @@ iso_stream_schedule (
 			status = 1;	/* and give it back immediately */
 			iso_sched_free(stream, sched);
 			sched = NULL;
->>>>>>> android-3.18
 		}
 	}
 	urb->error_count = skip / period;
@@ -1747,17 +1661,9 @@ iso_stream_schedule (
 
  use_start:
 	/* Tried to schedule too far into the future? */
-<<<<<<< HEAD
-	if (unlikely(start - now + span - period
-				>= mod - 2 * SCHEDULE_SLOP)) {
-		ehci_dbg(ehci, "request %pK would overflow (%d+%d >= %d)\n",
-				urb, start - now, span - period,
-				mod - 2 * SCHEDULE_SLOP);
-=======
 	if (unlikely(start + span - period >= mod + wrap)) {
 		ehci_dbg(ehci, "request %p would overflow (%u+%u >= %u)\n",
 				urb, start, span - period, mod + wrap);
->>>>>>> android-3.18
 		status = -EFBIG;
 		goto fail;
 	}
@@ -2584,11 +2490,7 @@ restart:
 				q = *q_p;
 				break;
 			default:
-<<<<<<< HEAD
-				dbg ("corrupt type %d frame %d shadow %pK",
-=======
 				ehci_dbg(ehci, "corrupt type %d frame %d shadow %p\n",
->>>>>>> android-3.18
 					type, frame, q.ptr);
 				// BUG ();
 				/* FALL THROUGH */

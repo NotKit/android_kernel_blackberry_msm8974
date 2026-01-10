@@ -182,13 +182,8 @@ static int uhci_show_qh(struct uhci_hcd *uhci,
 			hc32_to_cpu(uhci, qh->link),
 			hc32_to_cpu(uhci, element));
 	if (qh->type == USB_ENDPOINT_XFER_ISOC)
-<<<<<<< HEAD
-		out += sprintf(out, "%*s    period %d phase %d load %d us, "
-				"frame %x desc [%pK]\n",
-=======
 		out += sprintf(out,
 				"%*s    period %d phase %d load %d us, frame %x desc [%p]\n",
->>>>>>> android-3.18
 				space, "", qh->period, qh->phase, qh->load,
 				qh->iso_frame, qh->iso_packet_desc);
 	else if (qh->type == USB_ENDPOINT_XFER_INT)

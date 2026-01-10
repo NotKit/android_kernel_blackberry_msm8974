@@ -233,12 +233,6 @@ static void xenvif_up(struct xenvif *vif)
 
 static void xenvif_down(struct xenvif *vif)
 {
-<<<<<<< HEAD
-	disable_irq(vif->irq);
-	del_timer_sync(&vif->credit_timeout);
-	xen_netbk_deschedule_xenvif(vif);
-	xen_netbk_remove_xenvif(vif);
-=======
 	struct xenvif_queue *queue = NULL;
 	unsigned int num_queues = vif->num_queues;
 	unsigned int queue_index;
@@ -251,7 +245,6 @@ static void xenvif_down(struct xenvif *vif)
 			disable_irq(queue->rx_irq);
 		del_timer_sync(&queue->credit_timeout);
 	}
->>>>>>> android-3.18
 }
 
 static int xenvif_open(struct net_device *dev)
@@ -432,14 +425,7 @@ struct xenvif *xenvif_alloc(struct device *parent, domid_t domid,
 	vif->queues = NULL;
 	vif->num_queues = 0;
 
-<<<<<<< HEAD
-	vif->credit_bytes = vif->remaining_credit = ~0UL;
-	vif->credit_usec  = 0UL;
-	init_timer(&vif->credit_timeout);
-	vif->credit_window_start = get_jiffies_64();
-=======
 	spin_lock_init(&vif->lock);
->>>>>>> android-3.18
 
 	dev->netdev_ops	= &xenvif_netdev_ops;
 	dev->hw_features = NETIF_F_SG |
@@ -629,19 +615,6 @@ void xenvif_carrier_off(struct xenvif *vif)
 	struct net_device *dev = vif->dev;
 
 	rtnl_lock();
-<<<<<<< HEAD
-	netif_carrier_off(dev); /* discard queued packets */
-	if (netif_running(dev))
-		xenvif_down(vif);
-	rtnl_unlock();
-	xenvif_put(vif);
-}
-
-void xenvif_disconnect(struct xenvif *vif)
-{
-	if (netif_carrier_ok(vif->dev))
-		xenvif_carrier_off(vif);
-=======
 	if (test_and_clear_bit(VIF_STATUS_CONNECTED, &vif->status)) {
 		netif_carrier_off(dev); /* discard queued packets */
 		if (netif_running(dev))
@@ -649,7 +622,6 @@ void xenvif_disconnect(struct xenvif *vif)
 	}
 	rtnl_unlock();
 }
->>>>>>> android-3.18
 
 void xenvif_disconnect(struct xenvif *vif)
 {
@@ -688,10 +660,6 @@ void xenvif_disconnect(struct xenvif *vif)
 	}
 }
 
-<<<<<<< HEAD
-	if (vif->irq)
-		unbind_from_irqhandler(vif->irq, vif);
-=======
 /* Reverse the relevant parts of xenvif_init_queue().
  * Used for queue teardown from xenvif_free(), and on the
  * error handling paths in xenbus.c:connect().
@@ -706,7 +674,6 @@ void xenvif_free(struct xenvif *vif)
 	struct xenvif_queue *queue = NULL;
 	unsigned int num_queues = vif->num_queues;
 	unsigned int queue_index;
->>>>>>> android-3.18
 
 	unregister_netdev(vif->dev);
 

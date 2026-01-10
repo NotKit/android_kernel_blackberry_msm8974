@@ -721,13 +721,8 @@ void rt2x00lib_rxdone(struct queue_entry *entry, gfp_t gfp)
 	 */
 	if (unlikely(rxdesc.size == 0 ||
 		     rxdesc.size > entry->queue->data_size)) {
-<<<<<<< HEAD
-		ERROR(rt2x00dev, "Wrong frame size %d max %d.\n",
-			rxdesc.size, entry->queue->data_size);
-=======
 		rt2x00_err(rt2x00dev, "Wrong frame size %d max %d\n",
 			   rxdesc.size, entry->queue->data_size);
->>>>>>> android-3.18
 		dev_kfree_skb(entry->skb);
 		goto renew_skb;
 	}
@@ -1322,20 +1317,8 @@ int rt2x00lib_probe_dev(struct rt2x00_dev *rt2x00dev)
 	 * rt2x00 devices can only use the last n bits of the MAC address
 	 * for virtual interfaces.
 	 */
-<<<<<<< HEAD
-	rt2x00dev->hw->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION);
-	if (rt2x00dev->ops->bcn->entry_num > 0)
-		rt2x00dev->hw->wiphy->interface_modes |=
-		    BIT(NL80211_IFTYPE_ADHOC) |
-		    BIT(NL80211_IFTYPE_AP) |
-#ifdef CONFIG_MAC80211_MESH
-		    BIT(NL80211_IFTYPE_MESH_POINT) |
-#endif
-		    BIT(NL80211_IFTYPE_WDS);
-=======
 	rt2x00dev->hw->wiphy->addr_mask[ETH_ALEN - 1] =
 		(rt2x00dev->ops->max_ap_intf - 1);
->>>>>>> android-3.18
 
 	/*
 	 * Initialize work.

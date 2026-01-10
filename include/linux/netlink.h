@@ -160,14 +160,6 @@ static inline int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
 {
 	if (!control->module)
 		control->module = THIS_MODULE;
-<<<<<<< HEAD
-
-	return __netlink_dump_start(ssk, skb, nlh, control);
-}
-
-extern void netlink_set_nonroot(int protocol, unsigned flag);
-
-=======
 
 	return __netlink_dump_start(ssk, skb, nlh, control);
 }
@@ -188,5 +180,4 @@ bool netlink_ns_capable(const struct sk_buff *skb,
 bool netlink_capable(const struct sk_buff *skb, int cap);
 bool netlink_net_capable(const struct sk_buff *skb, int cap);
 
->>>>>>> android-3.18
 #endif	/* __LINUX_NETLINK_H */

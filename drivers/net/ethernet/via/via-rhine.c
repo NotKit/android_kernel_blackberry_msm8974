@@ -1912,11 +1912,7 @@ static void rhine_tx(struct net_device *dev)
 					 rp->tx_skbuff[entry]->len,
 					 DMA_TO_DEVICE);
 		}
-<<<<<<< HEAD
-		dev_kfree_skb(rp->tx_skbuff[entry]);
-=======
 		dev_consume_skb_any(rp->tx_skbuff[entry]);
->>>>>>> android-3.18
 		rp->tx_skbuff[entry] = NULL;
 		entry = (++rp->dirty_tx) % TX_RING_SIZE;
 	}

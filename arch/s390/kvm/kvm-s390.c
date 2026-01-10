@@ -648,13 +648,6 @@ int kvm_arch_vcpu_setup(struct kvm_vcpu *vcpu)
 						    CPUSTAT_STOPPED |
 						    CPUSTAT_GED);
 	vcpu->arch.sie_block->ecb   = 6;
-<<<<<<< HEAD
-	vcpu->arch.sie_block->eca   = 0xC1002001U;
-	vcpu->arch.sie_block->fac   = (int) (long) facilities;
-	hrtimer_init(&vcpu->arch.ckc_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	tasklet_init(&vcpu->arch.tasklet, kvm_s390_tasklet,
-		     (unsigned long) vcpu);
-=======
 	if (test_vfacility(50) && test_vfacility(73))
 		vcpu->arch.sie_block->ecb |= 0x10;
 
@@ -672,7 +665,6 @@ int kvm_arch_vcpu_setup(struct kvm_vcpu *vcpu)
 			return rc;
 	}
 	hrtimer_init(&vcpu->arch.ckc_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
->>>>>>> android-3.18
 	vcpu->arch.ckc_timer.function = kvm_s390_idle_wakeup;
 	get_cpu_id(&vcpu->arch.cpu_id);
 	vcpu->arch.cpu_id.version = 0xff;
@@ -1231,22 +1223,6 @@ static int vcpu_pre_run(struct kvm_vcpu *vcpu)
 		   atomic_read(&vcpu->arch.sie_block->cpuflags));
 
 	vcpu->arch.sie_block->icptcode = 0;
-<<<<<<< HEAD
-	local_irq_disable();
-	kvm_guest_enter();
-	local_irq_enable();
-	rc = sie64a(vcpu->arch.sie_block, vcpu->run->s.regs.gprs);
-	local_irq_disable();
-	kvm_guest_exit();
-	local_irq_enable();
-
-	if (rc) {
-		if (kvm_is_ucontrol(vcpu->kvm)) {
-			rc = SIE_INTERCEPT_UCONTROL;
-		} else {
-			VCPU_EVENT(vcpu, 3, "%s", "fault in sie instruction");
-			kvm_s390_inject_program_int(vcpu, PGM_ADDRESSING);
-=======
 	cpuflags = atomic_read(&vcpu->arch.sie_block->cpuflags);
 	VCPU_EVENT(vcpu, 6, "entering sie flags %x", cpuflags);
 	trace_kvm_s390_sie_enter(vcpu, cpuflags);
@@ -1278,24 +1254,18 @@ static int vcpu_post_run(struct kvm_vcpu *vcpu, int exit_reason)
 		trace_kvm_s390_major_guest_pfault(vcpu);
 		current->thread.gmap_pfault = 0;
 		if (kvm_arch_setup_async_pf(vcpu)) {
->>>>>>> android-3.18
 			rc = 0;
 		} else {
 			gpa_t gpa = current->thread.gmap_addr;
 			rc = kvm_arch_fault_in_page(vcpu, gpa, 1);
 		}
 	}
-<<<<<<< HEAD
-	VCPU_EVENT(vcpu, 6, "exit sie icptcode %d",
-		   vcpu->arch.sie_block->icptcode);
-=======
 
 	if (rc == -1) {
 		VCPU_EVENT(vcpu, 3, "%s", "fault in sie instruction");
 		trace_kvm_s390_sie_fault(vcpu);
 		rc = kvm_s390_inject_program_int(vcpu, PGM_ADDRESSING);
 	}
->>>>>>> android-3.18
 
 	memcpy(&vcpu->run->s.regs.gprs[14], &vcpu->arch.sie_block->gg14, 16);
 
@@ -1325,8 +1295,6 @@ static int __vcpu_run(struct kvm_vcpu *vcpu)
 		if (rc)
 			break;
 
-<<<<<<< HEAD
-=======
 		srcu_read_unlock(&vcpu->kvm->srcu, vcpu->srcu_idx);
 		/*
 		 * As PF_VCPU will be used in fault handler, between
@@ -1349,7 +1317,6 @@ static int __vcpu_run(struct kvm_vcpu *vcpu)
 
 static void sync_regs(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
 {
->>>>>>> android-3.18
 	vcpu->arch.sie_block->gpsw.mask = kvm_run->psw_mask;
 	vcpu->arch.sie_block->gpsw.addr = kvm_run->psw_addr;
 	if (kvm_run->kvm_dirty_regs & KVM_SYNC_PREFIX)
@@ -1470,13 +1437,6 @@ int kvm_s390_store_status_unloaded(struct kvm_vcpu *vcpu, unsigned long gpa)
 	} else if (gpa == KVM_S390_STORE_STATUS_PREFIXED) {
 		if (write_guest_real(vcpu, 163, &archmode, 1))
 			return -EFAULT;
-<<<<<<< HEAD
-		addr = SAVE_AREA_BASE;
-		prefix = 1;
-	} else
-		prefix = 0;
-
-=======
 		gpa = kvm_s390_real_to_abs(vcpu, SAVE_AREA_BASE);
 	}
 	rc = write_guest_abs(vcpu, gpa + offsetof(struct save_area, fp_regs),
@@ -1507,59 +1467,11 @@ int kvm_s390_store_status_unloaded(struct kvm_vcpu *vcpu, unsigned long gpa)
 
 int kvm_s390_vcpu_store_status(struct kvm_vcpu *vcpu, unsigned long addr)
 {
->>>>>>> android-3.18
 	/*
 	 * The guest FPRS and ACRS are in the host FPRS/ACRS due to the lazy
 	 * copying in vcpu load/put. Lets update our copies before we save
 	 * it into the save area
 	 */
-<<<<<<< HEAD
-	save_fp_regs(&vcpu->arch.guest_fpregs);
-	save_access_regs(vcpu->run->s.regs.acrs);
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, fp_regs),
-			vcpu->arch.guest_fpregs.fprs, 128, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, gp_regs),
-			vcpu->run->s.regs.gprs, 128, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, psw),
-			&vcpu->arch.sie_block->gpsw, 16, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, pref_reg),
-			&vcpu->arch.sie_block->prefix, 4, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu,
-			addr + offsetof(struct save_area, fp_ctrl_reg),
-			&vcpu->arch.guest_fpregs.fpc, 4, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, tod_reg),
-			&vcpu->arch.sie_block->todpr, 4, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, timer),
-			&vcpu->arch.sie_block->cputm, 8, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, clk_cmp),
-			&vcpu->arch.sie_block->ckc, 8, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu, addr + offsetof(struct save_area, acc_regs),
-			&vcpu->run->s.regs.acrs, 64, prefix))
-		return -EFAULT;
-
-	if (__guestcopy(vcpu,
-			addr + offsetof(struct save_area, ctrl_regs),
-			&vcpu->arch.sie_block->gcr, 128, prefix))
-		return -EFAULT;
-	return 0;
-=======
 	save_fp_ctl(&vcpu->arch.guest_fpregs.fpc);
 	save_fp_regs(vcpu->arch.guest_fpregs.fprs);
 	save_access_regs(vcpu->run->s.regs.acrs);
@@ -1694,7 +1606,6 @@ static int kvm_vcpu_ioctl_enable_cap(struct kvm_vcpu *vcpu,
 		break;
 	}
 	return r;
->>>>>>> android-3.18
 }
 
 long kvm_arch_vcpu_ioctl(struct file *filp,
@@ -1880,15 +1791,9 @@ static int __init kvm_s390_init(void)
 		kvm_exit();
 		return -ENOMEM;
 	}
-<<<<<<< HEAD
-	memcpy(facilities, S390_lowcore.stfle_fac_list, 16);
-	facilities[0] &= 0xff00fff3f47c0000ULL;
-	facilities[1] &= 0x001c000000000000ULL;
-=======
 	memcpy(vfacilities, S390_lowcore.stfle_fac_list, 16);
 	vfacilities[0] &= 0xff82fffbf47c2000UL;
 	vfacilities[1] &= 0x005c000000000000UL;
->>>>>>> android-3.18
 	return 0;
 }
 

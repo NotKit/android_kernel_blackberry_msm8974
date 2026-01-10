@@ -232,11 +232,6 @@ struct fsi_stream {
 	 * these are for DMAEngine
 	 */
 	struct dma_chan		*chan;
-<<<<<<< HEAD
-	struct sh_dmae_slave	slave; /* see fsi_handler_init() */
-	struct work_struct	work;
-	dma_addr_t		dma;
-=======
 	int			dma_id;
 };
 
@@ -251,7 +246,6 @@ struct fsi_clk {
 
 	unsigned long rate;
 	unsigned int count;
->>>>>>> android-3.18
 };
 
 struct fsi_priv {
@@ -1297,19 +1291,10 @@ static void fsi_dma_complete(void *data)
 	fsi_count_fifo_err(fsi);
 }
 
-<<<<<<< HEAD
-static void fsi_dma_do_work(struct work_struct *work)
-{
-	struct fsi_stream *io = container_of(work, struct fsi_stream, work);
-	struct fsi_priv *fsi = fsi_stream_to_priv(io);
-	struct dma_chan *chan;
-	struct snd_soc_dai *dai;
-=======
 static int fsi_dma_transfer(struct fsi_priv *fsi, struct fsi_stream *io)
 {
 	struct snd_soc_dai *dai = fsi_get_dai(io->substream);
 	struct snd_pcm_substream *substream = io->substream;
->>>>>>> android-3.18
 	struct dma_async_tx_descriptor *desc;
 	int is_play = fsi_stream_is_play(fsi, io);
 	enum dma_transfer_direction dir;
@@ -1366,13 +1351,9 @@ fsi_dma_transfer_err:
 static int fsi_dma_push_start_stop(struct fsi_priv *fsi, struct fsi_stream *io,
 				 int start)
 {
-<<<<<<< HEAD
-	schedule_work(&io->work);
-=======
 	struct fsi_master *master = fsi_get_master(fsi);
 	u32 clk  = fsi_is_port_a(fsi) ? CRA  : CRB;
 	u32 enable = start ? DMA_ON : 0;
->>>>>>> android-3.18
 
 	fsi_reg_mask_set(fsi, OUT_DMAC, DMA_ON, enable);
 
@@ -1421,24 +1402,15 @@ static int fsi_dma_probe(struct fsi_priv *fsi, struct fsi_stream *io, struct dev
 
 		dev_info(dev, "switch handler (dma => pio)\n");
 
-<<<<<<< HEAD
-	INIT_WORK(&io->work, fsi_dma_do_work);
-=======
 		/* probe again */
 		return fsi_stream_probe(fsi, dev);
 	}
->>>>>>> android-3.18
 
 	return 0;
 }
 
 static int fsi_dma_remove(struct fsi_priv *fsi, struct fsi_stream *io)
 {
-<<<<<<< HEAD
-	cancel_work_sync(&io->work);
-
-=======
->>>>>>> android-3.18
 	fsi_stream_stop(fsi, io);
 
 	if (io->chan)
@@ -1740,15 +1712,6 @@ static struct snd_pcm_hardware fsi_pcm_hardware = {
 	.info =		SNDRV_PCM_INFO_INTERLEAVED	|
 			SNDRV_PCM_INFO_MMAP		|
 			SNDRV_PCM_INFO_MMAP_VALID,
-<<<<<<< HEAD
-	.formats		= FSI_FMTS,
-	.rates			= FSI_RATES,
-	.rate_min		= 8000,
-	.rate_max		= 192000,
-	.channels_min		= 1,
-	.channels_max		= 2,
-=======
->>>>>>> android-3.18
 	.buffer_bytes_max	= 64 * 1024,
 	.period_bytes_min	= 32,
 	.period_bytes_max	= 8192,

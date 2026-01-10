@@ -48,12 +48,6 @@
 #include <asm/setup.h>
 #include <asm/param.h>		/* HZ */
 #include <asm/mach-types.h>
-<<<<<<< HEAD
-
-#include <mach/lm.h>
-#include <mach/irqs.h>
-=======
->>>>>>> android-3.18
 
 #include <asm/mach/arch.h>
 #include <asm/mach/irq.h>

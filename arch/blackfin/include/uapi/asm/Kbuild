@@ -1,8 +1,6 @@
 # UAPI Header export list
 include include/uapi/asm-generic/Kbuild.asm
 
-<<<<<<< HEAD
-=======
 header-y += bfin_sport.h
 header-y += byteorder.h
 header-y += cachectl.h
@@ -19,4 +17,3 @@ header-y += signal.h
 header-y += stat.h
 header-y += swab.h
 header-y += unistd.h
->>>>>>> android-3.18

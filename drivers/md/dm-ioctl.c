@@ -1138,17 +1138,11 @@ static void retrieve_status(struct dm_table *table,
 		}
 
 		/* Get the status/table string from the target driver */
-<<<<<<< HEAD
-		if (ti->type->status)
-			ti->type->status(ti, type, outptr, remaining);
-		else
-=======
 		if (ti->type->status) {
 			if (param->flags & DM_NOFLUSH_FLAG)
 				status_flags |= DM_STATUS_NOFLUSH_FLAG;
 			ti->type->status(ti, type, status_flags, outptr, remaining);
 		} else
->>>>>>> android-3.18
 			outptr[0] = '\0';
 
 		l = strlen(outptr) + 1;
@@ -1739,21 +1733,10 @@ static int copy_params(struct dm_ioctl __user *user, struct dm_ioctl *param_kern
 	/* Copy from param_kernel (which was already copied from user) */
 	memcpy(dmi, param_kernel, minimum_data_size);
 
-<<<<<<< HEAD
-	/*
-	 * Abort if something changed the ioctl data while it was being copied.
-	 */
-	if (dmi->data_size != tmp.data_size) {
-		DMERR("rejecting ioctl: data size modified while processing parameters");
-		goto bad;
-	}
-
-=======
 	if (copy_from_user(&dmi->data, (char __user *)user + minimum_data_size,
 			   param_kernel->data_size - minimum_data_size))
 		goto bad;
 data_copied:
->>>>>>> android-3.18
 	/* Wipe the user buffer so we do not return it to userspace */
 	if (secure_data && clear_user(user, param_kernel->data_size))
 		goto bad;

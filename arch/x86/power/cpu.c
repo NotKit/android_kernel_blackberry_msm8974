@@ -22,10 +22,7 @@
 #include <asm/suspend.h>
 #include <asm/debugreg.h>
 #include <asm/fpu-internal.h> /* pcntxt_mask */
-<<<<<<< HEAD
-=======
 #include <asm/cpu.h>
->>>>>>> android-3.18
 #include <asm/mmu_context.h>
 
 #ifdef CONFIG_X86_32

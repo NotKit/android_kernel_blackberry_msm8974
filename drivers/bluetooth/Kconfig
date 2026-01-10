@@ -94,18 +94,6 @@ config BT_HCIUART_LL
 
 	  Say Y here to compile support for HCILL protocol.
 
-<<<<<<< HEAD
-config BT_HCIUART_IBS
-	bool "HCI_IBS protocol support"
-	depends on BT_HCIUART
-	default n
-	help
-	  HCI_IBS (HCI In-Band Sleep) is a serial protocol for communication
-	  between Bluetooth device and host. This protocol is required for
-	  UART clock control for some Qualcomm Bluetooth devices.
-
-	  Say Y here to compile support for HCI_IBS protocol.
-=======
 config BT_HCIUART_3WIRE
 	bool "Three-wire UART (H5) protocol support"
 	depends on BT_HCIUART
@@ -117,7 +105,6 @@ config BT_HCIUART_3WIRE
 	  errors and thereby making CTS/RTS lines unnecessary.
 
 	  Say Y here to compile support for Three-wire UART protocol.
->>>>>>> android-3.18
 
 config BT_HCIBCM203X
 	tristate "HCI BCM203x USB driver"
@@ -234,11 +221,7 @@ config BT_MRVL
 	  The core driver to support Marvell Bluetooth devices.
 
 	  This driver is required if you want to support
-<<<<<<< HEAD
-	  Marvell Bluetooth devices, such as 8688/8787.
-=======
 	  Marvell Bluetooth devices, such as 8688/8787/8797/8887/8897.
->>>>>>> android-3.18
 
 	  Say Y here to compile Marvell Bluetooth driver
 	  into the kernel or say M to compile it as module.
@@ -251,13 +234,8 @@ config BT_MRVL_SDIO
 	  The driver for Marvell Bluetooth chipsets with SDIO interface.
 
 	  This driver is required if you want to use Marvell Bluetooth
-<<<<<<< HEAD
-	  devices with SDIO interface. Currently SD8688/SD8787 chipsets are
-	  supported.
-=======
 	  devices with SDIO interface. Currently SD8688/SD8787/SD8797/SD8887/SD8897
 	  chipsets are supported.
->>>>>>> android-3.18
 
 	  Say Y here to compile support for Marvell BT-over-SDIO driver
 	  into the kernel or say M to compile it as module.

@@ -503,22 +503,9 @@ SYSCALL_DEFINE4(osf_mount, unsigned long, typenr, const char __user *, path,
 		int, flag, void __user *, data)
 {
 	int retval;
-<<<<<<< HEAD
-	struct filename *name;
-=======
->>>>>>> android-3.18
 
 	switch (typenr) {
 	case 1:
-<<<<<<< HEAD
-		retval = osf_ufs_mount(name->name, data, flag);
-		break;
-	case 6:
-		retval = osf_cdfs_mount(name->name, data, flag);
-		break;
-	case 9:
-		retval = osf_procfs_mount(name->name, data, flag);
-=======
 		retval = osf_ufs_mount(path, data, flag);
 		break;
 	case 6:
@@ -526,7 +513,6 @@ SYSCALL_DEFINE4(osf_mount, unsigned long, typenr, const char __user *, path,
 		break;
 	case 9:
 		retval = osf_procfs_mount(path, data, flag);
->>>>>>> android-3.18
 		break;
 	default:
 		retval = -EINVAL;

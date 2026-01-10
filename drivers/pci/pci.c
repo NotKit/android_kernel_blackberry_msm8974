@@ -2232,17 +2232,6 @@ void pci_configure_ari(struct pci_dev *dev)
 	if (!(cap & PCI_EXP_DEVCAP2_ARI))
 		return;
 
-<<<<<<< HEAD
-	pci_read_config_word(bridge, pos + PCI_EXP_DEVCTL2, &ctrl);
-	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ARI)) {
-		ctrl |= PCI_EXP_DEVCTL2_ARI;
-		bridge->ari_enabled = 1;
-	} else {
-		ctrl &= ~PCI_EXP_DEVCTL2_ARI;
-		bridge->ari_enabled = 0;
-	}
-	pci_write_config_word(bridge, pos + PCI_EXP_DEVCTL2, ctrl);
-=======
 	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ARI)) {
 		pcie_capability_set_word(bridge, PCI_EXP_DEVCTL2,
 					 PCI_EXP_DEVCTL2_ARI);
@@ -2252,7 +2241,6 @@ void pci_configure_ari(struct pci_dev *dev)
 					   PCI_EXP_DEVCTL2_ARI);
 		bridge->ari_enabled = 0;
 	}
->>>>>>> android-3.18
 }
 
 static int pci_acs_enable;

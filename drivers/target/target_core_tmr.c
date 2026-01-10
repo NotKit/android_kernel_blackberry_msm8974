@@ -188,22 +188,10 @@ void core_tmr_abort_task(
 		printk("ABORT_TASK: Found referenced %s task_tag: %u\n",
 			se_cmd->se_tfo->get_fabric_name(), ref_tag);
 
-<<<<<<< HEAD
-		spin_lock(&se_cmd->t_state_lock);
-		if (se_cmd->transport_state & CMD_T_COMPLETE) {
-			printk("ABORT_TASK: ref_tag: %u already complete, skipping\n", ref_tag);
-			spin_unlock(&se_cmd->t_state_lock);
-			spin_unlock_irqrestore(&se_sess->sess_cmd_lock, flags);
-			goto out;
-		}
-		se_cmd->transport_state |= CMD_T_ABORTED;
-		spin_unlock(&se_cmd->t_state_lock);
-=======
 		if (!__target_check_io_state(se_cmd, se_sess, 0)) {
 			spin_unlock_irqrestore(&se_sess->sess_cmd_lock, flags);
 			goto out;
 		}
->>>>>>> android-3.18
 
 		list_del_init(&se_cmd->se_cmd_list);
 		spin_unlock_irqrestore(&se_sess->sess_cmd_lock, flags);

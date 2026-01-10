@@ -85,22 +85,6 @@ config PINCTRL_BCM2835
 	select PINMUX
 	select PINCONF
 
-<<<<<<< HEAD
-config PINCTRL_MMP2
-	bool "MMP2 pin controller driver"
-	depends on ARCH_MMP
-	select PINCTRL_PXA3xx
-
-config PINCTRL_PXA168
-	bool "PXA168 pin controller driver"
-	depends on ARCH_MMP
-	select PINCTRL_PXA3xx
-
-config PINCTRL_PXA910
-	bool "PXA910 pin controller driver"
-	depends on ARCH_MMP
-	select PINCTRL_PXA3xx
-=======
 config PINCTRL_BCM281XX
 	bool "Broadcom BCM281xx pinctrl driver"
 	depends on OF && (ARCH_BCM_MOBILE || COMPILE_TEST)
@@ -140,7 +124,6 @@ config PINCTRL_SINGLE
 	select GENERIC_PINCONF
 	help
 	  This selects the device tree based generic pinctrl driver.
->>>>>>> android-3.18
 
 config PINCTRL_SIRF
 	bool "CSR SiRFprimaII/SiRFmarco pin controller driver"
@@ -150,33 +133,23 @@ config PINCTRL_SIRF
 
 config PINCTRL_ST
 	bool
-<<<<<<< HEAD
-	select PINMUX
-	select PINCONF
-=======
 	depends on OF
 	select PINMUX
 	select PINCONF
 	select GPIOLIB_IRQCHIP
->>>>>>> android-3.18
 
 config PINCTRL_TEGRA
 	bool
-<<<<<<< HEAD
-=======
 	select PINMUX
 	select PINCONF
 
 config PINCTRL_TEGRA20
 	bool
->>>>>>> android-3.18
 	select PINCTRL_TEGRA
 
 config PINCTRL_TEGRA30
 	bool
 	select PINCTRL_TEGRA
-<<<<<<< HEAD
-=======
 
 config PINCTRL_TEGRA114
 	bool
@@ -203,7 +176,6 @@ config PINCTRL_TZ1090_PDC
 	depends on SOC_TZ1090
 	select PINMUX
 	select PINCONF
->>>>>>> android-3.18
 
 config PINCTRL_U300
 	bool "U300 pin controller driver"
@@ -214,10 +186,7 @@ config PINCTRL_U300
 config PINCTRL_COH901
 	bool "ST-Ericsson U300 COH 901 335/571 GPIO"
 	depends on GPIOLIB && ARCH_U300 && PINCTRL_U300
-<<<<<<< HEAD
-=======
 	select GPIOLIB_IRQCHIP
->>>>>>> android-3.18
 	help
 	  Say yes here to support GPIO interface on ST-Ericsson U300.
 	  The names of the two IP block variants supported are

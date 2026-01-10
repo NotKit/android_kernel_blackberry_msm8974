@@ -11,10 +11,7 @@
  */
 
 #ifndef __FAN53555_H__
-<<<<<<< HEAD
-=======
 #define __FAN53555_H__
->>>>>>> android-3.18
 
 /* VSEL ID */
 enum {
@@ -61,13 +58,4 @@ struct fan53555_platform_data {
 	unsigned int sleep_vsel_id;
 };
 
-<<<<<<< HEAD
-#ifdef CONFIG_REGULATOR_FAN53555
-int __init fan53555_regulator_init(void);
-#else
-static inline int __init fan53555_regulator_init(void) { return 0; }
-#endif
-
-=======
->>>>>>> android-3.18
 #endif /* __FAN53555_H__ */

@@ -9,10 +9,7 @@
 #include <asm/page.h>
 #include <asm/pgtable.h>
 #include <asm/mmu_context.h>
-<<<<<<< HEAD
-=======
 #include <asm/setup.h>
->>>>>>> android-3.18
 #include <asm/tsb.h>
 #include <asm/tlb.h>
 #include <asm/oplib.h>
@@ -52,8 +49,6 @@ void flush_tsb_kernel_range(unsigned long start, unsigned long end)
 static void __flush_tsb_one_entry(unsigned long tsb, unsigned long v,
 				  unsigned long hash_shift,
 				  unsigned long nentries)
-<<<<<<< HEAD
-=======
 {
 	unsigned long tag, ent, hash;
 
@@ -67,27 +62,9 @@ static void __flush_tsb_one_entry(unsigned long tsb, unsigned long v,
 
 static void __flush_tsb_one(struct tlb_batch *tb, unsigned long hash_shift,
 			    unsigned long tsb, unsigned long nentries)
->>>>>>> android-3.18
 {
 	unsigned long tag, ent, hash;
 
-<<<<<<< HEAD
-	v &= ~0x1UL;
-	hash = tsb_hash(v, hash_shift, nentries);
-	ent = tsb + (hash * sizeof(struct tsb));
-	tag = (v >> 22UL);
-
-	tsb_flush(ent, tag);
-}
-
-static void __flush_tsb_one(struct tlb_batch *tb, unsigned long hash_shift,
-			    unsigned long tsb, unsigned long nentries)
-{
-	unsigned long i;
-
-	for (i = 0; i < tb->tlb_nr; i++)
-		__flush_tsb_one_entry(tsb, tb->vaddrs[i], hash_shift, nentries);
-=======
 	for (i = 0; i < tb->tlb_nr; i++)
 		__flush_tsb_one_entry(tsb, tb->vaddrs[i], hash_shift, nentries);
 }
@@ -115,7 +92,6 @@ void flush_tsb_user(struct tlb_batch *tb)
 	}
 #endif
 	spin_unlock_irqrestore(&mm->context.lock, flags);
->>>>>>> android-3.18
 }
 
 void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr)
@@ -142,34 +118,6 @@ void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr)
 	spin_unlock_irqrestore(&mm->context.lock, flags);
 }
 
-<<<<<<< HEAD
-void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr)
-{
-	unsigned long nentries, base, flags;
-
-	spin_lock_irqsave(&mm->context.lock, flags);
-
-	base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
-	nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
-	if (tlb_type == cheetah_plus || tlb_type == hypervisor)
-		base = __pa(base);
-	__flush_tsb_one_entry(base, vaddr, PAGE_SHIFT, nentries);
-
-#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-	if (mm->context.tsb_block[MM_TSB_HUGE].tsb) {
-		base = (unsigned long) mm->context.tsb_block[MM_TSB_HUGE].tsb;
-		nentries = mm->context.tsb_block[MM_TSB_HUGE].tsb_nentries;
-		if (tlb_type == cheetah_plus || tlb_type == hypervisor)
-			base = __pa(base);
-		__flush_tsb_one_entry(base, vaddr, HPAGE_SHIFT, nentries);
-	}
-#endif
-	spin_unlock_irqrestore(&mm->context.lock, flags);
-}
-
-#if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
-=======
->>>>>>> android-3.18
 #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_8K
 #define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_8K
 

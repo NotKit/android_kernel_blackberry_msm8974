@@ -54,12 +54,7 @@ syshdr-$(CONFIG_X86_64)		+= syscalls_64.h
 
 targets	+= $(uapisyshdr-y) $(syshdr-y)
 
-<<<<<<< HEAD
-all: $(addprefix $(uapi)/,$(uapisyshdr-y))
-all: $(addprefix $(out)/,$(syshdr-y))
-=======
 PHONY += all
 all: $(addprefix $(uapi)/,$(uapisyshdr-y))
 all: $(addprefix $(out)/,$(syshdr-y))
 	@:
->>>>>>> android-3.18

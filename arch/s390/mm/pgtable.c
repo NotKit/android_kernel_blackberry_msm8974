@@ -100,11 +100,8 @@ repeat:
 		crst_table_free(mm, table);
 	if (mm->context.asce_limit < limit)
 		goto repeat;
-<<<<<<< HEAD
-=======
 	if (flush)
 		on_each_cpu(__crst_table_upgrade, mm, 0);
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -112,13 +109,10 @@ void crst_table_downgrade(struct mm_struct *mm, unsigned long limit)
 {
 	pgd_t *pgd;
 
-<<<<<<< HEAD
-=======
 	if (current->active_mm == mm) {
 		clear_user_asce();
 		__tlb_flush_mm(mm);
 	}
->>>>>>> android-3.18
 	while (mm->context.asce_limit > limit) {
 		pgd = mm->pgd;
 		switch (pgd_val(*pgd) & _REGION_ENTRY_TYPE_MASK) {
@@ -141,11 +135,8 @@ void crst_table_downgrade(struct mm_struct *mm, unsigned long limit)
 		mm->task_size = mm->context.asce_limit;
 		crst_table_free(mm, (unsigned long *) pgd);
 	}
-<<<<<<< HEAD
-=======
 	if (current->active_mm == mm)
 		set_user_asce(mm);
->>>>>>> android-3.18
 }
 #endif
 

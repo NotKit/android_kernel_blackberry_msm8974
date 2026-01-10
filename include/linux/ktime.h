@@ -40,15 +40,6 @@ union ktime {
 
 typedef union ktime ktime_t;		/* Kill this */
 
-<<<<<<< HEAD
-/*
- * ktime_t definitions when using the 64-bit scalar representation:
- */
-
-#if (BITS_PER_LONG == 64) || defined(CONFIG_KTIME_SCALAR)
-
-=======
->>>>>>> android-3.18
 /**
  * ktime_set - Set a ktime_t variable from a seconds/nanoseconds value
  * @secs:	seconds to set

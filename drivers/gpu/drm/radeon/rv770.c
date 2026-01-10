@@ -1688,29 +1688,13 @@ static int rv770_startup(struct radeon_device *rdev)
 	/* enable pcie gen2 link */
 	rv770_pcie_gen2_enable(rdev);
 
-<<<<<<< HEAD
-	rv770_mc_program(rdev);
-
-	if (!rdev->me_fw || !rdev->pfp_fw || !rdev->rlc_fw) {
-		r = r600_init_microcode(rdev);
-		if (r) {
-			DRM_ERROR("Failed to load firmware!\n");
-			return r;
-		}
-	}
-
-=======
 	/* scratch needs to be initialized before MC */
->>>>>>> android-3.18
 	r = r600_vram_scratch_init(rdev);
 	if (r)
 		return r;
 
-<<<<<<< HEAD
-=======
 	rv770_mc_program(rdev);
 
->>>>>>> android-3.18
 	if (rdev->flags & RADEON_IS_AGP) {
 		rv770_agp_enable(rdev);
 	} else {
@@ -1915,8 +1899,6 @@ int rv770_init(struct radeon_device *rdev)
 	if (r)
 		return r;
 
-<<<<<<< HEAD
-=======
 	if (!rdev->me_fw || !rdev->pfp_fw || !rdev->rlc_fw) {
 		r = r600_init_microcode(rdev);
 		if (r) {
@@ -1928,7 +1910,6 @@ int rv770_init(struct radeon_device *rdev)
 	/* Initialize power management */
 	radeon_pm_init(rdev);
 
->>>>>>> android-3.18
 	rdev->ring[RADEON_RING_TYPE_GFX_INDEX].ring_obj = NULL;
 	r600_ring_init(rdev, &rdev->ring[RADEON_RING_TYPE_GFX_INDEX], 1024 * 1024);
 

@@ -63,11 +63,8 @@ struct ipv6_opt_hdr {
 #define ipv6_destopt_hdr ipv6_opt_hdr
 #define ipv6_hopopt_hdr  ipv6_opt_hdr
 
-<<<<<<< HEAD
-=======
 /* Router Alert option values (RFC2711) */
 #define IPV6_OPT_ROUTERALERT_MLD	0x0000	/* MLD(RFC2710) */
->>>>>>> android-3.18
 
 /*
  *	routing header type 0 (used in cmsghdr struct)
@@ -162,15 +159,6 @@ enum {
 	DEVCONF_DISABLE_IPV6,
 	DEVCONF_ACCEPT_DAD,
 	DEVCONF_FORCE_TLLAO,
-<<<<<<< HEAD
-	DEVCONF_ACCEPT_RA_PREFIX_ROUTE,
-	DEVCONF_ACCEPT_RA_RT_TABLE,
-	DEVCONF_ACCEPT_RA_MTU,
-	DEVCONF_USE_OPTIMISTIC,
-	DEVCONF_USE_OIF_ADDRS_ONLY,
-	DEVCONF_DROP_UNICAST_IN_L2_MULTICAST,
-	DEVCONF_DROP_UNSOLICITED_NA,
-=======
 	DEVCONF_NDISC_NOTIFY,
 	DEVCONF_ACCEPT_RA_RT_TABLE,
 	DEVCONF_MLDV1_UNSOLICITED_REPORT_INTERVAL,
@@ -193,7 +181,6 @@ enum {
 	DEVCONF_ADDR_GEN_MODE,
 	DEVCONF_DISABLE_POLICY,
 	DEVCONF_ACCEPT_RA_RT_INFO_MIN_PLEN,
->>>>>>> android-3.18
 	DEVCONF_MAX
 };
 

@@ -490,16 +490,9 @@ SYSFS_SPRSETUP(pir, SPRN_PIR);
   Lets only enable read for phyp resources and
   enable write when needed with a separate function.
   Lets be conservative and default to pseries.
-<<<<<<< HEAD
- */
-static DEVICE_ATTR(mmcra, 0600, show_mmcra, store_mmcra);
-static DEVICE_ATTR(spurr, 0600, show_spurr, NULL);
-static DEVICE_ATTR(dscr, 0600, show_dscr, store_dscr);
-=======
 */
 static DEVICE_ATTR(mmcra, 0600, show_mmcra, store_mmcra);
 static DEVICE_ATTR(spurr, 0400, show_spurr, NULL);
->>>>>>> android-3.18
 static DEVICE_ATTR(purr, 0400, show_purr, store_purr);
 static DEVICE_ATTR(pir, 0400, show_pir, NULL);
 
@@ -558,11 +551,7 @@ static ssize_t __used store_dscr_default(struct device *dev,
 		return -EINVAL;
 	dscr_default = val;
 
-<<<<<<< HEAD
-	on_each_cpu(update_dscr, NULL, 1);
-=======
 	on_each_cpu(write_dscr, &val, 1);
->>>>>>> android-3.18
 
 	return count;
 }

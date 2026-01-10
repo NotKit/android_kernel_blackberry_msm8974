@@ -1798,8 +1798,6 @@ free_interfaces:
 		ret = -ENOMEM;
 		goto free_interfaces;
 	}
-<<<<<<< HEAD
-=======
 	ret = usb_hcd_alloc_bandwidth(dev, cp, NULL, NULL);
 	if (ret < 0) {
 		if (dev->actconfig)
@@ -1808,7 +1806,6 @@ free_interfaces:
 		usb_autosuspend_device(dev);
 		goto free_interfaces;
 	}
->>>>>>> android-3.18
 
 	/*
 	 * Initialize the new interface structures and the
@@ -1856,12 +1853,6 @@ free_interfaces:
 	}
 	kfree(new_interfaces);
 
-<<<<<<< HEAD
-	dev->actconfig = cp;
-	if (cp)
-		usb_notify_config_device(dev);
-=======
->>>>>>> android-3.18
 	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
 			      USB_REQ_SET_CONFIGURATION, 0, configuration, 0,
 			      NULL, 0, USB_CTRL_SET_TIMEOUT);
@@ -1876,15 +1867,6 @@ free_interfaces:
 			put_device(&cp->interface[i]->dev);
 			cp->interface[i] = NULL;
 		}
-<<<<<<< HEAD
-		dev->actconfig = cp = NULL;
-	}
-
-	mutex_unlock(hcd->bandwidth_mutex);
-
-	if (!cp) {
-		usb_notify_config_device(dev);
-=======
 		cp = NULL;
 	}
 
@@ -1892,7 +1874,6 @@ free_interfaces:
 	mutex_unlock(hcd->bandwidth_mutex);
 
 	if (!cp) {
->>>>>>> android-3.18
 		usb_set_device_state(dev, USB_STATE_ADDRESS);
 
 		/* Leave LPM disabled while the device is unconfigured. */

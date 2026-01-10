@@ -39,7 +39,6 @@
 #include <linux/of_irq.h>
 
 #include <mach/msm_smd.h>
-<<<<<<< HEAD
 #include <mach/msm_iomap.h>
 #include <mach/system.h>
 #include <mach/subsystem_notif.h>
@@ -49,8 +48,6 @@
 #include <mach/ramdump.h>
 #include <mach/board.h>
 #include <mach/msm_smem.h>
-=======
->>>>>>> android-3.18
 
 #include <asm/cacheflush.h>
 
@@ -77,7 +74,6 @@ struct smsm_shared_info {
 	uint32_t *intr_mux;
 };
 
-<<<<<<< HEAD
 static struct smsm_shared_info smsm_info;
 static struct kfifo smsm_snapshot_fifo;
 static struct wake_lock smsm_snapshot_wakelock;
@@ -97,9 +93,6 @@ struct smsm_state_cb_info {
 	void *data;
 	void (*notify)(void *data, uint32_t old_state, uint32_t new_state);
 };
-=======
-#define MODULE_NAME "msm_smd"
->>>>>>> android-3.18
 
 struct smsm_state_info {
 	struct list_head callbacks;
@@ -110,7 +103,6 @@ struct smsm_state_info {
 
 static irqreturn_t smsm_irq_handler(int irq, void *data);
 
-<<<<<<< HEAD
 /*
  * Interrupt configuration consists of static configuration for the supported
  * processors that is done here along with interrupt configuration that is
@@ -138,16 +130,10 @@ static struct interrupt_config private_intr_config[NUM_SMD_SUBSYSTEMS] = {
 		.smd.irq_handler = smd_rpm_irq_handler,
 		.smsm.irq_handler = NULL, /* does not support smsm */
 	},
-=======
-struct shared_info {
-	int ready;
-	void __iomem *state;
->>>>>>> android-3.18
 };
 
 struct interrupt_stat interrupt_stats[NUM_SMD_SUBSYSTEMS];
 
-<<<<<<< HEAD
 #define SMSM_STATE_ADDR(entry)           (smsm_info.state + entry)
 #define SMSM_INTR_MASK_ADDR(entry, host) (smsm_info.intr_mask + \
 					  entry * SMSM_NUM_HOSTS + host)
@@ -156,11 +142,6 @@ struct interrupt_stat interrupt_stats[NUM_SMD_SUBSYSTEMS];
 /* Internal definitions which are not exported in some targets */
 enum {
 	SMSM_APPS_DEM_I = 3,
-=======
-static struct shared_info smd_info = {
-	/* FIXME: not a real __iomem pointer */
-	.state = &dummy_state,
->>>>>>> android-3.18
 };
 
 int msm_smd_debug_mask = MSM_SMD_POWER_INFO | MSM_SMD_INFO |
@@ -503,14 +484,11 @@ static void handle_modem_crash(void)
 	pr_err("MODEM/AMSS has CRASHED\n");
 	smd_diag();
 
-<<<<<<< HEAD
 	/* hard reboot if possible FIXME
 	if (msm_reset_hook)
 		msm_reset_hook();
 	*/
 
-=======
->>>>>>> android-3.18
 	/* in this case the modem or watchdog should reboot us */
 	for (;;)
 		;
@@ -2883,15 +2861,10 @@ int smsm_change_state(uint32_t smsm_entry,
 }
 EXPORT_SYMBOL(smsm_change_state);
 
-<<<<<<< HEAD
 uint32_t smsm_get_state(uint32_t smsm_entry)
-=======
-void __iomem *smem_item(unsigned id, unsigned *size)
->>>>>>> android-3.18
 {
 	uint32_t rv = 0;
 
-<<<<<<< HEAD
 	/* needs interface change to return error code */
 	if (smsm_entry >= SMSM_NUM_ENTRIES) {
 		pr_err("smsm_change_state: Invalid entry %d",
@@ -2901,23 +2874,11 @@ void __iomem *smem_item(unsigned id, unsigned *size)
 
 	if (!smsm_info.state) {
 		pr_err("smsm_get_state <SM NO STATE>\n");
-=======
-	if (id >= SMEM_NUM_ITEMS)
-		return NULL;
-
-	if (toc[id].allocated) {
-		*size = toc[id].size;
-		return (MSM_SHARED_RAM_BASE + toc[id].offset);
->>>>>>> android-3.18
 	} else {
 		rv = __raw_readl(SMSM_STATE_ADDR(smsm_entry));
 	}
 
-<<<<<<< HEAD
 	return rv;
-=======
-	return NULL;
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL(smsm_get_state);
 
@@ -3119,17 +3080,11 @@ EXPORT_SYMBOL(smsm_state_cb_register);
 int smsm_state_cb_deregister(uint32_t smsm_entry, uint32_t mask,
 		void (*notify)(void *, uint32_t, uint32_t), void *data)
 {
-<<<<<<< HEAD
 	struct smsm_state_cb_info *cb_info;
 	struct smsm_state_cb_info *cb_tmp;
 	struct smsm_state_info *state;
 	uint32_t new_mask = 0;
 	int ret = 0;
-=======
-	void __iomem *addr = smd_info.state + item * 4;
-	unsigned long flags;
-	unsigned state;
->>>>>>> android-3.18
 
 	if (smsm_entry >= SMSM_NUM_ENTRIES)
 		return -EINVAL;
@@ -3297,7 +3252,6 @@ int smd_edge_to_remote_pid(uint32_t edge)
 	return edge_to_pids[edge].remote_pid;
 }
 
-<<<<<<< HEAD
 /**
  * smd_set_edge_subsys_name() - Set the subsystem name
  * @edge:		edge type identifies local and remote processor
@@ -3313,18 +3267,6 @@ void smd_set_edge_subsys_name(uint32_t edge, const char *subsys_name)
 	else
 		pr_err("%s: Invalid edge type[%d]\n", __func__, edge);
 }
-=======
-	/* wait for essential items to be initialized */
-	for (;;) {
-		unsigned size;
-		void __iomem *state;
-		state = smem_item(SMEM_SMSM_SHARED_STATE, &size);
-		if (size == SMSM_V1_SIZE || size == SMSM_V2_SIZE) {
-			smd_info.state = state;
-			break;
-		}
-	}
->>>>>>> android-3.18
 
 /**
  * smd_set_edge_initialized() - Set the edge initialized status
@@ -3389,11 +3331,7 @@ static __init int modem_restart_late_init(void)
 }
 late_initcall(modem_restart_late_init);
 
-<<<<<<< HEAD
 int __init msm_smd_init(void)
-=======
-static int msm_smd_probe(struct platform_device *pdev)
->>>>>>> android-3.18
 {
 	static bool registered;
 	int rc;

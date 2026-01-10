@@ -194,13 +194,7 @@ void ath_cancel_work(struct ath_softc *sc)
 
 void ath_restart_work(struct ath_softc *sc)
 {
-<<<<<<< HEAD
-	struct ath_hw *ah = sc->sc_ah;
-	struct ath_common *common = ath9k_hw_common(ah);
-	bool ret = true;
-=======
 	ieee80211_queue_delayed_work(sc->hw, &sc->tx_complete_work, 0);
->>>>>>> android-3.18
 
 	if (AR_SREV_9340(sc->sc_ah) || AR_SREV_9330(sc->sc_ah))
 		ieee80211_queue_delayed_work(sc->hw, &sc->hw_pll_work,
@@ -209,15 +203,6 @@ void ath_restart_work(struct ath_softc *sc)
 	ath_start_ani(sc);
 }
 
-<<<<<<< HEAD
-	if (AR_SREV_9300_20_OR_LATER(ah)) {
-		ret &= ath_stoprecv(sc);
-		ret &= ath_drain_all_txq(sc, retry_tx);
-	} else {
-		ret &= ath_drain_all_txq(sc, retry_tx);
-		ret &= ath_stoprecv(sc);
-	}
-=======
 static bool ath_prepare_reset(struct ath_softc *sc)
 {
 	struct ath_hw *ah = sc->sc_ah;
@@ -226,7 +211,6 @@ static bool ath_prepare_reset(struct ath_softc *sc)
 	ieee80211_stop_queues(sc->hw);
 	ath_stop_ani(sc);
 	ath9k_hw_disable_interrupts(ah);
->>>>>>> android-3.18
 
 	if (AR_SREV_9300_20_OR_LATER(ah)) {
 		ret &= ath_stoprecv(sc);
@@ -639,30 +623,7 @@ void ath9k_queue_reset(struct ath_softc *sc, enum ath_reset_type type)
 
 void ath_reset_work(struct work_struct *work)
 {
-<<<<<<< HEAD
-	struct ath_softc *sc = container_of(work, struct ath_softc,
-					    hw_pll_work.work);
-	u32 pll_sqsum;
-
-	/*
-	 * ensure that the PLL WAR is executed only
-	 * after the STA is associated (or) if the
-	 * beaconing had started in interfaces that
-	 * uses beacons.
-	 */
-	if (!(sc->sc_flags & SC_OP_BEACONS))
-		return;
-
-	if (AR_SREV_9485(sc->sc_ah)) {
-
-		ath9k_ps_wakeup(sc);
-		pll_sqsum = ar9003_get_pll_sqsum_dvc(sc->sc_ah);
-		ath9k_ps_restore(sc);
-
-		ath_hw_pll_rx_hang_check(sc, pll_sqsum);
-=======
 	struct ath_softc *sc = container_of(work, struct ath_softc, hw_reset_work);
->>>>>>> android-3.18
 
 	ath_reset(sc);
 }
@@ -1065,16 +1026,6 @@ static void ath9k_set_offchannel_state(struct ath_softc *sc)
 	struct ath_common *common = ath9k_hw_common(ah);
 	struct ieee80211_vif *vif = NULL;
 
-<<<<<<< HEAD
-	/*
-	 * Pick the MAC address of the first interface as the new hardware
-	 * MAC address. The hardware will use it together with the BSSID mask
-	 * when matching addresses.
-	 */
-	memset(iter_data, 0, sizeof(*iter_data));
-	iter_data->hw_macaddr = common->macaddr;
-	memset(&iter_data->mask, 0xff, ETH_ALEN);
-=======
 	ath9k_ps_wakeup(sc);
 
 	if (sc->offchannel.state < ATH_OFFCHANNEL_ROC_START)
@@ -1093,7 +1044,6 @@ static void ath9k_set_offchannel_state(struct ath_softc *sc)
 	ah->imask &= ~ATH9K_INT_SWBA;
 	ah->imask &= ~ATH9K_INT_TSFOOR;
 	ah->slottime = ATH9K_SLOT_TIME_9;
->>>>>>> android-3.18
 
 	ath_hw_setbssidmask(common);
 	ath9k_hw_setopmode(ah);
@@ -1245,8 +1195,6 @@ static int ath9k_add_interface(struct ieee80211_hw *hw,
 	}
 
 	ath_dbg(common, CONFIG, "Attach a VIF of type: %d\n", vif->type);
-<<<<<<< HEAD
-=======
 	sc->cur_chan->nvifs++;
 
 	if (ath9k_uses_beacons(vif->type))
@@ -1259,7 +1207,6 @@ static int ath9k_add_interface(struct ieee80211_hw *hw,
 	}
 
 	ath9k_calculate_summary_state(sc, avp->chanctx);
->>>>>>> android-3.18
 
 	ath9k_assign_hw_queues(hw, vif);
 
@@ -1502,70 +1449,9 @@ static int ath9k_config(struct ieee80211_hw *hw, u32 changed)
 		}
 	}
 
-<<<<<<< HEAD
-	if ((changed & IEEE80211_CONF_CHANGE_CHANNEL) || reset_channel) {
-		struct ieee80211_channel *curchan = hw->conf.channel;
-		int pos = curchan->hw_value;
-		int old_pos = -1;
-		unsigned long flags;
-
-		if (ah->curchan)
-			old_pos = ah->curchan - &ah->channels[0];
-
-		if (hw->conf.flags & IEEE80211_CONF_OFFCHANNEL)
-			sc->sc_flags |= SC_OP_OFFCHANNEL;
-		else
-			sc->sc_flags &= ~SC_OP_OFFCHANNEL;
-
-		ath_dbg(common, CONFIG, "Set channel: %d MHz type: %d\n",
-			curchan->center_freq, conf->channel_type);
-
-		/* update survey stats for the old channel before switching */
-		spin_lock_irqsave(&common->cc_lock, flags);
-		ath_update_survey_stats(sc);
-		spin_unlock_irqrestore(&common->cc_lock, flags);
-
-		ath9k_cmn_update_ichannel(&sc->sc_ah->channels[pos],
-					  curchan, conf->channel_type);
-
-		/*
-		 * If the operating channel changes, change the survey in-use flags
-		 * along with it.
-		 * Reset the survey data for the new channel, unless we're switching
-		 * back to the operating channel from an off-channel operation.
-		 */
-		if (!(hw->conf.flags & IEEE80211_CONF_OFFCHANNEL) &&
-		    sc->cur_survey != &sc->survey[pos]) {
-
-			if (sc->cur_survey)
-				sc->cur_survey->filled &= ~SURVEY_INFO_IN_USE;
-
-			sc->cur_survey = &sc->survey[pos];
-
-			memset(sc->cur_survey, 0, sizeof(struct survey_info));
-			sc->cur_survey->filled |= SURVEY_INFO_IN_USE;
-		} else if (!(sc->survey[pos].filled & SURVEY_INFO_IN_USE)) {
-			memset(&sc->survey[pos], 0, sizeof(struct survey_info));
-		}
-
-		if (ath_set_channel(sc, hw, &sc->sc_ah->channels[pos]) < 0) {
-			ath_err(common, "Unable to set channel\n");
-			mutex_unlock(&sc->mutex);
-			return -EINVAL;
-		}
-
-		/*
-		 * The most recent snapshot of channel->noisefloor for the old
-		 * channel is only available after the hardware reset. Copy it to
-		 * the survey stats now.
-		 */
-		if (old_pos >= 0)
-			ath_update_survey_nf(sc, old_pos);
-=======
 	if (!ath9k_is_chanctx_enabled() && (changed & IEEE80211_CONF_CHANGE_CHANNEL)) {
 		ctx->offchannel = !!(conf->flags & IEEE80211_CONF_OFFCHANNEL);
 		ath_chanctx_set_channel(sc, ctx, &hw->conf.chandef);
->>>>>>> android-3.18
 	}
 
 	if (changed & IEEE80211_CONF_CHANGE_POWER) {
@@ -1633,15 +1519,10 @@ static int ath9k_sta_add(struct ieee80211_hw *hw,
 		return 0;
 
 	key = ath_key_config(common, vif, sta, &ps_key);
-<<<<<<< HEAD
-	if (key > 0)
-		an->ps_key = key;
-=======
 	if (key > 0) {
 		an->ps_key = key;
 		an->key_idx[0] = key;
 	}
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -1659,10 +1540,7 @@ static void ath9k_del_ps_key(struct ath_softc *sc,
 
 	ath_key_delete(common, &ps_key);
 	an->ps_key = 0;
-<<<<<<< HEAD
-=======
 	an->key_idx[0] = 0;
->>>>>>> android-3.18
 }
 
 static int ath9k_sta_remove(struct ieee80211_hw *hw,

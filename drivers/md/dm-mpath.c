@@ -83,19 +83,12 @@ struct multipath {
 	struct priority_group *next_pg;	/* Switch to this PG if set */
 	unsigned repeat_count;		/* I/Os left before calling PS again */
 
-<<<<<<< HEAD
-	unsigned queue_io;		/* Must we queue all I/O? */
-	unsigned queue_if_no_path;	/* Queue I/O if last path fails? */
-	unsigned saved_queue_if_no_path;/* Saved state during suspension */
-	unsigned pg_init_disabled:1;	/* pg_init is not currently allowed */
-=======
 	unsigned queue_io:1;		/* Must we queue all I/O? */
 	unsigned queue_if_no_path:1;	/* Queue I/O if last path fails? */
 	unsigned saved_queue_if_no_path:1; /* Saved state during suspension */
 	unsigned retain_attached_hw_handler:1; /* If there's already a hw_handler present, don't change it. */
 	unsigned pg_init_disabled:1;	/* pg_init is not currently allowed */
 
->>>>>>> android-3.18
 	unsigned pg_init_retries;	/* Number of times to retry pg_init */
 	unsigned pg_init_count;		/* Number of times pg_init called */
 	unsigned pg_init_delay_msecs;	/* Number of msecs before pg_init retry */
@@ -457,22 +450,7 @@ static int queue_if_no_path(struct multipath *m, unsigned queue_if_no_path,
 	if (!queue_if_no_path)
 		dm_table_run_md_queue_async(m->ti->table);
 
-<<<<<<< HEAD
-	if ((pgpath && !m->queue_io) ||
-	    (!pgpath && !m->queue_if_no_path))
-		must_queue = 0;
-
-	if (m->pg_init_required && !m->pg_init_in_progress && pgpath &&
-	    !m->pg_init_disabled)
-		__pg_init_all_paths(m);
-
-out:
-	spin_unlock_irqrestore(&m->lock, flags);
-	if (!must_queue)
-		dispatch_queued_ios(m);
-=======
 	return 0;
->>>>>>> android-3.18
 }
 
 /*
@@ -921,11 +899,7 @@ static void flush_multipath_work(struct multipath *m)
 	flush_workqueue(kmpath_handlerd);
 	multipath_wait_for_pg_init_completion(m);
 	flush_workqueue(kmultipathd);
-<<<<<<< HEAD
-	flush_work_sync(&m->trigger_event);
-=======
 	flush_work(&m->trigger_event);
->>>>>>> android-3.18
 
 	spin_lock_irqsave(&m->lock, flags);
 	m->pg_init_disabled = 0;
@@ -1364,11 +1338,7 @@ static void multipath_resume(struct dm_target *ti)
  *      num_paths num_selector_args [path_dev [selector_args]* ]+ ]+
  */
 static void multipath_status(struct dm_target *ti, status_type_t type,
-<<<<<<< HEAD
-			     char *result, unsigned int maxlen)
-=======
 			     unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	int sz = 0;
 	unsigned long flags;
@@ -1696,11 +1666,7 @@ out:
  *---------------------------------------------------------------*/
 static struct target_type multipath_target = {
 	.name = "multipath",
-<<<<<<< HEAD
-	.version = {1, 3, 2},
-=======
 	.version = {1, 7, 0},
->>>>>>> android-3.18
 	.module = THIS_MODULE,
 	.ctr = multipath_ctr,
 	.dtr = multipath_dtr,

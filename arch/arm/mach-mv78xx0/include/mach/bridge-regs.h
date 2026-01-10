@@ -31,12 +31,7 @@
 #define IRQ_MASK_LOW_OFF	0x0010
 #define IRQ_MASK_HIGH_OFF	0x0014
 
-<<<<<<< HEAD
-#define TIMER_VIRT_BASE		(BRIDGE_VIRT_BASE | 0x0300)
-#define TIMER_PHYS_BASE		(BRIDGE_PHYS_BASE | 0x0300)
-=======
 #define TIMER_VIRT_BASE		(BRIDGE_VIRT_BASE + 0x0300)
 #define TIMER_PHYS_BASE		(BRIDGE_PHYS_BASE + 0x0300)
->>>>>>> android-3.18
 
 #endif

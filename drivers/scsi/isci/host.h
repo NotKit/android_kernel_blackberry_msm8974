@@ -305,15 +305,7 @@ static inline struct isci_pci_info *to_pci_info(struct pci_dev *pdev)
 	return pci_get_drvdata(pdev);
 }
 
-<<<<<<< HEAD
-#define for_each_isci_host(id, ihost, pdev) \
-	for (id = 0; id < SCI_MAX_CONTROLLERS && \
-	     (ihost = to_pci_info(pdev)->hosts[id]); id++)
-
-static inline enum isci_status isci_host_get_state(struct isci_host *isci_host)
-=======
 static inline struct Scsi_Host *to_shost(struct isci_host *ihost)
->>>>>>> android-3.18
 {
 	return ihost->sas_ha.core.shost;
 }

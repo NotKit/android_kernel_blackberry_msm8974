@@ -261,11 +261,7 @@ void __kvm_migrate_pit_timer(struct kvm_vcpu *vcpu)
 	if (!kvm_vcpu_is_bsp(vcpu) || !pit)
 		return;
 
-<<<<<<< HEAD
-	timer = &pit->pit_state.pit_timer.timer;
-=======
 	timer = &pit->pit_state.timer;
->>>>>>> android-3.18
 	mutex_lock(&pit->pit_state.lock);
 	if (hrtimer_cancel(timer))
 		hrtimer_start_expires(timer, HRTIMER_MODE_ABS);

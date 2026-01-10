@@ -1863,11 +1863,7 @@ static void pn533_wq_rf(struct work_struct *work)
 static int pn533_poll_dep_complete(struct pn533 *dev, void *arg,
 				   struct sk_buff *resp)
 {
-<<<<<<< HEAD
-	struct pn533_cmd_jump_dep_response *resp;
-=======
 	struct pn533_cmd_jump_dep_response *rsp;
->>>>>>> android-3.18
 	struct nfc_target nfc_target;
 	u8 target_gt_len;
 	int rc;
@@ -1881,12 +1877,7 @@ static int pn533_poll_dep_complete(struct pn533 *dev, void *arg,
 
 	rsp = (struct pn533_cmd_jump_dep_response *)resp->data;
 
-<<<<<<< HEAD
-	resp = (struct pn533_cmd_jump_dep_response *) params;
-	rc = resp->status & PN533_CMD_RET_MASK;
-=======
 	rc = rsp->status & PN533_CMD_RET_MASK;
->>>>>>> android-3.18
 	if (rc != PN533_CMD_RET_SUCCESS) {
 		/* Not target found, turn radio off */
 		queue_work(dev->wq, &dev->rf_work);
@@ -1913,13 +1904,8 @@ static int pn533_poll_dep_complete(struct pn533 *dev, void *arg,
 					  rsp->gt, target_gt_len);
 	if (!rc) {
 		rc = nfc_dep_link_is_up(dev->nfc_dev,
-<<<<<<< HEAD
-						dev->nfc_dev->targets[0].idx,
-						!active, NFC_RF_INITIATOR);
-=======
 					dev->nfc_dev->targets[0].idx,
 					0, NFC_RF_INITIATOR);
->>>>>>> android-3.18
 
 		if (!rc)
 			pn533_poll_reset_mod_list(dev);
@@ -1977,13 +1963,6 @@ static int pn533_poll_dep(struct nfc_dev *nfc_dev)
 	       NFC_NFCID3_MAXSIZE);
 	*next |= 2;
 
-<<<<<<< HEAD
-	rc = pn533_send_cmd_frame_async(dev, dev->out_frame, dev->in_frame,
-				dev->in_maxlen,	pn533_in_dep_link_up_complete,
-				cmd, GFP_KERNEL);
-	if (rc < 0)
-		kfree(cmd);
-=======
 	memcpy(skb_put(skb, dev->gb_len), dev->gb, dev->gb_len);
 	*next |= 4; /* We have some Gi */
 
@@ -1992,7 +1971,6 @@ static int pn533_poll_dep(struct nfc_dev *nfc_dev)
 
 	if (rc < 0)
 		dev_kfree_skb(skb);
->>>>>>> android-3.18
 
 	return rc;
 }

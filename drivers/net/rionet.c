@@ -75,18 +75,7 @@ struct rionet_net {
 	int nact;	/* number of active peers */
 };
 
-<<<<<<< HEAD
-/*
- * This is a fast lookup table for translating TX
- * Ethernet packets into a destination RIO device. It
- * could be made into a hash table to save memory depending
- * on system trade-offs.
- */
-static struct rio_dev **rionet_active;
-static int nact;	/* total number of active rionet peers */
-=======
 static struct rionet_net nets[RIONET_MAX_NETS];
->>>>>>> android-3.18
 
 #define is_rionet_capable(src_ops, dst_ops)			\
 			((src_ops & RIO_SRC_OPS_DATA_MSG) &&	\
@@ -192,11 +181,7 @@ static int rionet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	}
 
 	if (is_multicast_ether_addr(eth->h_dest))
-<<<<<<< HEAD
-		add_num = nact;
-=======
 		add_num = nets[rnet->mport->id].nact;
->>>>>>> android-3.18
 
 	if ((rnet->tx_cnt + add_num) > RIONET_TX_RING_SIZE) {
 		netif_stop_queue(ndev);
@@ -208,20 +193,12 @@ static int rionet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 
 	if (is_multicast_ether_addr(eth->h_dest)) {
 		int count = 0;
-<<<<<<< HEAD
-		for (i = 0; i < RIO_MAX_ROUTE_ENTRIES(rnet->mport->sys_size);
-				i++)
-			if (rionet_active[i]) {
-				rionet_queue_tx_msg(skb, ndev,
-						    rionet_active[i]);
-=======
 
 		for (i = 0; i < RIO_MAX_ROUTE_ENTRIES(rnet->mport->sys_size);
 				i++)
 			if (nets[rnet->mport->id].active[i]) {
 				rionet_queue_tx_msg(skb, ndev,
 					nets[rnet->mport->id].active[i]);
->>>>>>> android-3.18
 				if (count)
 					atomic_inc(&skb->users);
 				count++;
@@ -260,13 +237,6 @@ static void rionet_dbell_event(struct rio_mport *mport, void *dev_id, u16 sid, u
 		printk(KERN_INFO "%s: doorbell sid %4.4x tid %4.4x info %4.4x",
 		       DRV_NAME, sid, tid, info);
 	if (info == RIONET_DOORBELL_JOIN) {
-<<<<<<< HEAD
-		if (!rionet_active[sid]) {
-			list_for_each_entry(peer, &rionet_peers, node) {
-				if (peer->rdev->destid == sid) {
-					rionet_active[sid] = peer->rdev;
-					nact++;
-=======
 		if (!nets[rnet->mport->id].active[sid]) {
 			list_for_each_entry(peer,
 					   &nets[rnet->mport->id].peers, node) {
@@ -274,20 +244,14 @@ static void rionet_dbell_event(struct rio_mport *mport, void *dev_id, u16 sid, u
 					nets[rnet->mport->id].active[sid] =
 								peer->rdev;
 					nets[rnet->mport->id].nact++;
->>>>>>> android-3.18
 				}
 			}
 			rio_mport_send_doorbell(mport, sid,
 						RIONET_DOORBELL_JOIN);
 		}
 	} else if (info == RIONET_DOORBELL_LEAVE) {
-<<<<<<< HEAD
-		rionet_active[sid] = NULL;
-		nact--;
-=======
 		nets[rnet->mport->id].active[sid] = NULL;
 		nets[rnet->mport->id].nact--;
->>>>>>> android-3.18
 	} else {
 		if (netif_msg_intr(rnet))
 			printk(KERN_WARNING "%s: unhandled doorbell\n",
@@ -595,11 +559,6 @@ static int rionet_add_dev(struct device *dev, struct subsys_interface *sif)
 		}
 		nets[netid].ndev = ndev;
 		rc = rionet_setup_netdev(rdev->net->hport, ndev);
-<<<<<<< HEAD
-		rionet_check = 1;
-		nact = 0;
-	}
-=======
 		if (rc) {
 			printk(KERN_ERR "%s: failed to setup netdev (rc=%d)\n",
 			       DRV_NAME, rc);
@@ -610,7 +569,6 @@ static int rionet_add_dev(struct device *dev, struct subsys_interface *sif)
 		nets[netid].nact = 0;
 	} else if (nets[netid].ndev == NULL)
 		goto out;
->>>>>>> android-3.18
 
 	/*
 	 * If the remote device has mailbox/doorbell capabilities,

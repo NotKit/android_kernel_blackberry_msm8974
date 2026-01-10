@@ -793,24 +793,6 @@ static struct net_device *rtl8139_init_board(struct pci_dev *pdev)
 	u64_stats_init(&tp->rx_stats.syncp);
 	u64_stats_init(&tp->tx_stats.syncp);
 
-<<<<<<< HEAD
-	if (use_io) {
-		ioaddr = pci_iomap(pdev, 0, 0);
-		if (!ioaddr) {
-			dev_err(&pdev->dev, "cannot map PIO, aborting\n");
-			rc = -EIO;
-			goto err_out;
-		}
-		dev->base_addr = pio_start;
-		tp->regs_len = pio_len;
-	} else {
-		/* ioremap MMIO region */
-		ioaddr = pci_iomap(pdev, 1, 0);
-		if (ioaddr == NULL) {
-			dev_err(&pdev->dev, "cannot remap MMIO, trying PIO\n");
-			pci_release_regions(pdev);
-			use_io = 1;
-=======
 retry:
 	/* PIO bar register comes first. */
 	bar = !use_io;
@@ -837,7 +819,6 @@ retry:
 		dev_err(d, "cannot map %s\n", res[bar].type);
 		if (!use_io) {
 			use_io = true;
->>>>>>> android-3.18
 			goto retry;
 		}
 		rc = -ENODEV;

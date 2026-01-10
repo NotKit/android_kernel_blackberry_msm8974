@@ -150,27 +150,6 @@ static int mpc512x_psc_spi_transfer_rxtx(struct spi_device *spi,
 		 * but neither exceed the TX nor the RX FIFOs
 		 */
 		fifosz = MPC512x_PSC_FIFO_SZ(in_be32(&fifo->txsz));
-<<<<<<< HEAD
-		count = min(fifosz, len);
-
-		for (i = count; i > 0; i--) {
-			data = tx_buf ? *tx_buf++ : 0;
-			if (len == EOFBYTE && t->cs_change)
-				setbits32(&fifo->txcmd, MPC512x_PSC_FIFO_EOF);
-			out_8(&fifo->txdata_8, data);
-			len--;
-		}
-
-		INIT_COMPLETION(mps->done);
-
-		/* interrupt on tx fifo empty */
-		out_be32(&fifo->txisr, MPC512x_PSC_FIFO_EMPTY);
-		out_be32(&fifo->tximr, MPC512x_PSC_FIFO_EMPTY);
-
-		/* enable transmiter/receiver */
-		out_8(&psc->command,
-		      MPC52xx_PSC_TX_ENABLE | MPC52xx_PSC_RX_ENABLE);
-=======
 		txcount = min(fifosz, tx_len);
 		fifosz = MPC512x_PSC_FIFO_SZ(in_be32(&fifo->rxsz));
 		fifosz -= in_be32(&fifo->rxcnt) + 1;
@@ -186,7 +165,6 @@ static int mpc512x_psc_spi_transfer_rxtx(struct spi_device *spi,
 				out_8(&fifo->txdata_8, data);
 				tx_len--;
 			}
->>>>>>> android-3.18
 
 			/* have the ISR trigger when the TX FIFO is empty */
 			reinit_completion(&mps->txisrdone);

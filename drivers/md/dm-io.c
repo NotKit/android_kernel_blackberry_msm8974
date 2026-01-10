@@ -287,25 +287,13 @@ static void do_region(int rw, unsigned region, struct dm_io_region *where,
 	unsigned num_bvecs;
 	sector_t remaining = where->count;
 	struct request_queue *q = bdev_get_queue(where->bdev);
-<<<<<<< HEAD
-	sector_t discard_sectors;
-=======
 	unsigned short logical_block_size = queue_logical_block_size(q);
 	sector_t num_sectors;
->>>>>>> android-3.18
 	unsigned int uninitialized_var(special_cmd_max_sectors);
 
 	/*
 	 * Reject unsupported discard and write same requests.
 	 */
-<<<<<<< HEAD
-	if (rw & REQ_DISCARD) {
-		special_cmd_max_sectors = q->limits.max_discard_sectors;
-		if (special_cmd_max_sectors == 0) {
-			dec_count(io, region, -EOPNOTSUPP);
-			return;
-		}
-=======
 	if (rw & REQ_DISCARD)
 		special_cmd_max_sectors = q->limits.max_discard_sectors;
 	else if (rw & REQ_WRITE_SAME)
@@ -314,7 +302,6 @@ static void do_region(int rw, unsigned region, struct dm_io_region *where,
 		atomic_inc(&io->count);
 		dec_count(io, region, -EOPNOTSUPP);
 		return;
->>>>>>> android-3.18
 	}
 
 	/*
@@ -338,11 +325,6 @@ static void do_region(int rw, unsigned region, struct dm_io_region *where,
 		store_io_and_region_in_bio(bio, io, region);
 
 		if (rw & REQ_DISCARD) {
-<<<<<<< HEAD
-			discard_sectors = min_t(sector_t, special_cmd_max_sectors, remaining);
-			bio->bi_size = discard_sectors << SECTOR_SHIFT;
-			remaining -= discard_sectors;
-=======
 			num_sectors = min_t(sector_t, special_cmd_max_sectors, remaining);
 			bio->bi_iter.bi_size = num_sectors << SECTOR_SHIFT;
 			remaining -= num_sectors;
@@ -358,7 +340,6 @@ static void do_region(int rw, unsigned region, struct dm_io_region *where,
 			offset = 0;
 			remaining -= num_sectors;
 			dp->next_page(dp);
->>>>>>> android-3.18
 		} else while (remaining) {
 			/*
 			 * Try and add as many pages as possible.

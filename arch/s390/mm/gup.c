@@ -180,14 +180,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
 	addr = start;
 	len = (unsigned long) nr_pages << PAGE_SHIFT;
 	end = start + len;
-<<<<<<< HEAD
-	if ((end < start) || (end > TASK_SIZE))
-		goto slow_irqon;
-
-=======
 	if ((end <= start) || (end > TASK_SIZE))
 		return 0;
->>>>>>> android-3.18
 	/*
 	 * local_irq_save() doesn't prevent pagetable teardown, but does
 	 * prevent the pagetables from being freed on s390.

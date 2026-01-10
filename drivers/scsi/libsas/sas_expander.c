@@ -237,11 +237,7 @@ static void sas_set_ex_phy(struct domain_device *dev, int phy_id, void *rsp)
 	/* Handle vacant phy - rest of dr data is not valid so skip it */
 	if (phy->phy_state == PHY_VACANT) {
 		memset(phy->attached_sas_addr, 0, SAS_ADDR_SIZE);
-<<<<<<< HEAD
-		phy->attached_dev_type = NO_DEVICE;
-=======
 		phy->attached_dev_type = SAS_PHY_UNUSED;
->>>>>>> android-3.18
 		if (!test_bit(SAS_HA_ATA_EH_ACTIVE, &ha->state)) {
 			phy->phy_id = phy_id;
 			goto skip;

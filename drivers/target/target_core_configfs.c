@@ -3222,13 +3222,10 @@ static int __init target_core_init_configfs(void)
 
 	ret = core_dev_setup_virtual_lun0();
 	if (ret < 0)
-<<<<<<< HEAD
-=======
 		goto out;
 
 	ret = target_xcopy_setup_pt();
 	if (ret < 0)
->>>>>>> android-3.18
 		goto out;
 
 	return 0;

@@ -18,11 +18,6 @@
 #include <mach/proc_comm.h>
 
 #include "board-trout.h"
-<<<<<<< HEAD
-=======
-#include "proc_comm.h"
-#include "clock-pcom.h"
->>>>>>> android-3.18
 #include "devices.h"
 
 #define TROUT_DEFAULT_BACKLIGHT_BRIGHTNESS 255

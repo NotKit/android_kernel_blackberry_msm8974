@@ -33,10 +33,7 @@ struct pinctrl_gpio_range;
  * @p: result of pinctrl_get() for this device
  * @hog_default: default state for pins hogged by this device
  * @hog_sleep: sleep state for pins hogged by this device
-<<<<<<< HEAD
-=======
  * @mutex: mutex taken on each pin controller specific action
->>>>>>> android-3.18
  * @device_root: debugfs root for this device
  */
 struct pinctrl_dev {
@@ -50,10 +47,7 @@ struct pinctrl_dev {
 	struct pinctrl *p;
 	struct pinctrl_state *hog_default;
 	struct pinctrl_state *hog_sleep;
-<<<<<<< HEAD
-=======
 	struct mutex mutex;
->>>>>>> android-3.18
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *device_root;
 #endif
@@ -189,22 +183,13 @@ static inline struct pin_desc *pin_desc_get(struct pinctrl_dev *pctldev,
 }
 
 int pinctrl_register_map(struct pinctrl_map const *maps, unsigned num_maps,
-<<<<<<< HEAD
-			 bool dup, bool locked);
-=======
 			 bool dup);
->>>>>>> android-3.18
 void pinctrl_unregister_map(struct pinctrl_map const *map);
 
 extern int pinctrl_force_sleep(struct pinctrl_dev *pctldev);
 extern int pinctrl_force_default(struct pinctrl_dev *pctldev);
 
-<<<<<<< HEAD
-extern struct mutex pinctrl_mutex;
-extern struct list_head pinctrldev_list;
-=======
 extern struct mutex pinctrl_maps_mutex;
->>>>>>> android-3.18
 extern struct list_head pinctrl_maps;
 
 #define for_each_maps(_maps_node_, _i_, _map_) \

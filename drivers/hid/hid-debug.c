@@ -941,15 +941,12 @@ static const char *keys[KEY_MAX + 1] = {
 	[KEY_BRIGHTNESS_MIN] = "BrightnessMin",
 	[KEY_BRIGHTNESS_MAX] = "BrightnessMax",
 	[KEY_BRIGHTNESS_AUTO] = "BrightnessAuto",
-<<<<<<< HEAD
-=======
 	[KEY_KBDINPUTASSIST_PREV] = "KbdInputAssistPrev",
 	[KEY_KBDINPUTASSIST_NEXT] = "KbdInputAssistNext",
 	[KEY_KBDINPUTASSIST_PREVGROUP] = "KbdInputAssistPrevGroup",
 	[KEY_KBDINPUTASSIST_NEXTGROUP] = "KbdInputAssistNextGroup",
 	[KEY_KBDINPUTASSIST_ACCEPT] = "KbdInputAssistAccept",
 	[KEY_KBDINPUTASSIST_CANCEL] = "KbdInputAssistCancel",
->>>>>>> android-3.18
 };
 
 static const char *relatives[REL_MAX + 1] = {
@@ -1123,39 +1120,10 @@ static ssize_t hid_debug_events_read(struct file *file, char __user *buffer,
 				break;
 			}
 
-<<<<<<< HEAD
-			set_current_state(TASK_RUNNING);
-			remove_wait_queue(&list->hdev->debug_wait, &wait);
-		}
-
-		if (ret)
-			goto out;
-
-		/* pass the ringbuffer contents to userspace */
-copy_rest:
-		if (list->tail == list->head)
-			goto out;
-		if (list->tail > list->head) {
-			len = list->tail - list->head;
-			if (len > count)
-				len = count;
-
-			if (copy_to_user(buffer + ret, &list->hid_debug_buf[list->head], len)) {
-				ret = -EFAULT;
-				goto out;
-			}
-			ret += len;
-			list->head += len;
-		} else {
-			len = HID_DEBUG_BUFSIZE - list->head;
-			if (len > count)
-				len = count;
-=======
 			if (signal_pending(current)) {
 				ret = -ERESTARTSYS;
 				break;
 			}
->>>>>>> android-3.18
 
 			/* if list->hdev is NULL we cannot remove_wait_queue().
 			 * if list->hdev->debug is 0 then hid_debug_unregister()
@@ -1167,20 +1135,12 @@ copy_rest:
 				set_current_state(TASK_RUNNING);
 				goto out;
 			}
-<<<<<<< HEAD
-			list->head = 0;
-			ret += len;
-			count -= len;
-			if (count > 0)
-				goto copy_rest;
-=======
 
 			/* allow O_NONBLOCK from other threads */
 			mutex_unlock(&list->read_mutex);
 			schedule();
 			mutex_lock(&list->read_mutex);
 			set_current_state(TASK_INTERRUPTIBLE);
->>>>>>> android-3.18
 		}
 
 		__set_current_state(TASK_RUNNING);

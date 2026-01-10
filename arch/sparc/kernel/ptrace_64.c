@@ -1066,12 +1066,9 @@ asmlinkage int syscall_trace_enter(struct pt_regs *regs)
 
 	/* do the secure computing check first */
 	secure_computing_strict(regs->u_regs[UREG_G1]);
-<<<<<<< HEAD
-=======
 
 	if (test_thread_flag(TIF_NOHZ))
 		user_exit();
->>>>>>> android-3.18
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE))
 		ret = tracehook_report_syscall_entry(regs);

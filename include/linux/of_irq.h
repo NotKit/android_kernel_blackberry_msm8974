@@ -8,33 +8,6 @@
 #include <linux/ioport.h>
 #include <linux/of.h>
 
-<<<<<<< HEAD
-/*
- * irq_of_parse_and_map() is used by all OF enabled platforms; but SPARC
- * implements it differently.  However, the prototype is the same for all,
- * so declare it here regardless of the CONFIG_OF_IRQ setting.
- */
-extern unsigned int irq_of_parse_and_map(struct device_node *node, int index);
-
-#if defined(CONFIG_OF_IRQ)
-/**
- * of_irq - container for device_node/irq_specifier pair for an irq controller
- * @controller: pointer to interrupt controller device tree node
- * @size: size of interrupt specifier
- * @specifier: array of cells @size long specifing the specific interrupt
- *
- * This structure is returned when an interrupt is mapped. The controller
- * field needs to be put() after use
- */
-#define OF_MAX_IRQ_SPEC		4 /* We handle specifiers of at most 4 cells */
-struct of_irq {
-	struct device_node *controller; /* Interrupt controller node */
-	u32 size; /* Specifier size */
-	u32 specifier[OF_MAX_IRQ_SPEC]; /* Specifier copy */
-};
-
-=======
->>>>>>> android-3.18
 typedef int (*of_irq_init_cb_t)(struct device_node *, struct device_node *);
 
 /*
@@ -69,9 +42,6 @@ extern int of_irq_to_resource_table(struct device_node *dev,
 
 extern void of_irq_init(const struct of_device_id *matches);
 
-<<<<<<< HEAD
-#endif /* CONFIG_OF_IRQ */
-=======
 #ifdef CONFIG_OF_IRQ
 extern int of_irq_count(struct device_node *dev);
 extern int of_irq_get(struct device_node *dev, int index);
@@ -99,7 +69,6 @@ static inline int of_irq_get_byname(struct device_node *dev, const char *name)
  */
 extern unsigned int irq_of_parse_and_map(struct device_node *node, int index);
 extern struct device_node *of_irq_find_parent(struct device_node *child);
->>>>>>> android-3.18
 
 #else /* !CONFIG_OF */
 static inline unsigned int irq_of_parse_and_map(struct device_node *dev,
@@ -107,14 +76,11 @@ static inline unsigned int irq_of_parse_and_map(struct device_node *dev,
 {
 	return 0;
 }
-<<<<<<< HEAD
-=======
 
 static inline void *of_irq_find_parent(struct device_node *child)
 {
 	return NULL;
 }
->>>>>>> android-3.18
 #endif /* !CONFIG_OF */
 
 #endif /* __OF_IRQ_H */

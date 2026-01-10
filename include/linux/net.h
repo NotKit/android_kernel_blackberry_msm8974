@@ -24,10 +24,7 @@
 #include <linux/fcntl.h>	/* For O_CLOEXEC and O_NONBLOCK */
 #include <linux/kmemcheck.h>
 #include <linux/rcupdate.h>
-<<<<<<< HEAD
-=======
 #include <linux/jump_label.h>
->>>>>>> android-3.18
 #include <uapi/linux/net.h>
 
 struct poll_table_struct;
@@ -207,28 +204,6 @@ enum {
 	SOCK_WAKE_URG,
 };
 
-<<<<<<< HEAD
-extern int	     sock_wake_async(struct socket *sk, int how, int band);
-extern int	     sock_register(const struct net_proto_family *fam);
-extern void	     sock_unregister(int family);
-extern int	     __sock_create(struct net *net, int family, int type, int proto,
-				 struct socket **res, int kern);
-extern int	     sock_create(int family, int type, int proto,
-				 struct socket **res);
-extern int	     sock_create_kern(int family, int type, int proto,
-				      struct socket **res);
-extern int	     sock_create_lite(int family, int type, int proto,
-				      struct socket **res); 
-extern void	     sock_release(struct socket *sock);
-extern int   	     sock_sendmsg(struct socket *sock, struct msghdr *msg,
-				  size_t len);
-extern int	     sock_recvmsg(struct socket *sock, struct msghdr *msg,
-				  size_t size, int flags);
-extern struct file  *sock_alloc_file(struct socket *sock, int flags);
-extern struct socket *sockfd_lookup(int fd, int *err);
-#define		     sockfd_put(sock) fput(sock->file)
-extern int	     net_ratelimit(void);
-=======
 int sock_wake_async(struct socket *sk, int how, int band);
 int sock_register(const struct net_proto_family *fam);
 void sock_unregister(int family);
@@ -246,7 +221,6 @@ struct socket *sockfd_lookup(int fd, int *err);
 struct socket *sock_from_file(struct file *file, int *err);
 #define		     sockfd_put(sock) fput(sock->file)
 int net_ratelimit(void);
->>>>>>> android-3.18
 
 #define net_ratelimited_function(function, ...)			\
 do {								\
@@ -271,60 +245,6 @@ do {								\
 #define net_dbg_ratelimited(fmt, ...)				\
 	net_ratelimited_function(pr_debug, fmt, ##__VA_ARGS__)
 
-<<<<<<< HEAD
-#define net_ratelimited_function(function, ...)			\
-do {								\
-	if (net_ratelimit())					\
-		function(__VA_ARGS__);				\
-} while (0)
-
-#define net_emerg_ratelimited(fmt, ...)				\
-	net_ratelimited_function(pr_emerg, fmt, ##__VA_ARGS__)
-#define net_alert_ratelimited(fmt, ...)				\
-	net_ratelimited_function(pr_alert, fmt, ##__VA_ARGS__)
-#define net_crit_ratelimited(fmt, ...)				\
-	net_ratelimited_function(pr_crit, fmt, ##__VA_ARGS__)
-#define net_err_ratelimited(fmt, ...)				\
-	net_ratelimited_function(pr_err, fmt, ##__VA_ARGS__)
-#define net_notice_ratelimited(fmt, ...)			\
-	net_ratelimited_function(pr_notice, fmt, ##__VA_ARGS__)
-#define net_warn_ratelimited(fmt, ...)				\
-	net_ratelimited_function(pr_warn, fmt, ##__VA_ARGS__)
-#define net_info_ratelimited(fmt, ...)				\
-	net_ratelimited_function(pr_info, fmt, ##__VA_ARGS__)
-#define net_dbg_ratelimited(fmt, ...)				\
-	net_ratelimited_function(pr_debug, fmt, ##__VA_ARGS__)
-
-#define net_random()		random32()
-#define net_srandom(seed)	srandom32((__force u32)seed)
-
-extern int   	     kernel_sendmsg(struct socket *sock, struct msghdr *msg,
-				    struct kvec *vec, size_t num, size_t len);
-extern int   	     kernel_recvmsg(struct socket *sock, struct msghdr *msg,
-				    struct kvec *vec, size_t num,
-				    size_t len, int flags);
-
-extern int kernel_bind(struct socket *sock, struct sockaddr *addr,
-		       int addrlen);
-extern int kernel_listen(struct socket *sock, int backlog);
-extern int kernel_accept(struct socket *sock, struct socket **newsock,
-			 int flags);
-extern int kernel_connect(struct socket *sock, struct sockaddr *addr,
-			  int addrlen, int flags);
-extern int kernel_getsockname(struct socket *sock, struct sockaddr *addr,
-			      int *addrlen);
-extern int kernel_getpeername(struct socket *sock, struct sockaddr *addr,
-			      int *addrlen);
-extern int kernel_getsockopt(struct socket *sock, int level, int optname,
-			     char *optval, int *optlen);
-extern int kernel_setsockopt(struct socket *sock, int level, int optname,
-			     char *optval, unsigned int optlen);
-extern int kernel_sendpage(struct socket *sock, struct page *page, int offset,
-			   size_t size, int flags);
-extern int kernel_sock_ioctl(struct socket *sock, int cmd, unsigned long arg);
-extern int kernel_sock_shutdown(struct socket *sock,
-				enum sock_shutdown_cmd how);
-=======
 bool __net_get_random_once(void *buf, int nbytes, bool *done,
 			   struct static_key *done_key);
 
@@ -367,7 +287,6 @@ int kernel_sock_shutdown(struct socket *sock, enum sock_shutdown_cmd how);
 
 /* Routine returns the IP overhead imposed by a (caller-protected) socket. */
 u32 kernel_sock_ip_overhead(struct sock *sk);
->>>>>>> android-3.18
 
 #define MODULE_ALIAS_NETPROTO(proto) \
 	MODULE_ALIAS("net-pf-" __stringify(proto))

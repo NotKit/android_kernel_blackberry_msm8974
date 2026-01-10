@@ -55,16 +55,6 @@
 #include <asm/irq.h>
 #include <linux/fcntl.h>
 #include <linux/platform_device.h>
-<<<<<<< HEAD
-#ifdef LIRC_ON_SA1100
-#include <asm/hardware.h>
-#ifdef CONFIG_SA1100_COLLIE
-#include <asm/arch/tc35143.h>
-#include <asm/ucb1200.h>
-#endif
-#endif
-=======
->>>>>>> android-3.18
 
 #include <linux/timer.h>
 
@@ -926,31 +916,19 @@ static int init_lirc_sir(void)
 	return 0;
 }
 
-<<<<<<< HEAD
-static int __devinit lirc_sir_probe(struct platform_device *dev)
-=======
 static int lirc_sir_probe(struct platform_device *dev)
->>>>>>> android-3.18
 {
 	return 0;
 }
 
-<<<<<<< HEAD
-static int __devexit lirc_sir_remove(struct platform_device *dev)
-=======
 static int lirc_sir_remove(struct platform_device *dev)
->>>>>>> android-3.18
 {
 	return 0;
 }
 
 static struct platform_driver lirc_sir_driver = {
 	.probe		= lirc_sir_probe,
-<<<<<<< HEAD
-	.remove		= __devexit_p(lirc_sir_remove),
-=======
 	.remove		= lirc_sir_remove,
->>>>>>> android-3.18
 	.driver		= {
 		.name	= "lirc_sir",
 		.owner	= THIS_MODULE,
@@ -963,35 +941,20 @@ static int __init lirc_sir_init(void)
 
 	retval = platform_driver_register(&lirc_sir_driver);
 	if (retval) {
-<<<<<<< HEAD
-		printk(KERN_ERR LIRC_DRIVER_NAME ": Platform driver register "
-		       "failed!\n");
-=======
 		pr_err("Platform driver register failed!\n");
->>>>>>> android-3.18
 		return -ENODEV;
 	}
 
 	lirc_sir_dev = platform_device_alloc("lirc_dev", 0);
 	if (!lirc_sir_dev) {
-<<<<<<< HEAD
-		printk(KERN_ERR LIRC_DRIVER_NAME ": Platform device alloc "
-		       "failed!\n");
-=======
 		pr_err("Platform device alloc failed!\n");
->>>>>>> android-3.18
 		retval = -ENOMEM;
 		goto pdev_alloc_fail;
 	}
 
 	retval = platform_device_add(lirc_sir_dev);
 	if (retval) {
-<<<<<<< HEAD
-		printk(KERN_ERR LIRC_DRIVER_NAME ": Platform device add "
-		       "failed!\n");
-=======
 		pr_err("Platform device add failed!\n");
->>>>>>> android-3.18
 		retval = -ENODEV;
 		goto pdev_add_fail;
 	}
@@ -1024,11 +987,7 @@ static void __exit lirc_sir_exit(void)
 	drop_port();
 	platform_device_unregister(lirc_sir_dev);
 	platform_driver_unregister(&lirc_sir_driver);
-<<<<<<< HEAD
-	printk(KERN_INFO LIRC_DRIVER_NAME ": Uninstalled.\n");
-=======
 	pr_info("Uninstalled.\n");
->>>>>>> android-3.18
 }
 
 module_init(lirc_sir_init);

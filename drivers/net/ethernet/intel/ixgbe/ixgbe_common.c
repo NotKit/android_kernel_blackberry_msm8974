@@ -3276,21 +3276,9 @@ s32 ixgbe_get_wwn_prefix_generic(struct ixgbe_hw *hw, u16 *wwnn_prefix,
 
 	return 0;
 
-<<<<<<< HEAD
-	switch (hw->device_id) {
-	case IXGBE_DEV_ID_X540T:
-	case IXGBE_DEV_ID_X540T1:
-		return 0;
-	case IXGBE_DEV_ID_82599_T3_LOM:
-		return 0;
-	default:
-		return IXGBE_ERR_FC_NOT_SUPPORTED;
-	}
-=======
 wwn_prefix_err:
 	hw_err(hw, "eeprom read at offset %d failed\n", offset);
 	return 0;
->>>>>>> android-3.18
 }
 
 /**

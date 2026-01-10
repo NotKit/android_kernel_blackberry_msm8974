@@ -188,37 +188,10 @@
 
 enum mos7840_flag {
 	MOS7840_FLAG_CTRL_BUSY,
-<<<<<<< HEAD
-};
-
-static const struct usb_device_id moschip_port_id_table[] = {
-	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7840)},
-	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7820)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USO9ML2_2)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USO9ML2_2P)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USO9ML2_4)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USO9ML2_4P)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_US9ML2_2)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_US9ML2_4)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USPTL4_2)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USPTL4_4)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_2)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_2P)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_4)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_4P)},
-	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL2_4)},
-	{USB_DEVICE(USB_VENDOR_ID_ATENINTL, ATENINTL_DEVICE_ID_UC2324)},
-	{USB_DEVICE(USB_VENDOR_ID_ATENINTL, ATENINTL_DEVICE_ID_UC2322)},
-	{}			/* terminating entry */
-};
-
-static const struct usb_device_id moschip_id_table_combined[] = {
-=======
 	MOS7840_FLAG_LED_BUSY,
 };
 
 static const struct usb_device_id id_table[] = {
->>>>>>> android-3.18
 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7840)},
 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7820)},
 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7810)},
@@ -252,12 +225,6 @@ struct moschip_port {
 	__u8 shadowMCR;		/* last MCR value received */
 	char open;
 	char open_ports;
-<<<<<<< HEAD
-	wait_queue_head_t wait_chase;	/* for handling sleeping while waiting for chase to finish */
-	int delta_msr_cond;
-	struct async_icount icount;
-=======
->>>>>>> android-3.18
 	struct usb_serial_port *port;	/* loop back to the owner of this object */
 
 	/* Offsets */
@@ -274,12 +241,6 @@ struct moschip_port {
 	struct urb *write_urb_pool[NUM_URBS];
 	char busy[NUM_URBS];
 	bool read_urb_busy;
-<<<<<<< HEAD
-
-	unsigned long flags;
-};
-=======
->>>>>>> android-3.18
 
 	/* For device(s) with LED indicator */
 	bool has_led;
@@ -463,16 +424,8 @@ static void mos7840_handle_new_msr(struct moschip_port *port, __u8 new_msr)
 			icount->dcd++;
 		if (new_msr & MOS_MSR_DELTA_RI)
 			icount->rng++;
-<<<<<<< HEAD
-			smp_wmb();
-		}
-
-		mos7840_port->delta_msr_cond = 1;
-		wake_up_interruptible(&port->port->delta_msr_wait);
-=======
 
 		wake_up_interruptible(&port->port->port.delta_msr_wait);
->>>>>>> android-3.18
 	}
 }
 
@@ -526,19 +479,10 @@ static void mos7840_control_callback(struct urb *urb)
 	case -ENOENT:
 	case -ESHUTDOWN:
 		/* this urb is terminated, clean up */
-<<<<<<< HEAD
-		dbg("%s - urb shutting down with status: %d", __func__,
-		    status);
-		goto out;
-	default:
-		dbg("%s - nonzero urb status received: %d", __func__,
-		    status);
-=======
 		dev_dbg(dev, "%s - urb shutting down with status: %d\n", __func__, status);
 		goto out;
 	default:
 		dev_dbg(dev, "%s - nonzero urb status received: %d\n", __func__, status);
->>>>>>> android-3.18
 		goto out;
 	}
 
@@ -979,32 +923,20 @@ static int mos7840_open(struct tty_struct *tty, struct usb_serial_port *port)
 	Data = 0x0;
 	status = mos7840_get_reg_sync(port, mos7840_port->SpRegOffset, &Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("Reading Spreg failed");
-=======
 		dev_dbg(&port->dev, "Reading Spreg failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 	Data |= 0x80;
 	status = mos7840_set_reg_sync(port, mos7840_port->SpRegOffset, Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("writing Spreg failed");
-=======
 		dev_dbg(&port->dev, "writing Spreg failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 
 	Data &= ~0x80;
 	status = mos7840_set_reg_sync(port, mos7840_port->SpRegOffset, Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("writing Spreg failed");
-=======
 		dev_dbg(&port->dev, "writing Spreg failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 	/* End of block to be checked */
@@ -1013,11 +945,7 @@ static int mos7840_open(struct tty_struct *tty, struct usb_serial_port *port)
 	status = mos7840_get_reg_sync(port, mos7840_port->ControlRegOffset,
 									&Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("Reading Controlreg failed");
-=======
 		dev_dbg(&port->dev, "Reading Controlreg failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 	Data |= 0x08;		/* Driver done bit */
@@ -1025,11 +953,7 @@ static int mos7840_open(struct tty_struct *tty, struct usb_serial_port *port)
 	status = mos7840_set_reg_sync(port,
 				mos7840_port->ControlRegOffset, Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("writing Controlreg failed");
-=======
 		dev_dbg(&port->dev, "writing Controlreg failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 	/* do register settings here */
@@ -1040,33 +964,21 @@ static int mos7840_open(struct tty_struct *tty, struct usb_serial_port *port)
 	Data = 0x00;
 	status = mos7840_set_uart_reg(port, INTERRUPT_ENABLE_REGISTER, Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("disabling interrupts failed");
-=======
 		dev_dbg(&port->dev, "disabling interrupts failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 	/* Set FIFO_CONTROL_REGISTER to the default value */
 	Data = 0x00;
 	status = mos7840_set_uart_reg(port, FIFO_CONTROL_REGISTER, Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("Writing FIFO_CONTROL_REGISTER  failed");
-=======
 		dev_dbg(&port->dev, "Writing FIFO_CONTROL_REGISTER  failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 
 	Data = 0xcf;
 	status = mos7840_set_uart_reg(port, FIFO_CONTROL_REGISTER, Data);
 	if (status < 0) {
-<<<<<<< HEAD
-		dbg("Writing FIFO_CONTROL_REGISTER  failed");
-=======
 		dev_dbg(&port->dev, "Writing FIFO_CONTROL_REGISTER  failed\n");
->>>>>>> android-3.18
 		goto err;
 	}
 
@@ -1200,31 +1112,12 @@ static int mos7840_open(struct tty_struct *tty, struct usb_serial_port *port)
 		mos7840_port->read_urb_busy = false;
 	}
 
-<<<<<<< HEAD
-	/* initialize our wait queues */
-	init_waitqueue_head(&mos7840_port->wait_chase);
-
-	/* initialize our icount structure */
-	memset(&(mos7840_port->icount), 0x00, sizeof(mos7840_port->icount));
-
-=======
->>>>>>> android-3.18
 	/* initialize our port settings */
 	/* Must set to enable ints! */
 	mos7840_port->shadowMCR = MCR_MASTER_IE;
 	/* send a open port command */
 	mos7840_port->open = 1;
 	/* mos7840_change_port_settings(mos7840_port,old_termios); */
-<<<<<<< HEAD
-	mos7840_port->icount.tx = 0;
-	mos7840_port->icount.rx = 0;
-
-	dbg("usb_serial serial:%pK       mos7840_port:%pK\n      usb_serial_port port:%pK",
-				serial, mos7840_port, port);
-
-	dbg ("%s leave", __func__);
-=======
->>>>>>> android-3.18
 
 	return 0;
 err:
@@ -1647,17 +1540,10 @@ static int mos7840_tiocmget(struct tty_struct *tty)
 		return -ENODEV;
 
 	status = mos7840_get_uart_reg(port, MODEM_STATUS_REGISTER, &msr);
-<<<<<<< HEAD
-	if (status != 1)
-		return -EIO;
-	status = mos7840_get_uart_reg(port, MODEM_CONTROL_REGISTER, &mcr);
-	if (status != 1)
-=======
 	if (status < 0)
 		return -EIO;
 	status = mos7840_get_uart_reg(port, MODEM_CONTROL_REGISTER, &mcr);
 	if (status < 0)
->>>>>>> android-3.18
 		return -EIO;
 	result = ((mcr & MCR_DTR) ? TIOCM_DTR : 0)
 	    | ((mcr & MCR_RTS) ? TIOCM_RTS : 0)
@@ -2047,13 +1933,8 @@ static void mos7840_change_port_settings(struct tty_struct *tty,
 			mos7840_port->read_urb_busy = false;
 		}
 	}
-<<<<<<< HEAD
-	dbg("mos7840_change_port_settings mos7840_port->shadowLCR is End %x",
-	    mos7840_port->shadowLCR);
-=======
 	dev_dbg(&port->dev, "%s - mos7840_port->shadowLCR is End %x\n", __func__,
 		mos7840_port->shadowLCR);
->>>>>>> android-3.18
 }
 
 /*****************************************************************************
@@ -2211,44 +2092,6 @@ static int mos7840_ioctl(struct tty_struct *tty,
 	case TIOCSSERIAL:
 		dev_dbg(&port->dev, "%s TIOCSSERIAL\n", __func__);
 		break;
-<<<<<<< HEAD
-
-	case TIOCMIWAIT:
-		dbg("%s (%d) TIOCMIWAIT", __func__, port->number);
-		cprev = mos7840_port->icount;
-		while (1) {
-			/* interruptible_sleep_on(&mos7840_port->delta_msr_wait); */
-			mos7840_port->delta_msr_cond = 0;
-			wait_event_interruptible(port->delta_msr_wait,
-						 (port->serial->disconnected ||
-						  mos7840_port->
-						  delta_msr_cond == 1));
-
-			/* see if a signal did it */
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			cnow = mos7840_port->icount;
-			smp_rmb();
-			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
-			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts)
-				return -EIO;	/* no change => error */
-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-			    ((arg & TIOCM_CD) && (cnow.dcd != cprev.dcd)) ||
-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
-				return 0;
-			}
-			cprev = cnow;
-		}
-		/* NOTREACHED */
-		break;
-
-=======
->>>>>>> android-3.18
 	default:
 		break;
 	}
@@ -2332,14 +2175,9 @@ static int mos7840_probe(struct usb_serial *serial,
 	if (!buf)
 		return -ENOMEM;
 
-<<<<<<< HEAD
-	dbg("%s", "Entering...");
-	dbg ("mos7840_startup: serial = %pK", serial);
-=======
 	usb_control_msg(serial->dev, usb_rcvctrlpipe(serial->dev, 0),
 			MCS_RDREQ, MCS_RD_RTYPE, 0, GPIO_REGISTER, buf,
 			VENDOR_READ_LENGTH, MOS_WDR_TIMEOUT);
->>>>>>> android-3.18
 
 	/* For a MCS7840 device GPIO0 must be set to 1 */
 	if (buf[0] & 0x01)
@@ -2457,15 +2295,6 @@ static int mos7840_port_probe(struct usb_serial_port *port)
 	} else
 		dev_dbg(&port->dev, "ControlReg Writing success(rx_disable) status%d\n", status);
 
-<<<<<<< HEAD
-		kfree(mos7840_port->dr);
-		kfree(mos7840_port->ctrl_buf);
-		usb_free_urb(mos7840_port->control_urb);
-		kfree(mos7840_port);
-	}
-	return status;
-}
-=======
 	/* Write default values in DCR (i.e 0x01 in DCR0, 0x05 in DCR2
 	   and 0x24 in DCR3 */
 	Data = 0x01;
@@ -2476,7 +2305,6 @@ static int mos7840_port_probe(struct usb_serial_port *port)
 		goto out;
 	} else
 		dev_dbg(&port->dev, "DCR0 Writing success status%d\n", status);
->>>>>>> android-3.18
 
 	Data = 0x05;
 	status = mos7840_set_reg_sync(port,
@@ -2487,13 +2315,6 @@ static int mos7840_port_probe(struct usb_serial_port *port)
 	} else
 		dev_dbg(&port->dev, "DCR1 Writing success status%d\n", status);
 
-<<<<<<< HEAD
-static void mos7840_disconnect(struct usb_serial *serial)
-{
-	int i;
-	struct moschip_port *mos7840_port;
-	dbg("%s", " disconnect :entering..........");
-=======
 	Data = 0x24;
 	status = mos7840_set_reg_sync(port,
 			(__u16) (mos7840_port->DcrRegOffset + 2), Data);
@@ -2554,7 +2375,6 @@ static void mos7840_disconnect(struct usb_serial *serial)
 			goto out;
 		} else
 			dev_dbg(&port->dev, "ZLP_REG%d Writing success status%d\n", pnum + 1, status);
->>>>>>> android-3.18
 
 	}
 	mos7840_port->control_urb = usb_alloc_urb(0, GFP_KERNEL);
@@ -2573,20 +2393,12 @@ static void mos7840_disconnect(struct usb_serial *serial)
 	if (device_type == MOSCHIP_DEVICE_ID_7810) {
 		mos7840_port->has_led = true;
 
-<<<<<<< HEAD
-	for (i = 0; i < serial->num_ports; ++i) {
-		mos7840_port = mos7840_get_port_private(serial->port[i]);
-		dbg ("mos7840_port %d = %pK", i, mos7840_port);
-		if (mos7840_port) {
-			usb_kill_urb(mos7840_port->control_urb);
-=======
 		mos7840_port->led_urb = usb_alloc_urb(0, GFP_KERNEL);
 		mos7840_port->led_dr = kmalloc(sizeof(*mos7840_port->led_dr),
 								GFP_KERNEL);
 		if (!mos7840_port->led_urb || !mos7840_port->led_dr) {
 			status = -ENOMEM;
 			goto error;
->>>>>>> android-3.18
 		}
 
 		init_timer(&mos7840_port->led_timer1);
@@ -2640,21 +2452,9 @@ static int mos7840_port_remove(struct usb_serial_port *port)
 		del_timer_sync(&mos7840_port->led_timer1);
 		del_timer_sync(&mos7840_port->led_timer2);
 
-<<<<<<< HEAD
-	for (i = 0; i < serial->num_ports; ++i) {
-		mos7840_port = mos7840_get_port_private(serial->port[i]);
-		dbg("mos7840_port %d = %pK", i, mos7840_port);
-		if (mos7840_port) {
-			usb_free_urb(mos7840_port->control_urb);
-			kfree(mos7840_port->ctrl_buf);
-			kfree(mos7840_port->dr);
-			kfree(mos7840_port);
-		}
-=======
 		usb_kill_urb(mos7840_port->led_urb);
 		usb_free_urb(mos7840_port->led_urb);
 		kfree(mos7840_port->led_dr);
->>>>>>> android-3.18
 	}
 	usb_kill_urb(mos7840_port->control_urb);
 	usb_free_urb(mos7840_port->control_urb);

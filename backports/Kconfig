@@ -68,15 +68,15 @@ config BACKPORT_KERNEL_4_2
     def_bool y
 
 # this has the configuration for the backport code
-source "$BACKPORT_DIR/compat/Kconfig"
+# source "$BACKPORT_DIR/compat/Kconfig"
 
 # these are copied from the kernel
-source "$BACKPORT_DIR/net/bluetooth/Kconfig"
+# source "$BACKPORT_DIR/net/bluetooth/Kconfig"
 
-source "$BACKPORT_DIR/net/6lowpan/Kconfig"
-source "$BACKPORT_DIR/net/ieee802154/Kconfig"
-source "$BACKPORT_DIR/net/mac802154/Kconfig"
+# source "$BACKPORT_DIR/net/6lowpan/Kconfig"
+# source "$BACKPORT_DIR/net/ieee802154/Kconfig"
+# source "$BACKPORT_DIR/net/mac802154/Kconfig"
 
-source "$BACKPORT_DIR/drivers/anbox/Kconfig"
+# source "$BACKPORT_DIR/drivers/anbox/Kconfig"
 
 endif # BACKPORT_LINUX

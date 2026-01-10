@@ -45,14 +45,6 @@ struct mnt_namespace;
 #define MNT_USER_SETTABLE_MASK  (MNT_NOSUID | MNT_NODEV | MNT_NOEXEC \
 				 | MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME \
 				 | MNT_READONLY)
-<<<<<<< HEAD
-
-#define MNT_INTERNAL_FLAGS (MNT_SHARED | MNT_WRITE_HOLD | MNT_INTERNAL | \
-			    MNT_MARKED)
-
-#define MNT_INTERNAL	0x4000
-
-=======
 #define MNT_ATIME_MASK (MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME )
 
 #define MNT_INTERNAL_FLAGS (MNT_SHARED | MNT_WRITE_HOLD | MNT_INTERNAL | \
@@ -68,7 +60,6 @@ struct mnt_namespace;
 #define MNT_LOCKED		0x800000
 #define MNT_DOOMED		0x1000000
 #define MNT_SYNC_UMOUNT		0x2000000
->>>>>>> android-3.18
 #define MNT_MARKED		0x4000000
 
 struct vfsmount {

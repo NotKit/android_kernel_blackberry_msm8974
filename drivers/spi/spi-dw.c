@@ -626,22 +626,14 @@ static void spi_hw_init(struct dw_spi *dws)
 	 */
 	if (!dws->fifo_len) {
 		u32 fifo;
-<<<<<<< HEAD
-		for (fifo = 1; fifo < 256; fifo++) {
-=======
 
 		for (fifo = 2; fifo <= 256; fifo++) {
->>>>>>> android-3.18
 			dw_writew(dws, DW_SPI_TXFLTR, fifo);
 			if (fifo != dw_readw(dws, DW_SPI_TXFLTR))
 				break;
 		}
 
-<<<<<<< HEAD
-		dws->fifo_len = (fifo == 1) ? 0 : fifo;
-=======
 		dws->fifo_len = (fifo == 2) ? 0 : fifo - 1;
->>>>>>> android-3.18
 		dw_writew(dws, DW_SPI_TXFLTR, 0);
 	}
 }

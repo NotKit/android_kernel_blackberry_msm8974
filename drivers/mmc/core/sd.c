@@ -889,12 +889,6 @@ try_again:
 	 */
 	if (!mmc_host_is_spi(host) && rocr &&
 	   ((*rocr & 0x41000000) == 0x41000000)) {
-<<<<<<< HEAD
-		err = mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180, true);
-		if (err) {
-			mmc_power_cycle(host);
-			ocr &= ~SD_OCR_S18R;
-=======
 		err = mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180,
 					pocr);
 		if (err == -EAGAIN) {
@@ -902,7 +896,6 @@ try_again:
 			goto try_again;
 		} else if (err) {
 			retries = 0;
->>>>>>> android-3.18
 			goto try_again;
 		}
 	}
@@ -1084,12 +1077,7 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
 	if (!mmc_host_is_spi(host)) {
 		err = mmc_send_relative_addr(host, &card->rca);
 		if (err)
-<<<<<<< HEAD
-			return err;
-		host->card = card;
-=======
 			goto free_card;
->>>>>>> android-3.18
 	}
 
 	if (!oldcard) {
@@ -1125,12 +1113,6 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
 		err = mmc_sd_init_uhs_card(card);
 		if (err)
 			goto free_card;
-<<<<<<< HEAD
-
-		/* Card is an ultra-high-speed card */
-		mmc_card_set_uhs(card);
-=======
->>>>>>> android-3.18
 	} else {
 		/*
 		 * Attempt to change to high-speed (if supported)
@@ -1201,22 +1183,13 @@ static void mmc_sd_detect(struct mmc_host *host)
 {
 	int err = 0;
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
-<<<<<<< HEAD
-        int retries = 5;
-=======
 	int retries = 5;
->>>>>>> android-3.18
 #endif
 
 	BUG_ON(!host);
 	BUG_ON(!host->card);
 
-<<<<<<< HEAD
-	mmc_rpm_hold(host, &host->card->dev);
-	mmc_claim_host(host);
-=======
 	mmc_get_card(host->card);
->>>>>>> android-3.18
 
 	/*
 	 * Just check if our card has been removed.
@@ -1234,20 +1207,12 @@ static void mmc_sd_detect(struct mmc_host *host)
 	if (!retries) {
 		printk(KERN_ERR "%s(%s): Unable to re-detect card (%d)\n",
 		       __func__, mmc_hostname(host), err);
-<<<<<<< HEAD
-		err = _mmc_detect_card_removed(host);
-=======
->>>>>>> android-3.18
 	}
 #else
 	err = _mmc_detect_card_removed(host);
 #endif
-<<<<<<< HEAD
-	mmc_release_host(host);
-=======
 
 	mmc_put_card(host->card);
->>>>>>> android-3.18
 
 	/*
 	 * if detect fails, the device would be removed anyway;
@@ -1319,11 +1284,7 @@ static int mmc_sd_suspend(struct mmc_host *host)
  */
 static int _mmc_sd_resume(struct mmc_host *host)
 {
-<<<<<<< HEAD
-	int err;
-=======
 	int err = 0;
->>>>>>> android-3.18
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
 	int retries;
 #endif
@@ -1332,12 +1293,6 @@ static int _mmc_sd_resume(struct mmc_host *host)
 	BUG_ON(!host->card);
 
 	mmc_claim_host(host);
-<<<<<<< HEAD
-#ifdef CONFIG_MMC_PARANOID_SD_INIT
-	retries = 5;
-	while (retries) {
-		err = mmc_sd_init_card(host, host->ocr, host->card);
-=======
 
 	if (!mmc_card_suspended(host->card))
 		goto out;
@@ -1347,36 +1302,22 @@ static int _mmc_sd_resume(struct mmc_host *host)
 	retries = 5;
 	while (retries) {
 		err = mmc_sd_init_card(host, host->card->ocr, host->card);
->>>>>>> android-3.18
 
 		if (err) {
 			printk(KERN_ERR "%s: Re-init card rc = %d (retries = %d)\n",
 			       mmc_hostname(host), err, retries);
-<<<<<<< HEAD
-			retries--;
-			mmc_power_off(host);
-			usleep_range(5000, 5500);
-			mmc_power_up(host);
-			mmc_select_voltage(host, host->ocr);
-=======
 			mdelay(5);
 			retries--;
->>>>>>> android-3.18
 			continue;
 		}
 		break;
 	}
 #else
-<<<<<<< HEAD
-	err = mmc_sd_init_card(host, host->ocr, host->card);
-#endif
-=======
 	err = mmc_sd_init_card(host, host->card->ocr, host->card);
 #endif
 	mmc_card_clr_suspended(host->card);
 
 out:
->>>>>>> android-3.18
 	mmc_release_host(host);
 	return err;
 }
@@ -1445,13 +1386,6 @@ static int mmc_sd_power_restore(struct mmc_host *host)
 {
 	int ret;
 
-<<<<<<< HEAD
-	/* Disable clk scaling to avoid switching frequencies intermittently */
-	mmc_disable_clk_scaling(host);
-
-	host->card->state &= ~MMC_STATE_HIGHSPEED;
-=======
->>>>>>> android-3.18
 	mmc_claim_host(host);
 	ret = mmc_sd_init_card(host, host->card->ocr, host->card);
 	mmc_release_host(host);
@@ -1465,30 +1399,13 @@ static int mmc_sd_power_restore(struct mmc_host *host)
 static const struct mmc_bus_ops mmc_sd_ops = {
 	.remove = mmc_sd_remove,
 	.detect = mmc_sd_detect,
-<<<<<<< HEAD
-	.suspend = NULL,
-	.resume = NULL,
-	.power_restore = mmc_sd_power_restore,
-	.alive = mmc_sd_alive,
-	.change_bus_speed = mmc_sd_change_bus_speed,
-};
-
-static const struct mmc_bus_ops mmc_sd_ops_unsafe = {
-	.remove = mmc_sd_remove,
-	.detect = mmc_sd_detect,
-=======
 	.runtime_suspend = mmc_sd_runtime_suspend,
 	.runtime_resume = mmc_sd_runtime_resume,
->>>>>>> android-3.18
 	.suspend = mmc_sd_suspend,
 	.resume = mmc_sd_resume,
 	.power_restore = mmc_sd_power_restore,
 	.alive = mmc_sd_alive,
-<<<<<<< HEAD
-	.change_bus_speed = mmc_sd_change_bus_speed,
-=======
 	.shutdown = mmc_sd_suspend,
->>>>>>> android-3.18
 };
 
 /*
@@ -1497,11 +1414,7 @@ static const struct mmc_bus_ops mmc_sd_ops_unsafe = {
 int mmc_attach_sd(struct mmc_host *host)
 {
 	int err;
-<<<<<<< HEAD
-	u32 ocr;
-=======
 	u32 ocr, rocr;
->>>>>>> android-3.18
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
 	int retries;
 #endif
@@ -1549,25 +1462,10 @@ int mmc_attach_sd(struct mmc_host *host)
 	 */
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
 	retries = 5;
-<<<<<<< HEAD
-	/*
-	 * Some bad cards may take a long time to init, give preference to
-	 * suspend in those cases.
-	 */
-	while (retries && !host->rescan_disable) {
-		err = mmc_sd_init_card(host, host->ocr, NULL);
-		if (err) {
-			retries--;
-			mmc_power_off(host);
-			usleep_range(5000, 5500);
-			mmc_power_up(host);
-			mmc_select_voltage(host, host->ocr);
-=======
 	while (retries) {
 		err = mmc_sd_init_card(host, rocr, NULL);
 		if (err) {
 			retries--;
->>>>>>> android-3.18
 			continue;
 		}
 		break;
@@ -1578,16 +1476,8 @@ int mmc_attach_sd(struct mmc_host *host)
 		       mmc_hostname(host), err);
 		goto err;
 	}
-<<<<<<< HEAD
-
-	if (host->rescan_disable)
-		goto err;
-#else
-	err = mmc_sd_init_card(host, host->ocr, NULL);
-=======
 #else
 	err = mmc_sd_init_card(host, rocr, NULL);
->>>>>>> android-3.18
 	if (err)
 		goto err;
 #endif

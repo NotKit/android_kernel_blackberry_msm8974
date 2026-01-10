@@ -80,16 +80,6 @@ static u16 w1_reply_len(struct w1_cb_block *block)
 
 static void w1_unref_block(struct w1_cb_block *block)
 {
-<<<<<<< HEAD
-	struct cn_msg *msg = dev->priv;
-	struct w1_netlink_msg *hdr = (struct w1_netlink_msg *)(msg + 1);
-	struct w1_netlink_cmd *cmd = (struct w1_netlink_cmd *)(hdr + 1);
-	int avail;
-	u64 *data;
-
-	/* update kernel slave list */
-	w1_slave_found(dev, rn);
-=======
 	if (atomic_sub_return(1, &block->refcnt) == 0) {
 		u16 len = w1_reply_len(block);
 		if (len) {
@@ -99,7 +89,6 @@ static void w1_unref_block(struct w1_cb_block *block)
 		kfree(block);
 	}
 }
->>>>>>> android-3.18
 
 /**
  * w1_reply_make_space() - send message if needed to make space
@@ -121,16 +110,6 @@ static void w1_reply_make_space(struct w1_cb_block *block, u16 space)
 	}
 }
 
-<<<<<<< HEAD
-	if (avail < 8) {
-		msg->ack++;
-		cn_netlink_send(msg, 0, GFP_KERNEL);
-
-		msg->len = sizeof(struct w1_netlink_msg) +
-			sizeof(struct w1_netlink_cmd);
-		hdr->len = sizeof(struct w1_netlink_cmd);
-		cmd->len = 0;
-=======
 /* Early send when replies aren't bundled. */
 static void w1_netlink_check_send(struct w1_cb_block *block)
 {
@@ -163,18 +142,9 @@ static void w1_netlink_setup_msg(struct w1_cb_block *block, u32 ack)
 		block->cn->len = 0;
 		block->cn->ack = ack;
 		block->msg = (struct w1_netlink_msg *)block->cn->data;
->>>>>>> android-3.18
 	}
 }
 
-<<<<<<< HEAD
-	data = (void *)(cmd + 1) + cmd->len;
-
-	*data = rn;
-	cmd->len += 8;
-	hdr->len += 8;
-	msg->len += 8;
-=======
 /* Append cmd to msg, include cmd->data as well.  This is because
  * any following data goes with the command and in the case of a read is
  * the results.
@@ -226,7 +196,6 @@ static void w1_netlink_queue_status(struct w1_cb_block *block,
 		cmd->len = 0;
 	}
 	w1_netlink_check_send(block);
->>>>>>> android-3.18
 }
 
 /**

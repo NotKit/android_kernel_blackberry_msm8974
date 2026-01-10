@@ -76,31 +76,7 @@ out:
 	return error;
 }
 
-<<<<<<< HEAD
-/*
- * sys_execve() executes a new program.
- */
-asmlinkage int sys32_execve(nabi_no_regargs struct pt_regs regs)
-{
-	int error;
-	struct filename *filename;
-
-	filename = getname(compat_ptr(regs.regs[4]));
-	error = PTR_ERR(filename);
-	if (IS_ERR(filename))
-		goto out;
-	error = compat_do_execve(filename->name, compat_ptr(regs.regs[5]),
-				 compat_ptr(regs.regs[6]), &regs);
-	putname(filename);
-
-out:
-	return error;
-}
-
-#define RLIM_INFINITY32	0x7fffffff
-=======
 #define RLIM_INFINITY32 0x7fffffff
->>>>>>> android-3.18
 #define RESOURCE32(x) ((x > RLIM_INFINITY32) ? RLIM_INFINITY32 : x)
 
 struct rlimit32 {

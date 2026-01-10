@@ -663,20 +663,11 @@ EXPORT_SYMBOL_GPL(machine_check_poll);
 static int mce_no_way_out(struct mce *m, char **msg, unsigned long *validp,
 			  struct pt_regs *regs)
 {
-<<<<<<< HEAD
-	int i;
-=======
 	int i, ret = 0;
->>>>>>> android-3.18
 	char *tmp;
 
 	for (i = 0; i < mca_cfg.banks; i++) {
 		m->status = mce_rdmsrl(MSR_IA32_MCx_STATUS(i));
-<<<<<<< HEAD
-		if (mce_severity(m, tolerant, &tmp) >= MCE_PANIC_SEVERITY) {
-			*msg = tmp;
-			return 1;
-=======
 		if (m->status & MCI_STATUS_VAL) {
 			__set_bit(i, validp);
 			if (quirk_no_way_out)
@@ -687,7 +678,6 @@ static int mce_no_way_out(struct mce *m, char **msg, unsigned long *validp,
 			m->bank = i;
 			*msg = tmp;
 			ret = 1;
->>>>>>> android-3.18
 		}
 	}
 	return ret;

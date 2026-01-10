@@ -880,19 +880,9 @@ static irqreturn_t ixgbevf_msix_other(int irq, void *data)
 
 	hw->mac.get_link_status = 1;
 
-<<<<<<< HEAD
-	r_idx = find_first_bit(q_vector->txr_idx, adapter->num_tx_queues);
-	for (i = 0; i < q_vector->txr_count; i++) {
-		tx_ring = &(adapter->tx_ring[r_idx]);
-		ixgbevf_clean_tx_irq(adapter, tx_ring);
-		r_idx = find_next_bit(q_vector->txr_idx, adapter->num_tx_queues,
-				      r_idx + 1);
-	}
-=======
 	if (!test_bit(__IXGBEVF_DOWN, &adapter->state) &&
 	    !test_bit(__IXGBEVF_REMOVING, &adapter->state))
 		mod_timer(&adapter->watchdog_timer, jiffies);
->>>>>>> android-3.18
 
 	IXGBE_WRITE_REG(hw, IXGBE_VTEIMS, adapter->eims_other);
 
@@ -907,26 +897,6 @@ static irqreturn_t ixgbevf_msix_other(int irq, void *data)
 static irqreturn_t ixgbevf_msix_clean_rings(int irq, void *data)
 {
 	struct ixgbevf_q_vector *q_vector = data;
-<<<<<<< HEAD
-	struct ixgbevf_adapter  *adapter = q_vector->adapter;
-	struct ixgbe_hw *hw = &adapter->hw;
-	struct ixgbevf_ring  *rx_ring;
-	int r_idx;
-
-	if (!q_vector->rxr_count)
-		return IRQ_HANDLED;
-
-	r_idx = find_first_bit(q_vector->rxr_idx, adapter->num_rx_queues);
-	rx_ring = &(adapter->rx_ring[r_idx]);
-	/* disable interrupts on this vector only */
-	IXGBE_WRITE_REG(hw, IXGBE_VTEIMC, rx_ring->v_idx);
-	napi_schedule(&q_vector->napi);
-
-
-	return IRQ_HANDLED;
-}
-=======
->>>>>>> android-3.18
 
 	/* EIAM disabled interrupts (on this vector) for us */
 	if (q_vector->rx.ring || q_vector->tx.ring)
@@ -3429,13 +3399,8 @@ static struct rtnl_link_stats64 *ixgbevf_get_stats(struct net_device *netdev,
 		ring = adapter->rx_ring[i];
 		do {
 			start = u64_stats_fetch_begin_irq(&ring->syncp);
-<<<<<<< HEAD
-			bytes = ring->total_bytes;
-			packets = ring->total_packets;
-=======
 			bytes = ring->stats.bytes;
 			packets = ring->stats.packets;
->>>>>>> android-3.18
 		} while (u64_stats_fetch_retry_irq(&ring->syncp, start));
 		stats->rx_bytes += bytes;
 		stats->rx_packets += packets;
@@ -3445,13 +3410,8 @@ static struct rtnl_link_stats64 *ixgbevf_get_stats(struct net_device *netdev,
 		ring = adapter->tx_ring[i];
 		do {
 			start = u64_stats_fetch_begin_irq(&ring->syncp);
-<<<<<<< HEAD
-			bytes = ring->total_bytes;
-			packets = ring->total_packets;
-=======
 			bytes = ring->stats.bytes;
 			packets = ring->stats.packets;
->>>>>>> android-3.18
 		} while (u64_stats_fetch_retry_irq(&ring->syncp, start));
 		stats->tx_bytes += bytes;
 		stats->tx_packets += packets;

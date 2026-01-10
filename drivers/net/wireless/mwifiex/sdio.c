@@ -230,10 +230,6 @@ static int mwifiex_sdio_suspend(struct device *dev)
 	struct sdio_mmc_card *card;
 	struct mwifiex_adapter *adapter;
 	mmc_pm_flag_t pm_flag = 0;
-<<<<<<< HEAD
-	int i;
-=======
->>>>>>> android-3.18
 	int ret = 0;
 
 	if (func) {
@@ -261,10 +257,7 @@ static int mwifiex_sdio_suspend(struct device *dev)
 	/* Enable the Host Sleep */
 	if (!mwifiex_enable_hs(adapter)) {
 		dev_err(adapter->dev, "cmd: failed to suspend\n");
-<<<<<<< HEAD
-=======
 		adapter->hs_enabling = false;
->>>>>>> android-3.18
 		return -EFAULT;
 	}
 

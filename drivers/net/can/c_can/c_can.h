@@ -186,9 +186,6 @@ struct c_can_priv {
 	void __iomem *base;
 	const u16 *regs;
 	void *priv;		/* for board-specific data */
-<<<<<<< HEAD
-	u16 irqstatus;
-=======
 	enum c_can_dev_id type;
 	u32 __iomem *raminit_ctrlreg;
 	int instance;
@@ -196,7 +193,6 @@ struct c_can_priv {
 	u32 comm_rcv_high;
 	u32 rxmasked;
 	u32 dlc[C_CAN_MSG_OBJ_TX_NUM];
->>>>>>> android-3.18
 };
 
 struct net_device *alloc_c_can_dev(void);

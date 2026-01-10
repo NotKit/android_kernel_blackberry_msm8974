@@ -26,18 +26,9 @@
 #include <linux/interrupt.h>
 #include <linux/i2c.h>
 #include <linux/i2c/tsc2007.h>
-<<<<<<< HEAD
-#include <linux/pm.h>
-
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-#include <linux/earlysuspend.h>
-#define TSC2007_SUSPEND_LEVEL 1
-#endif
-=======
 #include <linux/of_device.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
->>>>>>> android-3.18
 
 #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
 #define TSC2007_MEASURE_AUX		(0x2 << 4)
@@ -86,20 +77,11 @@ struct tsc2007 {
 	u16			x_plate_ohms;
 	u16			max_rt;
 	unsigned long		poll_period;
-<<<<<<< HEAD
-	u16			min_x;
-	u16			max_x;
-	u16			min_y;
-	u16			max_y;
-
-	bool			pendown;
-=======
 	int			fuzzx;
 	int			fuzzy;
 	int			fuzzz;
 
 	unsigned		gpio;
->>>>>>> android-3.18
 	int			irq;
 
 	bool			invert_x;
@@ -223,10 +205,6 @@ static void tsc2007_work(struct work_struct *work)
 			goto out;
 		}
 
-<<<<<<< HEAD
-		dev_dbg(&ts->client->dev, "pen is still down\n");
-	}
-=======
 	if (!ts->get_pendown_state)
 		return true;
 
@@ -239,7 +217,6 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 	struct input_dev *input = ts->input;
 	struct ts_event tc;
 	u32 rt;
->>>>>>> android-3.18
 
 	tsc2007_read_values(ts, &tc);
 
@@ -256,10 +233,6 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 
 	}
 
-<<<<<<< HEAD
-	if (rt) {
-		struct input_dev *input = ts->input;
-=======
 		if (!rt && !ts->get_pendown_state) {
 			/*
 			 * If pressure reported is 0 and we don't have
@@ -268,7 +241,6 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 			 */
 			break;
 		}
->>>>>>> android-3.18
 
 		if (!ts->pendown) {
 			dev_dbg(&ts->client->dev, "DOWN\n");
@@ -308,16 +280,8 @@ static irqreturn_t tsc2007_irq(int irq, void *handle)
 {
 	struct tsc2007 *ts = handle;
 
-<<<<<<< HEAD
-	if (!ts->get_pendown_state || likely(ts->get_pendown_state())) {
-		disable_irq_nosync(ts->irq);
-		schedule_delayed_work(&ts->work,
-				      msecs_to_jiffies(ts->poll_delay));
-	}
-=======
 	if (tsc2007_is_pen_down(ts))
 		return IRQ_WAKE_THREAD;
->>>>>>> android-3.18
 
 	if (ts->clear_penirq)
 		ts->clear_penirq();
@@ -450,12 +414,6 @@ static int tsc2007_probe_dt(struct i2c_client *client, struct tsc2007 *ts)
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
-	ts->client = client;
-	ts->irq = client->irq;
-	ts->input = input_dev;
-	INIT_DELAYED_WORK(&ts->work, tsc2007_work);
-=======
 	ts->gpio = of_get_gpio(np, 0);
 	if (gpio_is_valid(ts->gpio))
 		ts->get_pendown_state = tsc2007_get_pendown_state_gpio;
@@ -463,7 +421,6 @@ static int tsc2007_probe_dt(struct i2c_client *client, struct tsc2007 *ts)
 		dev_warn(&client->dev,
 			 "GPIO not specified in DT (of_get_gpio returned %d)\n",
 			 ts->gpio);
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -485,17 +442,6 @@ static int tsc2007_probe_pdev(struct i2c_client *client, struct tsc2007 *ts,
 	ts->poll_period       = pdata->poll_period ? : 1;
 	ts->get_pendown_state = pdata->get_pendown_state;
 	ts->clear_penirq      = pdata->clear_penirq;
-<<<<<<< HEAD
-	ts->invert_x	      = pdata->invert_x;
-	ts->invert_y	      = pdata->invert_y;
-	ts->invert_z1	      = pdata->invert_z1;
-	ts->invert_z2	      = pdata->invert_z2;
-	ts->min_x	      = pdata->min_x ? pdata->min_x : 0;
-	ts->max_x	      = pdata->max_x ? pdata->max_x : MAX_12BIT;
-	ts->min_y	      = pdata->min_y ? pdata->min_y : 0;
-	ts->max_y	      = pdata->max_y ? pdata->max_y : MAX_12BIT;
-	ts->power_shutdown    = pdata->power_shutdown;
-=======
 	ts->fuzzx             = pdata->fuzzx;
 	ts->fuzzy             = pdata->fuzzy;
 	ts->fuzzz             = pdata->fuzzz;
@@ -504,7 +450,6 @@ static int tsc2007_probe_pdev(struct i2c_client *client, struct tsc2007 *ts,
 		dev_err(&client->dev, "x_plate_ohms is not set up in platform data");
 		return -EINVAL;
 	}
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -562,15 +507,8 @@ static int tsc2007_probe(struct i2c_client *client,
 	input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 	__set_bit(INPUT_PROP_DIRECT, input_dev->propbit);
 
-<<<<<<< HEAD
-	input_set_abs_params(input_dev, ABS_X, ts->min_x,
-				ts->max_x, pdata->fuzzx, 0);
-	input_set_abs_params(input_dev, ABS_Y, ts->min_y,
-				ts->max_y, pdata->fuzzy, 0);
-=======
 	input_set_abs_params(input_dev, ABS_X, 0, MAX_12BIT, ts->fuzzx, 0);
 	input_set_abs_params(input_dev, ABS_Y, 0, MAX_12BIT, ts->fuzzy, 0);
->>>>>>> android-3.18
 	input_set_abs_params(input_dev, ABS_PRESSURE, 0, MAX_12BIT,
 			     ts->fuzzz, 0);
 
@@ -591,13 +529,6 @@ static int tsc2007_probe(struct i2c_client *client,
 			pdata->init_platform_hw();
 	}
 
-<<<<<<< HEAD
-	err = request_irq(ts->irq, tsc2007_irq, pdata->irq_flags,
-			client->dev.driver->name, ts);
-	if (err < 0) {
-		dev_err(&client->dev, "irq %d busy?\n", ts->irq);
-		goto err_free_mem;
-=======
 	err = devm_request_threaded_irq(&client->dev, ts->irq,
 					tsc2007_hard_irq, tsc2007_soft_irq,
 					IRQF_ONESHOT,
@@ -606,7 +537,6 @@ static int tsc2007_probe(struct i2c_client *client,
 		dev_err(&client->dev, "Failed to request irq %d: %d\n",
 			ts->irq, err);
 		return err;
->>>>>>> android-3.18
 	}
 
 	/* Prepare for touch readings - power down ADC and enable PENIRQ */
@@ -614,49 +544,6 @@ static int tsc2007_probe(struct i2c_client *client,
 	if (err < 0)
 		goto err_free_irq;
 
-<<<<<<< HEAD
-	err = input_register_device(input_dev);
-	if (err)
-		goto err_free_irq;
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	ts->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN +
-						TSC2007_SUSPEND_LEVEL;
-	ts->early_suspend.suspend = tsc2007_early_suspend;
-	ts->early_suspend.resume = tsc2007_late_resume;
-	register_early_suspend(&ts->early_suspend);
-#endif
-
-	i2c_set_clientdata(client, ts);
-
-	return 0;
-
- err_free_irq:
-	tsc2007_free_irq(ts);
-	if (pdata->exit_platform_hw)
-		pdata->exit_platform_hw();
- err_free_mem:
-	input_free_device(input_dev);
-	kfree(ts);
-	return err;
-}
-
-static int __devexit tsc2007_remove(struct i2c_client *client)
-{
-	struct tsc2007	*ts = i2c_get_clientdata(client);
-	struct tsc2007_platform_data *pdata = client->dev.platform_data;
-
-	tsc2007_free_irq(ts);
-
-	if (pdata->exit_platform_hw)
-		pdata->exit_platform_hw();
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	unregister_early_suspend(&ts->early_suspend);
-#endif
-	input_unregister_device(ts->input);
-	kfree(ts);
-=======
 	/* power down the chip (TSC2007_SETUP does not ACK on I2C) */
 	err = tsc2007_xfer(ts, PWRDOWN);
 	if (err < 0) {
@@ -671,7 +558,6 @@ static int __devexit tsc2007_remove(struct i2c_client *client)
 			"Failed to register input device: %d\n", err);
 		return err;
 	}
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -695,13 +581,7 @@ static struct i2c_driver tsc2007_driver = {
 	.driver = {
 		.owner	= THIS_MODULE,
 		.name	= "tsc2007",
-<<<<<<< HEAD
-#ifdef CONFIG_PM
-		.pm = &tsc2007_pm_ops,
-#endif
-=======
 		.of_match_table = of_match_ptr(tsc2007_of_match),
->>>>>>> android-3.18
 	},
 	.id_table	= tsc2007_idtable,
 	.probe		= tsc2007_probe,

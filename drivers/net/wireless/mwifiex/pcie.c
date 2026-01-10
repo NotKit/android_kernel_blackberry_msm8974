@@ -115,11 +115,7 @@ static int mwifiex_pcie_suspend(struct device *dev)
 	struct pci_dev *pdev = to_pci_dev(dev);
 
 	if (pdev) {
-<<<<<<< HEAD
-		card = (struct pcie_service_card *) pci_get_drvdata(pdev);
-=======
 		card = pci_get_drvdata(pdev);
->>>>>>> android-3.18
 		if (!card || !card->adapter) {
 			pr_err("Card or adapter structure is not valid\n");
 			return 0;

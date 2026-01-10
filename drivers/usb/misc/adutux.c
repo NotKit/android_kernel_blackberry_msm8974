@@ -354,15 +354,7 @@ static ssize_t adu_read(struct file *file, __user char *buffer, size_t count,
 	unsigned long flags;
 	DECLARE_WAITQUEUE(wait, current);
 
-<<<<<<< HEAD
-	dbg(2," %s : enter, count = %Zd, file=%pK", __func__, count, file);
-
 	dev = file->private_data;
-	dbg(2," %s : dev=%pK", __func__, dev);
-
-=======
-	dev = file->private_data;
->>>>>>> android-3.18
 	if (mutex_lock_interruptible(&dev->mtx))
 		return -ERESTARTSYS;
 
@@ -796,11 +788,6 @@ static int adu_probe(struct usb_interface *interface,
 		 le16_to_cpu(udev->descriptor.idProduct), dev->serial_number,
 		 (dev->minor - ADU_MINOR_BASE));
 exit:
-<<<<<<< HEAD
-	dbg(2," %s : leave, return value %pK (dev)", __func__, dev);
-
-=======
->>>>>>> android-3.18
 	return retval;
 
 error:

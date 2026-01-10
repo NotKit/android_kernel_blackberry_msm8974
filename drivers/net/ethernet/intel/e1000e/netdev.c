@@ -3906,12 +3906,7 @@ void e1000e_reset(struct e1000_adapter *adapter)
 		break;
 	}
 
-<<<<<<< HEAD
-	/*
-	 * Alignment of Tx data is on an arbitrary byte boundary with the
-=======
 	/* Alignment of Tx data is on an arbitrary byte boundary with the
->>>>>>> android-3.18
 	 * maximum size per Tx descriptor limited only to the transmit
 	 * allocation of the packet buffer minus 96 bytes with an upper
 	 * limit of 24KB due to receive synchronization limitations.
@@ -3919,12 +3914,7 @@ void e1000e_reset(struct e1000_adapter *adapter)
 	adapter->tx_fifo_limit = min_t(u32, ((er32(PBA) >> 16) << 10) - 96,
 				       24 << 10);
 
-<<<<<<< HEAD
-	/*
-	 * Disable Adaptive Interrupt Moderation if 2 full packets cannot
-=======
 	/* Disable Adaptive Interrupt Moderation if 2 full packets cannot
->>>>>>> android-3.18
 	 * fit in receive buffer.
 	 */
 	if (adapter->itr_setting & 0x3) {
@@ -5578,8 +5568,6 @@ static netdev_tx_t e1000_xmit_frame(struct sk_buff *skb,
 		return NETDEV_TX_OK;
 	}
 
-<<<<<<< HEAD
-=======
 	/* The minimum packet size with TCTL.PSP set is 17 bytes so
 	 * pad skb in order to meet this minimum size requirement
 	 */
@@ -5590,7 +5578,6 @@ static netdev_tx_t e1000_xmit_frame(struct sk_buff *skb,
 		skb_set_tail_pointer(skb, 17);
 	}
 
->>>>>>> android-3.18
 	mss = skb_shinfo(skb)->gso_size;
 	if (mss) {
 		u8 hdr_len;
@@ -6199,23 +6186,6 @@ static int __e1000_shutdown(struct pci_dev *pdev, bool runtime)
 	e1000e_release_hw_control(adapter);
 
 	pci_clear_master(pdev);
-<<<<<<< HEAD
-
-	return 0;
-}
-
-static void e1000_power_off(struct pci_dev *pdev, bool sleep, bool wake)
-{
-	if (sleep && wake) {
-		pci_prepare_to_sleep(pdev);
-		return;
-	}
-
-	pci_wake_from_d3(pdev, wake);
-	pci_set_power_state(pdev, PCI_D3hot);
-}
-=======
->>>>>>> android-3.18
 
 	/* The pci-e switch on some quad port adapters will report a
 	 * correctable error when the MAC transitions from D0 to D3.  To
@@ -6923,12 +6893,8 @@ static int e1000_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	}
 
 	if (hw->phy.ops.check_reset_block && hw->phy.ops.check_reset_block(hw))
-<<<<<<< HEAD
-		e_info("PHY reset is blocked due to SOL/IDER session.\n");
-=======
 		dev_info(&pdev->dev,
 			 "PHY reset is blocked due to SOL/IDER session.\n");
->>>>>>> android-3.18
 
 	/* Set initial default active device features */
 	netdev->features = (NETIF_F_SG |
@@ -7019,16 +6985,7 @@ static int e1000_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	adapter->hw.fc.current_mode = e1000_fc_default;
 	adapter->hw.phy.autoneg_advertised = 0x2f;
 
-<<<<<<< HEAD
-	/* ring size defaults */
-	adapter->rx_ring->count = E1000_DEFAULT_RXD;
-	adapter->tx_ring->count = E1000_DEFAULT_TXD;
-
-	/*
-	 * Initial Wake on LAN setting - If APM wake is enabled in
-=======
 	/* Initial Wake on LAN setting - If APM wake is enabled in
->>>>>>> android-3.18
 	 * the EEPROM, enable the ACPI Magic Packet filter
 	 */
 	if (adapter->flags & FLAG_APME_IN_WUC) {

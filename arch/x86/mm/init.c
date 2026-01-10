@@ -56,58 +56,6 @@ uint8_t __pte2cachemode_tbl[8] = {
 };
 EXPORT_SYMBOL_GPL(__pte2cachemode_tbl);
 
-<<<<<<< HEAD
-struct map_range {
-	unsigned long start;
-	unsigned long end;
-	unsigned page_size_mask;
-};
-
-/*
- * First calculate space needed for kernel direct mapping page tables to cover
- * mr[0].start to mr[nr_range - 1].end, while accounting for possible 2M and 1GB
- * pages. Then find enough contiguous space for those page tables.
- */
-static void __init find_early_table_space(struct map_range *mr, int nr_range)
-{
-	int i;
-	unsigned long puds = 0, pmds = 0, ptes = 0, tables;
-	unsigned long start = 0, good_end;
-	unsigned long pgd_extra = 0;
-	phys_addr_t base;
-
-	for (i = 0; i < nr_range; i++) {
-		unsigned long range, extra;
-
-		if ((mr[i].end >> PGDIR_SHIFT) - (mr[i].start >> PGDIR_SHIFT))
-			pgd_extra++;
-
-		range = mr[i].end - mr[i].start;
-		puds += (range + PUD_SIZE - 1) >> PUD_SHIFT;
-
-		if (mr[i].page_size_mask & (1 << PG_LEVEL_1G)) {
-			extra = range - ((range >> PUD_SHIFT) << PUD_SHIFT);
-			pmds += (extra + PMD_SIZE - 1) >> PMD_SHIFT;
-		} else {
-			pmds += (range + PMD_SIZE - 1) >> PMD_SHIFT;
-		}
-
-		if (mr[i].page_size_mask & (1 << PG_LEVEL_2M)) {
-			extra = range - ((range >> PMD_SHIFT) << PMD_SHIFT);
-#ifdef CONFIG_X86_32
-			extra += PMD_SIZE;
-#endif
-			ptes += (extra + PAGE_SIZE - 1) >> PAGE_SHIFT;
-		} else {
-			ptes += (range + PAGE_SIZE - 1) >> PAGE_SHIFT;
-		}
-	}
-
-	tables = roundup(puds * sizeof(pud_t), PAGE_SIZE);
-	tables += roundup(pmds * sizeof(pmd_t), PAGE_SIZE);
-	tables += roundup(ptes * sizeof(pte_t), PAGE_SIZE);
-	tables += (pgd_extra * PAGE_SIZE);
-=======
 static unsigned long __initdata pgt_buf_start;
 static unsigned long __initdata pgt_buf_end;
 static unsigned long __initdata pgt_buf_top;
@@ -156,7 +104,6 @@ __ref void *alloc_low_pages(unsigned int num)
 
 	for (i = 0; i < num; i++) {
 		void *adr;
->>>>>>> android-3.18
 
 		adr = __va((pfn + i) << PAGE_SHIFT);
 		clear_page(adr);
@@ -178,13 +125,6 @@ void  __init early_alloc_pgt_buf(void)
 	pgt_buf_start = base >> PAGE_SHIFT;
 	pgt_buf_end = pgt_buf_start;
 	pgt_buf_top = pgt_buf_start + (tables >> PAGE_SHIFT);
-<<<<<<< HEAD
-
- 	printk(KERN_DEBUG "kernel direct mapping tables up to %#lx @ [mem %#010lx-%#010lx]\n",
-		mr[nr_range - 1].end - 1, pgt_buf_start << PAGE_SHIFT,
- 		(pgt_buf_top << PAGE_SHIFT) - 1);
-=======
->>>>>>> android-3.18
 }
 
 int after_bootmem;
@@ -205,8 +145,6 @@ static void __init init_gbpages(void)
 #endif
 }
 
-<<<<<<< HEAD
-=======
 struct map_range {
 	unsigned long start;
 	unsigned long end;
@@ -242,7 +180,6 @@ static void __init probe_page_size_mask(void)
 	}
 }
 
->>>>>>> android-3.18
 #ifdef CONFIG_X86_32
 #define NR_RANGE_MR 3
 #else /* CONFIG_X86_64 */
@@ -397,17 +334,6 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 			(mr[i].page_size_mask & (1<<PG_LEVEL_1G))?"1G":(
 			 (mr[i].page_size_mask & (1<<PG_LEVEL_2M))?"2M":"4k"));
 
-<<<<<<< HEAD
-	/*
-	 * Find space for the kernel direct mapping tables.
-	 *
-	 * Later we should allocate these tables in the local node of the
-	 * memory mapped. Unfortunately this is done currently before the
-	 * nodes are discovered.
-	 */
-	if (!after_bootmem)
-		find_early_table_space(mr, nr_range);
-=======
 	return nr_range;
 }
 
@@ -456,7 +382,6 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 
 	memset(mr, 0, sizeof(mr));
 	nr_range = split_mem_range(mr, 0, start, end);
->>>>>>> android-3.18
 
 	for (i = 0; i < nr_range; i++)
 		ret = kernel_physical_mapping_init(mr[i].start, mr[i].end,
@@ -682,10 +607,7 @@ void __init init_mem_mapping(void)
  * devmem_is_allowed() checks to see if /dev/mem access to a certain address
  * is valid. The argument is a physical page number.
  *
-<<<<<<< HEAD
-=======
  *
->>>>>>> android-3.18
  * On x86, access has to be given to the first megabyte of RAM because that
  * area traditionally contains BIOS code and data regions used by X, dosemu,
  * and similar apps. Since they map the entire memory range, the whole range
@@ -704,7 +626,6 @@ int devmem_is_allowed(unsigned long pagenr)
 		if (pagenr < 256)
 			return 2;
 
-<<<<<<< HEAD
 		return 0;
 	}
 
@@ -720,23 +641,6 @@ int devmem_is_allowed(unsigned long pagenr)
 		return 0;
 	}
 
-=======
-		return 0;
-	}
-
-	/*
-	 * This must follow RAM test, since System RAM is considered a
-	 * restricted resource under CONFIG_STRICT_IOMEM.
-	 */
-	if (iomem_is_exclusive(pagenr << PAGE_SHIFT)) {
-		/* Low 1MB bypasses iomem restrictions. */
-		if (pagenr < 256)
-			return 1;
-
-		return 0;
-	}
-
->>>>>>> android-3.18
 	return 1;
 }
 

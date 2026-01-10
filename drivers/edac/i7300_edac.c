@@ -972,20 +972,6 @@ static int i7300_get_devices(struct mem_ctl_info *mci)
 		goto error;
 	}
 
-<<<<<<< HEAD
-	debugf1("System Address, processor bus- PCI Bus ID: %s  %x:%x\n",
-		pci_name(pvt->pci_dev_16_0_fsb_ctlr),
-		pvt->pci_dev_16_0_fsb_ctlr->vendor,
-		pvt->pci_dev_16_0_fsb_ctlr->device);
-	debugf1("Branchmap, control and errors - PCI Bus ID: %s  %x:%x\n",
-		pci_name(pvt->pci_dev_16_1_fsb_addr_map),
-		pvt->pci_dev_16_1_fsb_addr_map->vendor,
-		pvt->pci_dev_16_1_fsb_addr_map->device);
-	debugf1("FSB Error Regs - PCI Bus ID: %s  %x:%x\n",
-		pci_name(pvt->pci_dev_16_2_fsb_err_regs),
-		pvt->pci_dev_16_2_fsb_err_regs->vendor,
-		pvt->pci_dev_16_2_fsb_err_regs->device);
-=======
 	edac_dbg(1, "System Address, processor bus- PCI Bus ID: %s  %x:%x\n",
 		 pci_name(pvt->pci_dev_16_0_fsb_ctlr),
 		 pvt->pci_dev_16_0_fsb_ctlr->vendor,
@@ -998,7 +984,6 @@ static int i7300_get_devices(struct mem_ctl_info *mci)
 		 pci_name(pvt->pci_dev_16_2_fsb_err_regs),
 		 pvt->pci_dev_16_2_fsb_err_regs->vendor,
 		 pvt->pci_dev_16_2_fsb_err_regs->device);
->>>>>>> android-3.18
 
 	pvt->pci_dev_2x_0_fbd_branch[0] = pci_get_device(PCI_VENDOR_ID_INTEL,
 					    PCI_DEVICE_ID_INTEL_I7300_MCH_FB0,

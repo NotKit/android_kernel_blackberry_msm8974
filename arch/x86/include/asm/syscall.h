@@ -13,11 +13,7 @@
 #ifndef _ASM_X86_SYSCALL_H
 #define _ASM_X86_SYSCALL_H
 
-<<<<<<< HEAD
-#include <linux/audit.h>
-=======
 #include <uapi/linux/audit.h>
->>>>>>> android-3.18
 #include <linux/sched.h>
 #include <linux/err.h>
 #include <asm/asm-offsets.h>	/* For NR_syscalls */
@@ -95,12 +91,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
 	memcpy(&regs->bx + i, args, n * sizeof(args[0]));
 }
 
-<<<<<<< HEAD
-static inline int syscall_get_arch(struct task_struct *task,
-				   struct pt_regs *regs)
-=======
 static inline int syscall_get_arch(void)
->>>>>>> android-3.18
 {
 	return AUDIT_ARCH_I386;
 }
@@ -229,12 +220,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
 		}
 }
 
-<<<<<<< HEAD
-static inline int syscall_get_arch(struct task_struct *task,
-				   struct pt_regs *regs)
-=======
 static inline int syscall_get_arch(void)
->>>>>>> android-3.18
 {
 #ifdef CONFIG_IA32_EMULATION
 	/*
@@ -246,11 +232,7 @@ static inline int syscall_get_arch(void)
 	 *
 	 * x32 tasks should be considered AUDIT_ARCH_X86_64.
 	 */
-<<<<<<< HEAD
-	if (task_thread_info(task)->status & TS_COMPAT)
-=======
 	if (task_thread_info(current)->status & TS_COMPAT)
->>>>>>> android-3.18
 		return AUDIT_ARCH_I386;
 #endif
 	/* Both x32 and x86_64 are considered "64-bit". */

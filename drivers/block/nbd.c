@@ -633,13 +633,8 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
 		BUG_ON(!list_empty(&nbd->queue_head));
 		BUG_ON(!list_empty(&nbd->waiting_queue));
 		kill_bdev(bdev);
-<<<<<<< HEAD
-		if (file)
-			fput(file);
-=======
 		if (sock)
 			sockfd_put(sock);
->>>>>>> android-3.18
 		return 0;
 	}
 
@@ -648,21 +643,6 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
 		int err;
 		if (nbd->sock)
 			return -EBUSY;
-<<<<<<< HEAD
-		file = fget(arg);
-		if (file) {
-			struct inode *inode = file->f_path.dentry->d_inode;
-			if (S_ISSOCK(inode->i_mode)) {
-				nbd->file = file;
-				nbd->sock = SOCKET_I(inode);
-				if (max_part > 0)
-					bdev->bd_invalidated = 1;
-				nbd->disconnect = 0; /* we're connected now */
-				return 0;
-			} else {
-				fput(file);
-			}
-=======
 		sock = sockfd_lookup(arg, &err);
 		if (sock) {
 			nbd->sock = sock;
@@ -670,7 +650,6 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
 				bdev->bd_invalidated = 1;
 			nbd->disconnect = 0; /* we're connected now */
 			return 0;
->>>>>>> android-3.18
 		}
 		return -EINVAL;
 	}
@@ -717,8 +696,6 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
 
 		mutex_unlock(&nbd->tx_lock);
 
-<<<<<<< HEAD
-=======
 		if (nbd->flags & NBD_FLAG_READ_ONLY)
 			set_device_ro(bdev, true);
 		if (nbd->flags & NBD_FLAG_SEND_TRIM)
@@ -729,7 +706,6 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
 		else
 			blk_queue_flush(nbd->disk->queue, 0);
 
->>>>>>> android-3.18
 		thread = kthread_create(nbd_thread, nbd, "%s",
 					nbd->disk->disk_name);
 		if (IS_ERR(thread)) {
@@ -749,16 +725,11 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
 		nbd_clear_que(nbd);
 		dev_warn(disk_to_dev(nbd->disk), "queue cleared\n");
 		kill_bdev(bdev);
-<<<<<<< HEAD
-		if (file)
-			fput(file);
-=======
 		queue_flag_clear_unlocked(QUEUE_FLAG_DISCARD, nbd->disk->queue);
 		set_device_ro(bdev, false);
 		if (sock)
 			sockfd_put(sock);
 		nbd->flags = 0;
->>>>>>> android-3.18
 		nbd->bytesize = 0;
 		bdev->bd_inode->i_size = 0;
 		set_capacity(nbd->disk, 0);

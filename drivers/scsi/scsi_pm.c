@@ -16,10 +16,6 @@
 
 #include "scsi_priv.h"
 
-<<<<<<< HEAD
-static int scsi_dev_type_suspend(struct device *dev, int (*cb)(struct device *))
-{
-=======
 #ifdef CONFIG_PM_SLEEP
 
 static int do_scsi_suspend(struct device *dev, const struct dev_pm_ops *pm)
@@ -56,7 +52,6 @@ static int scsi_dev_type_suspend(struct device *dev,
 		int (*cb)(struct device *, const struct dev_pm_ops *))
 {
 	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
->>>>>>> android-3.18
 	int err;
 
 	/* flush pending in-flight resume operations, suspend is synchronous */
@@ -64,30 +59,14 @@ static int scsi_dev_type_suspend(struct device *dev,
 
 	err = scsi_device_quiesce(to_scsi_device(dev));
 	if (err == 0) {
-<<<<<<< HEAD
-		if (cb) {
-			err = cb(dev);
-			if (err)
-				scsi_device_resume(to_scsi_device(dev));
-		}
-=======
 		err = cb(dev, pm);
 		if (err)
 			scsi_device_resume(to_scsi_device(dev));
->>>>>>> android-3.18
 	}
 	dev_dbg(dev, "scsi suspend: %d\n", err);
 	return err;
 }
 
-<<<<<<< HEAD
-static int scsi_dev_type_resume(struct device *dev, int (*cb)(struct device *))
-{
-	int err = 0;
-
-	if (cb)
-		err = cb(dev);
-=======
 static int scsi_dev_type_resume(struct device *dev,
 		int (*cb)(struct device *, const struct dev_pm_ops *))
 {
@@ -95,7 +74,6 @@ static int scsi_dev_type_resume(struct device *dev,
 	int err = 0;
 
 	err = cb(dev, pm);
->>>>>>> android-3.18
 	scsi_device_resume(to_scsi_device(dev));
 	dev_dbg(dev, "scsi resume: %d\n", err);
 
@@ -108,16 +86,9 @@ static int scsi_dev_type_resume(struct device *dev,
 	return err;
 }
 
-<<<<<<< HEAD
-#ifdef CONFIG_PM_SLEEP
-
-static int
-scsi_bus_suspend_common(struct device *dev, int (*cb)(struct device *))
-=======
 static int
 scsi_bus_suspend_common(struct device *dev,
 		int (*cb)(struct device *, const struct dev_pm_ops *))
->>>>>>> android-3.18
 {
 	int err = 0;
 
@@ -125,12 +96,8 @@ scsi_bus_suspend_common(struct device *dev,
 		/*
 		 * All the high-level SCSI drivers that implement runtime
 		 * PM treat runtime suspend, system suspend, and system
-<<<<<<< HEAD
-		 * hibernate identically.
-=======
 		 * hibernate nearly identically. In all cases the requirements
 		 * for runtime suspension are stricter.
->>>>>>> android-3.18
 		 */
 		if (pm_runtime_suspended(dev))
 			return 0;
@@ -141,12 +108,7 @@ scsi_bus_suspend_common(struct device *dev,
 	return err;
 }
 
-<<<<<<< HEAD
-static int
-scsi_bus_resume_common(struct device *dev, int (*cb)(struct device *))
-=======
 static void async_sdev_resume(void *dev, async_cookie_t cookie)
->>>>>>> android-3.18
 {
 	scsi_dev_type_resume(dev, do_scsi_resume);
 }
@@ -186,18 +148,9 @@ static int scsi_bus_resume_common(struct device *dev,
 		 * staggered spin-ups.  For safety, make resume
 		 * synchronous as well in that case.
 		 */
-<<<<<<< HEAD
-		pm_runtime_get_sync(dev->parent);
-		err = scsi_dev_type_resume(dev, cb);
-		pm_runtime_put_sync(dev->parent);
-	}
-
-	if (err == 0) {
-=======
 		if (strncmp(scsi_scan_type, "async", 5) != 0)
 			async_synchronize_full_domain(&scsi_sd_pm_domain);
 	} else {
->>>>>>> android-3.18
 		pm_runtime_disable(dev);
 		pm_runtime_set_active(dev);
 		pm_runtime_enable(dev);
@@ -220,62 +173,32 @@ static int scsi_bus_prepare(struct device *dev)
 
 static int scsi_bus_suspend(struct device *dev)
 {
-<<<<<<< HEAD
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	return scsi_bus_suspend_common(dev, pm ? pm->suspend : NULL);
-=======
 	return scsi_bus_suspend_common(dev, do_scsi_suspend);
->>>>>>> android-3.18
 }
 
 static int scsi_bus_resume(struct device *dev)
 {
-<<<<<<< HEAD
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	return scsi_bus_resume_common(dev, pm ? pm->resume : NULL);
-=======
 	return scsi_bus_resume_common(dev, do_scsi_resume);
->>>>>>> android-3.18
 }
 
 static int scsi_bus_freeze(struct device *dev)
 {
-<<<<<<< HEAD
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	return scsi_bus_suspend_common(dev, pm ? pm->freeze : NULL);
-=======
 	return scsi_bus_suspend_common(dev, do_scsi_freeze);
->>>>>>> android-3.18
 }
 
 static int scsi_bus_thaw(struct device *dev)
 {
-<<<<<<< HEAD
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	return scsi_bus_resume_common(dev, pm ? pm->thaw : NULL);
-=======
 	return scsi_bus_resume_common(dev, do_scsi_thaw);
->>>>>>> android-3.18
 }
 
 static int scsi_bus_poweroff(struct device *dev)
 {
-<<<<<<< HEAD
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	return scsi_bus_suspend_common(dev, pm ? pm->poweroff : NULL);
-=======
 	return scsi_bus_suspend_common(dev, do_scsi_poweroff);
->>>>>>> android-3.18
 }
 
 static int scsi_bus_restore(struct device *dev)
 {
-<<<<<<< HEAD
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	return scsi_bus_resume_common(dev, pm ? pm->restore : NULL);
-=======
 	return scsi_bus_resume_common(dev, do_scsi_restore);
->>>>>>> android-3.18
 }
 
 #else /* CONFIG_PM_SLEEP */
@@ -292,54 +215,22 @@ static int scsi_bus_restore(struct device *dev)
 
 #ifdef CONFIG_PM_RUNTIME
 
-<<<<<<< HEAD
-static int sdev_blk_runtime_suspend(struct scsi_device *sdev,
-					int (*cb)(struct device *))
-{
-	int err;
-=======
 static int sdev_runtime_suspend(struct device *dev)
 {
 	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
 	struct scsi_device *sdev = to_scsi_device(dev);
 	int err = 0;
->>>>>>> android-3.18
 
 	err = blk_pre_runtime_suspend(sdev->request_queue);
 	if (err)
 		return err;
-<<<<<<< HEAD
-	if (cb)
-		err = cb(&sdev->sdev_gendev);
-=======
 	if (pm && pm->runtime_suspend)
 		err = pm->runtime_suspend(dev);
->>>>>>> android-3.18
 	blk_post_runtime_suspend(sdev->request_queue, err);
 
 	return err;
 }
 
-<<<<<<< HEAD
-static int sdev_runtime_suspend(struct device *dev)
-{
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	int (*cb)(struct device *) = pm ? pm->runtime_suspend : NULL;
-	struct scsi_device *sdev = to_scsi_device(dev);
-	int err;
-
-	if (sdev->request_queue->dev)
-		return sdev_blk_runtime_suspend(sdev, cb);
-
-	err = scsi_dev_type_suspend(dev, cb);
-	if (err == -EAGAIN)
-		pm_schedule_suspend(dev, jiffies_to_msecs(
-					round_jiffies_up_relative(HZ/10)));
-	return err;
-}
-
-=======
->>>>>>> android-3.18
 static int scsi_runtime_suspend(struct device *dev)
 {
 	int err = 0;
@@ -353,16 +244,6 @@ static int scsi_runtime_suspend(struct device *dev)
 	return err;
 }
 
-<<<<<<< HEAD
-static int sdev_blk_runtime_resume(struct scsi_device *sdev,
-					int (*cb)(struct device *))
-{
-	int err = 0;
-
-	blk_pre_runtime_resume(sdev->request_queue);
-	if (cb)
-		err = cb(&sdev->sdev_gendev);
-=======
 static int sdev_runtime_resume(struct device *dev)
 {
 	struct scsi_device *sdev = to_scsi_device(dev);
@@ -372,27 +253,11 @@ static int sdev_runtime_resume(struct device *dev)
 	blk_pre_runtime_resume(sdev->request_queue);
 	if (pm && pm->runtime_resume)
 		err = pm->runtime_resume(dev);
->>>>>>> android-3.18
 	blk_post_runtime_resume(sdev->request_queue, err);
 
 	return err;
 }
 
-<<<<<<< HEAD
-static int sdev_runtime_resume(struct device *dev)
-{
-	struct scsi_device *sdev = to_scsi_device(dev);
-	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-	int (*cb)(struct device *) = pm ? pm->runtime_resume : NULL;
-
-	if (sdev->request_queue->dev)
-		return sdev_blk_runtime_resume(sdev, cb);
-	else
-		return scsi_dev_type_resume(dev, cb);
-}
-
-=======
->>>>>>> android-3.18
 static int scsi_runtime_resume(struct device *dev)
 {
 	int err = 0;
@@ -413,27 +278,12 @@ static int scsi_runtime_idle(struct device *dev)
 	/* Insert hooks here for targets, hosts, and transport classes */
 
 	if (scsi_is_sdev_device(dev)) {
-<<<<<<< HEAD
-		struct scsi_device *sdev = to_scsi_device(dev);
-
-		if (sdev->request_queue->dev) {
-			pm_runtime_mark_last_busy(dev);
-			err = pm_runtime_autosuspend(dev);
-		} else {
-			err = pm_runtime_suspend(dev);
-		}
-	} else {
-		err = pm_runtime_suspend(dev);
-	}
-	return err;
-=======
 		pm_runtime_mark_last_busy(dev);
 		pm_runtime_autosuspend(dev);
 		return -EBUSY;
 	}
 
 	return 0;
->>>>>>> android-3.18
 }
 
 int scsi_autopm_get_device(struct scsi_device *sdev)

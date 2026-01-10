@@ -32,15 +32,9 @@
 #include <linux/debugfs.h>
 #include <linux/slab.h>
 #include <linux/export.h>
-<<<<<<< HEAD
-#include <generated/utsrelease.h>
-#include "drmP.h"
-#include "drm.h"
-=======
 #include <linux/list_sort.h>
 #include <asm/msr-index.h>
 #include <drm/drmP.h>
->>>>>>> android-3.18
 #include "intel_drv.h"
 #include "intel_ringbuffer.h"
 #include <drm/i915_drm.h>
@@ -128,14 +122,10 @@ static inline const char *get_global_flag(struct drm_i915_gem_object *obj)
 static void
 describe_obj(struct seq_file *m, struct drm_i915_gem_object *obj)
 {
-<<<<<<< HEAD
-	seq_printf(m, "%pK: %s%s %8zdKiB %04x %04x %d %d%s%s%s",
-=======
 	struct i915_vma *vma;
 	int pin_count = 0;
 
 	seq_printf(m, "%pK: %s%s%s %8zdKiB %02x %02x %u %u %u%s%s%s",
->>>>>>> android-3.18
 		   &obj->base,
 		   get_pin_flag(obj),
 		   get_tiling_flag(obj),
@@ -546,11 +536,8 @@ static int i915_gem_pageflip_info(struct seq_file *m, void *data)
 			seq_printf(m, "No flip due on pipe %c (plane %c)\n",
 				   pipe, plane);
 		} else {
-<<<<<<< HEAD
-=======
 			u32 addr;
 
->>>>>>> android-3.18
 			if (atomic_read(&work->pending) < INTEL_FLIP_COMPLETE) {
 				seq_printf(m, "Flip queued on pipe %c (plane %c)\n",
 					   pipe, plane);
@@ -575,10 +562,6 @@ static int i915_gem_pageflip_info(struct seq_file *m, void *data)
 			if (work->enable_stall_check)
 				seq_puts(m, "Stall check enabled, ");
 			else
-<<<<<<< HEAD
-				seq_printf(m, "Stall check waiting for page flip ioctl, ");
-			seq_printf(m, "%d prepares\n", atomic_read(&work->pending));
-=======
 				seq_puts(m, "Stall check waiting for page flip ioctl, ");
 			seq_printf(m, "%d prepares\n", atomic_read(&work->pending));
 
@@ -587,7 +570,6 @@ static int i915_gem_pageflip_info(struct seq_file *m, void *data)
 			else
 				addr = I915_READ(DSPADDR(crtc->plane));
 			seq_printf(m, "Current scanout address 0x%08x\n", addr);
->>>>>>> android-3.18
 
 			if (work->pending_flip_obj) {
 				seq_printf(m, "New framebuffer address 0x%08lx\n", (long)work->gtt_offset);
@@ -1035,115 +1017,7 @@ DEFINE_SIMPLE_ATTRIBUTE(i915_next_seqno_fops,
 
 static int i915_frequency_info(struct seq_file *m, void *unused)
 {
-<<<<<<< HEAD
-	struct drm_info_node *node = (struct drm_info_node *) m->private;
-	struct drm_device *dev = node->minor->dev;
-	drm_i915_private_t *dev_priv = dev->dev_private;
-	struct drm_i915_error_state *error;
-	unsigned long flags;
-	int i, j, page, offset, elt;
-
-	spin_lock_irqsave(&dev_priv->error_lock, flags);
-	if (!dev_priv->first_error) {
-		seq_printf(m, "no error state collected\n");
-		goto out;
-	}
-
-	error = dev_priv->first_error;
-
-	seq_printf(m, "Time: %ld s %ld us\n", error->time.tv_sec,
-		   error->time.tv_usec);
-	seq_printf(m, "Kernel: " UTS_RELEASE "\n");
-	seq_printf(m, "PCI ID: 0x%04x\n", dev->pci_device);
-	seq_printf(m, "EIR: 0x%08x\n", error->eir);
-	seq_printf(m, "PGTBL_ER: 0x%08x\n", error->pgtbl_er);
-
-	for (i = 0; i < dev_priv->num_fence_regs; i++)
-		seq_printf(m, "  fence[%d] = %08llx\n", i, error->fence[i]);
-
-	if (INTEL_INFO(dev)->gen >= 6) {
-		seq_printf(m, "ERROR: 0x%08x\n", error->error);
-		seq_printf(m, "DONE_REG: 0x%08x\n", error->done_reg);
-	}
-
-	i915_ring_error_state(m, dev, error, RCS);
-	if (HAS_BLT(dev))
-		i915_ring_error_state(m, dev, error, BCS);
-	if (HAS_BSD(dev))
-		i915_ring_error_state(m, dev, error, VCS);
-
-	if (error->active_bo)
-		print_error_buffers(m, "Active",
-				    error->active_bo,
-				    error->active_bo_count);
-
-	if (error->pinned_bo)
-		print_error_buffers(m, "Pinned",
-				    error->pinned_bo,
-				    error->pinned_bo_count);
-
-	for (i = 0; i < ARRAY_SIZE(error->ring); i++) {
-		struct drm_i915_error_object *obj;
-
-		if ((obj = error->ring[i].batchbuffer)) {
-			seq_printf(m, "%s --- gtt_offset = 0x%08x\n",
-				   dev_priv->ring[i].name,
-				   obj->gtt_offset);
-			offset = 0;
-			for (page = 0; page < obj->page_count; page++) {
-				for (elt = 0; elt < PAGE_SIZE/4; elt++) {
-					seq_printf(m, "%08x :  %08x\n", offset, obj->pages[page][elt]);
-					offset += 4;
-				}
-			}
-		}
-
-		if (error->ring[i].num_requests) {
-			seq_printf(m, "%s --- %d requests\n",
-				   dev_priv->ring[i].name,
-				   error->ring[i].num_requests);
-			for (j = 0; j < error->ring[i].num_requests; j++) {
-				seq_printf(m, "  seqno 0x%08x, emitted %ld, tail 0x%08x\n",
-					   error->ring[i].requests[j].seqno,
-					   error->ring[i].requests[j].jiffies,
-					   error->ring[i].requests[j].tail);
-			}
-		}
-
-		if ((obj = error->ring[i].ringbuffer)) {
-			seq_printf(m, "%s --- ringbuffer = 0x%08x\n",
-				   dev_priv->ring[i].name,
-				   obj->gtt_offset);
-			offset = 0;
-			for (page = 0; page < obj->page_count; page++) {
-				for (elt = 0; elt < PAGE_SIZE/4; elt++) {
-					seq_printf(m, "%08x :  %08x\n",
-						   offset,
-						   obj->pages[page][elt]);
-					offset += 4;
-				}
-			}
-		}
-	}
-
-	if (error->overlay)
-		intel_overlay_print_error_state(m, error->overlay);
-
-	if (error->display)
-		intel_display_print_error_state(m, dev, error->display);
-
-out:
-	spin_unlock_irqrestore(&dev_priv->error_lock, flags);
-
-	return 0;
-}
-
-static int i915_rstdby_delays(struct seq_file *m, void *unused)
-{
-	struct drm_info_node *node = (struct drm_info_node *) m->private;
-=======
 	struct drm_info_node *node = m->private;
->>>>>>> android-3.18
 	struct drm_device *dev = node->minor->dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	int ret = 0;

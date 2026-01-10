@@ -136,21 +136,9 @@
 #define	TEST_PACKET	4
 #define	TEST_FORCE_EN	5
 
-<<<<<<< HEAD
-/* OTG test mode feature bits
- * See ECN OTG2.0 spec Table 6-8
- */
-#define TEST_OTG_SRP_REQD	6
-#define TEST_OTG_HNP_REQD	7
-
-/*
- * New Feature Selectors as added by USB 3.0
- * See USB 3.0 spec Table 9-6
-=======
 /*
  * New Feature Selectors as added by USB 3.0
  * See USB 3.0 spec Table 9-7
->>>>>>> android-3.18
  */
 #define USB_DEVICE_U1_ENABLE	48	/* dev may initiate U1 transition */
 #define USB_DEVICE_U2_ENABLE	49	/* dev may initiate U2 transition */
@@ -159,11 +147,7 @@
 
 #define USB_INTR_FUNC_SUSPEND_OPT_MASK	0xFF00
 /*
-<<<<<<< HEAD
- * Suspend Options, Table 9-7 USB 3.0 spec
-=======
  * Suspend Options, Table 9-8 USB 3.0 spec
->>>>>>> android-3.18
  */
 #define USB_INTRF_FUNC_SUSPEND_LP	(1 << (8 + 0))
 #define USB_INTRF_FUNC_SUSPEND_RW	(1 << (8 + 1))
@@ -176,16 +160,6 @@
 
 #define USB_ENDPOINT_HALT		0	/* IN/OUT will STALL */
 
-<<<<<<< HEAD
-#define OTG_STATUS_SELECTOR		0xF000
-#define HOST_REQUEST_FLAG		0
-#define THOST_REQ_POLL			1500    /* msec (1000 - 2000) */
-#define OTG_TTST_SUSP			70	/* msec (0 - 100) */
-
-#define OTG_TTST_VBUS_OFF               1
-
-=======
->>>>>>> android-3.18
 /* Bit array elements as returned by the USB_REQ_GET_STATUS request. */
 #define USB_DEV_STAT_U1_ENABLED		2	/* transition into U1 state */
 #define USB_DEV_STAT_U2_ENABLED		3	/* transition into U2 state */
@@ -359,12 +333,9 @@ struct usb_config_descriptor {
 
 /*-------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
-=======
 /* USB String descriptors can contain at most 126 characters. */
 #define USB_MAX_STRING_LEN	126
 
->>>>>>> android-3.18
 /* USB_DT_STRING: String descriptor */
 struct usb_string_descriptor {
 	__u8  bLength;
@@ -704,10 +675,6 @@ struct usb_otg_descriptor {
 	__u8  bDescriptorType;
 
 	__u8  bmAttributes;	/* support for HNP, SRP, etc */
-<<<<<<< HEAD
-	__le16 bcdOTG;
-=======
->>>>>>> android-3.18
 } __attribute__ ((packed));
 
 /* from usb_otg_descriptor.bmAttributes */
@@ -891,8 +858,6 @@ struct usb_ss_container_id_descriptor {
 } __attribute__((packed));
 
 #define USB_DT_USB_SS_CONTN_ID_SIZE	20
-<<<<<<< HEAD
-=======
 
 /*
  * Precision time measurement capability descriptor: advertised by devices and
@@ -911,7 +876,6 @@ struct usb_ptm_cap_descriptor {
  */
 #define USB_DT_USB_SSP_CAP_SIZE(ssac)	(16 + ssac * 4)
 
->>>>>>> android-3.18
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_WIRELESS_ENDPOINT_COMP:  companion descriptor associated with
@@ -971,10 +935,7 @@ enum usb_device_speed {
 	USB_SPEED_HIGH,				/* usb 2.0 */
 	USB_SPEED_WIRELESS,			/* wireless (usb 2.5) */
 	USB_SPEED_SUPER,			/* usb 3.0 */
-<<<<<<< HEAD
-=======
 	USB_SPEED_SUPER_PLUS,			/* usb 3.1 */
->>>>>>> android-3.18
 };
 
 

@@ -592,11 +592,7 @@ int dev_pm_qos_add_ancestor_request(struct device *dev,
 	if (ancestor)
 		ret = dev_pm_qos_add_request(ancestor, req, type, value);
 
-<<<<<<< HEAD
-	if (error < 0)
-=======
 	if (ret < 0)
->>>>>>> android-3.18
 		req->dev = NULL;
 
 	return ret;

@@ -312,19 +312,12 @@ static void	usa26_indat_callback(struct urb *urb)
 			/* no errors on individual bytes, only
 			   possible overrun err */
 			if (data[0] & RXERROR_OVERRUN) {
-<<<<<<< HEAD
-				tty_insert_flip_char(tty, 0, TTY_OVERRUN);
-			}
-			for (i = 1; i < urb->actual_length ; ++i)
-				tty_insert_flip_char(tty, data[i], TTY_NORMAL);
-=======
 				tty_insert_flip_char(&port->port, 0,
 								TTY_OVERRUN);
 			}
 			for (i = 1; i < urb->actual_length ; ++i)
 				tty_insert_flip_char(&port->port, data[i],
 								TTY_NORMAL);
->>>>>>> android-3.18
 		} else {
 			/* some bytes had errors, every byte has status */
 			dev_dbg(&port->dev, "%s - RX error!!!!\n", __func__);
@@ -333,11 +326,7 @@ static void	usa26_indat_callback(struct urb *urb)
 				int flag = TTY_NORMAL;
 
 				if (stat & RXERROR_OVERRUN) {
-<<<<<<< HEAD
-					tty_insert_flip_char(tty, 0,
-=======
 					tty_insert_flip_char(&port->port, 0,
->>>>>>> android-3.18
 								TTY_OVERRUN);
 				}
 				/* XXX should handle break (0x10) */
@@ -346,12 +335,8 @@ static void	usa26_indat_callback(struct urb *urb)
 				else if (stat & RXERROR_FRAMING)
 					flag = TTY_FRAME;
 
-<<<<<<< HEAD
-				tty_insert_flip_char(tty, data[i+1], flag);
-=======
 				tty_insert_flip_char(&port->port, data[i+1],
 						flag);
->>>>>>> android-3.18
 			}
 		}
 		tty_flip_buffer_push(&port->port);
@@ -682,11 +667,7 @@ static void	usa49_indat_callback(struct urb *urb)
 				int flag = TTY_NORMAL;
 
 				if (stat & RXERROR_OVERRUN) {
-<<<<<<< HEAD
-					tty_insert_flip_char(tty, 0,
-=======
 					tty_insert_flip_char(&port->port, 0,
->>>>>>> android-3.18
 								TTY_OVERRUN);
 				}
 				/* XXX should handle break (0x10) */
@@ -695,12 +676,8 @@ static void	usa49_indat_callback(struct urb *urb)
 				else if (stat & RXERROR_FRAMING)
 					flag = TTY_FRAME;
 
-<<<<<<< HEAD
-				tty_insert_flip_char(tty, data[i+1], flag);
-=======
 				tty_insert_flip_char(&port->port, data[i+1],
 						flag);
->>>>>>> android-3.18
 			}
 		}
 		tty_flip_buffer_push(&port->port);
@@ -742,35 +719,6 @@ static void usa49wg_indat_callback(struct urb *urb)
 		port = serial->port[data[i++]];
 		len = data[i++];
 
-<<<<<<< HEAD
-			/* 0x80 bit is error flag */
-			if ((data[i] & 0x80) == 0) {
-				/* no error on any byte */
-				i++;
-				for (x = 1; x < len ; ++x)
-					tty_insert_flip_char(tty, data[i++], 0);
-			} else {
-				/*
-				 * some bytes had errors, every byte has status
-				 */
-				for (x = 0; x + 1 < len; x += 2) {
-					int stat = data[i];
-					int flag = TTY_NORMAL;
-
-					if (stat & RXERROR_OVERRUN) {
-						tty_insert_flip_char(tty, 0,
-								TTY_OVERRUN);
-					}
-					/* XXX should handle break (0x10) */
-					if (stat & RXERROR_PARITY)
-						flag = TTY_PARITY;
-					else if (stat & RXERROR_FRAMING)
-						flag = TTY_FRAME;
-
-					tty_insert_flip_char(tty,
-							data[i+1], flag);
-					i += 2;
-=======
 		/* 0x80 bit is error flag */
 		if ((data[i] & 0x80) == 0) {
 			/* no error on any byte */
@@ -790,7 +738,6 @@ static void usa49wg_indat_callback(struct urb *urb)
 				if (stat & RXERROR_OVERRUN) {
 					tty_insert_flip_char(&port->port, 0,
 								TTY_OVERRUN);
->>>>>>> android-3.18
 				}
 				/* XXX should handle break (0x10) */
 				if (stat & RXERROR_PARITY)
@@ -850,21 +797,12 @@ static void usa90_indat_callback(struct urb *urb)
 				/* no errors on individual bytes, only
 				   possible overrun err*/
 				if (data[0] & RXERROR_OVERRUN) {
-<<<<<<< HEAD
-					tty_insert_flip_char(tty, 0,
-								TTY_OVERRUN);
-				}
-				for (i = 1; i < urb->actual_length ; ++i)
-					tty_insert_flip_char(tty, data[i],
-								TTY_NORMAL);
-=======
 					tty_insert_flip_char(&port->port, 0,
 								TTY_OVERRUN);
 				}
 				for (i = 1; i < urb->actual_length ; ++i)
 					tty_insert_flip_char(&port->port,
 							data[i], TTY_NORMAL);
->>>>>>> android-3.18
 			}  else {
 			/* some bytes had errors, every byte has status */
 				dev_dbg(&port->dev, "%s - RX error!!!!\n", __func__);
@@ -874,29 +812,17 @@ static void usa90_indat_callback(struct urb *urb)
 
 					if (stat & RXERROR_OVERRUN) {
 						tty_insert_flip_char(
-<<<<<<< HEAD
-								tty, 0,
-								TTY_OVERRUN);
-					}
-
-=======
 								&port->port, 0,
 								TTY_OVERRUN);
 					}
->>>>>>> android-3.18
 					/* XXX should handle break (0x10) */
 					if (stat & RXERROR_PARITY)
 						flag = TTY_PARITY;
 					else if (stat & RXERROR_FRAMING)
 						flag = TTY_FRAME;
 
-<<<<<<< HEAD
-					tty_insert_flip_char(tty, data[i+1],
-									flag);
-=======
 					tty_insert_flip_char(&port->port,
 							data[i+1], flag);
->>>>>>> android-3.18
 				}
 			}
 		}
@@ -1272,29 +1198,10 @@ static int keyspan_fake_startup(struct usb_serial *serial)
 
 	dev_dbg(&serial->dev->dev, "Uploading Keyspan %s firmware.\n", fw_name);
 
-<<<<<<< HEAD
-		/* download the firmware image */
-	response = ezusb_set_reset(serial, 1);
-
-	record = (const struct ihex_binrec *)fw->data;
-
-	while (record) {
-		response = ezusb_writememory(serial, be32_to_cpu(record->addr),
-					     (unsigned char *)record->data,
-					     be16_to_cpu(record->len), 0xa0);
-		if (response < 0) {
-			dev_err(&serial->dev->dev, "ezusb_writememory failed for Keyspan firmware (%d %04X %pK %d)\n",
-				response, be32_to_cpu(record->addr),
-				record->data, be16_to_cpu(record->len));
-			break;
-		}
-		record = ihex_next_binrec(record);
-=======
 	if (ezusb_fx1_ihex_firmware_download(serial->dev, fw_name) < 0) {
 		dev_err(&serial->dev->dev, "failed to load firmware \"%s\"\n",
 			fw_name);
 		return -ENOENT;
->>>>>>> android-3.18
 	}
 
 	/* after downloading firmware Renumeration will occur in a
@@ -1368,11 +1275,7 @@ static struct urb *keyspan_setup_urb(struct usb_serial *serial, int endpoint,
 		return NULL;
 	}
 
-<<<<<<< HEAD
-	dbg("%s - using urb %pK for %s endpoint %x",
-=======
 	dev_dbg(&serial->interface->dev, "%s - using urb %p for %s endpoint %x\n",
->>>>>>> android-3.18
 	    __func__, urb, ep_type_name, endpoint);
 	return urb;
 }
@@ -1665,10 +1568,6 @@ static int keyspan_usa26_send_setup(struct usb_serial *serial,
 	d_details = s_priv->device_details;
 	device_port = port->port_number;
 
-<<<<<<< HEAD
-	outcont_urb = d_details->outcont_endpoints[device_port];
-=======
->>>>>>> android-3.18
 	this_urb = p_priv->outcont_urb;
 
 		/* Make sure we have an urb then send the message */

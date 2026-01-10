@@ -484,24 +484,9 @@ static int wm8994_device_init(struct wm8994 *wm8994, int irq)
 		/* Revision C did not change the relevant layer */
 		if (wm8994->revision > 1)
 			wm8994->revision++;
-<<<<<<< HEAD
-		switch (wm8994->revision) {
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-			regmap_patch = wm1811_reva_patch;
-			patch_regs = ARRAY_SIZE(wm1811_reva_patch);
-			break;
-		default:
-			break;
-		}
-=======
 
 		regmap_patch = wm1811_reva_patch;
 		patch_regs = ARRAY_SIZE(wm1811_reva_patch);
->>>>>>> android-3.18
 		break;
 
 	default:

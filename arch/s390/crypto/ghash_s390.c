@@ -81,12 +81,8 @@ static int ghash_update(struct shash_desc *desc,
 	n = srclen & ~(GHASH_BLOCK_SIZE - 1);
 	if (n) {
 		ret = crypt_s390_kimd(KIMD_GHASH, dctx, src, n);
-<<<<<<< HEAD
-		BUG_ON(ret != n);
-=======
 		if (ret != n)
 			return -EIO;
->>>>>>> android-3.18
 		src += n;
 		srclen -= n;
 	}
@@ -110,12 +106,6 @@ static int ghash_flush(struct ghash_desc_ctx *dctx)
 		memset(pos, 0, dctx->bytes);
 
 		ret = crypt_s390_kimd(KIMD_GHASH, dctx, buf, GHASH_BLOCK_SIZE);
-<<<<<<< HEAD
-		BUG_ON(ret != GHASH_BLOCK_SIZE);
-
-		dctx->bytes = 0;
-	}
-=======
 		if (ret != GHASH_BLOCK_SIZE)
 			return -EIO;
 
@@ -123,19 +113,12 @@ static int ghash_flush(struct ghash_desc_ctx *dctx)
 	}
 
 	return 0;
->>>>>>> android-3.18
 }
 
 static int ghash_final(struct shash_desc *desc, u8 *dst)
 {
 	struct ghash_desc_ctx *dctx = shash_desc_ctx(desc);
-<<<<<<< HEAD
-
-	ghash_flush(dctx);
-	memcpy(dst, dctx->icv, GHASH_BLOCK_SIZE);
-=======
 	int ret;
->>>>>>> android-3.18
 
 	ret = ghash_flush(dctx);
 	if (!ret)

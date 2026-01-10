@@ -428,8 +428,6 @@ static u8 ds2482_w1_reset_bus(void *data)
 	return retval;
 }
 
-<<<<<<< HEAD
-=======
 static u8 ds2482_w1_set_pullup(void *data, int delay)
 {
 	struct ds2482_w1_chan *pchan = data;
@@ -456,7 +454,6 @@ static u8 ds2482_w1_set_pullup(void *data, int delay)
 	return retval;
 }
 
->>>>>>> android-3.18
 static int ds2482_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);

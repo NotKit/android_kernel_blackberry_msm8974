@@ -159,12 +159,7 @@ enum {
 	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
 	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
 					/* add others here before... */
-<<<<<<< HEAD
-	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
-	SWP_FAST	= (1 << 10),	/* blkdev access is fast and cheap */
-=======
 	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
->>>>>>> android-3.18
 };
 
 #define SWAP_CLUSTER_MAX 32UL
@@ -239,27 +234,14 @@ struct swap_info_struct {
 	struct block_device *bdev;	/* swap device or bdev of swap file */
 	struct file *swap_file;		/* seldom referenced */
 	unsigned int old_block_size;	/* seldom referenced */
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_FRONTSWAP
 	unsigned long *frontswap_map;	/* frontswap in-use, one bit per page */
 	atomic_t frontswap_pages;	/* frontswap pages in-use counter */
 #endif
->>>>>>> android-3.18
 	spinlock_t lock;		/*
 					 * protect map scan related fields like
 					 * swap_map, lowest_bit, highest_bit,
 					 * inuse_pages, cluster_next,
-<<<<<<< HEAD
-					 * cluster_nr, lowest_alloc and
-					 * highest_alloc. other fields are only
-					 * changed at swapon/swapoff, so are
-					 * protected by swap_lock. changing
-					 * flags need hold this lock and
-					 * swap_lock. If both locks need hold,
-					 * hold swap_lock first.
-					 */
-=======
 					 * cluster_nr, lowest_alloc,
 					 * highest_alloc, free/discard cluster
 					 * list. other fields are only changed
@@ -272,7 +254,6 @@ struct swap_info_struct {
 	struct work_struct discard_work; /* discard worker */
 	struct swap_cluster_info discard_cluster_head; /* list head of discard clusters */
 	struct swap_cluster_info discard_cluster_tail; /* list tail of discard clusters */
->>>>>>> android-3.18
 };
 
 /* linux/mm/workingset.c */
@@ -281,8 +262,6 @@ bool workingset_refault(void *shadow);
 void workingset_activation(struct page *page);
 extern struct list_lru workingset_shadow_nodes;
 
-<<<<<<< HEAD
-=======
 static inline unsigned int workingset_node_pages(struct radix_tree_node *node)
 {
 	return node->count & RADIX_TREE_COUNT_MASK;
@@ -315,7 +294,6 @@ static inline void workingset_node_shadows_dec(struct radix_tree_node *node)
 	node->count -= 1U << RADIX_TREE_COUNT_SHIFT;
 }
 
->>>>>>> android-3.18
 /* linux/mm/page_alloc.c */
 extern unsigned long totalram_pages;
 extern unsigned long totalreserve_pages;
@@ -351,15 +329,10 @@ extern void lru_cache_add_active_or_unevictable(struct page *page,
 extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
 					gfp_t gfp_mask, nodemask_t *mask);
 extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
-<<<<<<< HEAD
-extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
-						  gfp_t gfp_mask, bool noswap);
-=======
 extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
 						  unsigned long nr_pages,
 						  gfp_t gfp_mask,
 						  bool may_swap);
->>>>>>> android-3.18
 extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
 						gfp_t gfp_mask, bool noswap,
 						struct zone *zone,
@@ -442,25 +415,10 @@ extern struct page *swapin_readahead(swp_entry_t, gfp_t,
 /* linux/mm/swapfile.c */
 extern atomic_long_t nr_swap_pages;
 extern long total_swap_pages;
-<<<<<<< HEAD
-extern bool is_swap_fast(swp_entry_t entry);
-
-/* Swap 50% full? Release swapcache more aggressively.. */
-static inline bool vm_swap_full(struct swap_info_struct *si)
-{
-	/*
-	 * If the swap device is fast, return true
-	 * not to delay swap free.
-	 */
-	if (si->flags & SWP_FAST)
-		return true;
-
-=======
 
 /* Swap 50% full? Release swapcache more aggressively.. */
 static inline bool vm_swap_full(void)
 {
->>>>>>> android-3.18
 	return atomic_long_read(&nr_swap_pages) * 2 < total_swap_pages;
 }
 
@@ -483,23 +441,14 @@ extern int swap_type_of(dev_t, sector_t, struct block_device **);
 extern unsigned int count_swap_pages(int, int);
 extern sector_t map_swap_page(struct page *, struct block_device **);
 extern sector_t swapdev_block(int, pgoff_t);
-<<<<<<< HEAD
-extern struct swap_info_struct *page_swap_info(struct page *);
-extern int page_swapcount(struct page *);
-=======
 extern int page_swapcount(struct page *);
 extern int swp_swapcount(swp_entry_t entry);
 extern struct swap_info_struct *page_swap_info(struct page *);
->>>>>>> android-3.18
 extern int reuse_swap_page(struct page *);
 extern int try_to_free_swap(struct page *);
 struct backing_dev_info;
 
-<<<<<<< HEAD
-#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-=======
 #ifdef CONFIG_MEMCG
->>>>>>> android-3.18
 extern void
 mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
 #else
@@ -511,18 +460,11 @@ mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout)
 
 #else /* CONFIG_SWAP */
 
-<<<<<<< HEAD
-#define get_nr_swap_pages()			0L
-#define total_swap_pages			0L
-#define total_swapcache_pages()			0UL
-#define vm_swap_full(si)			0
-=======
 #define swap_address_space(entry)		(NULL)
 #define get_nr_swap_pages()			0L
 #define total_swap_pages			0L
 #define total_swapcache_pages()			0UL
 #define vm_swap_full()				0
->>>>>>> android-3.18
 
 #define si_swapinfo(val) \
 	do { (val)->freeswap = (val)->totalswap = 0; } while (0)
@@ -598,22 +540,10 @@ static inline void delete_from_swap_cache(struct page *page)
 }
 
 static inline int page_swapcount(struct page *page)
-<<<<<<< HEAD
 {
 	return 0;
 }
 
-#define reuse_swap_page(page)	(page_mapcount(page) == 1)
-
-static inline int try_to_free_swap(struct page *page)
-=======
->>>>>>> android-3.18
-{
-	return 0;
-}
-
-<<<<<<< HEAD
-=======
 static inline int swp_swapcount(swp_entry_t entry)
 {
 	return 0;
@@ -626,7 +556,6 @@ static inline int try_to_free_swap(struct page *page)
 	return 0;
 }
 
->>>>>>> android-3.18
 static inline swp_entry_t get_swap_page(void)
 {
 	swp_entry_t entry;

@@ -239,25 +239,5 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...);
 
 int kobject_action_type(const char *buf, size_t count,
 			enum kobject_action *type);
-<<<<<<< HEAD
-#else
-static inline int kobject_uevent(struct kobject *kobj,
-				 enum kobject_action action)
-{ return 0; }
-static inline int kobject_uevent_env(struct kobject *kobj,
-				      enum kobject_action action,
-				      char *envp[])
-{ return 0; }
-
-static inline __printf(2, 3)
-int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
-{ return -ENOMEM; }
-
-static inline int kobject_action_type(const char *buf, size_t count,
-				      enum kobject_action *type)
-{ return -EINVAL; }
-#endif
-=======
->>>>>>> android-3.18
 
 #endif /* _KOBJECT_H_ */

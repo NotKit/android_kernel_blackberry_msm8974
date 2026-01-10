@@ -818,11 +818,8 @@ static int kxtj9_parse_dt(struct device *dev,
 static int kxtj9_probe(struct i2c_client *client,
 				 const struct i2c_device_id *id)
 {
-<<<<<<< HEAD
-=======
 	const struct kxtj9_platform_data *pdata =
 			dev_get_platdata(&client->dev);
->>>>>>> android-3.18
 	struct kxtj9_data *tj9;
 	int err;
 

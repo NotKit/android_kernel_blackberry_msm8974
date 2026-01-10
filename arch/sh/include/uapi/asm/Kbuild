@@ -1,8 +1,6 @@
 # UAPI Header export list
 include include/uapi/asm-generic/Kbuild.asm
 
-<<<<<<< HEAD
-=======
 header-y += auxvec.h
 header-y += byteorder.h
 header-y += cachectl.h
@@ -25,4 +23,3 @@ header-y += types.h
 header-y += unistd.h
 header-y += unistd_32.h
 header-y += unistd_64.h
->>>>>>> android-3.18

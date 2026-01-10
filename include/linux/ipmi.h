@@ -35,13 +35,6 @@
 
 #include <uapi/linux/ipmi.h>
 
-<<<<<<< HEAD
-
-/*
- * The in-kernel interface.
- */
-=======
->>>>>>> android-3.18
 #include <linux/list.h>
 #include <linux/proc_fs.h>
 

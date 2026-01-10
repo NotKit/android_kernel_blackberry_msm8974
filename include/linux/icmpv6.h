@@ -8,8 +8,6 @@ static inline struct icmp6hdr *icmp6_hdr(const struct sk_buff *skb)
 {
 	return (struct icmp6hdr *)skb_transport_header(skb);
 }
-<<<<<<< HEAD
-=======
 
 #include <linux/netdevice.h>
 
@@ -21,7 +19,6 @@ extern int inet6_register_icmp_sender(ip6_icmp_send_t *fn);
 extern int inet6_unregister_icmp_sender(ip6_icmp_send_t *fn);
 
 #else
->>>>>>> android-3.18
 
 static inline void icmpv6_send(struct sk_buff *skb,
 			       u8 type, u8 code, __u32 info)

@@ -98,11 +98,7 @@ void __init orion5x_eth_init(struct mv643xx_eth_platform_data *eth_data)
 {
 	orion_ge00_init(eth_data,
 			ORION5X_ETH_PHYS_BASE, IRQ_ORION5X_ETH_SUM,
-<<<<<<< HEAD
-			IRQ_ORION5X_ETH_ERR, orion5x_tclk,
-=======
 			IRQ_ORION5X_ETH_ERR,
->>>>>>> android-3.18
 			MV643XX_TX_CSUM_DEFAULT_LIMIT);
 }
 

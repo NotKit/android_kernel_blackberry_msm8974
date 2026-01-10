@@ -23,12 +23,7 @@
  */
 void __ref ux500_cpu_die(unsigned int cpu)
 {
-<<<<<<< HEAD
-
-	/* we put the platform to just WFI */
-=======
 	/* directly enter low power state, skipping secure registers */
->>>>>>> android-3.18
 	for (;;) {
 		__asm__ __volatile__("dsb\n\t" "wfi\n\t"
 				: : : "memory");

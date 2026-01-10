@@ -99,13 +99,8 @@ int dm_linear_map(struct dm_target *ti, struct bio *bio)
 }
 EXPORT_SYMBOL_GPL(dm_linear_map);
 
-<<<<<<< HEAD
-static void linear_status(struct dm_target *ti, status_type_t type,
-			  char *result, unsigned int maxlen)
-=======
 void dm_linear_status(struct dm_target *ti, status_type_t type,
 			  unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	struct linear_c *lc = (struct linear_c *) ti->private;
 

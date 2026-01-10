@@ -15,36 +15,15 @@
 #include <linux/freezer.h>
 #include <linux/kthread.h>
 #include <linux/scatterlist.h>
-<<<<<<< HEAD
-#include <linux/bitops.h>
-
-#include <linux/mmc/card.h>
-#include <linux/mmc/host.h>
-#include <linux/sched.h>
-=======
 #include <linux/dma-mapping.h>
 
 #include <linux/mmc/card.h>
 #include <linux/mmc/host.h>
 #include <linux/sched/rt.h>
->>>>>>> android-3.18
 #include "queue.h"
 
 #define MMC_QUEUE_BOUNCESZ	65536
 
-<<<<<<< HEAD
-
-#define MMC_REQ_SPECIAL_MASK	(REQ_DISCARD | REQ_FLUSH)
-
-/*
- * Based on benchmark tests the default num of requests to trigger the write
- * packing was determined, to keep the read latency as low as possible and
- * manage to keep the high write throughput.
- */
-#define DEFAULT_NUM_REQS_TO_START_PACK 17
-
-=======
->>>>>>> android-3.18
 /*
  * Prepare a MMC request. This just filters out odd stuff.
  */
@@ -72,30 +51,17 @@ static int mmc_queue_thread(void *d)
 {
 	struct mmc_queue *mq = d;
 	struct request_queue *q = mq->queue;
-<<<<<<< HEAD
-	struct mmc_card *card = mq->card;
-
-        struct sched_param scheduler_params = {0};
-        scheduler_params.sched_priority = 1;
-
-        sched_setscheduler(current, SCHED_FIFO, &scheduler_params);
-=======
 	struct sched_param scheduler_params = {0};
 
 	scheduler_params.sched_priority = 1;
 
 	sched_setscheduler(current, SCHED_FIFO, &scheduler_params);
->>>>>>> android-3.18
 
 	current->flags |= PF_MEMALLOC;
 
 	down(&mq->thread_sem);
 	do {
 		struct mmc_queue_req *tmp;
-<<<<<<< HEAD
-		struct request *req = NULL;
-=======
->>>>>>> android-3.18
 		unsigned int cmd_flags = 0;
 
 		spin_lock_irq(q->queue_lock);
@@ -108,26 +74,9 @@ static int mmc_queue_thread(void *d)
 			set_current_state(TASK_RUNNING);
 			cmd_flags = req ? req->cmd_flags : 0;
 			mq->issue_fn(mq, req);
-<<<<<<< HEAD
-			if (test_bit(MMC_QUEUE_NEW_REQUEST, &mq->flags)) {
-				continue; /* fetch again */
-			} else if (test_bit(MMC_QUEUE_URGENT_REQUEST,
-					&mq->flags) && (mq->mqrq_cur->req &&
-					!(cmd_flags &
-						MMC_REQ_NOREINSERT_MASK))) {
-				/*
-				 * clean current request when urgent request
-				 * processing in progress and current request is
-				 * not urgent (all existing requests completed
-				 * or reinserted to the block layer
-				 */
-				mq->mqrq_cur->brq.mrq.data = NULL;
-				mq->mqrq_cur->req = NULL;
-=======
 			if (mq->flags & MMC_QUEUE_NEW_REQUEST) {
 				mq->flags &= ~MMC_QUEUE_NEW_REQUEST;
 				continue; /* fetch again */
->>>>>>> android-3.18
 			}
 
 			/*
@@ -308,20 +257,6 @@ int mmc_init_queue(struct mmc_queue *mq, struct mmc_card *card,
 	if (!mq->queue)
 		return -ENOMEM;
 
-<<<<<<< HEAD
-	if ((host->caps2 & MMC_CAP2_STOP_REQUEST) &&
-			host->ops->stop_request &&
-			mq->card->ext_csd.hpi_en)
-		blk_urgent_request(mq->queue, mmc_urgent_request);
-
-	memset(&mq->mqrq_cur, 0, sizeof(mq->mqrq_cur));
-	memset(&mq->mqrq_prev, 0, sizeof(mq->mqrq_prev));
-
-	INIT_LIST_HEAD(&mqrq_cur->packed_list);
-	INIT_LIST_HEAD(&mqrq_prev->packed_list);
-
-=======
->>>>>>> android-3.18
 	mq->mqrq_cur = mqrq_cur;
 	mq->mqrq_prev = mqrq_prev;
 	mq->queue->queuedata = mq;
@@ -608,28 +543,6 @@ void mmc_queue_resume(struct mmc_queue *mq)
 }
 
 static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
-<<<<<<< HEAD
-					    struct mmc_queue_req *mqrq,
-					    struct scatterlist *sg)
-{
-	struct scatterlist *__sg;
-	unsigned int sg_len = 0;
-	struct request *req;
-	enum mmc_packed_cmd cmd;
-
-	cmd = mqrq->packed_cmd;
-
-	if (cmd == MMC_PACKED_WRITE) {
-		__sg = sg;
-		sg_set_buf(__sg, mqrq->packed_cmd_hdr,
-				sizeof(mqrq->packed_cmd_hdr));
-		sg_len++;
-		__sg->page_link &= ~0x02;
-	}
-
-	__sg = sg + sg_len;
-	list_for_each_entry(req, &mqrq->packed_list, queuelist) {
-=======
 					    struct mmc_packed *packed,
 					    struct scatterlist *sg,
 					    enum mmc_packed_type cmd_type)
@@ -656,7 +569,6 @@ static unsigned int mmc_queue_packed_map_sg(struct mmc_queue *mq,
 	}
 
 	list_for_each_entry(req, &packed->list, queuelist) {
->>>>>>> android-3.18
 		sg_len += blk_rq_map_sg(mq->queue, req, __sg);
 		__sg = sg + (sg_len - 1);
 		(__sg++)->page_link &= ~0x02;
@@ -676,32 +588,21 @@ unsigned int mmc_queue_map_sg(struct mmc_queue *mq, struct mmc_queue_req *mqrq)
 	enum mmc_packed_type cmd_type;
 	int i;
 
-<<<<<<< HEAD
-	if (!mqrq->bounce_buf) {
-		if (!list_empty(&mqrq->packed_list))
-			return mmc_queue_packed_map_sg(mq, mqrq, mqrq->sg);
-=======
 	cmd_type = mqrq->cmd_type;
 
 	if (!mqrq->bounce_buf) {
 		if (mmc_packed_cmd(cmd_type))
 			return mmc_queue_packed_map_sg(mq, mqrq->packed,
 						       mqrq->sg, cmd_type);
->>>>>>> android-3.18
 		else
 			return blk_rq_map_sg(mq->queue, mqrq->req, mqrq->sg);
 	}
 
 	BUG_ON(!mqrq->bounce_sg);
 
-<<<<<<< HEAD
-	if (!list_empty(&mqrq->packed_list))
-		sg_len = mmc_queue_packed_map_sg(mq, mqrq, mqrq->bounce_sg);
-=======
 	if (mmc_packed_cmd(cmd_type))
 		sg_len = mmc_queue_packed_map_sg(mq, mqrq->packed,
 						 mqrq->bounce_sg, cmd_type);
->>>>>>> android-3.18
 	else
 		sg_len = blk_rq_map_sg(mq->queue, mqrq->req, mqrq->bounce_sg);
 

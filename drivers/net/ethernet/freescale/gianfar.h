@@ -1109,19 +1109,6 @@ struct gfar_private {
 	phy_interface_t interface;
 	struct device_node *phy_node;
 	struct device_node *tbi_node;
-<<<<<<< HEAD
-	u32 device_flags;
-	unsigned char
-		extended_hash:1,
-		bd_stash_en:1,
-		rx_filer_enable:1,
-		wol_en:1, /* Wake-on-LAN enabled */
-		prio_sched_en:1; /* Enable priorty based Tx scheduling in Hw */
-	unsigned short padding;
-
-	/* PHY stuff */
-=======
->>>>>>> android-3.18
 	struct phy_device *phydev;
 	struct mii_bus *mii_bus;
 	int oldspeed;

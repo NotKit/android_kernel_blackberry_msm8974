@@ -2,10 +2,6 @@
 #define _LINUX_IRQNR_H
 
 #include <uapi/linux/irqnr.h>
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 
 
 extern int nr_irqs;

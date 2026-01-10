@@ -310,11 +310,7 @@ validate_fini_no_ticket(struct validate_op *op, struct nouveau_fence *fence,
 		b = &pbbo[nvbo->pbbo_index];
 
 		if (likely(fence))
-<<<<<<< HEAD
-			nouveau_bo_fence(nvbo, fence);
-=======
 			nouveau_bo_fence(nvbo, fence, !!b->write_domains);
->>>>>>> android-3.18
 
 		if (unlikely(nvbo->validate_mapped)) {
 			ttm_bo_kunmap(&nvbo->kmap);

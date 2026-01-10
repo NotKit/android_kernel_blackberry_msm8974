@@ -162,19 +162,6 @@ static int restore_sigregs(struct pt_regs *regs, _sigregs __user *sregs)
 	_sigregs user_sregs;
 
 	/* Alwys make any pending restarted system call return -EINTR */
-<<<<<<< HEAD
-	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-
-	err = __copy_from_user(&user_sregs, sregs, sizeof(_sigregs));
-	if (err)
-		return err;
-	/* Use regs->psw.mask instead of psw_user_bits to preserve PER bit. */
-	regs->psw.mask = (regs->psw.mask & ~PSW_MASK_USER) |
-		(user_sregs.regs.psw.mask & PSW_MASK_USER);
-	/* Check for invalid user address space control. */
-	if ((regs->psw.mask & PSW_MASK_ASC) >= (psw_kernel_bits & PSW_MASK_ASC))
-		regs->psw.mask = (psw_user_bits & PSW_MASK_ASC) |
-=======
 	current->restart_block.fn = do_no_restart_syscall;
 
 	if (__copy_from_user(&user_sregs, sregs, sizeof(user_sregs)))
@@ -193,7 +180,6 @@ static int restore_sigregs(struct pt_regs *regs, _sigregs __user *sregs)
 	/* Check for invalid user address space control. */
 	if ((regs->psw.mask & PSW_MASK_ASC) == PSW_ASC_HOME)
 		regs->psw.mask = PSW_ASC_PRIMARY |
->>>>>>> android-3.18
 			(regs->psw.mask & ~PSW_MASK_ASC);
 	/* Check for invalid amode */
 	if (regs->psw.mask & PSW_MASK_EA)
@@ -396,11 +382,7 @@ static int setup_frame(int sig, struct k_sigaction *ka,
 	regs->gprs[15] = (unsigned long) frame;
 	/* Force default amode and default user address space control. */
 	regs->psw.mask = PSW_MASK_EA | PSW_MASK_BA |
-<<<<<<< HEAD
-		(psw_user_bits & PSW_MASK_ASC) |
-=======
 		(PSW_USER_BITS & PSW_MASK_ASC) |
->>>>>>> android-3.18
 		(regs->psw.mask & ~PSW_MASK_ASC);
 	regs->psw.addr = (unsigned long) ka->sa.sa_handler | PSW_ADDR_AMODE;
 
@@ -482,15 +464,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	regs->gprs[15] = (unsigned long) frame;
 	/* Force default amode and default user address space control. */
 	regs->psw.mask = PSW_MASK_EA | PSW_MASK_BA |
-<<<<<<< HEAD
-		(psw_user_bits & PSW_MASK_ASC) |
-		(regs->psw.mask & ~PSW_MASK_ASC);
-	regs->psw.addr = (unsigned long) ka->sa.sa_handler | PSW_ADDR_AMODE;
-=======
 		(PSW_USER_BITS & PSW_MASK_ASC) |
 		(regs->psw.mask & ~PSW_MASK_ASC);
 	regs->psw.addr = (unsigned long) ksig->ka.sa.sa_handler | PSW_ADDR_AMODE;
->>>>>>> android-3.18
 
 	regs->gprs[2] = map_signal(ksig->sig);
 	regs->gprs[3] = (unsigned long) &frame->info;

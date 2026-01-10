@@ -39,19 +39,12 @@ static void _drbd_start_io_acct(struct drbd_device *device, struct drbd_request 
 	const int rw = bio_data_dir(req->master_bio);
 	int cpu;
 	cpu = part_stat_lock();
-<<<<<<< HEAD
-	part_round_stats(cpu, &mdev->vdisk->part0);
-	part_stat_inc(cpu, &mdev->vdisk->part0, ios[rw]);
-	part_stat_add(cpu, &mdev->vdisk->part0, sectors[rw], bio_sectors(bio));
-	part_inc_in_flight(&mdev->vdisk->part0, rw);
-=======
 	part_round_stats(cpu, &device->vdisk->part0);
 	part_stat_inc(cpu, &device->vdisk->part0, ios[rw]);
 	part_stat_add(cpu, &device->vdisk->part0, sectors[rw], req->i.size >> 9);
 	(void) cpu; /* The macro invocations above want the cpu argument, I do not like
 		       the compiler warning about cpu only assigned but never used... */
 	part_inc_in_flight(&device->vdisk->part0, rw);
->>>>>>> android-3.18
 	part_stat_unlock();
 }
 
@@ -1552,11 +1545,7 @@ int drbd_merge_bvec(struct request_queue *q, struct bvec_merge_data *bvm, struct
 		struct request_queue * const b =
 			device->ldev->backing_bdev->bd_disk->queue;
 		if (b->merge_bvec_fn) {
-<<<<<<< HEAD
-			bvm->bi_bdev = mdev->ldev->backing_bdev;
-=======
 			bvm->bi_bdev = device->ldev->backing_bdev;
->>>>>>> android-3.18
 			backing_limit = b->merge_bvec_fn(b, bvm, bvec);
 			limit = min(limit, backing_limit);
 		}

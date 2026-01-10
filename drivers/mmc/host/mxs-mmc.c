@@ -529,11 +529,7 @@ static void mxs_mmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
 		writel(BM_SSP_CTRL0_SDIO_IRQ_CHECK,
 		       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
 		writel(BM_SSP_CTRL1_SDIO_IRQ_EN,
-<<<<<<< HEAD
-		       host->base + HW_SSP_CTRL1 + MXS_SET_ADDR);
-=======
 		       ssp->base + HW_SSP_CTRL1(ssp) + STMP_OFFSET_REG_SET);
->>>>>>> android-3.18
 	} else {
 		writel(BM_SSP_CTRL0_SDIO_IRQ_CHECK,
 		       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
@@ -543,12 +539,8 @@ static void mxs_mmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
 
 	spin_unlock_irqrestore(&host->lock, flags);
 
-<<<<<<< HEAD
-	if (enable && readl(host->base + HW_SSP_STATUS) & BM_SSP_STATUS_SDIO_IRQ)
-=======
 	if (enable && readl(ssp->base + HW_SSP_STATUS(ssp)) &
 			BM_SSP_STATUS_SDIO_IRQ)
->>>>>>> android-3.18
 		mmc_signal_sdio_irq(host->mmc);
 
 }

@@ -29,21 +29,10 @@
 #include "hardware.h"
 #include "iomux-mx21.h"
 
-<<<<<<< HEAD
-/*
- * Memory-mapped I/O on MX21ADS base board
- */
-#define MX21ADS_MMIO_BASE_ADDR   0xf5000000
-#define MX21ADS_MMIO_SIZE        0xc00000
-
-#define MX21ADS_REG_ADDR(offset)    (void __force __iomem *) \
-		(MX21ADS_MMIO_BASE_ADDR + (offset))
-=======
 #define MX21ADS_CS8900A_REG		(MX21_CS1_BASE_ADDR + 0x000000)
 #define MX21ADS_ST16C255_IOBASE_REG	(MX21_CS1_BASE_ADDR + 0x200000)
 #define MX21ADS_VERSION_REG		(MX21_CS1_BASE_ADDR + 0x400000)
 #define MX21ADS_IO_REG			(MX21_CS1_BASE_ADDR + 0x800000)
->>>>>>> android-3.18
 
 #define MX21ADS_MMC_CD			IMX_GPIO_NR(4, 25)
 #define MX21ADS_CS8900A_IRQ_GPIO	IMX_GPIO_NR(5, 11)

@@ -64,11 +64,6 @@ struct file_operations;
 struct vfsmount;
 struct dentry;
 
-<<<<<<< HEAD
-extern void __init files_defer_init(void);
-
-static inline struct file * fcheck_files(struct files_struct *files, unsigned int fd)
-=======
 #define rcu_dereference_check_fdtable(files, fdtfd) \
 	rcu_dereference_check((fdtfd), lockdep_is_held(&(files)->file_lock))
 
@@ -90,7 +85,6 @@ static inline struct file *__fcheck_files(struct files_struct *files, unsigned i
 }
 
 static inline struct file *fcheck_files(struct files_struct *files, unsigned int fd)
->>>>>>> android-3.18
 {
 	rcu_lockdep_assert(rcu_read_lock_held() ||
 			   lockdep_is_held(&files->file_lock),

@@ -151,23 +151,6 @@ identity_mapped:
 
 	testq	%r11, %r11
 	jnz 1f
-<<<<<<< HEAD
-	xorq	%rax, %rax
-	xorq	%rbx, %rbx
-	xorq    %rcx, %rcx
-	xorq    %rdx, %rdx
-	xorq    %rsi, %rsi
-	xorq    %rdi, %rdi
-	xorq    %rbp, %rbp
-	xorq	%r8,  %r8
-	xorq	%r9,  %r9
-	xorq	%r10, %r10
-	xorq	%r11, %r11
-	xorq	%r12, %r12
-	xorq	%r13, %r13
-	xorq	%r14, %r14
-	xorq	%r15, %r15
-=======
 	xorl	%eax, %eax
 	xorl	%ebx, %ebx
 	xorl    %ecx, %ecx
@@ -183,7 +166,6 @@ identity_mapped:
 	xorl	%r13d, %r13d
 	xorl	%r14d, %r14d
 	xorl	%r15d, %r15d
->>>>>>> android-3.18
 
 	ret
 

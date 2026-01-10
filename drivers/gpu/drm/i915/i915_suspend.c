@@ -268,24 +268,10 @@ static void i915_restore_display(struct drm_device *dev)
 		I915_WRITE(PFIT_CONTROL, dev_priv->regfile.savePFIT_CONTROL);
 
 	if (HAS_PCH_SPLIT(dev)) {
-<<<<<<< HEAD
-		I915_WRITE(BLC_PWM_PCH_CTL1, dev_priv->saveBLC_PWM_CTL);
-		I915_WRITE(BLC_PWM_PCH_CTL2, dev_priv->saveBLC_PWM_CTL2);
-		/* NOTE: BLC_PWM_CPU_CTL must be written after BLC_PWM_CPU_CTL2;
-		 * otherwise we get blank eDP screen after S3 on some machines
-		 */
-		I915_WRITE(BLC_PWM_CPU_CTL2, dev_priv->saveBLC_CPU_PWM_CTL2);
-		I915_WRITE(BLC_PWM_CPU_CTL, dev_priv->saveBLC_CPU_PWM_CTL);
-		I915_WRITE(PCH_PP_ON_DELAYS, dev_priv->savePP_ON_DELAYS);
-		I915_WRITE(PCH_PP_OFF_DELAYS, dev_priv->savePP_OFF_DELAYS);
-		I915_WRITE(PCH_PP_DIVISOR, dev_priv->savePP_DIVISOR);
-		I915_WRITE(PCH_PP_CONTROL, dev_priv->savePP_CONTROL);
-=======
 		I915_WRITE(PCH_PP_ON_DELAYS, dev_priv->regfile.savePP_ON_DELAYS);
 		I915_WRITE(PCH_PP_OFF_DELAYS, dev_priv->regfile.savePP_OFF_DELAYS);
 		I915_WRITE(PCH_PP_DIVISOR, dev_priv->regfile.savePP_DIVISOR);
 		I915_WRITE(PCH_PP_CONTROL, dev_priv->regfile.savePP_CONTROL);
->>>>>>> android-3.18
 		I915_WRITE(RSTDBYCTL,
 			   dev_priv->regfile.saveMCHBAR_RENDER_STANDBY);
 	} else if (IS_VALLEYVIEW(dev)) {

@@ -141,19 +141,12 @@ static int usb_console_setup(struct console *co, char *options)
 			kref_init(&tty->kref);
 			tty->driver = usb_serial_tty_driver;
 			tty->index = co->index;
-<<<<<<< HEAD
-=======
 			init_ldsem(&tty->ldisc_sem);
->>>>>>> android-3.18
 			INIT_LIST_HEAD(&tty->tty_files);
 			kref_get(&tty->driver->kref);
 			tty->ops = &usb_console_fake_tty_ops;
 			if (tty_init_termios(tty)) {
 				retval = -ENOMEM;
-<<<<<<< HEAD
-				err("no more memory");
-=======
->>>>>>> android-3.18
 				goto put_tty;
 			}
 			tty_port_tty_set(&port->port, tty);

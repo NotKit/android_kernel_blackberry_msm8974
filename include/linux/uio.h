@@ -9,15 +9,10 @@
 #ifndef __LINUX_UIO_H
 #define __LINUX_UIO_H
 
-<<<<<<< HEAD
-#include <uapi/linux/uio.h>
-
-=======
 #include <linux/kernel.h>
 #include <uapi/linux/uio.h>
 
 struct page;
->>>>>>> android-3.18
 
 struct kvec {
 	void *iov_base; /* and that should *never* hold a userland pointer */
@@ -75,8 +70,6 @@ static inline struct iovec iov_iter_iovec(const struct iov_iter *iter)
 	     iov_iter_advance(&(iter), (iov).iov_len))
 
 unsigned long iov_shorten(struct iovec *iov, unsigned long nr_segs, size_t to);
-<<<<<<< HEAD
-=======
 
 size_t iov_iter_copy_from_user_atomic(struct page *page,
 		struct iov_iter *i, unsigned long offset, size_t bytes);
@@ -151,5 +144,4 @@ int memcpy_fromiovecend(unsigned char *kdata, const struct iovec *iov,
 int memcpy_toiovecend(const struct iovec *v, unsigned char *kdata,
 		      int offset, int len);
 
->>>>>>> android-3.18
 #endif

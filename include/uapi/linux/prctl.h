@@ -1,11 +1,8 @@
 #ifndef _LINUX_PRCTL_H
 #define _LINUX_PRCTL_H
 
-<<<<<<< HEAD
-=======
 #include <linux/types.h>
 
->>>>>>> android-3.18
 /* Values to pass as first argument to prctl() */
 
 #define PR_SET_PDEATHSIG  1  /* Second arg is a signal */
@@ -118,8 +115,6 @@
 # define PR_SET_MM_START_STACK		5
 # define PR_SET_MM_START_BRK		6
 # define PR_SET_MM_BRK			7
-<<<<<<< HEAD
-=======
 # define PR_SET_MM_ARG_START		8
 # define PR_SET_MM_ARG_END		9
 # define PR_SET_MM_ENV_START		10
@@ -151,7 +146,6 @@ struct prctl_mm_map {
 	__u32	auxv_size;		/* vector size */
 	__u32	exe_fd;			/* /proc/$pid/exe link file */
 };
->>>>>>> android-3.18
 
 /*
  * Set specific pid that is allowed to ptrace the current task.
@@ -160,13 +154,8 @@ struct prctl_mm_map {
 #define PR_SET_PTRACER 0x59616d61
 # define PR_SET_PTRACER_ANY ((unsigned long)-1)
 
-<<<<<<< HEAD
-#define PR_SET_CHILD_SUBREAPER 36
-#define PR_GET_CHILD_SUBREAPER 37
-=======
 #define PR_SET_CHILD_SUBREAPER	36
 #define PR_GET_CHILD_SUBREAPER	37
->>>>>>> android-3.18
 
 /*
  * If no_new_privs is set, then operations that grant new privileges (i.e.
@@ -179,11 +168,6 @@ struct prctl_mm_map {
  * Changing LSM security domain is considered a new privilege.  So, for example,
  * asking selinux for a specific new context (e.g. with runcon) will result
  * in execve returning -EPERM.
-<<<<<<< HEAD
- */
-#define PR_SET_NO_NEW_PRIVS 38
-#define PR_GET_NO_NEW_PRIVS 39
-=======
  *
  * See Documentation/prctl/no_new_privs.txt for more details.
  */
@@ -194,17 +178,12 @@ struct prctl_mm_map {
 
 #define PR_SET_THP_DISABLE	41
 #define PR_GET_THP_DISABLE	42
->>>>>>> android-3.18
 
 /* Sets the timerslack for arbitrary threads
  * arg2 slack value, 0 means "use default"
  * arg3 pid of the thread whose timer slack needs to be set
  */
-<<<<<<< HEAD
-#define PR_SET_TIMERSLACK_PID 41
-=======
 #define PR_SET_TIMERSLACK_PID 43
->>>>>>> android-3.18
 
 #define PR_SET_VMA		0x53564d41
 # define PR_SET_VMA_ANON_NAME		0

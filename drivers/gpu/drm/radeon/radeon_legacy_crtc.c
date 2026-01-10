@@ -446,11 +446,7 @@ retry:
 		 * We don't shutdown the display controller because new buffer
 		 * will end up in same spot.
 		 */
-<<<<<<< HEAD
-		if (!atomic && fb && fb != crtc->fb) {
-=======
 		if (!atomic && fb && fb != crtc->primary->fb) {
->>>>>>> android-3.18
 			struct radeon_bo *old_rbo;
 			unsigned long nsize, osize;
 

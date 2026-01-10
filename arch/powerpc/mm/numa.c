@@ -670,11 +670,7 @@ static inline int __init read_usm_ranges(const __be32 **usm)
  */
 static void __init parse_drconf_memory(struct device_node *memory)
 {
-<<<<<<< HEAD
-	const u32 *uninitialized_var(dm), *usm;
-=======
 	const __be32 *uninitialized_var(dm), *usm;
->>>>>>> android-3.18
 	unsigned int n, rc, ranges, is_kexec_kdump = 0;
 	unsigned long lmb_size, base, size, sz;
 	int nid;

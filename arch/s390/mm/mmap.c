@@ -106,24 +106,12 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
 
 int s390_mmap_check(unsigned long addr, unsigned long len, unsigned long flags)
 {
-<<<<<<< HEAD
-	int rc;
-
-	if (!is_compat_task() &&
-	    len >= TASK_SIZE && TASK_SIZE < (1UL << 53)) {
-		rc = crst_table_upgrade(current->mm, 1UL << 53);
-		if (rc)
-			return rc;
-		update_mm(current->mm, current);
-	}
-=======
 	if (is_compat_task() || (TASK_SIZE >= (1UL << 53)))
 		return 0;
 	if (!(flags & MAP_FIXED))
 		addr = 0;
 	if ((addr + len) >= TASK_SIZE)
 		return crst_table_upgrade(current->mm, 1UL << 53);
->>>>>>> android-3.18
 	return 0;
 }
 

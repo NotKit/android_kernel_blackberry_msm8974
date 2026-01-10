@@ -225,11 +225,7 @@ struct of_device_id
 	char	name[32];
 	char	type[32];
 	char	compatible[128];
-<<<<<<< HEAD
-	void	*data;
-=======
 	const void *data;
->>>>>>> android-3.18
 };
 
 /* VIO */
@@ -436,29 +432,12 @@ struct spi_device_id {
 	kernel_ulong_t driver_data;	/* Data private to the driver */
 };
 
-<<<<<<< HEAD
-#define SLIMBUS_NAME_SIZE	32
-#define SLIMBUS_MODULE_PREFIX "slim:"
-
-struct slim_device_id {
-	char name[SLIMBUS_NAME_SIZE];
-	kernel_ulong_t driver_data	/* Data private to the driver */
-			__attribute__((aligned(sizeof(kernel_ulong_t))));
-};
-
-=======
->>>>>>> android-3.18
 #define SPMI_NAME_SIZE	32
 #define SPMI_MODULE_PREFIX "spmi:"
 
 struct spmi_device_id {
 	char name[SPMI_NAME_SIZE];
-<<<<<<< HEAD
-	kernel_ulong_t driver_data	/* Data private to the driver */
-			__attribute__((aligned(sizeof(kernel_ulong_t))));
-=======
 	kernel_ulong_t driver_data;	/* Data private to the driver */
->>>>>>> android-3.18
 };
 
 /* dmi */

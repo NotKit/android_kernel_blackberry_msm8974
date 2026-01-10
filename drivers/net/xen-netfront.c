@@ -608,26 +608,8 @@ static int xennet_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	unsigned int num_queues = dev->real_num_tx_queues;
 	u16 queue_index;
 
-<<<<<<< HEAD
-	/* If skb->len is too big for wire format, drop skb and alert
-	 * user about misconfiguration.
-	 */
-	if (unlikely(skb->len > XEN_NETIF_MAX_TX_SIZE)) {
-		net_alert_ratelimited(
-			"xennet: skb->len = %u, too big for wire format\n",
-			skb->len);
-		goto drop;
-	}
-
-	frags += DIV_ROUND_UP(offset + len, PAGE_SIZE);
-	if (unlikely(frags > MAX_SKB_FRAGS + 1)) {
-		printk(KERN_ALERT "xennet: skb rides the rocket: %d frags\n",
-		       frags);
-		dump_stack();
-=======
 	/* Drop the packet if no queues are set up */
 	if (num_queues < 1)
->>>>>>> android-3.18
 		goto drop;
 	/* Determine which queue to transmit this SKB on */
 	queue_index = skb_get_queue_mapping(skb);
@@ -1127,12 +1109,7 @@ err:
 
 static int xennet_change_mtu(struct net_device *dev, int mtu)
 {
-<<<<<<< HEAD
-	int max = xennet_can_sg(dev) ?
-		XEN_NETIF_MAX_TX_SIZE - MAX_TCP_HEADER : ETH_DATA_LEN;
-=======
 	int max = xennet_can_sg(dev) ? XEN_NETIF_MAX_TX_SIZE : ETH_DATA_LEN;
->>>>>>> android-3.18
 
 	if (mtu > max)
 		return -EINVAL;
@@ -1367,43 +1344,6 @@ static struct net_device *xennet_create_dev(struct xenbus_device *dev)
 	if (np->stats == NULL)
 		goto exit;
 
-<<<<<<< HEAD
-	for_each_possible_cpu(i) {
-		struct netfront_stats *xen_nf_stats;
-		xen_nf_stats = per_cpu_ptr(np->stats, i);
-		u64_stats_init(&xen_nf_stats->syncp);
-	}
-
-	/* Initialise tx_skbs as a free chain containing every entry. */
-	np->tx_skb_freelist = 0;
-	for (i = 0; i < NET_TX_RING_SIZE; i++) {
-		skb_entry_set_link(&np->tx_skbs[i], i+1);
-		np->grant_tx_ref[i] = GRANT_INVALID_REF;
-	}
-
-	/* Clear out rx_skbs */
-	for (i = 0; i < NET_RX_RING_SIZE; i++) {
-		np->rx_skbs[i] = NULL;
-		np->grant_rx_ref[i] = GRANT_INVALID_REF;
-	}
-
-	/* A grant for every tx ring slot */
-	if (gnttab_alloc_grant_references(TX_MAX_TARGET,
-					  &np->gref_tx_head) < 0) {
-		printk(KERN_ALERT "#### netfront can't alloc tx grant refs\n");
-		err = -ENOMEM;
-		goto exit_free_stats;
-	}
-	/* A grant for every rx ring slot */
-	if (gnttab_alloc_grant_references(RX_MAX_TARGET,
-					  &np->gref_rx_head) < 0) {
-		printk(KERN_ALERT "#### netfront can't alloc rx grant refs\n");
-		err = -ENOMEM;
-		goto exit_free_tx;
-	}
-
-=======
->>>>>>> android-3.18
 	netdev->netdev_ops	= &xennet_netdev_ops;
 
 	netdev->features        = NETIF_F_IP_CSUM | NETIF_F_RXCSUM |
@@ -2376,8 +2316,6 @@ static int xennet_remove(struct xenbus_device *dev)
 
 	dev_dbg(&dev->dev, "%s\n", dev->nodename);
 
-<<<<<<< HEAD
-=======
 	if (xenbus_read_driver_state(dev->otherend) != XenbusStateClosed) {
 		xenbus_switch_state(dev, XenbusStateClosing);
 		wait_event(module_wq,
@@ -2394,16 +2332,10 @@ static int xennet_remove(struct xenbus_device *dev)
 			   XenbusStateUnknown);
 	}
 
->>>>>>> android-3.18
 	xennet_disconnect_backend(info);
 
 	xennet_sysfs_delif(info->netdev);
 
-<<<<<<< HEAD
-	unregister_netdev(info->netdev);
-
-	del_timer_sync(&info->rx_refill_timer);
-=======
 	if (info->netdev->reg_state == NETREG_REGISTERED)
 		unregister_netdev(info->netdev);
 
@@ -2418,7 +2350,6 @@ static int xennet_remove(struct xenbus_device *dev)
 		info->queues = NULL;
 		rtnl_unlock();
 	}
->>>>>>> android-3.18
 
 	free_percpu(info->stats);
 

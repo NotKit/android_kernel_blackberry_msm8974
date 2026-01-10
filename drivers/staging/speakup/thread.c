@@ -23,11 +23,7 @@ int speakup_thread(void *data)
 		DEFINE_WAIT(wait);
 
 		while (1) {
-<<<<<<< HEAD
-			spk_lock(flags);
-=======
 			spin_lock_irqsave(&speakup_info.spinlock, flags);
->>>>>>> android-3.18
 			our_sound = spk_unprocessed_sound;
 			spk_unprocessed_sound.active = 0;
 			prepare_to_wait(&speakup_event, &wait,

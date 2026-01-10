@@ -330,19 +330,11 @@ n:
 #define __AS_ATHIGH h
 #endif
 #define LOAD_REG_IMMEDIATE(reg,expr)		\
-<<<<<<< HEAD
-	lis     (reg),(expr)@highest;		\
-	ori     (reg),(reg),(expr)@higher;	\
-	rldicr  (reg),(reg),32,31;		\
-	oris    (reg),(reg),(expr)@__AS_ATHIGH;	\
-	ori     (reg),(reg),(expr)@l;
-=======
 	lis     reg,(expr)@highest;		\
 	ori     reg,reg,(expr)@higher;	\
 	rldicr  reg,reg,32,31;		\
 	oris    reg,reg,(expr)@__AS_ATHIGH;	\
 	ori     reg,reg,(expr)@l;
->>>>>>> android-3.18
 
 #define LOAD_REG_ADDR(reg,name)			\
 	ld	reg,name@got(r2)

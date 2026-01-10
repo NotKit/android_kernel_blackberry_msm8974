@@ -745,60 +745,21 @@ static void igb_cache_ring_register(struct igb_adapter *adapter)
 
 u32 igb_rd32(struct e1000_hw *hw, u32 reg)
 {
-<<<<<<< HEAD
-	struct igb_ring *ring;
-	int i;
-	int orig_node = adapter->node;
-
-	for (i = 0; i < adapter->num_tx_queues; i++) {
-		if (orig_node == -1) {
-			int cur_node = next_online_node(adapter->node);
-			if (cur_node == MAX_NUMNODES)
-				cur_node = first_online_node;
-			adapter->node = cur_node;
-		}
-		ring = kzalloc_node(sizeof(struct igb_ring), GFP_KERNEL,
-				    adapter->node);
-		if (!ring)
-			ring = kzalloc(sizeof(struct igb_ring), GFP_KERNEL);
-		if (!ring)
-			goto err;
-		ring->count = adapter->tx_ring_count;
-		ring->queue_index = i;
-		ring->dev = &adapter->pdev->dev;
-		ring->netdev = adapter->netdev;
-		ring->numa_node = adapter->node;
-		/* For 82575, context index must be unique per ring. */
-		if (adapter->hw.mac.type == e1000_82575)
-			set_bit(IGB_RING_FLAG_TX_CTX_IDX, &ring->flags);
-		u64_stats_init(&ring->tx_syncp);
-		u64_stats_init(&ring->tx_syncp2);
-		adapter->tx_ring[i] = ring;
-	}
-	/* Restore the adapter's original node */
-	adapter->node = orig_node;
-=======
 	struct igb_adapter *igb = container_of(hw, struct igb_adapter, hw);
 	u8 __iomem *hw_addr = ACCESS_ONCE(hw->hw_addr);
 	u32 value = 0;
->>>>>>> android-3.18
 
 	if (E1000_REMOVED(hw_addr))
 		return ~value;
 
 	value = readl(&hw_addr[reg]);
 
-<<<<<<< HEAD
-		u64_stats_init(&ring->rx_syncp);
-		adapter->rx_ring[i] = ring;
-=======
 	/* reads should not return all F's */
 	if (!(~value) && (!reg || !(~readl(hw_addr)))) {
 		struct net_device *netdev = igb->netdev;
 		hw->hw_addr = NULL;
 		netif_device_detach(netdev);
 		netdev_err(netdev, "PCIe link lost, device now detached\n");
->>>>>>> android-3.18
 	}
 
 	return value;
@@ -5307,10 +5268,6 @@ void igb_update_stats(struct igb_adapter *adapter,
 
 	rcu_read_lock();
 	for (i = 0; i < adapter->num_rx_queues; i++) {
-<<<<<<< HEAD
-		u32 rqdpc = rd32(E1000_RQDPC(i));
-=======
->>>>>>> android-3.18
 		struct igb_ring *ring = adapter->rx_ring[i];
 		u32 rqdpc = rd32(E1000_RQDPC(i));
 		if (hw->mac.type >= e1000_i210)

@@ -10,9 +10,4 @@
  * have to define SOCK_NONBLOCK to a different value here.
  */
 #define SOCK_NONBLOCK	0x40000000
-<<<<<<< HEAD
-#endif /* __KERNEL__ */
-
-=======
->>>>>>> android-3.18
 #endif /* _ASM_SOCKET_H */

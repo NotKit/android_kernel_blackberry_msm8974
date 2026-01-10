@@ -40,8 +40,6 @@
 #define ADDBA_RSP_STATUS_ACCEPT 0
 
 #define MWIFIEX_DEF_11N_RX_SEQ_NUM	0xffff
-<<<<<<< HEAD
-=======
 #define BA_SETUP_MAX_PACKET_THRESHOLD	16
 #define BA_SETUP_PACKET_OFFSET		16
 
@@ -49,7 +47,6 @@ enum mwifiex_rxreor_flags {
 	RXREOR_FORCE_NO_DROP		= 1<<0,
 	RXREOR_INIT_WINDOW_SHIFT	= 1<<1,
 };
->>>>>>> android-3.18
 
 static inline void mwifiex_reset_11n_rx_seq_num(struct mwifiex_private *priv)
 {

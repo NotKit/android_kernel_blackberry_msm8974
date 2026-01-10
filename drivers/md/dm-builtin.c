@@ -1,10 +1,5 @@
 #include "dm.h"
 
-<<<<<<< HEAD
-#include <linux/export.h>
-
-=======
->>>>>>> android-3.18
 /*
  * The kobject release method must not be placed in the module itself,
  * otherwise we are subject to module unload races.

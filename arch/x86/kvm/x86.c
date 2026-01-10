@@ -240,18 +240,6 @@ static void kvm_shared_msr_cpu_online(void)
 
 int kvm_set_shared_msr(unsigned slot, u64 value, u64 mask)
 {
-<<<<<<< HEAD
-	struct kvm_shared_msrs *smsr = &__get_cpu_var(shared_msrs);
-	int err;
-
-	if (((value ^ smsr->values[slot].curr) & mask) == 0)
-		return 0;
-	smsr->values[slot].curr = value;
-	err = checking_wrmsrl(shared_msrs_global.msrs[slot], value);
-	if (err)
-		return 1;
-
-=======
 	unsigned int cpu = smp_processor_id();
 	struct kvm_shared_msrs *smsr = per_cpu_ptr(shared_msrs, cpu);
 	int err;
@@ -264,7 +252,6 @@ int kvm_set_shared_msr(unsigned slot, u64 value, u64 mask)
 		return 1;
 
 	smsr->values[slot].curr = value;
->>>>>>> android-3.18
 	if (!smsr->registered) {
 		smsr->urn.on_user_return = kvm_on_user_return;
 		user_return_notifier_register(&smsr->urn);
@@ -668,10 +655,6 @@ int __kvm_set_xcr(struct kvm_vcpu *vcpu, u32 index, u64 xcr)
 	/* Only support XCR_XFEATURE_ENABLED_MASK(xcr0) now  */
 	if (index != XCR_XFEATURE_ENABLED_MASK)
 		return 1;
-<<<<<<< HEAD
-	xcr0 = xcr;
-=======
->>>>>>> android-3.18
 	if (!(xcr0 & XSTATE_FP))
 		return 1;
 	if ((xcr0 & XSTATE_YMM) && !(xcr0 & XSTATE_SSE))
@@ -1038,25 +1021,15 @@ EXPORT_SYMBOL_GPL(kvm_enable_efer_bits);
  * Returns 0 on success, non-0 otherwise.
  * Assumes vcpu_load() was already called.
  */
-<<<<<<< HEAD
-int kvm_set_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 data)
-{
-	switch (msr_index) {
-=======
 int kvm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
 {
 	switch (msr->index) {
->>>>>>> android-3.18
 	case MSR_FS_BASE:
 	case MSR_GS_BASE:
 	case MSR_KERNEL_GS_BASE:
 	case MSR_CSTAR:
 	case MSR_LSTAR:
-<<<<<<< HEAD
-		if (is_noncanonical_address(data))
-=======
 		if (is_noncanonical_address(msr->data))
->>>>>>> android-3.18
 			return 1;
 		break;
 	case MSR_IA32_SYSENTER_EIP:
@@ -1073,15 +1046,9 @@ int kvm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
 		 * value, and that something deterministic happens if the guest
 		 * invokes 64-bit SYSENTER.
 		 */
-<<<<<<< HEAD
-		data = get_canonical(data);
-	}
-	return kvm_x86_ops->set_msr(vcpu, msr_index, data);
-=======
 		msr->data = get_canonical(msr->data);
 	}
 	return kvm_x86_ops->set_msr(vcpu, msr);
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(kvm_set_msr);
 
@@ -1623,11 +1590,6 @@ static int kvm_guest_time_update(struct kvm_vcpu *v)
 {
 	unsigned long flags, this_tsc_khz;
 	struct kvm_vcpu_arch *vcpu = &v->arch;
-<<<<<<< HEAD
-	unsigned long this_tsc_khz;
-	s64 kernel_ns, max_kernel_ns;
-	u64 tsc_timestamp;
-=======
 	struct kvm_arch *ka = &v->kvm->arch;
 	s64 kernel_ns;
 	u64 tsc_timestamp, host_tsc;
@@ -1649,7 +1611,6 @@ static int kvm_guest_time_update(struct kvm_vcpu *v)
 		kernel_ns = ka->master_kernel_ns;
 	}
 	spin_unlock(&ka->pvclock_gtod_sync_lock);
->>>>>>> android-3.18
 
 	/* Keep irq disabled to prevent changes to the clock */
 	local_irq_save(flags);
@@ -1770,12 +1731,6 @@ static void kvm_gen_kvmclock_update(struct kvm_vcpu *v)
 {
 	struct kvm *kvm = v->kvm;
 
-<<<<<<< HEAD
-	kvm_write_guest_cached(v->kvm, &vcpu->pv_time,
-				&vcpu->hv_clock,
-				sizeof(vcpu->hv_clock));
-	return 0;
-=======
 	kvm_make_request(KVM_REQ_CLOCK_UPDATE, v);
 	schedule_delayed_work(&kvm->arch.kvmclock_update_work,
 					KVMCLOCK_UPDATE_DELAY);
@@ -1793,7 +1748,6 @@ static void kvmclock_sync_fn(struct work_struct *work)
 	schedule_delayed_work(&kvm->arch.kvmclock_update_work, 0);
 	schedule_delayed_work(&kvm->arch.kvmclock_sync_work,
 					KVMCLOCK_SYNC_PERIOD);
->>>>>>> android-3.18
 }
 
 static bool msr_mtrr_valid(unsigned msr)
@@ -2243,15 +2197,6 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 			break;
 
 		gpa_offset = data & ~(PAGE_MASK | 1);
-<<<<<<< HEAD
-
-		if (kvm_gfn_to_hva_cache_init(vcpu->kvm,
-		     &vcpu->arch.pv_time, data & ~1ULL,
-		     sizeof(struct pvclock_vcpu_time_info)))
-			vcpu->arch.pv_time_enabled = false;
-		else
-			vcpu->arch.pv_time_enabled = true;
-=======
 
 		if (kvm_gfn_to_hva_cache_init(vcpu->kvm,
 		     &vcpu->arch.pv_time, data & ~1ULL,
@@ -2260,7 +2205,6 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 		else
 			vcpu->arch.pv_time_enabled = true;
 
->>>>>>> android-3.18
 		break;
 	}
 	case MSR_KVM_ASYNC_PF_EN:
@@ -3517,13 +3461,9 @@ long kvm_arch_vcpu_ioctl(struct file *filp,
 		r = -EFAULT;
 		if (copy_from_user(&va, argp, sizeof va))
 			goto out;
-<<<<<<< HEAD
-		r = kvm_lapic_set_vapic_addr(vcpu, va.vapic_addr);
-=======
 		idx = srcu_read_lock(&vcpu->kvm->srcu);
 		r = kvm_lapic_set_vapic_addr(vcpu, va.vapic_addr);
 		srcu_read_unlock(&vcpu->kvm->srcu, idx);
->>>>>>> android-3.18
 		break;
 	}
 	case KVM_X86_SETUP_MCE: {

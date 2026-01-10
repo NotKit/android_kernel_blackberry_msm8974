@@ -91,13 +91,8 @@ static void sja1000_write_cmdreg(struct sja1000_priv *priv, u8 val)
 	 * the write_reg() operation - especially on SMP systems.
 	 */
 	spin_lock_irqsave(&priv->cmdreg_lock, flags);
-<<<<<<< HEAD
-	priv->write_reg(priv, REG_CMR, val);
-	priv->read_reg(priv, SJA1000_REG_SR);
-=======
 	priv->write_reg(priv, SJA1000_CMR, val);
 	priv->read_reg(priv, SJA1000_SR);
->>>>>>> android-3.18
 	spin_unlock_irqrestore(&priv->cmdreg_lock, flags);
 }
 
@@ -517,14 +512,6 @@ irqreturn_t sja1000_interrupt(int irq, void *dev_id)
 		priv->pre_irq(priv);
 
 	/* Shared interrupts and IRQ off? */
-<<<<<<< HEAD
-	if (priv->read_reg(priv, REG_IER) == IRQ_OFF)
-		goto out;
-
-	while ((isrc = priv->read_reg(priv, REG_IR)) && (n < SJA1000_MAX_IRQ)) {
-
-		status = priv->read_reg(priv, SJA1000_REG_SR);
-=======
 	if (priv->read_reg(priv, SJA1000_IER) == IRQ_OFF)
 		goto out;
 
@@ -532,7 +519,6 @@ irqreturn_t sja1000_interrupt(int irq, void *dev_id)
 	       (n < SJA1000_MAX_IRQ)) {
 
 		status = priv->read_reg(priv, SJA1000_SR);
->>>>>>> android-3.18
 		/* check for absent controller due to hw unplug */
 		if (status == 0xFF && sja1000_is_absent(priv))
 			goto out;
@@ -560,11 +546,7 @@ irqreturn_t sja1000_interrupt(int irq, void *dev_id)
 			/* receive interrupt */
 			while (status & SR_RBS) {
 				sja1000_rx(dev);
-<<<<<<< HEAD
-				status = priv->read_reg(priv, SJA1000_REG_SR);
-=======
 				status = priv->read_reg(priv, SJA1000_SR);
->>>>>>> android-3.18
 				/* check for absent controller */
 				if (status == 0xFF && sja1000_is_absent(priv))
 					goto out;

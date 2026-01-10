@@ -120,10 +120,7 @@ struct acm {
 	unsigned int throttle_req:1;			/* throttle requested */
 	u8 bInterval;
 	struct usb_anchor delayed;			/* writes queued for a device about to be woken */
-<<<<<<< HEAD
-=======
 	unsigned long quirks;
->>>>>>> android-3.18
 };
 
 #define CDC_DATA_INTERFACE_TYPE	0x0a

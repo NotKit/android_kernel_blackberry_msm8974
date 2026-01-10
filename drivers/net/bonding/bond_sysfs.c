@@ -159,32 +159,9 @@ static ssize_t bonding_sysfs_store_option(struct device *d,
 					  struct device_attribute *attr,
 					  const char *buffer, size_t count)
 {
-<<<<<<< HEAD
-	char linkname[IFNAMSIZ+7];
-	int ret = 0;
-
-	/* first, create a link from the slave back to the master */
-	ret = sysfs_create_link(&(slave->dev.kobj), &(master->dev.kobj),
-				"master");
-	if (ret)
-		return ret;
-	/* next, create a link from the master to the slave */
-	sprintf(linkname, "slave_%s", slave->name);
-	ret = sysfs_create_link(&(master->dev.kobj), &(slave->dev.kobj),
-				linkname);
-
-	/* free the master link created earlier in case of error */
-	if (ret)
-		sysfs_remove_link(&(slave->dev.kobj), "master");
-
-	return ret;
-
-}
-=======
 	struct bonding *bond = to_bond(d);
 	const struct bond_option *opt;
 	int ret;
->>>>>>> android-3.18
 
 	opt = bond_opt_get_by_name(attr->attr.name);
 	if (WARN_ON(!opt))
@@ -315,69 +292,6 @@ static ssize_t bonding_show_arp_interval(struct device *d,
 
 	return sprintf(buf, "%d\n", bond->params.arp_interval);
 }
-<<<<<<< HEAD
-
-static ssize_t bonding_store_arp_interval(struct device *d,
-					  struct device_attribute *attr,
-					  const char *buf, size_t count)
-{
-	int new_value, ret = count;
-	struct bonding *bond = to_bond(d);
-
-	if (!rtnl_trylock())
-		return restart_syscall();
-	if (sscanf(buf, "%d", &new_value) != 1) {
-		pr_err("%s: no arp_interval value specified.\n",
-		       bond->dev->name);
-		ret = -EINVAL;
-		goto out;
-	}
-	if (new_value < 0) {
-		pr_err("%s: Invalid arp_interval value %d not in range 0-%d; rejected.\n",
-		       bond->dev->name, new_value, INT_MAX);
-		ret = -EINVAL;
-		goto out;
-	}
-	if (bond->params.mode == BOND_MODE_ALB ||
-	    bond->params.mode == BOND_MODE_TLB ||
-	    bond->params.mode == BOND_MODE_8023AD) {
-		pr_info("%s: ARP monitoring cannot be used with ALB/TLB/802.3ad. Only MII monitoring is supported on %s.\n",
-			bond->dev->name, bond->dev->name);
-		ret = -EINVAL;
-		goto out;
-	}
-	pr_info("%s: Setting ARP monitoring interval to %d.\n",
-		bond->dev->name, new_value);
-	bond->params.arp_interval = new_value;
-	if (new_value) {
-		if (bond->params.miimon) {
-			pr_info("%s: ARP monitoring cannot be used with MII monitoring. %s Disabling MII monitoring.\n",
-				bond->dev->name, bond->dev->name);
-			bond->params.miimon = 0;
-		}
-		if (!bond->params.arp_targets[0])
-			pr_info("%s: ARP monitoring has been set up, but no ARP targets have been specified.\n",
-				bond->dev->name);
-	}
-	if (bond->dev->flags & IFF_UP) {
-		/* If the interface is up, we may need to fire off
-		 * the ARP timer.  If the interface is down, the
-		 * timer will get fired off when the open function
-		 * is called.
-		 */
-		if (!new_value) {
-			cancel_delayed_work_sync(&bond->arp_work);
-		} else {
-			cancel_delayed_work_sync(&bond->mii_work);
-			queue_delayed_work(bond->wq, &bond->arp_work, 0);
-		}
-	}
-out:
-	rtnl_unlock();
-	return ret;
-}
-=======
->>>>>>> android-3.18
 static DEVICE_ATTR(arp_interval, S_IRUGO | S_IWUSR,
 		   bonding_show_arp_interval, bonding_sysfs_store_option);
 
@@ -411,55 +325,6 @@ static ssize_t bonding_show_downdelay(struct device *d,
 
 	return sprintf(buf, "%d\n", bond->params.downdelay * bond->params.miimon);
 }
-<<<<<<< HEAD
-
-static ssize_t bonding_store_downdelay(struct device *d,
-				       struct device_attribute *attr,
-				       const char *buf, size_t count)
-{
-	int new_value, ret = count;
-	struct bonding *bond = to_bond(d);
-
-	if (!rtnl_trylock())
-		return restart_syscall();
-	if (!(bond->params.miimon)) {
-		pr_err("%s: Unable to set down delay as MII monitoring is disabled\n",
-		       bond->dev->name);
-		ret = -EPERM;
-		goto out;
-	}
-
-	if (sscanf(buf, "%d", &new_value) != 1) {
-		pr_err("%s: no down delay value specified.\n", bond->dev->name);
-		ret = -EINVAL;
-		goto out;
-	}
-	if (new_value < 0) {
-		pr_err("%s: Invalid down delay value %d not in range %d-%d; rejected.\n",
-		       bond->dev->name, new_value, 0, INT_MAX);
-		ret = -EINVAL;
-		goto out;
-	} else {
-		if ((new_value % bond->params.miimon) != 0) {
-			pr_warning("%s: Warning: down delay (%d) is not a multiple of miimon (%d), delay rounded to %d ms\n",
-				   bond->dev->name, new_value,
-				   bond->params.miimon,
-				   (new_value / bond->params.miimon) *
-				   bond->params.miimon);
-		}
-		bond->params.downdelay = new_value / bond->params.miimon;
-		pr_info("%s: Setting down delay to %d.\n",
-			bond->dev->name,
-			bond->params.downdelay * bond->params.miimon);
-
-	}
-
-out:
-	rtnl_unlock();
-	return ret;
-}
-=======
->>>>>>> android-3.18
 static DEVICE_ATTR(downdelay, S_IRUGO | S_IWUSR,
 		   bonding_show_downdelay, bonding_sysfs_store_option);
 
@@ -472,55 +337,6 @@ static ssize_t bonding_show_updelay(struct device *d,
 	return sprintf(buf, "%d\n", bond->params.updelay * bond->params.miimon);
 
 }
-<<<<<<< HEAD
-
-static ssize_t bonding_store_updelay(struct device *d,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
-{
-	int new_value, ret = count;
-	struct bonding *bond = to_bond(d);
-
-	if (!rtnl_trylock())
-		return restart_syscall();
-	if (!(bond->params.miimon)) {
-		pr_err("%s: Unable to set up delay as MII monitoring is disabled\n",
-		       bond->dev->name);
-		ret = -EPERM;
-		goto out;
-	}
-
-	if (sscanf(buf, "%d", &new_value) != 1) {
-		pr_err("%s: no up delay value specified.\n",
-		       bond->dev->name);
-		ret = -EINVAL;
-		goto out;
-	}
-	if (new_value < 0) {
-		pr_err("%s: Invalid up delay value %d not in range %d-%d; rejected.\n",
-		       bond->dev->name, new_value, 0, INT_MAX);
-		ret = -EINVAL;
-		goto out;
-	} else {
-		if ((new_value % bond->params.miimon) != 0) {
-			pr_warning("%s: Warning: up delay (%d) is not a multiple of miimon (%d), updelay rounded to %d ms\n",
-				   bond->dev->name, new_value,
-				   bond->params.miimon,
-				   (new_value / bond->params.miimon) *
-				   bond->params.miimon);
-		}
-		bond->params.updelay = new_value / bond->params.miimon;
-		pr_info("%s: Setting up delay to %d.\n",
-			bond->dev->name,
-			bond->params.updelay * bond->params.miimon);
-	}
-
-out:
-	rtnl_unlock();
-	return ret;
-}
-=======
->>>>>>> android-3.18
 static DEVICE_ATTR(updelay, S_IRUGO | S_IWUSR,
 		   bonding_show_updelay, bonding_sysfs_store_option);
 
@@ -600,66 +416,6 @@ static ssize_t bonding_show_miimon(struct device *d,
 
 	return sprintf(buf, "%d\n", bond->params.miimon);
 }
-<<<<<<< HEAD
-
-static ssize_t bonding_store_miimon(struct device *d,
-				    struct device_attribute *attr,
-				    const char *buf, size_t count)
-{
-	int new_value, ret = count;
-	struct bonding *bond = to_bond(d);
-
-	if (!rtnl_trylock())
-		return restart_syscall();
-	if (sscanf(buf, "%d", &new_value) != 1) {
-		pr_err("%s: no miimon value specified.\n",
-		       bond->dev->name);
-		ret = -EINVAL;
-		goto out;
-	}
-	if (new_value < 0) {
-		pr_err("%s: Invalid miimon value %d not in range %d-%d; rejected.\n",
-		       bond->dev->name, new_value, 0, INT_MAX);
-		ret = -EINVAL;
-		goto out;
-	}
-	pr_info("%s: Setting MII monitoring interval to %d.\n",
-		bond->dev->name, new_value);
-	bond->params.miimon = new_value;
-	if (bond->params.updelay)
-		pr_info("%s: Note: Updating updelay (to %d) since it is a multiple of the miimon value.\n",
-			bond->dev->name,
-			bond->params.updelay * bond->params.miimon);
-	if (bond->params.downdelay)
-		pr_info("%s: Note: Updating downdelay (to %d) since it is a multiple of the miimon value.\n",
-			bond->dev->name,
-			bond->params.downdelay * bond->params.miimon);
-	if (new_value && bond->params.arp_interval) {
-		pr_info("%s: MII monitoring cannot be used with ARP monitoring. Disabling ARP monitoring...\n",
-			bond->dev->name);
-		bond->params.arp_interval = 0;
-		if (bond->params.arp_validate)
-			bond->params.arp_validate = BOND_ARP_VALIDATE_NONE;
-	}
-	if (bond->dev->flags & IFF_UP) {
-		/* If the interface is up, we may need to fire off
-		 * the MII timer. If the interface is down, the
-		 * timer will get fired off when the open function
-		 * is called.
-		 */
-		if (!new_value) {
-			cancel_delayed_work_sync(&bond->mii_work);
-		} else {
-			cancel_delayed_work_sync(&bond->arp_work);
-			queue_delayed_work(bond->wq, &bond->mii_work, 0);
-		}
-	}
-out:
-	rtnl_unlock();
-	return ret;
-}
-=======
->>>>>>> android-3.18
 static DEVICE_ATTR(miimon, S_IRUGO | S_IWUSR,
 		   bonding_show_miimon, bonding_sysfs_store_option);
 
@@ -897,31 +653,7 @@ static ssize_t bonding_show_resend_igmp(struct device *d,
 {
 	struct bonding *bond = to_bond(d);
 
-<<<<<<< HEAD
-	if ((new_value == 0) || (new_value == 1)) {
-		bond->params.all_slaves_active = new_value;
-	} else {
-		pr_info("%s: Ignoring invalid all_slaves_active value %d.\n",
-			bond->dev->name, new_value);
-		ret = -EINVAL;
-		goto out;
-	}
-
-	read_lock(&bond->lock);
-	bond_for_each_slave(bond, slave, i) {
-		if (!bond_is_active_slave(slave)) {
-			if (new_value)
-				slave->inactive = 0;
-			else
-				slave->inactive = 1;
-		}
-	}
-	read_unlock(&bond->lock);
-out:
-	return ret;
-=======
 	return sprintf(buf, "%d\n", bond->params.resend_igmp);
->>>>>>> android-3.18
 }
 static DEVICE_ATTR(resend_igmp, S_IRUGO | S_IWUSR,
 		   bonding_show_resend_igmp, bonding_sysfs_store_option);

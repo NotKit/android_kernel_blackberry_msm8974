@@ -55,10 +55,7 @@
 #include <linux/cpu.h>
 #include <linux/mutex.h>
 #include <linux/async.h>
-<<<<<<< HEAD
-=======
 #include <asm/unaligned.h>
->>>>>>> android-3.18
 
 #include <scsi/scsi.h>
 #include <scsi/scsi_cmnd.h>
@@ -92,8 +89,6 @@ EXPORT_SYMBOL(scsi_logging_level);
 ASYNC_DOMAIN(scsi_sd_probe_domain);
 EXPORT_SYMBOL(scsi_sd_probe_domain);
 
-<<<<<<< HEAD
-=======
 /*
  * Separate domain (from scsi_sd_probe_domain) to maximize the benefit of
  * asynchronous system resume operations.  It is marked 'exclusive' to avoid
@@ -103,7 +98,6 @@ EXPORT_SYMBOL(scsi_sd_probe_domain);
 ASYNC_DOMAIN_EXCLUSIVE(scsi_sd_pm_domain);
 EXPORT_SYMBOL(scsi_sd_pm_domain);
 
->>>>>>> android-3.18
 /* NB: These are exposed through /proc/scsi/scsi and form part of the ABI.
  * You may not alter any existing entry (although adding new ones is
  * encouraged once assigned by ANSI/INCITS T10

@@ -1395,20 +1395,13 @@ void rtl92cu_set_check_bssid(struct ieee80211_hw *hw, bool check_bssid)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	struct rtl_hal *rtlhal = rtl_hal(rtlpriv);
-<<<<<<< HEAD
-	u32 reg_rcr = rtl_read_dword(rtlpriv, REG_RCR);
-=======
 	u32 reg_rcr;
->>>>>>> android-3.18
 
 	if (rtlpriv->psc.rfpwr_state != ERFON)
 		return;
 
-<<<<<<< HEAD
-=======
 	rtlpriv->cfg->ops->get_hw_reg(hw, HW_VAR_RCR, (u8 *)(&reg_rcr));
 
->>>>>>> android-3.18
 	if (check_bssid) {
 		u8 tmp;
 		if (IS_NORMAL_CHIP(rtlhal->version)) {
@@ -2099,12 +2092,9 @@ static void rtl92cu_update_hal_rate_table(struct ieee80211_hw *hw,
 	}
 
 	rtl_write_dword(rtlpriv, REG_ARFR0 + ratr_index * 4, ratr_value);
-<<<<<<< HEAD
-=======
 
 	RT_TRACE(rtlpriv, COMP_RATR, DBG_DMESG, "%x\n",
 		 rtl_read_dword(rtlpriv, REG_ARFR0));
->>>>>>> android-3.18
 }
 
 static void rtl92cu_update_hal_rate_mask(struct ieee80211_hw *hw,

@@ -24,16 +24,6 @@
  */
 
 #define MCDI_RPC_TIMEOUT       (10 * HZ)
-<<<<<<< HEAD
-
-#define MCDI_PDU(efx)							\
-	(efx_port_num(efx) ? MC_SMEM_P1_PDU_OFST : MC_SMEM_P0_PDU_OFST)
-#define MCDI_DOORBELL(efx)						\
-	(efx_port_num(efx) ? MC_SMEM_P1_DOORBELL_OFST : MC_SMEM_P0_DOORBELL_OFST)
-#define MCDI_STATUS(efx)						\
-	(efx_port_num(efx) ? MC_SMEM_P1_STATUS_OFST : MC_SMEM_P0_STATUS_OFST)
-=======
->>>>>>> android-3.18
 
 /* A reboot/assertion causes the MCDI status word to be set after the
  * command word is set or a REBOOT event is sent. If we notice a reboot
@@ -269,15 +259,8 @@ static int efx_mcdi_poll(struct efx_nic *efx)
 {
 	struct efx_mcdi_iface *mcdi = efx_mcdi(efx);
 	unsigned long time, finish;
-<<<<<<< HEAD
-	unsigned int respseq, respcmd, error;
-	unsigned int pdu = FR_CZ_MC_TREG_SMEM + MCDI_PDU(efx);
-	unsigned int rc, spins;
-	efx_dword_t reg;
-=======
 	unsigned int spins;
 	int rc;
->>>>>>> android-3.18
 
 	/* Check for a reboot atomically with respect to efx_mcdi_copyout() */
 	rc = efx_mcdi_poll_reboot(efx);
@@ -351,15 +334,8 @@ static int efx_mcdi_await_completion(struct efx_nic *efx)
 {
 	struct efx_mcdi_iface *mcdi = efx_mcdi(efx);
 
-<<<<<<< HEAD
-	if (wait_event_timeout(
-		    mcdi->wq,
-		    atomic_read(&mcdi->state) == MCDI_STATE_COMPLETED,
-		    MCDI_RPC_TIMEOUT) == 0)
-=======
 	if (wait_event_timeout(mcdi->wq, mcdi->state == MCDI_STATE_COMPLETED,
 			       MCDI_RPC_TIMEOUT) == 0)
->>>>>>> android-3.18
 		return -ETIMEDOUT;
 
 	/* Check if efx_mcdi_set_mode() switched us back to polled completions.
@@ -1225,13 +1201,8 @@ fail:
 int efx_mcdi_get_board_cfg(struct efx_nic *efx, u8 *mac_address,
 			   u16 *fw_subtype_list, u32 *capabilities)
 {
-<<<<<<< HEAD
-	uint8_t outbuf[MC_CMD_GET_BOARD_CFG_OUT_LENMAX];
-	size_t outlen, offset, i;
-=======
 	MCDI_DECLARE_BUF(outbuf, MC_CMD_GET_BOARD_CFG_OUT_LENMAX);
 	size_t outlen, i;
->>>>>>> android-3.18
 	int port_num = efx_port_num(efx);
 	int rc;
 
@@ -1251,18 +1222,6 @@ int efx_mcdi_get_board_cfg(struct efx_nic *efx, u8 *mac_address,
 	}
 
 	if (mac_address)
-<<<<<<< HEAD
-		memcpy(mac_address, outbuf + offset, ETH_ALEN);
-	if (fw_subtype_list) {
-		offset = MC_CMD_GET_BOARD_CFG_OUT_FW_SUBTYPE_LIST_OFST;
-		for (i = 0;
-		     i < MC_CMD_GET_BOARD_CFG_OUT_FW_SUBTYPE_LIST_MINNUM;
-		     i++) {
-			fw_subtype_list[i] =
-				le16_to_cpup((__le16 *)(outbuf + offset));
-			offset += 2;
-		}
-=======
 		ether_addr_copy(mac_address,
 				port_num ?
 				MCDI_PTR(outbuf, GET_BOARD_CFG_OUT_MAC_ADDR_BASE_PORT1) :
@@ -1276,7 +1235,6 @@ int efx_mcdi_get_board_cfg(struct efx_nic *efx, u8 *mac_address,
 				outbuf, GET_BOARD_CFG_OUT_FW_SUBTYPE_LIST, i);
 		for (; i < MC_CMD_GET_BOARD_CFG_OUT_FW_SUBTYPE_LIST_MAXNUM; i++)
 			fw_subtype_list[i] = 0;
->>>>>>> android-3.18
 	}
 	if (capabilities) {
 		if (port_num)
@@ -1689,13 +1647,6 @@ int efx_mcdi_flush_rxqs(struct efx_nic *efx)
 
 	BUILD_BUG_ON(EFX_MAX_CHANNELS >
 		     MC_CMD_FLUSH_RX_QUEUES_IN_QID_OFST_MAXNUM);
-<<<<<<< HEAD
-
-	qid = kmalloc(EFX_MAX_CHANNELS * sizeof(*qid), GFP_KERNEL);
-	if (qid == NULL)
-		return -ENOMEM;
-=======
->>>>>>> android-3.18
 
 	count = 0;
 	efx_for_each_channel(channel, efx) {

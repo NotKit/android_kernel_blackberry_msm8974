@@ -617,12 +617,6 @@ void ar9003_hw_set_chain_masks(struct ath_hw *ah, u8 rx, u8 tx)
 
 	if ((ah->caps.hw_caps & ATH9K_HW_CAP_APM) && (tx == 0x7))
 		tx = 3;
-<<<<<<< HEAD
-	else if (AR_SREV_9462(ah))
-		/* xxx only when MCI support is enabled */
-		tx = 3;
-=======
->>>>>>> android-3.18
 
 	REG_WRITE(ah, AR_SELFGEN_MASK, tx);
 }

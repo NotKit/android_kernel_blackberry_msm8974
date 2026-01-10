@@ -665,8 +665,6 @@ static void mxs_auart_settermios(struct uart_port *u,
 	writel(ctrl2, u->membase + AUART_CTRL2);
 
 	uart_update_timeout(u, termios->c_cflag, baud);
-<<<<<<< HEAD
-=======
 
 	/* prepare for the DMA RX. */
 	if (auart_dma_enabled(s) &&
@@ -680,7 +678,6 @@ static void mxs_auart_settermios(struct uart_port *u,
 			dev_err(s->dev, "We can not start up the DMA.\n");
 		}
 	}
->>>>>>> android-3.18
 }
 
 static irqreturn_t mxs_auart_irq_handle(int irq, void *context)

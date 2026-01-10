@@ -67,10 +67,7 @@ struct u64_stats_sync {
 #endif
 };
 
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 #if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
 # define u64_stats_init(syncp)	seqcount_init(syncp.seq)
 #else

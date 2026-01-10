@@ -263,11 +263,7 @@ static int evergreen_surface_check_2d(struct radeon_cs_parser *p,
 	/* macro tile width & height */
 	palign = (8 * surf->bankw * track->npipes) * surf->mtilea;
 	halign = (8 * surf->bankh * surf->nbanks) / surf->mtilea;
-<<<<<<< HEAD
-	mtileb = (palign / 8) * (halign / 8) * tileb;;
-=======
 	mtileb = (palign / 8) * (halign / 8) * tileb;
->>>>>>> android-3.18
 	mtile_pr = surf->nbx / palign;
 	mtile_ps = (mtile_pr * surf->nby) / halign;
 	surf->layer_size = mtile_ps * mtileb * slice_pt;
@@ -447,11 +443,7 @@ static int evergreen_cs_track_validate_cb(struct radeon_cs_parser *p, unsigned i
 		 * command stream.
 		 */
 		if (!surf.mode) {
-<<<<<<< HEAD
-			volatile u32 *ib = p->ib->ptr;
-=======
 			volatile u32 *ib = p->ib.ptr;
->>>>>>> android-3.18
 			unsigned long tmp, nby, bsize, size, min = 0;
 
 			/* find the height the ddx wants */

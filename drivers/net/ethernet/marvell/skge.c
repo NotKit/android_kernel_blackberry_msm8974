@@ -4201,8 +4201,6 @@ static struct dmi_system_id skge_32bit_dma_boards[] = {
 			DMI_MATCH(DMI_BOARD_NAME, "P5NSLI")
 		},
 	},
-<<<<<<< HEAD
-=======
 	{
 		.ident = "FUJITSU SIEMENS A8NE-FM",
 		.matches = {
@@ -4210,7 +4208,6 @@ static struct dmi_system_id skge_32bit_dma_boards[] = {
 			DMI_MATCH(DMI_BOARD_NAME, "A8NE-FM")
 		},
 	},
->>>>>>> android-3.18
 	{}
 };
 

@@ -1638,9 +1638,6 @@ struct megasas_instance {
 	u32 *reply_queue;
 	dma_addr_t reply_queue_h;
 
-<<<<<<< HEAD
-	struct megasas_register_set __iomem *reg_set;
-=======
 	u32 *crash_dump_buf;
 	dma_addr_t crash_dump_h;
 	void *crash_buf[MAX_CRASH_DUMP_SIZE];
@@ -1654,7 +1651,6 @@ struct megasas_instance {
 	u32 crash_dump_drv_support;
 	u32 crash_dump_app_support;
 	spinlock_t crashdump_lock;
->>>>>>> android-3.18
 
 	struct megasas_register_set __iomem *reg_set;
 	u32 *reply_post_host_index_addr[MR_MAX_MSIX_REG_ARRAY];

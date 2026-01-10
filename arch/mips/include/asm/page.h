@@ -198,10 +198,6 @@ typedef struct { unsigned long pgprot; } pgprot_t;
 
 #ifdef CONFIG_FLATMEM
 
-<<<<<<< HEAD
-#ifndef __ASSEMBLY__
-=======
->>>>>>> android-3.18
 static inline int pfn_valid(unsigned long pfn)
 {
 	/* avoid <linux/mm.h> include hell */
@@ -209,10 +205,6 @@ static inline int pfn_valid(unsigned long pfn)
 
 	return pfn >= ARCH_PFN_OFFSET && pfn < max_mapnr;
 }
-<<<<<<< HEAD
-#endif
-=======
->>>>>>> android-3.18
 
 #elif defined(CONFIG_SPARSEMEM)
 

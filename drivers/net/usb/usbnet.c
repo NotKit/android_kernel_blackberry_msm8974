@@ -840,16 +840,11 @@ int usbnet_stop (struct net_device *net)
 	 */
 	dev->flags = 0;
 	del_timer_sync (&dev->delay);
-<<<<<<< HEAD
-	cancel_work_sync(&dev->bh_w);
-	if (info->manage_power)
-=======
 	tasklet_kill (&dev->bh);
 	if (!pm)
 		usb_autopm_put_interface(dev->intf);
 
 	if (info->manage_power && mpn)
->>>>>>> android-3.18
 		info->manage_power(dev, 0);
 	else
 		usb_autopm_put_interface(dev->intf);
@@ -1265,11 +1260,6 @@ void usbnet_tx_timeout (struct net_device *net)
 	struct usbnet		*dev = netdev_priv(net);
 
 	unlink_urbs (dev, &dev->txq);
-<<<<<<< HEAD
-	queue_work(usbnet_wq, &dev->bh_w);
-
-	// FIXME: device recovery -- reset?
-=======
 	tasklet_schedule (&dev->bh);
 	/* this needs to be handled individually because the generic layer
 	 * doesn't know what is sufficient and could not restore private
@@ -1277,7 +1267,6 @@ void usbnet_tx_timeout (struct net_device *net)
 	 */
 	if (dev->driver_info->recover)
 		(dev->driver_info->recover)(dev);
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(usbnet_tx_timeout);
 
@@ -1511,13 +1500,6 @@ static void usbnet_bh (unsigned long param)
 		}
 	}
 
-<<<<<<< HEAD
-	// waiting for all pending urbs to complete?
-	if (dev->wait) {
-		if ((dev->txq.qlen + dev->rxq.qlen + dev->done.qlen) == 0) {
-			wake_up(&unlink_wakeup);
-		}
-=======
 	/* restart RX again after disabling due to high error rate */
 	clear_bit(EVENT_RX_KILL, &dev->flags);
 
@@ -1527,7 +1509,6 @@ static void usbnet_bh (unsigned long param)
 	if (waitqueue_active(&dev->wait)) {
 		if (dev->txq.qlen + dev->rxq.qlen + dev->done.qlen == 0)
 			wake_up_all(&dev->wait);
->>>>>>> android-3.18
 
 	// or are we maybe short a few urbs?
 	} else if (netif_running (dev->net) &&
@@ -1544,13 +1525,8 @@ static void usbnet_bh (unsigned long param)
 				netif_dbg(dev, link, dev->net,
 					  "rxqlen %d --> %d\n",
 					  temp, dev->rxq.qlen);
-<<<<<<< HEAD
-			if (dev->rxq.qlen < qlen)
-				queue_work(usbnet_wq, &dev->bh_w);
-=======
 			if (dev->rxq.qlen < RX_QLEN(dev))
 				tasklet_schedule (&dev->bh);
->>>>>>> android-3.18
 		}
 		if (dev->txq.qlen < TX_QLEN (dev))
 			netif_wake_queue (dev->net);
@@ -2159,18 +2135,7 @@ static int __init usbnet_init(void)
 	BUILD_BUG_ON(
 		FIELD_SIZEOF(struct sk_buff, cb) < sizeof(struct skb_data));
 
-<<<<<<< HEAD
-	random_ether_addr(node_id);
-
-	usbnet_wq  = create_singlethread_workqueue("usbnet");
-	if (!usbnet_wq) {
-		pr_err("%s: Unable to create workqueue:usbnet\n", __func__);
-		return -ENOMEM;
-	}
-
-=======
 	eth_random_addr(node_id);
->>>>>>> android-3.18
 	return 0;
 }
 module_init(usbnet_init);

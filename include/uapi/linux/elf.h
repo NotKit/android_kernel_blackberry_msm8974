@@ -49,16 +49,6 @@ typedef __s64	Elf64_Sxword;
  *
  * Specifications are available in:
  *
-<<<<<<< HEAD
- * - Sun microsystems: Linker and Libraries.
- *   Part No: 817-1984-17, September 2008.
- *   URL: http://docs.sun.com/app/docs/doc/817-1984
- *
- * - System V ABI AMD64 Architecture Processor Supplement
- *   Draft Version 0.99.,
- *   May 11, 2009.
- *   URL: http://www.x86-64.org/
-=======
  * - Oracle: Linker and Libraries.
  *   Part No: 817–1984–19, August 2011.
  *   http://docs.oracle.com/cd/E18752_01/pdf/817-1984.pdf
@@ -67,7 +57,6 @@ typedef __s64	Elf64_Sxword;
  *   Draft Version 0.99.4,
  *   January 13, 2010.
  *   http://www.cs.washington.edu/education/courses/cse351/12wi/supp-docs/abi.pdf
->>>>>>> android-3.18
  */
 #define PN_XNUM 0xffff
 
@@ -402,22 +391,16 @@ typedef struct elf64_shdr {
 #define NT_S390_LAST_BREAK	0x306	/* s390 breaking event address */
 #define NT_S390_SYSTEM_CALL	0x307	/* s390 system call restart data */
 #define NT_S390_TDB	0x308		/* s390 transaction diagnostic block */
-<<<<<<< HEAD
-=======
 #define NT_S390_VXRS_LOW	0x309	/* s390 vector registers 0-15 upper half */
 #define NT_S390_VXRS_HIGH	0x30a	/* s390 vector registers 16-31 */
->>>>>>> android-3.18
 #define NT_ARM_VFP	0x400		/* ARM VFP/NEON registers */
 #define NT_ARM_TLS	0x401		/* ARM TLS register */
 #define NT_ARM_HW_BREAK	0x402		/* ARM hardware breakpoint registers */
 #define NT_ARM_HW_WATCH	0x403		/* ARM hardware watchpoint registers */
-<<<<<<< HEAD
-=======
 #define NT_ARM_SYSTEM_CALL	0x404	/* ARM system call number */
 #define NT_METAG_CBUF	0x500		/* Metag catch buffer registers */
 #define NT_METAG_RPIPE	0x501		/* Metag read pipeline state */
 #define NT_METAG_TLS	0x502		/* Metag TLS pointer */
->>>>>>> android-3.18
 
 
 /* Note header in a PT_NOTE section */

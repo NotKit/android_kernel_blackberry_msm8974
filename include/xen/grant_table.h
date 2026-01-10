@@ -169,8 +169,6 @@ int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
 int gnttab_unmap_refs(struct gnttab_unmap_grant_ref *unmap_ops,
 		      struct gnttab_map_grant_ref *kunmap_ops,
 		      struct page **pages, unsigned int count);
-<<<<<<< HEAD
-=======
 
 /* Perform a batch of grant map/copy operations. Retry every batch slot
  * for which the hypervisor returns GNTST_eagain. This is typically due
@@ -183,6 +181,5 @@ int gnttab_unmap_refs(struct gnttab_unmap_grant_ref *unmap_ops,
  */
 void gnttab_batch_map(struct gnttab_map_grant_ref *batch, unsigned count);
 void gnttab_batch_copy(struct gnttab_copy *batch, unsigned count);
->>>>>>> android-3.18
 
 #endif /* __ASM_GNTTAB_H__ */

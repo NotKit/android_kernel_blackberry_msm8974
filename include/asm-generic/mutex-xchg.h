@@ -48,11 +48,7 @@ __mutex_fastpath_lock_retval(atomic_t *count)
 {
 	if (unlikely(atomic_xchg(count, 0) != 1))
 		if (likely(atomic_xchg(count, -1) != 1))
-<<<<<<< HEAD
-			return fail_fn(count);
-=======
 			return -1;
->>>>>>> android-3.18
 	return 0;
 }
 

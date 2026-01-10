@@ -1920,11 +1920,7 @@ static int __core_scsi3_write_aptpl_to_file(
 	if (IS_ERR(file)) {
 		pr_err("filp_open(%s) for APTPL metadata"
 			" failed\n", path);
-<<<<<<< HEAD
-		return IS_ERR(file) ? PTR_ERR(file) : -ENOENT;
-=======
 		return PTR_ERR(file);
->>>>>>> android-3.18
 	}
 
 	pr_aptpl_buf_len = (strlen(buf) + 1); /* Add extra for NULL */
@@ -3500,29 +3496,15 @@ target_scsi3_emulate_pr_out(struct se_cmd *cmd)
 		pr_err("Received PERSISTENT_RESERVE CDB while legacy"
 			" SPC-2 reservation is held, returning"
 			" RESERVATION_CONFLICT\n");
-<<<<<<< HEAD
-		cmd->scsi_sense_reason = TCM_RESERVATION_CONFLICT;
-		ret = -EINVAL;
-		goto out;
-=======
 		return TCM_RESERVATION_CONFLICT;
->>>>>>> android-3.18
 	}
 
 	/*
 	 * FIXME: A NULL struct se_session pointer means an this is not coming from
 	 * a $FABRIC_MOD's nexus, but from internal passthrough ops.
 	 */
-<<<<<<< HEAD
-	if (!cmd->se_sess) {
-		cmd->scsi_sense_reason = TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
-		ret = -EINVAL;
-		goto out;
-	}
-=======
 	if (!cmd->se_sess)
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
->>>>>>> android-3.18
 
 	if (cmd->data_length < 24) {
 		pr_warn("SPC-PR: Received PR OUT parameter list"

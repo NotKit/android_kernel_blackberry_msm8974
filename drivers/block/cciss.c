@@ -167,11 +167,7 @@ static irqreturn_t do_cciss_intx(int irq, void *dev_id);
 static irqreturn_t do_cciss_msix_intr(int irq, void *dev_id);
 static int cciss_open(struct block_device *bdev, fmode_t mode);
 static int cciss_unlocked_open(struct block_device *bdev, fmode_t mode);
-<<<<<<< HEAD
-static int cciss_release(struct gendisk *disk, fmode_t mode);
-=======
 static void cciss_release(struct gendisk *disk, fmode_t mode);
->>>>>>> android-3.18
 static int cciss_ioctl(struct block_device *bdev, fmode_t mode,
 		       unsigned int cmd, unsigned long arg);
 static int cciss_getgeo(struct block_device *bdev, struct hd_geometry *geo);
@@ -1140,10 +1136,6 @@ static void cciss_release(struct gendisk *disk, fmode_t mode)
 	drv->usage_count--;
 	h->usage_count--;
 	mutex_unlock(&cciss_mutex);
-<<<<<<< HEAD
-	return 0;
-=======
->>>>>>> android-3.18
 }
 
 #ifdef CONFIG_COMPAT

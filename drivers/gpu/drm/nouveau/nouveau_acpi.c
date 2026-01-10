@@ -377,11 +377,7 @@ bool nouveau_acpi_rom_supported(struct pci_dev *pdev)
 	acpi_status status;
 	acpi_handle dhandle, rom_handle;
 
-<<<<<<< HEAD
-	dhandle = DEVICE_ACPI_HANDLE(&pdev->dev);
-=======
 	dhandle = ACPI_HANDLE(&pdev->dev);
->>>>>>> android-3.18
 	if (!dhandle)
 		return false;
 

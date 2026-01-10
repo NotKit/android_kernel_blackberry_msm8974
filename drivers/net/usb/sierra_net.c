@@ -681,13 +681,7 @@ static int sierra_net_get_fw_attr(struct usbnet *dev, u16 *datap)
 	if (result < 0)
 		return -EIO;
 
-<<<<<<< HEAD
-	*datap = le16_to_cpu(*attrdata);
-
-	kfree(attrdata);
-=======
 	*datap = le16_to_cpu(attrdata);
->>>>>>> android-3.18
 	return result;
 }
 
@@ -940,18 +934,6 @@ static struct sk_buff *sierra_net_tx_fixup(struct usbnet *dev,
 	return NULL;
 }
 
-<<<<<<< HEAD
-static const u8 sierra_net_ifnum_list[] = { 7, 10, 11 };
-static const struct sierra_net_info_data sierra_net_info_data_direct_ip = {
-	.rx_urb_size = 8 * 1024,
-	.whitelist = {
-		.infolen = ARRAY_SIZE(sierra_net_ifnum_list),
-		.ifaceinfo = sierra_net_ifnum_list
-	}
-};
-
-=======
->>>>>>> android-3.18
 static const struct driver_info sierra_net_info_direct_ip = {
 	.description = "Sierra Wireless USB-to-WWAN Modem",
 	.flags = FLAG_WWAN | FLAG_SEND_ZLP,
@@ -960,10 +942,6 @@ static const struct driver_info sierra_net_info_direct_ip = {
 	.status = sierra_net_status,
 	.rx_fixup = sierra_net_rx_fixup,
 	.tx_fixup = sierra_net_tx_fixup,
-<<<<<<< HEAD
-	.data = (unsigned long)&sierra_net_info_data_direct_ip,
-=======
->>>>>>> android-3.18
 };
 
 static int
@@ -993,21 +971,10 @@ sierra_net_probe(struct usb_interface *udev, const struct usb_device_id *prod)
 	.driver_info = (unsigned long)&sierra_net_info_direct_ip}
 
 static const struct usb_device_id products[] = {
-<<<<<<< HEAD
-	{USB_DEVICE(0x1199, 0x68A3), /* Sierra Wireless USB-to-WWAN modem */
-	.driver_info = (unsigned long) &sierra_net_info_direct_ip},
-	{USB_DEVICE(0x0F3D, 0x68A3), /* AT&T Direct IP modem */
-	.driver_info = (unsigned long) &sierra_net_info_direct_ip},
-	{USB_DEVICE(0x1199, 0x68AA), /* Sierra Wireless Direct IP LTE modem */
-	.driver_info = (unsigned long) &sierra_net_info_direct_ip},
-	{USB_DEVICE(0x0F3D, 0x68AA), /* AT&T Direct IP LTE modem */
-	.driver_info = (unsigned long) &sierra_net_info_direct_ip},
-=======
 	DIRECT_IP_DEVICE(0x1199, 0x68A3), /* Sierra Wireless USB-to-WWAN modem */
 	DIRECT_IP_DEVICE(0x0F3D, 0x68A3), /* AT&T Direct IP modem */
 	DIRECT_IP_DEVICE(0x1199, 0x68AA), /* Sierra Wireless Direct IP LTE modem */
 	DIRECT_IP_DEVICE(0x0F3D, 0x68AA), /* AT&T Direct IP LTE modem */
->>>>>>> android-3.18
 
 	{}, /* last item */
 };

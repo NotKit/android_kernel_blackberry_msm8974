@@ -1812,19 +1812,8 @@ static void atmel_shutdown(struct uart_port *port)
 	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
 
 	/*
-<<<<<<< HEAD
-	 * Clear out any scheduled tasklets before
-	 * we destroy the buffers
-	 */
-	tasklet_kill(&atmel_port->tasklet);
-
-	/*
-	 * Ensure everything is stopped and
-	 * disable all interrupts, port and break condition.
-=======
 	 * Prevent any tasklets being scheduled during
 	 * cleanup
->>>>>>> android-3.18
 	 */
 	del_timer_sync(&atmel_port->uart_timer);
 
@@ -1850,9 +1839,6 @@ static void atmel_shutdown(struct uart_port *port)
 
 
 	/*
-<<<<<<< HEAD
-	 * Free the interrupt
-=======
 	 * Shut-down the DMA.
 	 */
 	if (atmel_port->release_rx)
@@ -1862,7 +1848,6 @@ static void atmel_shutdown(struct uart_port *port)
 
 	/*
 	 * Reset ring buffer pointers
->>>>>>> android-3.18
 	 */
 	atmel_port->rx_ring.head = 0;
 	atmel_port->rx_ring.tail = 0;
@@ -2041,10 +2026,6 @@ static void atmel_set_termios(struct uart_port *port, struct ktermios *termios,
 	mode &= ~ATMEL_US_USMODE;
 
 	if (atmel_port->rs485.flags & SER_RS485_ENABLED) {
-<<<<<<< HEAD
-		dev_dbg(port->dev, "Setting UART to RS485\n");
-=======
->>>>>>> android-3.18
 		UART_PUT_TTGR(port, atmel_port->rs485.delay_rts_after_send);
 		mode |= ATMEL_US_USMODE_RS485;
 	}

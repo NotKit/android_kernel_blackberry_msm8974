@@ -313,13 +313,8 @@ static void mtdoops_do_dump(struct kmsg_dumper *dumper,
 	kmsg_dump_get_buffer(dumper, true, cxt->oops_buf + MTDOOPS_HEADER_SIZE,
 			     record_size - MTDOOPS_HEADER_SIZE, NULL);
 
-<<<<<<< HEAD
-	/* Panics must be written immediately */
-	if (reason != KMSG_DUMP_OOPS)
-=======
 	if (reason != KMSG_DUMP_OOPS) {
 		/* Panics must be written immediately */
->>>>>>> android-3.18
 		mtdoops_write(cxt, 1);
 	} else {
 		/* For other cases, schedule work to write it "nicely" */

@@ -56,12 +56,6 @@ int		svc_recv(struct svc_rqst *, long);
 int		svc_send(struct svc_rqst *);
 void		svc_drop(struct svc_rqst *);
 void		svc_sock_update_bufs(struct svc_serv *serv);
-<<<<<<< HEAD
-int		svc_sock_names(struct svc_serv *serv, char *buf,
-					const size_t buflen,
-					const char *toclose);
-=======
->>>>>>> android-3.18
 bool		svc_alien_sock(struct net *net, int fd);
 int		svc_addsock(struct svc_serv *serv, const int fd,
 					char *name_return, const size_t len);

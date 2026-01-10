@@ -389,17 +389,6 @@ static void *alloc_buffer_data(struct dm_bufio_client *c, gfp_t gfp_mask,
 	 * as if GFP_NOIO was specified.
 	 */
 
-<<<<<<< HEAD
-	if (gfp_mask & __GFP_NORETRY) {
-		noio_flag = current->flags & PF_MEMALLOC;
-		current->flags |= PF_MEMALLOC;
-	}
-
-	ptr = __vmalloc(c->block_size, gfp_mask, PAGE_KERNEL);
-
-	if (gfp_mask & __GFP_NORETRY)
-		current->flags = (current->flags & ~PF_MEMALLOC) | noio_flag;
-=======
 	noio_flag = 0;
 	if (gfp_mask & __GFP_NORETRY)
 		noio_flag = memalloc_noio_save();
@@ -408,7 +397,6 @@ static void *alloc_buffer_data(struct dm_bufio_client *c, gfp_t gfp_mask,
 
 	if (gfp_mask & __GFP_NORETRY)
 		memalloc_noio_restore(noio_flag);
->>>>>>> android-3.18
 
 	return ptr;
 }
@@ -517,12 +505,7 @@ static void __relink_lru(struct dm_buffer *b, int dirty)
 	c->n_buffers[b->list_mode]--;
 	c->n_buffers[dirty]++;
 	b->list_mode = dirty;
-<<<<<<< HEAD
-	list_del(&b->lru_list);
-	list_add(&b->lru_list, &c->lru[dirty]);
-=======
 	list_move(&b->lru_list, &c->lru[dirty]);
->>>>>>> android-3.18
 	b->last_accessed = jiffies;
 }
 
@@ -1557,10 +1540,7 @@ dm_bufio_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
 	struct dm_bufio_client *c;
 	unsigned long freed;
 
-<<<<<<< HEAD
-=======
 	c = container_of(shrink, struct dm_bufio_client, shrinker);
->>>>>>> android-3.18
 	if (sc->gfp_mask & __GFP_FS)
 		dm_bufio_lock(c);
 	else if (!dm_bufio_trylock(c))

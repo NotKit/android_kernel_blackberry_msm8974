@@ -91,11 +91,7 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
 				 struct dma_attrs *attrs)
 {
 	unsigned long dma_mask;
-<<<<<<< HEAD
-	struct page *page = NULL;
-=======
 	struct page *page;
->>>>>>> android-3.18
 	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
 	dma_addr_t addr;
 
@@ -103,10 +99,6 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
 
 	flag &= ~__GFP_ZERO;
 again:
-<<<<<<< HEAD
-	if (!(flag & GFP_ATOMIC))
-		page = dma_alloc_from_contiguous(dev, count, get_order(size));
-=======
 	page = NULL;
 	/* CMA can be used only in the context which permits sleeping */
 	if (flag & __GFP_WAIT) {
@@ -117,7 +109,6 @@ again:
 		}
 	}
 	/* fallback */
->>>>>>> android-3.18
 	if (!page)
 		page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
 	if (!page)

@@ -24,10 +24,6 @@
  *	Eric Anholt <eric@anholt.net>
  */
 
-<<<<<<< HEAD
-#include <linux/cpufreq.h>
-=======
->>>>>>> android-3.18
 #include <linux/dmi.h>
 #include <linux/module.h>
 #include <linux/input.h>
@@ -383,27 +379,6 @@ static const intel_limit_t intel_limits_vlv = {
 	.p2 = { .p2_slow = 2, .p2_fast = 20 }, /* slow=min, fast=max */
 };
 
-<<<<<<< HEAD
-static bool is_dual_link_lvds(struct drm_i915_private *dev_priv,
-			      unsigned int reg)
-{
-	unsigned int val;
-
-	if (dev_priv->lvds_val)
-		val = dev_priv->lvds_val;
-	else {
-		/* BIOS should set the proper LVDS register value at boot, but
-		 * in reality, it doesn't set the value when the lid is closed;
-		 * we need to check "the value to be set" in VBT when LVDS
-		 * register is uninitialized.
-		 */
-		val = I915_READ(reg);
-		if (!(val & ~LVDS_DETECTED))
-			val = dev_priv->bios_lvds_val;
-		dev_priv->lvds_val = val;
-	}
-	return (val & LVDS_CLKB_POWER_MASK) == LVDS_CLKB_POWER_UP;
-=======
 static const intel_limit_t intel_limits_chv = {
 	/*
 	 * These are the data rate limits (measured in fast clocks)
@@ -443,7 +418,6 @@ static bool intel_pipe_has_type(struct drm_crtc *crtc, int type)
 			return true;
 
 	return false;
->>>>>>> android-3.18
 }
 
 static const intel_limit_t *intel_ironlake_limit(struct drm_crtc *crtc,
@@ -453,12 +427,7 @@ static const intel_limit_t *intel_ironlake_limit(struct drm_crtc *crtc,
 	const intel_limit_t *limit;
 
 	if (intel_pipe_has_type(crtc, INTEL_OUTPUT_LVDS)) {
-<<<<<<< HEAD
-		if (is_dual_link_lvds(dev_priv, PCH_LVDS)) {
-			/* LVDS dual channel */
-=======
 		if (intel_is_dual_link_lvds(dev)) {
->>>>>>> android-3.18
 			if (refclk == 100000)
 				limit = &intel_limits_ironlake_dual_lvds_100m;
 			else
@@ -481,12 +450,7 @@ static const intel_limit_t *intel_g4x_limit(struct drm_crtc *crtc)
 	const intel_limit_t *limit;
 
 	if (intel_pipe_has_type(crtc, INTEL_OUTPUT_LVDS)) {
-<<<<<<< HEAD
-		if (is_dual_link_lvds(dev_priv, LVDS))
-			/* LVDS with dual channel */
-=======
 		if (intel_is_dual_link_lvds(dev))
->>>>>>> android-3.18
 			limit = &intel_limits_g4x_dual_channel_lvds;
 		else
 			limit = &intel_limits_g4x_single_channel_lvds;
@@ -628,11 +592,7 @@ i9xx_find_best_dpll(const intel_limit_t *limit, struct drm_crtc *crtc,
 		 * We haven't figured out how to reliably set up different
 		 * single/dual channel state, if we even can.
 		 */
-<<<<<<< HEAD
-		if (is_dual_link_lvds(dev_priv, LVDS))
-=======
 		if (intel_is_dual_link_lvds(dev))
->>>>>>> android-3.18
 			clock.p2 = limit->p2.p2_fast;
 		else
 			clock.p2 = limit->p2.p2_slow;
@@ -2247,52 +2207,19 @@ static void intel_disable_primary_hw_plane(struct drm_plane *plane,
 
 static bool need_vtd_wa(struct drm_device *dev)
 {
-<<<<<<< HEAD
-	u32 val = I915_READ(reg);
-	if (hdmi_pipe_enabled(dev_priv, pipe, val)) {
-		DRM_DEBUG_KMS("Disabling pch HDMI %x on pipe %d\n",
-			      reg, pipe);
-		I915_WRITE(reg, val & ~PORT_ENABLE);
-	}
-=======
 #ifdef CONFIG_INTEL_IOMMU
 	if (INTEL_INFO(dev)->gen >= 6 && intel_iommu_gfx_mapped)
 		return true;
 #endif
 	return false;
->>>>>>> android-3.18
 }
 
 static int intel_align_height(struct drm_device *dev, int height, bool tiled)
 {
 	int tile_height;
 
-<<<<<<< HEAD
-	disable_pch_dp(dev_priv, pipe, PCH_DP_B, TRANS_DP_PORT_SEL_B);
-	disable_pch_dp(dev_priv, pipe, PCH_DP_C, TRANS_DP_PORT_SEL_C);
-	disable_pch_dp(dev_priv, pipe, PCH_DP_D, TRANS_DP_PORT_SEL_D);
-
-	reg = PCH_ADPA;
-	val = I915_READ(reg);
-	if (adpa_pipe_enabled(dev_priv, pipe, val))
-		I915_WRITE(reg, val & ~ADPA_DAC_ENABLE);
-
-	reg = PCH_LVDS;
-	val = I915_READ(reg);
-	if (lvds_pipe_enabled(dev_priv, pipe, val)) {
-		DRM_DEBUG_KMS("disable lvds on pipe %d val 0x%08x\n", pipe, val);
-		I915_WRITE(reg, val & ~LVDS_PORT_EN);
-		POSTING_READ(reg);
-		udelay(100);
-	}
-
-	disable_pch_hdmi(dev_priv, pipe, HDMIB);
-	disable_pch_hdmi(dev_priv, pipe, HDMIC);
-	disable_pch_hdmi(dev_priv, pipe, HDMID);
-=======
 	tile_height = tiled ? (IS_GEN2(dev) ? 16 : 8) : 1;
 	return ALIGN(height, tile_height);
->>>>>>> android-3.18
 }
 
 int
@@ -2995,8 +2922,6 @@ static void intel_fdi_normal_train(struct drm_crtc *crtc)
 			   FDI_FE_ERRC_ENABLE);
 }
 
-<<<<<<< HEAD
-=======
 static bool pipe_has_enabled_pch(struct intel_crtc *crtc)
 {
 	return crtc->base.enabled && crtc->active &&
@@ -3029,7 +2954,6 @@ static void ivb_modeset_global_resources(struct drm_device *dev)
 	}
 }
 
->>>>>>> android-3.18
 /* The FDI link training functions for ILK/Ibexpeak. */
 static void ironlake_fdi_link_train(struct drm_crtc *crtc)
 {
@@ -3294,9 +3218,6 @@ static void ivb_manual_fdi_link_train(struct drm_crtc *crtc)
 		temp &= ~FDI_TX_ENABLE;
 		I915_WRITE(reg, temp);
 
-<<<<<<< HEAD
-	for (i = 0; i < 4; i++) {
-=======
 		reg = FDI_RX_CTL(pipe);
 		temp = I915_READ(reg);
 		temp &= ~FDI_LINK_TRAIN_AUTO;
@@ -3305,7 +3226,6 @@ static void ivb_manual_fdi_link_train(struct drm_crtc *crtc)
 		I915_WRITE(reg, temp);
 
 		/* enable CPU FDI TX and PCH FDI RX */
->>>>>>> android-3.18
 		reg = FDI_TX_CTL(pipe);
 		temp = I915_READ(reg);
 		temp &= ~FDI_DP_PORT_WIDTH_MASK;
@@ -3422,8 +3342,6 @@ static void ironlake_fdi_pll_enable(struct intel_crtc *intel_crtc)
 	}
 }
 
-<<<<<<< HEAD
-=======
 static void ironlake_fdi_pll_disable(struct intel_crtc *intel_crtc)
 {
 	struct drm_device *dev = intel_crtc->base.dev;
@@ -3453,7 +3371,6 @@ static void ironlake_fdi_pll_disable(struct intel_crtc *intel_crtc)
 	udelay(100);
 }
 
->>>>>>> android-3.18
 static void ironlake_fdi_disable(struct drm_crtc *crtc)
 {
 	struct drm_device *dev = crtc->dev;
@@ -3480,13 +3397,6 @@ static void ironlake_fdi_disable(struct drm_crtc *crtc)
 	/* Ironlake workaround, disable clock pointer after downing FDI */
 	if (HAS_PCH_IBX(dev))
 		I915_WRITE(FDI_RX_CHICKEN(pipe), FDI_RX_PHASE_SYNC_POINTER_OVR);
-<<<<<<< HEAD
-		I915_WRITE(FDI_RX_CHICKEN(pipe),
-			   I915_READ(FDI_RX_CHICKEN(pipe) &
-				     ~FDI_RX_PHASE_SYNC_POINTER_EN));
-	}
-=======
->>>>>>> android-3.18
 
 	/* still set train pattern 1 */
 	reg = FDI_TX_CTL(pipe);
@@ -3537,34 +3447,10 @@ bool intel_has_pending_fb_unpin(struct drm_device *dev)
 	return false;
 }
 
-<<<<<<< HEAD
-static bool intel_crtc_has_pending_flip(struct drm_crtc *crtc)
-{
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	unsigned long flags;
-	bool pending;
-
-	if (atomic_read(&dev_priv->mm.wedged))
-		return false;
-
-	spin_lock_irqsave(&dev->event_lock, flags);
-	pending = to_intel_crtc(crtc)->unpin_work != NULL;
-	spin_unlock_irqrestore(&dev->event_lock, flags);
-
-	return pending;
-}
-
-static void intel_crtc_wait_for_pending_flips(struct drm_crtc *crtc)
-{
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = dev->dev_private;
-=======
 static void page_flip_completed(struct intel_crtc *intel_crtc)
 {
 	struct drm_i915_private *dev_priv = to_i915(intel_crtc->base.dev);
 	struct intel_unpin_work *work = intel_crtc->unpin_work;
->>>>>>> android-3.18
 
 	/* ensure that the unpin work is consistent wrt ->pending. */
 	smp_rmb();
@@ -3577,20 +3463,11 @@ static void page_flip_completed(struct intel_crtc *intel_crtc)
 
 	drm_crtc_vblank_put(&intel_crtc->base);
 
-<<<<<<< HEAD
-	wait_event(dev_priv->pending_flip_queue,
-		   !intel_crtc_has_pending_flip(crtc));
-
-	mutex_lock(&dev->struct_mutex);
-	intel_finish_fb(crtc->fb);
-	mutex_unlock(&dev->struct_mutex);
-=======
 	wake_up_all(&dev_priv->pending_flip_queue);
 	trace_i915_flip_complete(intel_crtc->plane,
 				 work->pending_flip_obj);
 
 	queue_work(dev_priv->wq, &work->work);
->>>>>>> android-3.18
 }
 
 void intel_crtc_wait_for_pending_flips(struct drm_crtc *crtc)
@@ -3916,27 +3793,10 @@ struct intel_shared_dpll *intel_get_shared_dpll(struct intel_crtc *crtc)
 	struct intel_shared_dpll *pll = intel_crtc_to_shared_dpll(crtc);
 	enum intel_dpll_id i;
 
-<<<<<<< HEAD
-	/* Enable panel fitting for LVDS */
-	if (dev_priv->pch_pf_size &&
-	    (intel_pipe_has_type(crtc, INTEL_OUTPUT_LVDS) || HAS_eDP)) {
-		/* Force use of hard-coded filter coefficients
-		 * as some pre-programmed values are broken,
-		 * e.g. x201.
-		 */
-		if (IS_IVYBRIDGE(dev))
-			I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3 |
-						 PF_PIPE_SEL_IVB(pipe));
-		else
-			I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3);
-		I915_WRITE(PF_WIN_POS(pipe), dev_priv->pch_pf_pos);
-		I915_WRITE(PF_WIN_SZ(pipe), dev_priv->pch_pf_size);
-=======
 	if (pll) {
 		DRM_DEBUG_KMS("CRTC:%d dropping existing %s\n",
 			      crtc->base.base.id, pll->name);
 		intel_put_shared_dpll(crtc);
->>>>>>> android-3.18
 	}
 
 	if (HAS_PCH_IBX(dev_priv->dev)) {
@@ -4223,20 +4083,7 @@ static void intel_crtc_disable_planes(struct drm_crtc *crtc)
 	if (dev_priv->fbc.plane == plane)
 		intel_disable_fbc(dev);
 
-<<<<<<< HEAD
-	intel_disable_plane(dev_priv, plane, pipe);
-	intel_disable_pipe(dev_priv, pipe);
-
-	/* Disable pannel fitter if it is on this pipe. */
-	pctl = I915_READ(PFIT_CONTROL);
-	if ((pctl & PFIT_ENABLE) &&
-	    ((pctl & PFIT_PIPE_MASK) >> PFIT_PIPE_SHIFT) == pipe)
-		I915_WRITE(PFIT_CONTROL, 0);
-
-	intel_disable_pll(dev_priv, pipe);
-=======
 	hsw_disable_ips(intel_crtc);
->>>>>>> android-3.18
 
 	intel_crtc_dpms_overlay(intel_crtc, false);
 	intel_crtc_update_cursor(crtc, false);
@@ -4288,11 +4135,6 @@ static void ironlake_crtc_enable(struct drm_crtc *crtc)
 	intel_set_cpu_fifo_underrun_reporting(dev, pipe, true);
 	intel_set_pch_fifo_underrun_reporting(dev, pipe, true);
 
-<<<<<<< HEAD
-	crtc_funcs->dpms(crtc, DRM_MODE_DPMS_OFF);
-	assert_plane_disabled(dev->dev_private, to_intel_crtc(crtc)->plane);
-	assert_pipe_disabled(dev->dev_private, to_intel_crtc(crtc)->pipe);
-=======
 	for_each_encoder_on_crtc(dev, crtc, encoder)
 		if (encoder->pre_enable)
 			encoder->pre_enable(encoder);
@@ -4308,7 +4150,6 @@ static void ironlake_crtc_enable(struct drm_crtc *crtc)
 	}
 
 	ironlake_pfit_enable(intel_crtc);
->>>>>>> android-3.18
 
 	/*
 	 * On ILK+ LUT must be loaded before the pipe is running but with
@@ -5344,13 +5185,6 @@ static void intel_connector_check_state(struct intel_connector *connector)
 	}
 }
 
-<<<<<<< HEAD
-		/* Not one of the known troublemakers, check the EDID */
-		list_for_each_entry(connector, &dev->mode_config.connector_list,
-				    head) {
-			if (connector->encoder != encoder)
-				continue;
-=======
 /* Even simpler default implementation, if there's really no special case to
  * consider. */
 void intel_connector_dpms(struct drm_connector *connector, int mode)
@@ -5409,7 +5243,6 @@ static bool ironlake_check_fdi_lanes(struct drm_device *dev, enum pipe pipe,
 
 	if (INTEL_INFO(dev)->num_pipes == 2)
 		return true;
->>>>>>> android-3.18
 
 	/* Ivybridge 3 pipe is really complicated */
 	switch (pipe) {
@@ -5976,24 +5809,12 @@ static void vlv_prepare_pll(struct intel_crtc *crtc)
 					 0x0df40000);
 	}
 
-<<<<<<< HEAD
-	/* default to 8bpc */
-	pipeconf &= ~(PIPECONF_BPP_MASK | PIPECONF_DITHER_EN);
-	if (is_dp) {
-		if (adjusted_mode->private_flags & INTEL_MODE_DP_FORCE_6BPC) {
-			pipeconf |= PIPECONF_BPP_6 |
-				    PIPECONF_DITHER_EN |
-				    PIPECONF_DITHER_TYPE_SP;
-		}
-	}
-=======
 	coreclk = vlv_dpio_read(dev_priv, pipe, VLV_PLL_DW7(pipe));
 	coreclk = (coreclk & 0x0000ff00) | 0x01c00000;
 	if (intel_pipe_has_type(&crtc->base, INTEL_OUTPUT_DISPLAYPORT) ||
 	    intel_pipe_has_type(&crtc->base, INTEL_OUTPUT_EDP))
 		coreclk |= 0x01000000;
 	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW7(pipe), coreclk);
->>>>>>> android-3.18
 
 	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW11(pipe), 0x87871000);
 	mutex_unlock(&dev_priv->dpio_lock);
@@ -7293,35 +7114,8 @@ static bool ironlake_compute_clocks(struct drm_crtc *crtc,
 						    reduced_clock);
 	}
 
-<<<<<<< HEAD
-	/* determine panel color depth */
-	temp = I915_READ(PIPECONF(pipe));
-	temp &= ~PIPE_BPC_MASK;
-	dither = intel_choose_pipe_bpp_dither(crtc, &pipe_bpp, adjusted_mode);
-	switch (pipe_bpp) {
-	case 18:
-		temp |= PIPE_6BPC;
-		break;
-	case 24:
-		temp |= PIPE_8BPC;
-		break;
-	case 30:
-		temp |= PIPE_10BPC;
-		break;
-	case 36:
-		temp |= PIPE_12BPC;
-		break;
-	default:
-		WARN(1, "intel_choose_pipe_bpp returned invalid value %d\n",
-			pipe_bpp);
-		temp |= PIPE_8BPC;
-		pipe_bpp = 24;
-		break;
-	}
-=======
 	return true;
 }
->>>>>>> android-3.18
 
 int ironlake_get_lanes_required(int target_clock, int link_bw, int bpp)
 {
@@ -8519,35 +8313,8 @@ static void i9xx_update_cursor(struct drm_crtc *crtc, u32 base)
 		}
 		cntl |= pipe << 28; /* Connect to correct pipe */
 	}
-<<<<<<< HEAD
-	/* and commit changes on next vblank */
-	POSTING_READ(CURCNTR(pipe));
-	I915_WRITE(CURBASE(pipe), base);
-	POSTING_READ(CURBASE(pipe));
-}
-
-static void ivb_update_cursor(struct drm_crtc *crtc, u32 base)
-{
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	int pipe = intel_crtc->pipe;
-	bool visible = base != 0;
-
-	if (intel_crtc->cursor_visible != visible) {
-		uint32_t cntl = I915_READ(CURCNTR_IVB(pipe));
-		if (base) {
-			cntl &= ~CURSOR_MODE;
-			cntl |= CURSOR_MODE_64_ARGB_AX | MCURSOR_GAMMA_ENABLE;
-		} else {
-			cntl &= ~(CURSOR_MODE | MCURSOR_GAMMA_ENABLE);
-			cntl |= CURSOR_MODE_DISABLE;
-		}
-		I915_WRITE(CURCNTR_IVB(pipe), cntl);
-=======
 	if (IS_HASWELL(dev) || IS_BROADWELL(dev))
 		cntl |= CURSOR_PIPE_CSC_ENABLE;
->>>>>>> android-3.18
 
 	if (intel_crtc->cursor_cntl != cntl) {
 		I915_WRITE(CURCNTR(pipe), cntl);
@@ -8556,14 +8323,8 @@ static void ivb_update_cursor(struct drm_crtc *crtc, u32 base)
 	}
 
 	/* and commit changes on next vblank */
-<<<<<<< HEAD
-	POSTING_READ(CURCNTR_IVB(pipe));
-	I915_WRITE(CURBASE_IVB(pipe), base);
-	POSTING_READ(CURBASE_IVB(pipe));
-=======
 	I915_WRITE(CURBASE(pipe), base);
 	POSTING_READ(CURBASE(pipe));
->>>>>>> android-3.18
 }
 
 /* If no-part of the cursor is visible on the framebuffer, then the GPU may hang... */
@@ -11829,23 +11590,6 @@ static int intel_crtc_set_config(struct drm_mode_set *set)
 	BUG_ON(!set->mode && set->fb);
 	BUG_ON(set->fb && set->num_connectors == 0);
 
-<<<<<<< HEAD
-	spin_lock_irqsave(&dev->event_lock, flags);
-	work = intel_crtc->unpin_work;
-
-	/* Ensure we don't miss a work->pending update ... */
-	smp_rmb();
-
-	if (work == NULL || atomic_read(&work->pending) < INTEL_FLIP_COMPLETE) {
-		spin_unlock_irqrestore(&dev->event_lock, flags);
-		return;
-	}
-
-	/* and that the unpin work is consistent wrt ->pending. */
-	smp_rmb();
-
-	intel_crtc->unpin_work = NULL;
-=======
 	if (set->fb) {
 		DRM_DEBUG_KMS("[CRTC:%d] [FB:%d] #connectors=%d (x y) (%i %i)\n",
 				set->crtc->base.id, set->fb->base.id,
@@ -11855,7 +11599,6 @@ static int intel_crtc_set_config(struct drm_mode_set *set)
 	}
 
 	dev = set->crtc->dev;
->>>>>>> android-3.18
 
 	ret = -ENOMEM;
 	config = kzalloc(sizeof(*config), GFP_KERNEL);
@@ -11954,13 +11697,6 @@ static bool ibx_pch_dpll_get_hw_state(struct drm_i915_private *dev_priv,
 {
 	uint32_t val;
 
-<<<<<<< HEAD
-	atomic_clear_mask(1 << intel_crtc->plane,
-			  &obj->pending_flip.counter);
-
-	wake_up(&dev_priv->pending_flip_queue);
-	schedule_work(&work->work);
-=======
 	if (!intel_display_power_enabled(dev_priv, POWER_DOMAIN_PLLS))
 		return false;
 
@@ -11968,7 +11704,6 @@ static bool ibx_pch_dpll_get_hw_state(struct drm_i915_private *dev_priv,
 	hw_state->dpll = val;
 	hw_state->fp0 = I915_READ(PCH_FP0(pll->id));
 	hw_state->fp1 = I915_READ(PCH_FP1(pll->id));
->>>>>>> android-3.18
 
 	return val & DPLL_VCO_ENABLE;
 }
@@ -11992,72 +11727,6 @@ static void ibx_pch_dpll_enable(struct drm_i915_private *dev_priv,
 	POSTING_READ(PCH_DPLL(pll->id));
 	udelay(150);
 
-<<<<<<< HEAD
-	/* NB: An MMIO update of the plane base pointer will also
-	 * generate a page-flip completion irq, i.e. every modeset
-	 * is also accompanied by a spurious intel_prepare_page_flip().
-	 */
-	spin_lock_irqsave(&dev->event_lock, flags);
-	if (intel_crtc->unpin_work)
-		atomic_inc_not_zero(&intel_crtc->unpin_work->pending);
-	spin_unlock_irqrestore(&dev->event_lock, flags);
-}
-
-inline static void intel_mark_page_flip_active(struct intel_crtc *intel_crtc)
-{
-	/* Ensure that the work item is consistent when activating it ... */
-	smp_wmb();
-	atomic_set(&intel_crtc->unpin_work->pending, INTEL_FLIP_PENDING);
-	/* and that it is marked active as soon as the irq could fire. */
-	smp_wmb();
-}
-
-static int intel_gen2_queue_flip(struct drm_device *dev,
-				 struct drm_crtc *crtc,
-				 struct drm_framebuffer *fb,
-				 struct drm_i915_gem_object *obj)
-{
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	unsigned long offset;
-	u32 flip_mask;
-	int ret;
-
-	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
-	if (ret)
-		goto err;
-
-	/* Offset into the new buffer for cases of shared fbs between CRTCs */
-	offset = crtc->y * fb->pitches[0] + crtc->x * fb->bits_per_pixel/8;
-
-	ret = BEGIN_LP_RING(6);
-	if (ret)
-		goto err_unpin;
-
-	/* Can't queue multiple flips, so wait for the previous
-	 * one to finish before executing the next.
-	 */
-	if (intel_crtc->plane)
-		flip_mask = MI_WAIT_FOR_PLANE_B_FLIP;
-	else
-		flip_mask = MI_WAIT_FOR_PLANE_A_FLIP;
-	OUT_RING(MI_WAIT_FOR_EVENT | flip_mask);
-	OUT_RING(MI_NOOP);
-	OUT_RING(MI_DISPLAY_FLIP |
-		 MI_DISPLAY_FLIP_PLANE(intel_crtc->plane));
-	OUT_RING(fb->pitches[0]);
-	OUT_RING(obj->gtt_offset + offset);
-	OUT_RING(0); /* aux display base address, unused */
-
-	intel_mark_page_flip_active(intel_crtc);
-	ADVANCE_LP_RING();
-	return 0;
-
-err_unpin:
-	intel_unpin_fb_obj(obj);
-err:
-	return ret;
-=======
 	/* The pixel multiplier can only be updated once the
 	 * DPLL is enabled and the clocks are stable.
 	 *
@@ -12083,7 +11752,6 @@ static void ibx_pch_dpll_disable(struct drm_i915_private *dev_priv,
 	I915_WRITE(PCH_DPLL(pll->id), 0);
 	POSTING_READ(PCH_DPLL(pll->id));
 	udelay(200);
->>>>>>> android-3.18
 }
 
 static char *ibx_pch_dpll_names[] = {
@@ -12094,44 +11762,6 @@ static char *ibx_pch_dpll_names[] = {
 static void ibx_pch_dpll_init(struct drm_device *dev)
 {
 	struct drm_i915_private *dev_priv = dev->dev_private;
-<<<<<<< HEAD
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	unsigned long offset;
-	u32 flip_mask;
-	int ret;
-
-	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
-	if (ret)
-		goto err;
-
-	/* Offset into the new buffer for cases of shared fbs between CRTCs */
-	offset = crtc->y * fb->pitches[0] + crtc->x * fb->bits_per_pixel/8;
-
-	ret = BEGIN_LP_RING(6);
-	if (ret)
-		goto err_unpin;
-
-	if (intel_crtc->plane)
-		flip_mask = MI_WAIT_FOR_PLANE_B_FLIP;
-	else
-		flip_mask = MI_WAIT_FOR_PLANE_A_FLIP;
-	OUT_RING(MI_WAIT_FOR_EVENT | flip_mask);
-	OUT_RING(MI_NOOP);
-	OUT_RING(MI_DISPLAY_FLIP_I915 |
-		 MI_DISPLAY_FLIP_PLANE(intel_crtc->plane));
-	OUT_RING(fb->pitches[0]);
-	OUT_RING(obj->gtt_offset + offset);
-	OUT_RING(MI_NOOP);
-
-	intel_mark_page_flip_active(intel_crtc);
-	ADVANCE_LP_RING();
-	return 0;
-
-err_unpin:
-	intel_unpin_fb_obj(obj);
-err:
-	return ret;
-=======
 	int i;
 
 	dev_priv->num_shared_dpll = 2;
@@ -12145,48 +11775,12 @@ err:
 		dev_priv->shared_dplls[i].get_hw_state =
 			ibx_pch_dpll_get_hw_state;
 	}
->>>>>>> android-3.18
 }
 
 static void intel_shared_dpll_init(struct drm_device *dev)
 {
 	struct drm_i915_private *dev_priv = dev->dev_private;
 
-<<<<<<< HEAD
-	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
-	if (ret)
-		goto err;
-
-	ret = BEGIN_LP_RING(4);
-	if (ret)
-		goto err_unpin;
-
-	/* i965+ uses the linear or tiled offsets from the
-	 * Display Registers (which do not change across a page-flip)
-	 * so we need only reprogram the base address.
-	 */
-	OUT_RING(MI_DISPLAY_FLIP |
-		 MI_DISPLAY_FLIP_PLANE(intel_crtc->plane));
-	OUT_RING(fb->pitches[0]);
-	OUT_RING(obj->gtt_offset | obj->tiling_mode);
-
-	/* XXX Enabling the panel-fitter across page-flip is so far
-	 * untested on non-native modes, so ignore it for now.
-	 * pf = I915_READ(pipe == 0 ? PFA_CTL_1 : PFB_CTL_1) & PF_ENABLE;
-	 */
-	pf = 0;
-	pipesrc = I915_READ(PIPESRC(intel_crtc->pipe)) & 0x0fff0fff;
-	OUT_RING(pf | pipesrc);
-
-	intel_mark_page_flip_active(intel_crtc);
-	ADVANCE_LP_RING();
-	return 0;
-
-err_unpin:
-	intel_unpin_fb_obj(obj);
-err:
-	return ret;
-=======
 	if (HAS_DDI(dev))
 		intel_ddi_pll_init(dev);
 	else if (HAS_PCH_IBX(dev) || HAS_PCH_CPT(dev))
@@ -12195,7 +11789,6 @@ err:
 		dev_priv->num_shared_dpll = 0;
 
 	BUG_ON(dev_priv->num_shared_dpll > I915_NUM_PLLS);
->>>>>>> android-3.18
 }
 
 static int
@@ -12204,20 +11797,10 @@ intel_primary_plane_disable(struct drm_plane *plane)
 	struct drm_device *dev = plane->dev;
 	struct intel_crtc *intel_crtc;
 
-<<<<<<< HEAD
-	ret = intel_pin_and_fence_fb_obj(dev, obj, LP_RING(dev_priv));
-	if (ret)
-		goto err;
-
-	ret = BEGIN_LP_RING(4);
-	if (ret)
-		goto err_unpin;
-=======
 	if (!plane->fb)
 		return 0;
 
 	BUG_ON(!plane->crtc);
->>>>>>> android-3.18
 
 	intel_crtc = to_intel_crtc(plane->crtc);
 
@@ -12230,77 +11813,6 @@ intel_primary_plane_disable(struct drm_plane *plane)
 	 * In either case, we need to unpin the FB and let the fb pointer get
 	 * updated, but otherwise we don't need to touch the hardware.
 	 */
-<<<<<<< HEAD
-	pf = 0;
-	pipesrc = I915_READ(PIPESRC(intel_crtc->pipe)) & 0x0fff0fff;
-	OUT_RING(pf | pipesrc);
-
-	intel_mark_page_flip_active(intel_crtc);
-	ADVANCE_LP_RING();
-	return 0;
-
-err_unpin:
-	intel_unpin_fb_obj(obj);
-err:
-	return ret;
-}
-
-/*
- * On gen7 we currently use the blit ring because (in early silicon at least)
- * the render ring doesn't give us interrpts for page flip completion, which
- * means clients will hang after the first flip is queued.  Fortunately the
- * blit ring generates interrupts properly, so use it instead.
- */
-static int intel_gen7_queue_flip(struct drm_device *dev,
-				 struct drm_crtc *crtc,
-				 struct drm_framebuffer *fb,
-				 struct drm_i915_gem_object *obj)
-{
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	struct intel_ring_buffer *ring = &dev_priv->ring[BCS];
-	uint32_t plane_bit = 0;
-	int ret;
-
-	ret = intel_pin_and_fence_fb_obj(dev, obj, ring);
-	if (ret)
-		goto err;
-
-	switch(intel_crtc->plane) {
-	case PLANE_A:
-		plane_bit = MI_DISPLAY_FLIP_IVB_PLANE_A;
-		break;
-	case PLANE_B:
-		plane_bit = MI_DISPLAY_FLIP_IVB_PLANE_B;
-		break;
-	case PLANE_C:
-		plane_bit = MI_DISPLAY_FLIP_IVB_PLANE_C;
-		break;
-	default:
-		WARN_ONCE(1, "unknown plane in flip command\n");
-		ret = -ENODEV;
-		goto err_unpin;
-	}
-
-	ret = intel_ring_begin(ring, 4);
-	if (ret)
-		goto err_unpin;
-
-	intel_ring_emit(ring, MI_DISPLAY_FLIP_I915 | plane_bit);
-	intel_ring_emit(ring, (fb->pitches[0] | obj->tiling_mode));
-	intel_ring_emit(ring, (obj->gtt_offset));
-	intel_ring_emit(ring, (MI_NOOP));
-
-	intel_mark_page_flip_active(intel_crtc);
-	intel_ring_advance(ring);
-	return 0;
-
-err_unpin:
-	intel_unpin_fb_obj(obj);
-err:
-	return ret;
-}
-=======
 	if (!intel_crtc->primary_enabled)
 		goto disable_unpin;
 
@@ -12314,7 +11826,6 @@ disable_unpin:
 	intel_unpin_fb_obj(intel_fb_obj(plane->fb));
 	mutex_unlock(&dev->struct_mutex);
 	plane->fb = NULL;
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -12328,11 +11839,6 @@ intel_primary_plane_setplane(struct drm_plane *plane, struct drm_crtc *crtc,
 {
 	struct drm_device *dev = crtc->dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
-<<<<<<< HEAD
-	struct drm_framebuffer *old_fb = crtc->fb;
-	struct drm_i915_gem_object *obj = to_intel_framebuffer(fb)->obj;
-=======
->>>>>>> android-3.18
 	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
 	struct drm_i915_gem_object *obj = intel_fb_obj(fb);
 	struct drm_i915_gem_object *old_obj = intel_fb_obj(plane->fb);
@@ -12373,22 +11879,11 @@ intel_primary_plane_setplane(struct drm_plane *plane, struct drm_crtc *crtc,
 	bool visible;
 	int ret;
 
-<<<<<<< HEAD
-	work = kzalloc(sizeof *work, GFP_KERNEL);
-	if (work == NULL)
-		return -ENOMEM;
-
-	work->event = event;
-	work->dev = crtc->dev;
-	work->old_fb_obj = to_intel_framebuffer(old_fb)->obj;
-	INIT_WORK(&work->work, intel_unpin_work_fn);
-=======
 	ret = drm_plane_helper_check_update(plane, crtc, fb,
 					    &src, &dest, &clip,
 					    DRM_PLANE_HELPER_NO_SCALING,
 					    DRM_PLANE_HELPER_NO_SCALING,
 					    false, true, &visible);
->>>>>>> android-3.18
 
 	if (ret)
 		return ret;
@@ -12409,16 +11904,12 @@ intel_primary_plane_setplane(struct drm_plane *plane, struct drm_crtc *crtc,
 		if (plane->fb)
 			intel_unpin_fb_obj(old_obj);
 
-<<<<<<< HEAD
-	mutex_lock(&dev->struct_mutex);
-=======
 		i915_gem_track_fb(old_obj, obj,
 				  INTEL_FRONTBUFFER_PRIMARY(intel_crtc->pipe));
 
 		/* Pin and return without programming hardware */
 		ret = intel_pin_and_fence_fb_obj(dev, obj, NULL);
 		mutex_unlock(&dev->struct_mutex);
->>>>>>> android-3.18
 
 		return ret;
 	}
@@ -12459,14 +11950,6 @@ intel_primary_plane_setplane(struct drm_plane *plane, struct drm_crtc *crtc,
 
 		mutex_unlock(&dev->struct_mutex);
 
-<<<<<<< HEAD
-cleanup_pending:
-	atomic_sub(1 << intel_crtc->plane, &work->old_fb_obj->pending_flip);
-	crtc->fb = old_fb;
-	drm_gem_object_unreference(&work->old_fb_obj->base);
-	drm_gem_object_unreference(&obj->base);
-	mutex_unlock(&dev->struct_mutex);
-=======
 	} else {
 		if (intel_crtc && intel_crtc->active &&
 		    intel_crtc->primary_enabled) {
@@ -12489,7 +11972,6 @@ cleanup_pending:
 		ret = intel_pipe_set_base(crtc, src.x1, src.y1, fb);
 		if (ret)
 			return ret;
->>>>>>> android-3.18
 
 		if (!intel_crtc->primary_enabled)
 			intel_enable_primary_hw_plane(plane, crtc);
@@ -12511,16 +11993,6 @@ cleanup_pending:
 /* Common destruction function for both primary and cursor planes */
 static void intel_plane_destroy(struct drm_plane *plane)
 {
-<<<<<<< HEAD
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	u32 reg, val;
-	int i;
-
-	/* Clear any frame start delays used for debugging left by the BIOS */
-	for_each_pipe(i) {
-		reg = PIPECONF(i);
-		I915_WRITE(reg, I915_READ(reg) & ~PIPECONF_FRAME_START_DELAY_MASK);
-=======
 	struct intel_plane *intel_plane = to_intel_plane(plane);
 	drm_plane_cleanup(plane);
 	kfree(intel_plane);
@@ -12558,7 +12030,6 @@ static struct drm_plane *intel_primary_plane_create(struct drm_device *dev,
 	} else {
 		intel_primary_formats = intel_primary_formats_gen4;
 		num_formats = ARRAY_SIZE(intel_primary_formats_gen4);
->>>>>>> android-3.18
 	}
 
 	drm_universal_plane_init(dev, &primary->base, 0,
@@ -13360,161 +12831,11 @@ struct intel_quirk {
 	void (*hook)(struct drm_device *dev);
 };
 
-<<<<<<< HEAD
-	/* Here begins a magic sequence of register writes to enable
-	 * auto-downclocking.
-	 *
-	 * Perhaps there might be some value in exposing these to
-	 * userspace...
-	 */
-	I915_WRITE(GEN6_RC_STATE, 0);
-	mutex_lock(&dev_priv->dev->struct_mutex);
-
-	/* Clear the DBG now so we don't confuse earlier errors */
-	if ((gtfifodbg = I915_READ(GTFIFODBG))) {
-		DRM_ERROR("GT fifo had a previous error %x\n", gtfifodbg);
-		I915_WRITE(GTFIFODBG, gtfifodbg);
-	}
-
-	gen6_gt_force_wake_get(dev_priv);
-
-	/* disable the counters and set deterministic thresholds */
-	I915_WRITE(GEN6_RC_CONTROL, 0);
-
-	I915_WRITE(GEN6_RC1_WAKE_RATE_LIMIT, 1000 << 16);
-	I915_WRITE(GEN6_RC6_WAKE_RATE_LIMIT, 40 << 16 | 30);
-	I915_WRITE(GEN6_RC6pp_WAKE_RATE_LIMIT, 30);
-	I915_WRITE(GEN6_RC_EVALUATION_INTERVAL, 125000);
-	I915_WRITE(GEN6_RC_IDLE_HYSTERSIS, 25);
-
-	for (i = 0; i < I915_NUM_RINGS; i++)
-		I915_WRITE(RING_MAX_IDLE(dev_priv->ring[i].mmio_base), 10);
-
-	I915_WRITE(GEN6_RC_SLEEP, 0);
-	I915_WRITE(GEN6_RC1e_THRESHOLD, 1000);
-	I915_WRITE(GEN6_RC6_THRESHOLD, 50000);
-	I915_WRITE(GEN6_RC6p_THRESHOLD, 150000);
-	I915_WRITE(GEN6_RC6pp_THRESHOLD, 64000); /* unused */
-
-	rc6_mode = intel_enable_rc6(dev_priv->dev);
-	if (rc6_mode & INTEL_RC6_ENABLE)
-		rc6_mask |= GEN6_RC_CTL_RC6_ENABLE;
-
-	if (rc6_mode & INTEL_RC6p_ENABLE)
-		rc6_mask |= GEN6_RC_CTL_RC6p_ENABLE;
-
-	if (rc6_mode & INTEL_RC6pp_ENABLE)
-		rc6_mask |= GEN6_RC_CTL_RC6pp_ENABLE;
-
-	DRM_INFO("Enabling RC6 states: RC6 %s, RC6p %s, RC6pp %s\n",
-			(rc6_mode & INTEL_RC6_ENABLE) ? "on" : "off",
-			(rc6_mode & INTEL_RC6p_ENABLE) ? "on" : "off",
-			(rc6_mode & INTEL_RC6pp_ENABLE) ? "on" : "off");
-
-	I915_WRITE(GEN6_RC_CONTROL,
-		   rc6_mask |
-		   GEN6_RC_CTL_EI_MODE(1) |
-		   GEN6_RC_CTL_HW_ENABLE);
-
-	I915_WRITE(GEN6_RPNSWREQ,
-		   GEN6_FREQUENCY(10) |
-		   GEN6_OFFSET(0) |
-		   GEN6_AGGRESSIVE_TURBO);
-	I915_WRITE(GEN6_RC_VIDEO_FREQ,
-		   GEN6_FREQUENCY(12));
-
-	I915_WRITE(GEN6_RP_DOWN_TIMEOUT, 1000000);
-	I915_WRITE(GEN6_RP_INTERRUPT_LIMITS,
-		   18 << 24 |
-		   6 << 16);
-	I915_WRITE(GEN6_RP_UP_THRESHOLD, 10000);
-	I915_WRITE(GEN6_RP_DOWN_THRESHOLD, 1000000);
-	I915_WRITE(GEN6_RP_UP_EI, 100000);
-	I915_WRITE(GEN6_RP_DOWN_EI, 5000000);
-	I915_WRITE(GEN6_RP_IDLE_HYSTERSIS, 10);
-	I915_WRITE(GEN6_RP_CONTROL,
-		   GEN6_RP_MEDIA_TURBO |
-		   GEN6_RP_MEDIA_HW_NORMAL_MODE |
-		   GEN6_RP_MEDIA_IS_GFX |
-		   GEN6_RP_ENABLE |
-		   GEN6_RP_UP_BUSY_AVG |
-		   GEN6_RP_DOWN_IDLE_CONT);
-
-	if (wait_for((I915_READ(GEN6_PCODE_MAILBOX) & GEN6_PCODE_READY) == 0,
-		     500))
-		DRM_ERROR("timeout waiting for pcode mailbox to become idle\n");
-
-	I915_WRITE(GEN6_PCODE_DATA, 0);
-	I915_WRITE(GEN6_PCODE_MAILBOX,
-		   GEN6_PCODE_READY |
-		   GEN6_PCODE_WRITE_MIN_FREQ_TABLE);
-	if (wait_for((I915_READ(GEN6_PCODE_MAILBOX) & GEN6_PCODE_READY) == 0,
-		     500))
-		DRM_ERROR("timeout waiting for pcode mailbox to finish\n");
-
-	min_freq = (rp_state_cap & 0xff0000) >> 16;
-	max_freq = rp_state_cap & 0xff;
-	cur_freq = (gt_perf_status & 0xff00) >> 8;
-
-	/* Check for overclock support */
-	if (wait_for((I915_READ(GEN6_PCODE_MAILBOX) & GEN6_PCODE_READY) == 0,
-		     500))
-		DRM_ERROR("timeout waiting for pcode mailbox to become idle\n");
-	I915_WRITE(GEN6_PCODE_MAILBOX, GEN6_READ_OC_PARAMS);
-	pcu_mbox = I915_READ(GEN6_PCODE_DATA);
-	if (wait_for((I915_READ(GEN6_PCODE_MAILBOX) & GEN6_PCODE_READY) == 0,
-		     500))
-		DRM_ERROR("timeout waiting for pcode mailbox to finish\n");
-	if (pcu_mbox & (1<<31)) { /* OC supported */
-		max_freq = pcu_mbox & 0xff;
-		DRM_DEBUG_DRIVER("overclocking supported, adjusting frequency max to %dMHz\n", pcu_mbox * 50);
-	}
-
-	/* In units of 100MHz */
-	dev_priv->max_delay = max_freq;
-	dev_priv->min_delay = min_freq;
-	dev_priv->cur_delay = cur_freq;
-
-	/* requires MSI enabled */
-	I915_WRITE(GEN6_PMIER,
-		   GEN6_PM_MBOX_EVENT |
-		   GEN6_PM_THERMAL_EVENT |
-		   GEN6_PM_RP_DOWN_TIMEOUT |
-		   GEN6_PM_RP_UP_THRESHOLD |
-		   GEN6_PM_RP_DOWN_THRESHOLD |
-		   GEN6_PM_RP_UP_EI_EXPIRED |
-		   GEN6_PM_RP_DOWN_EI_EXPIRED);
-	spin_lock_irq(&dev_priv->rps_lock);
-	WARN_ON(dev_priv->pm_iir != 0);
-	I915_WRITE(GEN6_PMIMR, 0);
-	spin_unlock_irq(&dev_priv->rps_lock);
-	/* enable all PM interrupts */
-	I915_WRITE(GEN6_PMINTRMSK, 0);
-
-	gen6_gt_force_wake_put(dev_priv);
-	mutex_unlock(&dev_priv->dev->struct_mutex);
-}
-
-void gen6_update_ring_freq(struct drm_i915_private *dev_priv)
-{
-	int min_freq = 15;
-	int gpu_freq, ia_freq, max_ia_freq;
-	int scaling_factor = 180;
-
-	max_ia_freq = cpufreq_quick_get_max(0);
-	/*
-	 * Default to measured freq if none found, PCU will ensure we don't go
-	 * over
-	 */
-	if (!max_ia_freq)
-		max_ia_freq = tsc_khz;
-=======
 /* For systems that don't have a meaningful PCI subdevice/subvendor ID */
 struct intel_dmi_quirk {
 	void (*hook)(struct drm_device *dev);
 	const struct dmi_system_id (*dmi_id_list)[];
 };
->>>>>>> android-3.18
 
 static int intel_dmi_reverse_brightness(const struct dmi_system_id *id)
 {
@@ -13566,110 +12887,14 @@ static struct intel_quirk intel_quirks[] = {
 	/* Acer/eMachines G725 */
 	{ 0x2a42, 0x1025, 0x0210, quirk_invert_brightness },
 
-<<<<<<< HEAD
-	/*
-	 * Based on the document from hardware guys the following bits
-	 * should be set unconditionally in order to enable FBC.
-	 * The bit 22 of 0x42000
-	 * The bit 22 of 0x42004
-	 * The bit 7,8,9 of 0x42020.
-	 */
-	if (IS_IRONLAKE_M(dev)) {
-		I915_WRITE(ILK_DISPLAY_CHICKEN1,
-			   I915_READ(ILK_DISPLAY_CHICKEN1) |
-			   ILK_FBCQ_DIS);
-		I915_WRITE(ILK_DISPLAY_CHICKEN2,
-			   I915_READ(ILK_DISPLAY_CHICKEN2) |
-			   ILK_DPARB_GATE);
-		I915_WRITE(ILK_DSPCLK_GATE,
-			   I915_READ(ILK_DSPCLK_GATE) |
-			   ILK_DPFC_DIS1 |
-			   ILK_DPFC_DIS2 |
-			   ILK_CLK_FBC);
-	}
-
-	I915_WRITE(ILK_DISPLAY_CHICKEN2,
-		   I915_READ(ILK_DISPLAY_CHICKEN2) |
-		   ILK_ELPIN_409_SELECT);
-	I915_WRITE(_3D_CHICKEN2,
-		   _3D_CHICKEN2_WM_READ_PIPELINED << 16 |
-		   _3D_CHICKEN2_WM_READ_PIPELINED);
-}
-
-static void gen6_init_clock_gating(struct drm_device *dev)
-{
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	int pipe;
-	uint32_t dspclk_gate = VRHUNIT_CLOCK_GATE_DISABLE;
-
-	I915_WRITE(PCH_DSPCLK_GATE_D, dspclk_gate);
-
-	I915_WRITE(ILK_DISPLAY_CHICKEN2,
-		   I915_READ(ILK_DISPLAY_CHICKEN2) |
-		   ILK_ELPIN_409_SELECT);
-
-	/* WaDisableHiZPlanesWhenMSAAEnabled */
-	I915_WRITE(_3D_CHICKEN,
-		   _MASKED_BIT_ENABLE(_3D_CHICKEN_HIZ_PLANE_DISABLE_MSAA_4X_SNB));
-
-	I915_WRITE(WM3_LP_ILK, 0);
-	I915_WRITE(WM2_LP_ILK, 0);
-	I915_WRITE(WM1_LP_ILK, 0);
-
-	I915_WRITE(GEN6_UCGCTL1,
-		   I915_READ(GEN6_UCGCTL1) |
-		   GEN6_BLBUNIT_CLOCK_GATE_DISABLE);
-
-	/* According to the BSpec vol1g, bit 12 (RCPBUNIT) clock
-	 * gating disable must be set.  Failure to set it results in
-	 * flickering pixels due to Z write ordering failures after
-	 * some amount of runtime in the Mesa "fire" demo, and Unigine
-	 * Sanctuary and Tropics, and apparently anything else with
-	 * alpha test or pixel discard.
-	 *
-	 * According to the spec, bit 11 (RCCUNIT) must also be set,
-	 * but we didn't debug actual testcases to find it out.
-	 */
-	I915_WRITE(GEN6_UCGCTL2,
-		   GEN6_RCPBUNIT_CLOCK_GATE_DISABLE |
-		   GEN6_RCCUNIT_CLOCK_GATE_DISABLE);
-=======
 	/* Acer/eMachines e725 */
 	{ 0x2a42, 0x1025, 0x0212, quirk_invert_brightness },
->>>>>>> android-3.18
 
 	/* Acer/Packard Bell NCL20 */
 	{ 0x2a42, 0x1025, 0x034b, quirk_invert_brightness },
 
-<<<<<<< HEAD
-	for_each_pipe(pipe) {
-		I915_WRITE(DSPCNTR(pipe),
-			   I915_READ(DSPCNTR(pipe)) |
-			   DISPPLANE_TRICKLE_FEED_DISABLE);
-		intel_flush_display_plane(dev_priv, pipe);
-	}
-
-	/* The default value should be 0x200 according to docs, but the two
-	 * platforms I checked have a 0 for this. (Maybe BIOS overrides?) */
-	I915_WRITE(GEN6_GT_MODE, 0xffff << 16);
-	I915_WRITE(GEN6_GT_MODE, GEN6_GT_MODE_HI << 16 | GEN6_GT_MODE_HI);
-}
-
-static void gen7_setup_fixed_func_scheduler(struct drm_i915_private *dev_priv)
-{
-	uint32_t reg = I915_READ(GEN7_FF_THREAD_MODE);
-
-	reg &= ~GEN7_FF_SCHED_MASK;
-	reg |= GEN7_FF_TS_SCHED_HW;
-	reg |= GEN7_FF_VS_SCHED_HW;
-	reg |= GEN7_FF_DS_SCHED_HW;
-
-	I915_WRITE(GEN7_FF_THREAD_MODE, reg);
-}
-=======
 	/* Acer Aspire 4736Z */
 	{ 0x2a42, 0x1025, 0x0260, quirk_invert_brightness },
->>>>>>> android-3.18
 
 	/* Acer Aspire 5336 */
 	{ 0x2a42, 0x1025, 0x048a, quirk_invert_brightness },
@@ -14091,74 +13316,12 @@ void i915_redisable_vga(struct drm_device *dev)
 	i915_redisable_vga_power_on(dev);
 }
 
-<<<<<<< HEAD
-/*
- * Some machines (Dell XPS13) suffer broken backlight controls if
- * BLM_PCH_PWM_ENABLE is set.
- */
-static void quirk_no_pcm_pwm_enable(struct drm_device *dev)
-{
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	dev_priv->quirks |= QUIRK_NO_PCH_PWM_ENABLE;
-	DRM_INFO("applying no-PCH_PWM_ENABLE quirk\n");
-}
-
-/*
- * A machine (e.g. Acer Aspire 5734Z) may need to invert the panel backlight
- * brightness value
- */
-static void quirk_invert_brightness(struct drm_device *dev)
-{
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	dev_priv->quirks |= QUIRK_INVERT_BRIGHTNESS;
-}
-
-struct intel_quirk {
-	int device;
-	int subsystem_vendor;
-	int subsystem_device;
-	void (*hook)(struct drm_device *dev);
-};
-
-/* For systems that don't have a meaningful PCI subdevice/subvendor ID */
-struct intel_dmi_quirk {
-	void (*hook)(struct drm_device *dev);
-	const struct dmi_system_id (*dmi_id_list)[];
-};
-
-static int intel_dmi_reverse_brightness(const struct dmi_system_id *id)
-{
-	DRM_INFO("Backlight polarity reversed on %s\n", id->ident);
-	return 1;
-}
-
-static const struct intel_dmi_quirk intel_dmi_quirks[] = {
-	{
-		.dmi_id_list = &(const struct dmi_system_id[]) {
-			{
-				.callback = intel_dmi_reverse_brightness,
-				.ident = "NCR Corporation",
-				.matches = {DMI_MATCH(DMI_SYS_VENDOR, "NCR Corporation"),
-					    DMI_MATCH(DMI_PRODUCT_NAME, ""),
-				},
-			},
-			{ }  /* terminating entry */
-		},
-		.hook = quirk_invert_brightness,
-	},
-};
-
-struct intel_quirk intel_quirks[] = {
-	/* HP Mini needs pipe A force quirk (LP: #322104) */
-	{ 0x27ae, 0x103c, 0x361a, quirk_pipea_force },
-=======
 static bool primary_get_hw_state(struct intel_crtc *crtc)
 {
 	struct drm_i915_private *dev_priv = crtc->base.dev->dev_private;
 
 	if (!crtc->active)
 		return false;
->>>>>>> android-3.18
 
 	return I915_READ(DSPCNTR(crtc->plane)) & DISPLAY_PLANE_ENABLE;
 }
@@ -14183,33 +13346,10 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 		crtc->base.enabled = crtc->active;
 		crtc->primary_enabled = primary_get_hw_state(crtc);
 
-<<<<<<< HEAD
-	/* Sony Vaio Y cannot use SSC on LVDS */
-	{ 0x0046, 0x104d, 0x9076, quirk_ssc_force_disable },
-
-	/* Acer Aspire 5734Z must invert backlight brightness */
-	{ 0x2a42, 0x1025, 0x0459, quirk_invert_brightness },
-
-	/* Acer/eMachines G725 */
-	{ 0x2a42, 0x1025, 0x0210, quirk_invert_brightness },
-
-	/* Acer/eMachines e725 */
-	{ 0x2a42, 0x1025, 0x0212, quirk_invert_brightness },
-
-	/* Acer/Packard Bell NCL20 */
-	{ 0x2a42, 0x1025, 0x034b, quirk_invert_brightness },
-
-	/* Dell XPS13 HD Sandy Bridge */
-	{ 0x0116, 0x1028, 0x052e, quirk_no_pcm_pwm_enable },
-	/* Dell XPS13 HD and XPS13 FHD Ivy Bridge */
-	{ 0x0166, 0x1028, 0x058b, quirk_no_pcm_pwm_enable },
-};
-=======
 		DRM_DEBUG_KMS("[CRTC:%d] hw state readout: %s\n",
 			      crtc->base.base.id,
 			      crtc->active ? "enabled" : "disabled");
 	}
->>>>>>> android-3.18
 
 	for (i = 0; i < dev_priv->num_shared_dpll; i++) {
 		struct intel_shared_dpll *pll = &dev_priv->shared_dplls[i];
@@ -14228,14 +13368,6 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 		if (pll->refcount)
 			intel_display_power_get(dev_priv, POWER_DOMAIN_PLLS);
 	}
-<<<<<<< HEAD
-	for (i = 0; i < ARRAY_SIZE(intel_dmi_quirks); i++) {
-		if (dmi_check_system(*intel_dmi_quirks[i].dmi_id_list) != 0)
-			intel_dmi_quirks[i].hook(dev);
-	}
-}
-=======
->>>>>>> android-3.18
 
 	for_each_intel_encoder(dev, encoder) {
 		pipe = 0;
@@ -14273,31 +13405,10 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 	}
 }
 
-<<<<<<< HEAD
-void i915_redisable_vga(struct drm_device *dev)
-{
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	u32 vga_reg;
-
-	if (HAS_PCH_SPLIT(dev))
-		vga_reg = CPU_VGACNTRL;
-	else
-		vga_reg = VGACNTRL;
-
-	if (I915_READ(vga_reg) != VGA_DISP_DISABLE) {
-		DRM_DEBUG_KMS("Something enabled VGA plane, disabling it\n");
-		I915_WRITE(vga_reg, VGA_DISP_DISABLE);
-		POSTING_READ(vga_reg);
-	}
-}
-
-void intel_modeset_init(struct drm_device *dev)
-=======
 /* Scan out the current hw modeset state, sanitizes it and maps it into the drm
  * and i915 state tracking structures. */
 void intel_modeset_setup_hw_state(struct drm_device *dev,
 				  bool force_restore)
->>>>>>> android-3.18
 {
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	enum pipe pipe;

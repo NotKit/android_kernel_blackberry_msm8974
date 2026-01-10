@@ -1,19 +1,11 @@
 #ifndef _LINUX_SHM_H_
 #define _LINUX_SHM_H_
 
-<<<<<<< HEAD
-#include <asm/page.h>
-#include <uapi/linux/shm.h>
-
-#define SHMALL (SHMMAX/PAGE_SIZE*(SHMMNI/16)) /* max shm system wide (pages) */
-#include <asm/shmparam.h>
-=======
 #include <linux/list.h>
 #include <asm/page.h>
 #include <uapi/linux/shm.h>
 #include <asm/shmparam.h>
 
->>>>>>> android-3.18
 struct shmid_kernel /* private to the kernel */
 {	
 	struct kern_ipc_perm	shm_perm;
@@ -54,12 +46,6 @@ struct shmid_kernel /* private to the kernel */
 #define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
 
 #ifdef CONFIG_SYSVIPC
-<<<<<<< HEAD
-long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
-	      unsigned long shmlba);
-extern int is_file_shm_hugepages(struct file *file);
-extern void exit_shm(struct task_struct *task);
-=======
 struct sysv_shm {
 	struct list_head shm_clist;
 };
@@ -69,7 +55,6 @@ long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
 int is_file_shm_hugepages(struct file *file);
 void exit_shm(struct task_struct *task);
 #define shm_init_task(task) INIT_LIST_HEAD(&(task)->sysvshm.shm_clist)
->>>>>>> android-3.18
 #else
 struct sysv_shm {
 	/* empty */

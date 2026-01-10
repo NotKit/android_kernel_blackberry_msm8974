@@ -36,12 +36,6 @@
 #define USB_USBMODE          (MSM_USB_BASE + 0x01A8)
 #define USB_PHY_CTRL         (MSM_USB_BASE + 0x0240)
 #define USB_PHY_CTRL2        (MSM_USB_BASE + 0x0278)
-<<<<<<< HEAD
-
-#define USBCMD_RESET		2
-#define USBCMD_SESS_VLD_CTRL	BIT(25)
-=======
->>>>>>> android-3.18
 
 #define USB_USBINTR          (MSM_USB_BASE + 0x0148)
 #define USB_FRINDEX          (MSM_USB_BASE + 0x014C)
@@ -60,18 +54,9 @@
 #define AHB2AHB_BYPASS_CLEAR	(0 << 31)
 
 #define PORTSC_PHCD            (1 << 23) /* phy suspend mode */
-<<<<<<< HEAD
-#define PORTSC_PTS_MASK         (3 << 30)
-#define PORTSC_PTS_ULPI         (3 << 30)
-#define PORTSC_LS               (3 << 10)
-#define PORTSC_LS_DM            (1 << 10)
-#define PORTSC_CSC              (1 << 1)
-#define PORTSC_CCS              (1 << 0)
-=======
 #define PORTSC_PTS_MASK        (3 << 30)
 #define PORTSC_PTS_ULPI        (2 << 30)
 #define PORTSC_PTS_SERIAL      (3 << 30)
->>>>>>> android-3.18
 
 #define USB_ULPI_VIEWPORT    (MSM_USB_BASE + 0x0170)
 #define ULPI_RUN              (1 << 30)
@@ -82,43 +67,14 @@
 #define ULPI_DATA(n)          ((n) & 255)
 #define ULPI_DATA_READ(n)     (((n) >> 8) & 255)
 
-<<<<<<< HEAD
-#define GENCONFIG_BAM_DISABLE (1 << 13)
-
-=======
->>>>>>> android-3.18
 /* synopsys 28nm phy registers */
 #define ULPI_PWR_CLK_MNG_REG	0x88
 #define OTG_COMP_DISABLE	BIT(0)
 
-<<<<<<< HEAD
-/* ulpi manual dp registers */
-#define ULPI_MISC_A			0x96
-#define ULPI_MISC_A_VBUSVLDEXT		BIT(0)
-#define ULPI_MISC_A_VBUSVLDEXTSEL	BIT(1)
-
-#define PHY_ALT_INT		(1 << 28) /* PHY alternate interrupt */
-#define ASYNC_INTR_CTRL         (1 << 29) /* Enable async interrupt */
-#define ULPI_STP_CTRL           (1 << 30) /* Block communication with PHY */
-#define PHY_RETEN               (1 << 1) /* PHY retention enable/disable */
-#define PHY_IDHV_INTEN          (1 << 8) /* PHY ID HV interrupt */
-#define PHY_OTGSESSVLDHV_INTEN  (1 << 9) /* PHY Session Valid HV int. */
-#define PHY_DPSE_INTEN          (1 << 14) /* PHY DPSE HV interrupt*/
-#define PHY_DMSE_INTEN          (1 << 20) /* PHY DMSE HV interrupt*/
-#define PHY_CLAMP_DPDMSE_EN	(1 << 21) /* PHY mpm DP DM clamp enable */
-#define PHY_POR_BIT_MASK	BIT(0)
-#define PHY_POR_ASSERT		(1 << 0) /* USB2 28nm PHY POR ASSERT */
-#define PHY_POR_DEASSERT	(0 << 0) /* USB2 28nm PHY POR DEASSERT */
-
-#define STS_PCI                 (1 << 2) /* R/WC - Port Change Detect */
-#define STS_URI                 (1 << 6) /* R/WC - RESET recv'd */
-#define STS_SLI                 (1 << 8) /* R/WC - suspend state entered */
-=======
 #define ASYNC_INTR_CTRL         (1 << 29) /* Enable async interrupt */
 #define ULPI_STP_CTRL           (1 << 30) /* Block communication with PHY */
 #define PHY_RETEN               (1 << 1) /* PHY retention enable/disable */
 #define PHY_POR_ASSERT		(1 << 0) /* USB2 28nm PHY POR ASSERT */
->>>>>>> android-3.18
 
 /* OTG definitions */
 #define OTGSC_INTSTS_MASK	(0x7f << 16)

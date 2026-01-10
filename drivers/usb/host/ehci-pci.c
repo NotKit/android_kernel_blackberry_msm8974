@@ -137,11 +137,6 @@ static int ehci_pci_setup(struct usb_hcd *hcd)
 	case PCI_VENDOR_ID_INTEL:
 		if (pdev->device == PCI_DEVICE_ID_INTEL_CE4100_USB)
 			hcd->has_tt = 1;
-<<<<<<< HEAD
-			tdi_reset(ehci);
-		}
-=======
->>>>>>> android-3.18
 		break;
 	case PCI_VENDOR_ID_TDI:
 		if (pdev->device == PCI_DEVICE_ID_TDI_EHCI)
@@ -340,59 +335,6 @@ done:
  * Also they depend on separate root hub suspend/resume.
  */
 
-<<<<<<< HEAD
-static int ehci_pci_suspend(struct usb_hcd *hcd, bool do_wakeup)
-{
-	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
-	unsigned long		flags;
-	int			rc = 0;
-
-	if (time_before(jiffies, ehci->next_statechange))
-		msleep(10);
-
-	/* Root hub was already suspended. Disable irq emission and
-	 * mark HW unaccessible.  The PM and USB cores make sure that
-	 * the root hub is either suspended or stopped.
-	 */
-	ehci_prepare_ports_for_controller_suspend(ehci, do_wakeup);
-	spin_lock_irqsave (&ehci->lock, flags);
-	ehci_writel(ehci, 0, &ehci->regs->intr_enable);
-	(void)ehci_readl(ehci, &ehci->regs->intr_enable);
-
-	clear_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
-	spin_unlock_irqrestore (&ehci->lock, flags);
-
-	// could save FLADJ in case of Vaux power loss
-	// ... we'd only use it to handle clock skew
-
-	return rc;
-}
-
-static bool usb_is_intel_switchable_ehci(struct pci_dev *pdev)
-{
-	return pdev->class == PCI_CLASS_SERIAL_USB_EHCI &&
-		pdev->vendor == PCI_VENDOR_ID_INTEL &&
-		(pdev->device == 0x1E26 ||
-		 pdev->device == 0x8C2D ||
-		 pdev->device == 0x8C26 ||
-		 pdev->device == 0x9C26);
-}
-
-static void ehci_enable_xhci_companion(void)
-{
-	struct pci_dev		*companion = NULL;
-
-	/* The xHCI and EHCI controllers are not on the same PCI slot */
-	for_each_pci_dev(companion) {
-		if (!usb_is_intel_switchable_xhci(companion))
-			continue;
-		usb_enable_xhci_ports(companion);
-		return;
-	}
-}
-
-=======
->>>>>>> android-3.18
 static int ehci_pci_resume(struct usb_hcd *hcd, bool hibernated)
 {
 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);

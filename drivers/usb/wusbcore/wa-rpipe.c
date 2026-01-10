@@ -338,16 +338,11 @@ static int rpipe_aim(struct wa_rpipe *rpipe, struct wahc *wa,
 		rpipe->descr.wMaxPacketSize = epcd->wOverTheAirPacketSize;
 	else
 		rpipe->descr.wMaxPacketSize = ep->desc.wMaxPacketSize;
-<<<<<<< HEAD
-	rpipe->descr.bHSHubAddress = 0;			/* reserved: zero */
-	rpipe->descr.bHSHubPort = wusb_port_no_to_idx(urb->dev->portnum);
-=======
 
 	rpipe->descr.hwa_bMaxBurst = max(min_t(unsigned int,
 				epcd->bMaxBurst, 16U), 1U);
 	rpipe->descr.hwa_bDeviceInfoIndex =
 			wusb_port_no_to_idx(urb->dev->portnum);
->>>>>>> android-3.18
 	/* FIXME: use maximum speed as supported or recommended by device */
 	rpipe->descr.bSpeed = usb_pipeendpoint(urb->pipe) == 0 ?
 		UWB_PHY_RATE_53 : UWB_PHY_RATE_200;

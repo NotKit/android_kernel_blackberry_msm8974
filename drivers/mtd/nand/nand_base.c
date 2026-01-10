@@ -3206,9 +3206,6 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd, struct nand_chip *chip,
 	else
 		*busw = 0;
 
-<<<<<<< HEAD
-	chip->options |= NAND_NO_READRDY | NAND_NO_AUTOINCR;
-=======
 	if (p->ecc_bits != 0xff) {
 		chip->ecc_strength_ds = p->ecc_bits;
 		chip->ecc_step_ds = 512;
@@ -3233,7 +3230,6 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd, struct nand_chip *chip,
 
 	if (p->jedec_id == NAND_MFR_MICRON)
 		nand_onfi_detect_micron(chip, p);
->>>>>>> android-3.18
 
 	return 1;
 }

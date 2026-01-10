@@ -1,22 +1,10 @@
 #ifndef _ASM_WORD_AT_A_TIME_H
 #define _ASM_WORD_AT_A_TIME_H
 
-<<<<<<< HEAD
-/*
- * This says "generic", but it's actually big-endian only.
- * Little-endian can use more efficient versions of these
- * interfaces, see for example
- *	 arch/x86/include/asm/word-at-a-time.h
- * for those.
- */
-
-#include <linux/kernel.h>
-=======
 #include <linux/kernel.h>
 #include <asm/byteorder.h>
 
 #ifdef __BIG_ENDIAN
->>>>>>> android-3.18
 
 struct word_at_a_time {
 	const unsigned long high_bits, low_bits;
@@ -56,8 +44,6 @@ static inline bool has_zero(unsigned long val, unsigned long *data, const struct
 	return (val + c->high_bits) & ~rhs;
 }
 
-<<<<<<< HEAD
-=======
 #ifndef zero_bytemask
 #define zero_bytemask(mask) (~1ul << __fls(mask))
 #endif
@@ -131,5 +117,4 @@ static inline unsigned long find_zero(unsigned long mask)
 
 #endif /* __BIG_ENDIAN */
 
->>>>>>> android-3.18
 #endif /* _ASM_WORD_AT_A_TIME_H */

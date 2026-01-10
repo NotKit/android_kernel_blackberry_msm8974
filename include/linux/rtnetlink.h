@@ -4,18 +4,8 @@
 
 #include <linux/mutex.h>
 #include <linux/netdevice.h>
-<<<<<<< HEAD
-#include <uapi/linux/rtnetlink.h>
-
-static __inline__ int rtattr_strcmp(const struct rtattr *rta, const char *str)
-{
-	int len = strlen(str) + 1;
-	return len > rta->rta_len || memcmp(RTA_DATA(rta), str, len);
-}
-=======
 #include <linux/wait.h>
 #include <uapi/linux/rtnetlink.h>
->>>>>>> android-3.18
 
 extern int rtnetlink_send(struct sk_buff *skb, struct net *net, u32 pid, u32 group, int echo);
 extern int rtnl_unicast(struct sk_buff *skb, struct net *net, u32 pid);
@@ -98,9 +88,6 @@ extern void __rtnl_unlock(void);
 extern int ndo_dflt_fdb_dump(struct sk_buff *skb,
 			     struct netlink_callback *cb,
 			     struct net_device *dev,
-<<<<<<< HEAD
-			     int idx);
-=======
 			     struct net_device *filter_dev,
 			     int idx);
 extern int ndo_dflt_fdb_add(struct ndmsg *ndm,
@@ -115,5 +102,4 @@ extern int ndo_dflt_fdb_del(struct ndmsg *ndm,
 
 extern int ndo_dflt_bridge_getlink(struct sk_buff *skb, u32 pid, u32 seq,
 				   struct net_device *dev, u16 mode);
->>>>>>> android-3.18
 #endif	/* __LINUX_RTNETLINK_H */

@@ -2167,15 +2167,10 @@ static void b43_nphy_rev3_rssi_cal(struct b43_wldev *dev)
 						  0xE3, vcm << 2);
 			b43_nphy_poll_rssi(dev, N_RSSI_NB, results[vcm], 8);
 		}
-<<<<<<< HEAD
-		for (i = 0; i < 4; i++) {
-			s32 curr;
-=======
 
 		/* Find out which VCM got the best results */
 		for (i = 0; i < 4; i += 2) {
 			s32 currd;
->>>>>>> android-3.18
 			s32 mind = 0x100000;
 			s32 minpoll = 249;
 			u8 minvcm = 0;
@@ -6296,17 +6291,6 @@ static void b43_nphy_channel_setup(struct b43_wldev *dev,
 	int ch = new_channel->hw_value;
 	u16 tmp16;
 
-<<<<<<< HEAD
-	u16 old_band_5ghz;
-	u16 tmp16;
-
-	old_band_5ghz =
-		b43_phy_read(dev, B43_NPHY_BANDCTL) & B43_NPHY_BANDCTL_5GHZ;
-	if (new_channel->band == IEEE80211_BAND_5GHZ && !old_band_5ghz) {
-		tmp16 = b43_read16(dev, B43_MMIO_PSM_PHY_HDR);
-		b43_write16(dev, B43_MMIO_PSM_PHY_HDR, tmp16 | 4);
-		b43_phy_set(dev, B43_PHY_B_BBCFG, 0xC000);
-=======
 	if (new_channel->band == IEEE80211_BAND_5GHZ) {
 		/* Switch to 2 GHz for a moment to access B43_PHY_B_BBCFG */
 		b43_phy_mask(dev, B43_NPHY_BANDCTL, ~B43_NPHY_BANDCTL_5GHZ);
@@ -6316,20 +6300,15 @@ static void b43_nphy_channel_setup(struct b43_wldev *dev,
 		/* Put BPHY in the reset */
 		b43_phy_set(dev, B43_PHY_B_BBCFG,
 			    B43_PHY_B_BBCFG_RSTCCA | B43_PHY_B_BBCFG_RSTRX);
->>>>>>> android-3.18
 		b43_write16(dev, B43_MMIO_PSM_PHY_HDR, tmp16);
 		b43_phy_set(dev, B43_NPHY_BANDCTL, B43_NPHY_BANDCTL_5GHZ);
 	} else if (new_channel->band == IEEE80211_BAND_2GHZ) {
 		b43_phy_mask(dev, B43_NPHY_BANDCTL, ~B43_NPHY_BANDCTL_5GHZ);
 		tmp16 = b43_read16(dev, B43_MMIO_PSM_PHY_HDR);
 		b43_write16(dev, B43_MMIO_PSM_PHY_HDR, tmp16 | 4);
-<<<<<<< HEAD
-		b43_phy_mask(dev, B43_PHY_B_BBCFG, 0x3FFF);
-=======
 		/* Take BPHY out of the reset */
 		b43_phy_mask(dev, B43_PHY_B_BBCFG,
 			     (u16)~(B43_PHY_B_BBCFG_RSTCCA | B43_PHY_B_BBCFG_RSTRX));
->>>>>>> android-3.18
 		b43_write16(dev, B43_MMIO_PSM_PHY_HDR, tmp16);
 	}
 

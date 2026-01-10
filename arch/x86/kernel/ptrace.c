@@ -21,13 +21,9 @@
 #include <linux/signal.h>
 #include <linux/perf_event.h>
 #include <linux/hw_breakpoint.h>
-<<<<<<< HEAD
-#include <linux/module.h>
-=======
 #include <linux/rcupdate.h>
 #include <linux/export.h>
 #include <linux/context_tracking.h>
->>>>>>> android-3.18
 
 #include <asm/uaccess.h>
 #include <asm/pgtable.h>
@@ -188,24 +184,14 @@ unsigned long kernel_stack_pointer(struct pt_regs *regs)
 {
 	unsigned long context = (unsigned long)regs & ~(THREAD_SIZE - 1);
 	unsigned long sp = (unsigned long)&regs->sp;
-<<<<<<< HEAD
-	struct thread_info *tinfo;
-=======
 	u32 *prev_esp;
->>>>>>> android-3.18
 
 	if (context == (sp & ~(THREAD_SIZE - 1)))
 		return sp;
 
-<<<<<<< HEAD
-	tinfo = (struct thread_info *)context;
-	if (tinfo->previous_esp)
-		return tinfo->previous_esp;
-=======
 	prev_esp = (u32 *)(context);
 	if (*prev_esp)
 		return (unsigned long)*prev_esp;
->>>>>>> android-3.18
 
 	return (unsigned long)regs;
 }
@@ -1505,17 +1491,8 @@ long syscall_trace_enter(struct pt_regs *regs)
 	if (work & _TIF_SINGLESTEP)
 		regs->flags |= X86_EFLAGS_TF;
 
-<<<<<<< HEAD
-	/* do the secure computing check first */
-	if (secure_computing(regs->orig_ax)) {
-		/* seccomp failures shouldn't expose any additional code. */
-		ret = -1L;
-		goto out;
-	}
-=======
 	if (unlikely(work & _TIF_SYSCALL_EMU))
 		emulated = true;
->>>>>>> android-3.18
 
 	if ((emulated || (work & _TIF_SYSCALL_TRACE)) &&
 	    tracehook_report_syscall_entry(regs))

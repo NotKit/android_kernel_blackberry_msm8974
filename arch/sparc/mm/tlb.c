@@ -52,35 +52,22 @@ out:
 
 void arch_enter_lazy_mmu_mode(void)
 {
-<<<<<<< HEAD
-	struct tlb_batch *tb = &__get_cpu_var(tlb_batch);
-=======
 	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
->>>>>>> android-3.18
 
 	tb->active = 1;
 }
 
 void arch_leave_lazy_mmu_mode(void)
 {
-<<<<<<< HEAD
-	struct tlb_batch *tb = &__get_cpu_var(tlb_batch);
-=======
 	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
->>>>>>> android-3.18
 
 	if (tb->tlb_nr)
 		flush_tlb_pending();
 	tb->active = 0;
 }
 
-<<<<<<< HEAD
-void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
-		   pte_t *ptep, pte_t orig, int fullmm)
-=======
 static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
 			      bool exec)
->>>>>>> android-3.18
 {
 	struct tlb_batch *tb = &get_cpu_var(tlb_batch);
 	unsigned long nr;
@@ -206,28 +193,13 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
 	}
 }
 
-<<<<<<< HEAD
-	if (!tb->active) {
-		flush_tsb_user_page(mm, vaddr);
-		global_flush_tlb_page(mm, vaddr);
-		goto out;
-	}
-
-	if (nr == 0)
-		tb->mm = mm;
-=======
 void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
 		     pmd_t *pmdp)
 {
 	pmd_t entry = *pmdp;
->>>>>>> android-3.18
 
 	pmd_val(entry) &= ~_PAGE_VALID;
 
-<<<<<<< HEAD
-out:
-	put_cpu_var(tlb_batch);
-=======
 	set_pmd_at(vma->vm_mm, address, pmdp, entry);
 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
 }
@@ -267,6 +239,5 @@ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
 	pte_val(pgtable[1]) = 0;
 
 	return pgtable;
->>>>>>> android-3.18
 }
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */

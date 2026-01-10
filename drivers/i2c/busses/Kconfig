@@ -117,8 +117,6 @@ config I2C_I801
 	    Lynx Point (PCH)
 	    Lynx Point-LP (PCH)
 	    Avoton (SOC)
-<<<<<<< HEAD
-=======
 	    Wellsburg (PCH)
 	    Coleto Creek (PCH)
 	    Wildcat Point (PCH)
@@ -126,7 +124,6 @@ config I2C_I801
 	    BayTrail (SOC)
 	    Sunrise Point-H (PCH)
 	    Sunrise Point-LP (PCH)
->>>>>>> android-3.18
 
 	  This driver can also be built as a module.  If so, the module
 	  will be called i2c-i801.
@@ -169,10 +166,7 @@ config I2C_PIIX4
 	    ATI SB700/SP5100
 	    ATI SB800
 	    AMD Hudson-2
-<<<<<<< HEAD
-=======
 	    AMD ML
->>>>>>> android-3.18
 	    AMD CZ
 	    Serverworks OSB4
 	    Serverworks CSB5
@@ -450,15 +444,9 @@ config I2C_DESIGNWARE_CORE
 	tristate
 
 config I2C_DESIGNWARE_PLATFORM
-<<<<<<< HEAD
-	tristate "Synopsys DesignWare Platfrom"
-	depends on HAVE_CLK
-	select I2C_DESIGNWARE_CORE
-=======
 	tristate "Synopsys DesignWare Platform"
 	select I2C_DESIGNWARE_CORE
 	depends on (ACPI && COMMON_CLK) || !ACPI
->>>>>>> android-3.18
 	help
 	  If you say yes to this option, support will be included for the
 	  Synopsys DesignWare I2C adapter. Only master mode is supported.

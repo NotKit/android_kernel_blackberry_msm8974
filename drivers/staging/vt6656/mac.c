@@ -119,86 +119,8 @@ void vnt_mac_disable_keyentry(struct vnt_private *priv, u8 entry_idx)
 void vnt_mac_set_keyentry(struct vnt_private *priv, u16 key_ctl, u32 entry_idx,
 	u32 key_idx, u8 *addr, u8 *key)
 {
-<<<<<<< HEAD
-PBYTE           pbyKey;
-WORD            wOffset;
-DWORD           dwData1,dwData2;
-int             ii;
-BYTE            pbyData[24];
-
-    if ( pDevice->byLocalID <= MAC_REVISION_A1 ) {
-        if ( pDevice->sMgmtObj.byCSSPK == KEY_CTL_CCMP )
-            return;
-    }
-
-    wOffset = MISCFIFO_KEYETRY0;
-    wOffset += (uEntryIdx * MISCFIFO_KEYENTRYSIZE);
-
-    dwData1 = 0;
-    dwData1 |= wKeyCtl;
-    dwData1 <<= 16;
-    dwData1 |= MAKEWORD(*(pbyAddr+4), *(pbyAddr+5));
-
-	DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"1. wOffset: %d, Data: %X,"\
-		" KeyCtl:%X\n", wOffset, dwData1, wKeyCtl);
-
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFNDEX, wOffset);
-    //VNSvOutPortD(dwIoBase + MAC_REG_MISCFFDATA, dwData);
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFCTL, MISCFFCTL_WRITE);
-
-    //wOffset++;
-
-    dwData2 = 0;
-    dwData2 |= *(pbyAddr+3);
-    dwData2 <<= 8;
-    dwData2 |= *(pbyAddr+2);
-    dwData2 <<= 8;
-    dwData2 |= *(pbyAddr+1);
-    dwData2 <<= 8;
-    dwData2 |= *(pbyAddr+0);
-
-	DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"2. wOffset: %d, Data: %X\n",
-		wOffset, dwData2);
-
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFNDEX, wOffset);
-    //VNSvOutPortD(dwIoBase + MAC_REG_MISCFFDATA, dwData);
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFCTL, MISCFFCTL_WRITE);
-
-    //wOffset++;
-
-    //wOffset += (uKeyIdx * 4);
-/*    for (ii=0;ii<4;ii++) {
-        // alway push 128 bits
-        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"3.(%d) wOffset: %d, Data: %lX\n", ii, wOffset+ii, *pdwKey);
-        VNSvOutPortW(dwIoBase + MAC_REG_MISCFFNDEX, wOffset+ii);
-        VNSvOutPortD(dwIoBase + MAC_REG_MISCFFDATA, *pdwKey++);
-        VNSvOutPortW(dwIoBase + MAC_REG_MISCFFCTL, MISCFFCTL_WRITE);
-    }
-*/
-    pbyKey = (PBYTE)pdwKey;
-
-    pbyData[0] = (BYTE)dwData1;
-    pbyData[1] = (BYTE)(dwData1>>8);
-    pbyData[2] = (BYTE)(dwData1>>16);
-    pbyData[3] = (BYTE)(dwData1>>24);
-    pbyData[4] = (BYTE)dwData2;
-    pbyData[5] = (BYTE)(dwData2>>8);
-    pbyData[6] = (BYTE)(dwData2>>16);
-    pbyData[7] = (BYTE)(dwData2>>24);
-    for (ii = 8; ii < 24; ii++)
-	pbyData[ii] = *pbyKey++;
-
-    CONTROLnsRequestOut(pDevice,
-                        MESSAGE_TYPE_SETKEY,
-                        wOffset,
-                        (WORD)uKeyIdx,
-                        24,
-                        pbyData
-                        );
-=======
 	struct vnt_mac_set_key set_key;
 	u16 offset;
->>>>>>> android-3.18
 
 	offset = MISCFIFO_KEYETRY0;
 	offset += (entry_idx * MISCFIFO_KEYENTRYSIZE);

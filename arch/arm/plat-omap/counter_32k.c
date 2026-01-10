@@ -55,11 +55,7 @@ static cycles_t cycles;
 static unsigned int persistent_mult, persistent_shift;
 static DEFINE_SPINLOCK(read_persistent_clock_lock);
 
-<<<<<<< HEAD
-void read_persistent_clock(struct timespec *ts)
-=======
 static void omap_read_persistent_clock(struct timespec *ts)
->>>>>>> android-3.18
 {
 	unsigned long long nsecs;
 	cycles_t last_cycles;
@@ -68,17 +64,6 @@ static void omap_read_persistent_clock(struct timespec *ts)
 	spin_lock_irqsave(&read_persistent_clock_lock, flags);
 
 	last_cycles = cycles;
-<<<<<<< HEAD
-	cycles = timer_32k_base ? __raw_readl(timer_32k_base) : 0;
-
-	nsecs = clocksource_cyc2ns(cycles - last_cycles,
-					persistent_mult, persistent_shift);
-
-	timespec_add_ns(&persistent_ts, nsecs);
-
-	*ts = persistent_ts;
-
-=======
 	cycles = sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
 
 	nsecs = clocksource_cyc2ns(cycles - last_cycles,
@@ -88,7 +73,6 @@ static void omap_read_persistent_clock(struct timespec *ts)
 
 	*ts = persistent_ts;
 
->>>>>>> android-3.18
 	spin_unlock_irqrestore(&read_persistent_clock_lock, flags);
 }
 

@@ -44,10 +44,7 @@ bool kthread_should_stop(void);
 bool kthread_should_park(void);
 bool kthread_freezable_should_stop(bool *was_frozen);
 void *kthread_data(struct task_struct *k);
-<<<<<<< HEAD
-=======
 void *probe_kthread_data(struct task_struct *k);
->>>>>>> android-3.18
 int kthread_park(struct task_struct *k);
 void kthread_unpark(struct task_struct *k);
 void kthread_parkme(void);
@@ -77,10 +74,6 @@ struct kthread_worker {
 struct kthread_work {
 	struct list_head	node;
 	kthread_work_func_t	func;
-<<<<<<< HEAD
-	wait_queue_head_t	done;
-=======
->>>>>>> android-3.18
 	struct kthread_worker	*worker;
 };
 
@@ -92,10 +85,6 @@ struct kthread_work {
 #define KTHREAD_WORK_INIT(work, fn)	{				\
 	.node = LIST_HEAD_INIT((work).node),				\
 	.func = (fn),							\
-<<<<<<< HEAD
-	.done = __WAIT_QUEUE_HEAD_INITIALIZER((work).done),		\
-=======
->>>>>>> android-3.18
 	}
 
 #define DEFINE_KTHREAD_WORKER(worker)					\

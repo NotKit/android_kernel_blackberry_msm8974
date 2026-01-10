@@ -58,24 +58,7 @@ extern unsigned long zero_page_mask;
 	 (((unsigned long)(vaddr)) &zero_page_mask))))
 #define __HAVE_COLOR_ZERO_PAGE
 
-<<<<<<< HEAD
-#define is_zero_pfn is_zero_pfn
-static inline int is_zero_pfn(unsigned long pfn)
-{
-	extern unsigned long zero_pfn;
-	unsigned long offset_from_zero_pfn = pfn - zero_pfn;
-	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
-}
-
-#define my_zero_pfn(addr)	page_to_pfn(ZERO_PAGE(addr))
-
 /* TODO: s390 cannot support io_remap_pfn_range... */
-#define io_remap_pfn_range(vma, vaddr, pfn, size, prot) 	       \
-	remap_pfn_range(vma, vaddr, pfn, size, prot)
-
-=======
-/* TODO: s390 cannot support io_remap_pfn_range... */
->>>>>>> android-3.18
 #endif /* !__ASSEMBLY__ */
 
 /*

@@ -676,14 +676,6 @@ END(syscall_fault)
 syscall_badsys:
 	movl $-ENOSYS,%eax
 	jmp syscall_after_call
-<<<<<<< HEAD
-END(syscall_badsys)
-
-sysenter_badsys:
-	movl $-ENOSYS,%eax
-	jmp sysenter_after_call
-=======
->>>>>>> android-3.18
 END(syscall_badsys)
 
 sysenter_badsys:
@@ -1335,10 +1327,7 @@ END(debug)
  */
 ENTRY(nmi)
 	RING0_INT_FRAME
-<<<<<<< HEAD
-=======
 	ASM_CLAC
->>>>>>> android-3.18
 #ifdef CONFIG_X86_ESPFIX32
 	pushl_cfi %eax
 	movl %ss, %eax

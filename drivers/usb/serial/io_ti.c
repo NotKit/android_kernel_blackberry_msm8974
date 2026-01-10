@@ -84,11 +84,7 @@ struct edgeport_port {
 	int baud_rate;
 	int close_pending;
 	int lsr_event;
-<<<<<<< HEAD
-	struct async_icount	icount;
-=======
 
->>>>>>> android-3.18
 	struct edgeport_serial	*edge_serial;
 	struct usb_serial_port	*port;
 	__u8 bUartMode;		/* Port type, 0: RS232, etc. */
@@ -529,67 +525,6 @@ exit_is_tx_active:
 	return bytes_left;
 }
 
-<<<<<<< HEAD
-static void chase_port(struct edgeport_port *port, unsigned long timeout,
-								int flush)
-{
-	int baud_rate;
-	struct tty_struct *tty = tty_port_tty_get(&port->port->port);
-	wait_queue_t wait;
-	unsigned long flags;
-
-	if (!tty)
-		return;
-
-	if (!timeout)
-		timeout = (HZ * EDGE_CLOSING_WAIT)/100;
-
-	/* wait for data to drain from the buffer */
-	spin_lock_irqsave(&port->ep_lock, flags);
-	init_waitqueue_entry(&wait, current);
-	add_wait_queue(&tty->write_wait, &wait);
-	for (;;) {
-		set_current_state(TASK_INTERRUPTIBLE);
-		if (kfifo_len(&port->write_fifo) == 0
-		|| timeout == 0 || signal_pending(current)
-		|| !usb_get_intfdata(port->port->serial->interface))
-			/* disconnect */
-			break;
-		spin_unlock_irqrestore(&port->ep_lock, flags);
-		timeout = schedule_timeout(timeout);
-		spin_lock_irqsave(&port->ep_lock, flags);
-	}
-	set_current_state(TASK_RUNNING);
-	remove_wait_queue(&tty->write_wait, &wait);
-	if (flush)
-		kfifo_reset_out(&port->write_fifo);
-	spin_unlock_irqrestore(&port->ep_lock, flags);
-	tty_kref_put(tty);
-
-	/* wait for data to drain from the device */
-	timeout += jiffies;
-	while ((long)(jiffies - timeout) < 0 && !signal_pending(current)
-	&& usb_get_intfdata(port->port->serial->interface)) {
-		/* not disconnected */
-		if (!tx_active(port))
-			break;
-		msleep(10);
-	}
-
-	/* disconnected */
-	if (!usb_get_intfdata(port->port->serial->interface))
-		return;
-
-	/* wait one more character time, based on baud rate */
-	/* (tx_active doesn't seem to wait for the last byte) */
-	baud_rate = port->baud_rate;
-	if (baud_rate == 0)
-		baud_rate = 50;
-	msleep(max(1, DIV_ROUND_UP(10000, baud_rate)));
-}
-
-=======
->>>>>>> android-3.18
 static int choose_config(struct usb_device *dev)
 {
 	/*
@@ -1511,11 +1446,7 @@ static void handle_new_msr(struct edgeport_port *edge_port, __u8 msr)
 			icount->dcd++;
 		if (msr & EDGEPORT_MSR_DELTA_RI)
 			icount->rng++;
-<<<<<<< HEAD
-		wake_up_interruptible(&edge_port->port->delta_msr_wait);
-=======
 		wake_up_interruptible(&edge_port->port->port.delta_msr_wait);
->>>>>>> android-3.18
 	}
 
 	/* Save the new modem status */
@@ -1795,11 +1726,6 @@ static int edge_open(struct tty_struct *tty, struct usb_serial_port *port)
 
 	dev = port->serial->dev;
 
-<<<<<<< HEAD
-	memset(&(edge_port->icount), 0x00, sizeof(edge_port->icount));
-
-=======
->>>>>>> android-3.18
 	/* turn off loopback */
 	status = ti_do_config(edge_port, UMPC_SET_CLR_LOOPBACK, 0);
 	if (status) {
@@ -2436,35 +2362,6 @@ static int edge_ioctl(struct tty_struct *tty,
 		dev_dbg(&port->dev, "%s - TIOCGSERIAL\n", __func__);
 		return get_serial_info(edge_port,
 				(struct serial_struct __user *) arg);
-<<<<<<< HEAD
-	case TIOCMIWAIT:
-		dbg("%s - (%d) TIOCMIWAIT", __func__, port->number);
-		cprev = edge_port->icount;
-		while (1) {
-			interruptible_sleep_on(&port->delta_msr_wait);
-			/* see if a signal did it */
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			cnow = edge_port->icount;
-			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
-			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts)
-				return -EIO; /* no change => error */
-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-			    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
-				return 0;
-			}
-			cprev = cnow;
-		}
-		/* not reached */
-		break;
-=======
->>>>>>> android-3.18
 	}
 	return -ENOIOCTLCMD;
 }
@@ -2679,12 +2576,8 @@ static struct usb_serial_driver edgeport_2port_device = {
 	.set_termios		= edge_set_termios,
 	.tiocmget		= edge_tiocmget,
 	.tiocmset		= edge_tiocmset,
-<<<<<<< HEAD
-	.get_icount		= edge_get_icount,
-=======
 	.tiocmiwait		= usb_serial_generic_tiocmiwait,
 	.get_icount		= usb_serial_generic_get_icount,
->>>>>>> android-3.18
 	.write			= edge_write,
 	.write_room		= edge_write_room,
 	.chars_in_buffer	= edge_chars_in_buffer,

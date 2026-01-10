@@ -2012,11 +2012,7 @@ UNUSUAL_DEV(  0x14cd, 0x6600, 0x0201, 0x0201,
 		US_FL_IGNORE_RESIDUE ),
 
 /* Reported by Michael Büsch <m@bues.ch> */
-<<<<<<< HEAD
-UNUSUAL_DEV(  0x152d, 0x0567, 0x0114, 0x0114,
-=======
 UNUSUAL_DEV(  0x152d, 0x0567, 0x0114, 0x0117,
->>>>>>> android-3.18
 		"JMicron",
 		"USB to ATA/ATAPI Bridge",
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
@@ -2054,8 +2050,6 @@ UNUSUAL_DEV(  0x1652, 0x6600, 0x0201, 0x0201,
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
 		US_FL_IGNORE_RESIDUE ),
 
-<<<<<<< HEAD
-=======
 /* Reported by Oliver Neukum <oneukum@suse.com> */
 UNUSUAL_DEV(  0x174c, 0x55aa, 0x0100, 0x0100,
 		"ASMedia",
@@ -2063,7 +2057,6 @@ UNUSUAL_DEV(  0x174c, 0x55aa, 0x0100, 0x0100,
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
 		US_FL_NEEDS_CAP16),
 
->>>>>>> android-3.18
 /* Reported by Jesse Feddema <jdfeddema@gmail.com> */
 UNUSUAL_DEV(  0x177f, 0x0400, 0x0000, 0x0000,
 		"Yarvik",

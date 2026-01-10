@@ -934,24 +934,7 @@ mwifiex_dump_station_info(struct mwifiex_private *priv,
 			 HostCmd_ACT_GEN_GET, DTIM_PERIOD_I,
 			 &priv->dtim_period, true);
 
-<<<<<<< HEAD
-	/*
-	 * Bit 0 in tx_htinfo indicates that current Tx rate is 11n rate. Valid
-	 * MCS index values for us are 0 to 15.
-	 */
-	if ((priv->tx_htinfo & BIT(0)) && (priv->tx_rate < 16)) {
-		sinfo->txrate.mcs = priv->tx_rate;
-		sinfo->txrate.flags |= RATE_INFO_FLAGS_MCS;
-		/* 40MHz rate */
-		if (priv->tx_htinfo & BIT(1))
-			sinfo->txrate.flags |= RATE_INFO_FLAGS_40_MHZ_WIDTH;
-		/* SGI enabled */
-		if (priv->tx_htinfo & BIT(2))
-			sinfo->txrate.flags |= RATE_INFO_FLAGS_SHORT_GI;
-	}
-=======
 	mwifiex_parse_htinfo(priv, priv->tx_htinfo, &sinfo->txrate);
->>>>>>> android-3.18
 
 	sinfo->signal_avg = priv->bcn_rssi_avg;
 	sinfo->rx_bytes = priv->stats.rx_bytes;
@@ -2155,13 +2138,6 @@ struct wireless_dev *mwifiex_add_virtual_intf(struct wiphy *wiphy,
 	void *mdev_priv;
 	struct wireless_dev *wdev;
 
-<<<<<<< HEAD
-	if (!priv)
-		return ERR_PTR(-EFAULT);
-
-	adapter = priv->adapter;
-=======
->>>>>>> android-3.18
 	if (!adapter)
 		return ERR_PTR(-EFAULT);
 
@@ -2171,13 +2147,8 @@ struct wireless_dev *mwifiex_add_virtual_intf(struct wiphy *wiphy,
 	case NL80211_IFTYPE_ADHOC:
 		priv = adapter->priv[MWIFIEX_BSS_TYPE_STA];
 		if (priv->bss_mode) {
-<<<<<<< HEAD
-			wiphy_err(wiphy, "cannot create multiple"
-					" station/adhoc interfaces\n");
-=======
 			wiphy_err(wiphy,
 				  "cannot create multiple sta/adhoc ifaces\n");
->>>>>>> android-3.18
 			return ERR_PTR(-EINVAL);
 		}
 
@@ -2276,12 +2247,8 @@ struct wireless_dev *mwifiex_add_virtual_intf(struct wiphy *wiphy,
 	if (!dev) {
 		wiphy_err(wiphy, "no memory available for netdevice\n");
 		priv->bss_mode = NL80211_IFTYPE_UNSPECIFIED;
-<<<<<<< HEAD
-		return ERR_PTR(-ENOMEM);
-=======
 		wdev = ERR_PTR(-ENOMEM);
 		goto done;
->>>>>>> android-3.18
 	}
 
 	mwifiex_init_priv_params(priv, dev);
@@ -2321,13 +2288,9 @@ struct wireless_dev *mwifiex_add_virtual_intf(struct wiphy *wiphy,
 		wiphy_err(wiphy, "cannot register virtual network device\n");
 		free_netdev(dev);
 		priv->bss_mode = NL80211_IFTYPE_UNSPECIFIED;
-<<<<<<< HEAD
-		return ERR_PTR(-EFAULT);
-=======
 		priv->netdev = NULL;
 		wdev = ERR_PTR(-EFAULT);
 		goto done;
->>>>>>> android-3.18
 	}
 
 	sema_init(&priv->async_sem, 1);
@@ -2337,9 +2300,6 @@ struct wireless_dev *mwifiex_add_virtual_intf(struct wiphy *wiphy,
 #ifdef CONFIG_DEBUG_FS
 	mwifiex_dev_debugfs_init(priv);
 #endif
-<<<<<<< HEAD
-	return dev;
-=======
 
 done:
 	if (IS_ERR(wdev)) {
@@ -2348,7 +2308,6 @@ done:
 	}
 
 	return wdev;
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(mwifiex_add_virtual_intf);
 

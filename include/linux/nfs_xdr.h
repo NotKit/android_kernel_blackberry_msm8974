@@ -1099,8 +1099,6 @@ struct nfstime4 {
 };
 
 #ifdef CONFIG_NFS_V4_1
-<<<<<<< HEAD
-=======
 
 struct pnfs_commit_bucket {
 	struct list_head written;
@@ -1134,7 +1132,6 @@ struct nfs41_state_protection {
 	struct nfs4_op_map allow;
 };
 
->>>>>>> android-3.18
 #define NFS4_EXCHANGE_ID_LEN	(127)
 struct nfs41_exchange_id_args {
 	struct nfs_client		*client;

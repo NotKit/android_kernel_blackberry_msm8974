@@ -106,10 +106,6 @@ struct mct_u232_private {
 	unsigned char	     last_lsr;      /* Line Status Register */
 	unsigned char	     last_msr;      /* Modem Status Register */
 	unsigned int	     rx_flags;      /* Throttling flags */
-<<<<<<< HEAD
-	struct async_icount  icount;
-=======
->>>>>>> android-3.18
 };
 
 #define THROTTLED		0x01
@@ -301,18 +297,10 @@ static int mct_u232_set_modem_ctrl(struct usb_serial_port *port,
 			WDR_TIMEOUT);
 	kfree(buf);
 
-<<<<<<< HEAD
-	dbg("set_modem_ctrl: state=0x%x ==> mcr=0x%x", control_state, mcr);
-
-	if (rc < 0) {
-		dev_err(&serial->dev->dev,
-			"Set MODEM CTRL 0x%x failed (error = %d)\n", mcr, rc);
-=======
 	dev_dbg(&port->dev, "set_modem_ctrl: state=0x%x ==> mcr=0x%x\n", control_state, mcr);
 
 	if (rc < 0) {
 		dev_err(&port->dev, "Set MODEM CTRL 0x%x failed (error = %d)\n", mcr, rc);
->>>>>>> android-3.18
 		return rc;
 	}
 	return 0;
@@ -401,17 +389,9 @@ static int mct_u232_port_probe(struct usb_serial_port *port)
 		return -ENODEV;
 	}
 
-<<<<<<< HEAD
-	priv = kzalloc(sizeof(struct mct_u232_private), GFP_KERNEL);
-	if (!priv)
-		return -ENOMEM;
-	spin_lock_init(&priv->lock);
-	usb_set_serial_port_data(serial->port[0], priv);
-=======
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
->>>>>>> android-3.18
 
 	/* Use second interrupt-in endpoint for reading. */
 	priv->read_urb = serial->port[1]->interrupt_in_urb;
@@ -515,26 +495,14 @@ static void mct_u232_dtr_rts(struct usb_serial_port *port, int on)
 	control_state = priv->control_state;
 	spin_unlock_irq(&priv->lock);
 
-<<<<<<< HEAD
-	mct_u232_set_modem_ctrl(port->serial, control_state);
-=======
 	mct_u232_set_modem_ctrl(port, control_state);
->>>>>>> android-3.18
 }
 
 static void mct_u232_close(struct usb_serial_port *port)
 {
 	struct mct_u232_private *priv = usb_get_serial_port_data(port);
 
-<<<<<<< HEAD
-	/*
-	 * Must kill the read urb as it is actually an interrupt urb, which
-	 * generic close thus fails to kill.
-	 */
-	usb_kill_urb(port->read_urb);
-=======
 	usb_kill_urb(priv->read_urb);
->>>>>>> android-3.18
 	usb_kill_urb(port->interrupt_in_urb);
 
 	usb_serial_generic_close(port);
@@ -619,11 +587,7 @@ static void mct_u232_read_int_callback(struct urb *urb)
 		tty_kref_put(tty);
 	}
 #endif
-<<<<<<< HEAD
-	wake_up_interruptible(&port->delta_msr_wait);
-=======
 	wake_up_interruptible(&port->port.delta_msr_wait);
->>>>>>> android-3.18
 	spin_unlock_irqrestore(&priv->lock, flags);
 exit:
 	retval = usb_submit_urb(urb, GFP_ATOMIC);
@@ -811,91 +775,7 @@ static void mct_u232_unthrottle(struct tty_struct *tty)
 	}
 }
 
-<<<<<<< HEAD
-static int  mct_u232_ioctl(struct tty_struct *tty,
-			unsigned int cmd, unsigned long arg)
-{
-	DEFINE_WAIT(wait);
-	struct usb_serial_port *port = tty->driver_data;
-	struct mct_u232_private *mct_u232_port = usb_get_serial_port_data(port);
-	struct async_icount cnow, cprev;
-	unsigned long flags;
-
-	dbg("%s - port %d, cmd = 0x%x", __func__, port->number, cmd);
-
-	switch (cmd) {
-
-	case TIOCMIWAIT:
-
-		dbg("%s (%d) TIOCMIWAIT", __func__,  port->number);
-
-		spin_lock_irqsave(&mct_u232_port->lock, flags);
-		cprev = mct_u232_port->icount;
-		spin_unlock_irqrestore(&mct_u232_port->lock, flags);
-		for ( ; ; ) {
-			prepare_to_wait(&port->delta_msr_wait,
-					&wait, TASK_INTERRUPTIBLE);
-			schedule();
-			finish_wait(&port->delta_msr_wait, &wait);
-			/* see if a signal did it */
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			spin_lock_irqsave(&mct_u232_port->lock, flags);
-			cnow = mct_u232_port->icount;
-			spin_unlock_irqrestore(&mct_u232_port->lock, flags);
-			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
-			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts)
-				return -EIO; /* no change => error */
-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-			    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
-				return 0;
-			}
-			cprev = cnow;
-		}
-
-	}
-	return -ENOIOCTLCMD;
-}
-
-static int  mct_u232_get_icount(struct tty_struct *tty,
-			struct serial_icounter_struct *icount)
-{
-	struct usb_serial_port *port = tty->driver_data;
-	struct mct_u232_private *mct_u232_port = usb_get_serial_port_data(port);
-	struct async_icount *ic = &mct_u232_port->icount;
-	unsigned long flags;
-
-	spin_lock_irqsave(&mct_u232_port->lock, flags);
-
-	icount->cts = ic->cts;
-	icount->dsr = ic->dsr;
-	icount->rng = ic->rng;
-	icount->dcd = ic->dcd;
-	icount->rx = ic->rx;
-	icount->tx = ic->tx;
-	icount->frame = ic->frame;
-	icount->overrun = ic->overrun;
-	icount->parity = ic->parity;
-	icount->brk = ic->brk;
-	icount->buf_overrun = ic->buf_overrun;
-
-	spin_unlock_irqrestore(&mct_u232_port->lock, flags);
-
-	dbg("%s (%d) TIOCGICOUNT RX=%d, TX=%d",
-		__func__,  port->number, icount->rx, icount->tx);
-	return 0;
-}
-
-module_usb_serial_driver(mct_u232_driver, serial_drivers);
-=======
 module_usb_serial_driver(serial_drivers, id_table);
->>>>>>> android-3.18
 
 MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);

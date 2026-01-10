@@ -454,12 +454,6 @@ static long vol_cdev_ioctl(struct file *file, unsigned int cmd,
 		err = -EINVAL;
 		if (req.lnum < 0 || req.lnum >= vol->reserved_pebs ||
 		    req.bytes < 0 || req.bytes > vol->usable_leb_size)
-<<<<<<< HEAD
-			break;
-		if (req.dtype != UBI_LONGTERM && req.dtype != UBI_SHORTTERM &&
-		    req.dtype != UBI_UNKNOWN)
-=======
->>>>>>> android-3.18
 			break;
 
 		err = get_exclusive(desc);

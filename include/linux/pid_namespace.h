@@ -39,12 +39,8 @@ struct pid_namespace {
 	struct bsd_acct_struct *bacct;
 #endif
 	struct user_namespace *user_ns;
-<<<<<<< HEAD
-	gid_t pid_gid;
-=======
 	struct work_struct proc_work;
 	kgid_t pid_gid;
->>>>>>> android-3.18
 	int hide_pid;
 	int reboot;	/* group exit code if this pidns was rebooted */
 	unsigned int proc_inum;
@@ -64,10 +60,6 @@ static inline struct pid_namespace *get_pid_ns(struct pid_namespace *ns)
 
 extern struct pid_namespace *copy_pid_ns(unsigned long flags,
 	struct user_namespace *user_ns, struct pid_namespace *ns);
-<<<<<<< HEAD
-extern void free_pid_ns(struct kref *kref);
-=======
->>>>>>> android-3.18
 extern void zap_pid_ns_processes(struct pid_namespace *pid_ns);
 extern int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd);
 extern void put_pid_ns(struct pid_namespace *ns);

@@ -160,10 +160,6 @@ int udl_handle_damage(struct udl_framebuffer *fb, int x, int y,
 	if (!fb->active_16)
 		return 0;
 
-<<<<<<< HEAD
-	if (!fb->obj->vmapping)
-		udl_gem_vmap(fb->obj);
-=======
 	if (!fb->obj->vmapping) {
 		ret = udl_gem_vmap(fb->obj);
 		if (ret == -ENOMEM) {
@@ -175,7 +171,6 @@ int udl_handle_damage(struct udl_framebuffer *fb, int x, int y,
 			return 0;
 		}
 	}
->>>>>>> android-3.18
 
 	aligned_x = DL_ALIGN_DOWN(x, sizeof(unsigned long));
 	width = DL_ALIGN_UP(width + (x-aligned_x), sizeof(unsigned long));

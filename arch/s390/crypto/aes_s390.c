@@ -464,12 +464,8 @@ static int cbc_aes_crypt(struct blkcipher_desc *desc, long func,
 		u8 *in = walk->src.virt.addr;
 
 		ret = crypt_s390_kmc(func, &param, out, in, n);
-<<<<<<< HEAD
-		BUG_ON((ret < 0) || (ret != n));
-=======
 		if (ret < 0 || ret != n)
 			return -EIO;
->>>>>>> android-3.18
 
 		nbytes &= AES_BLOCK_SIZE - 1;
 		ret = blkcipher_walk_done(desc, walk, nbytes);
@@ -641,12 +637,8 @@ static int xts_aes_crypt(struct blkcipher_desc *desc, long func,
 	memcpy(pcc_param.tweak, walk->iv, sizeof(pcc_param.tweak));
 	memcpy(pcc_param.key, xts_ctx->pcc_key, 32);
 	ret = crypt_s390_pcc(func, &pcc_param.key[offset]);
-<<<<<<< HEAD
-	BUG_ON(ret < 0);
-=======
 	if (ret < 0)
 		return -EIO;
->>>>>>> android-3.18
 
 	memcpy(xts_param.key, xts_ctx->key, 32);
 	memcpy(xts_param.init, pcc_param.xts, 16);
@@ -657,12 +649,8 @@ static int xts_aes_crypt(struct blkcipher_desc *desc, long func,
 		in = walk->src.virt.addr;
 
 		ret = crypt_s390_km(func, &xts_param.key[offset], out, in, n);
-<<<<<<< HEAD
-		BUG_ON(ret < 0 || ret != n);
-=======
 		if (ret < 0 || ret != n)
 			return -EIO;
->>>>>>> android-3.18
 
 		nbytes &= AES_BLOCK_SIZE - 1;
 		ret = blkcipher_walk_done(desc, walk, nbytes);

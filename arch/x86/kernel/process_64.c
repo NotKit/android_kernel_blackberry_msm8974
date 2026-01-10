@@ -124,17 +124,10 @@ void release_thread(struct task_struct *dead_task)
 {
 	if (dead_task->mm) {
 		if (dead_task->mm->context.ldt) {
-<<<<<<< HEAD
-			printk("WARNING: dead process %8s still has LDT? <%p/%d>\n",
-					dead_task->comm,
-					dead_task->mm->context.ldt->entries,
-					dead_task->mm->context.ldt->size);
-=======
 			pr_warn("WARNING: dead process %s still has LDT? <%p/%d>\n",
 				dead_task->comm,
 				dead_task->mm->context.ldt->entries,
 				dead_task->mm->context.ldt->size);
->>>>>>> android-3.18
 			BUG();
 		}
 	}
@@ -532,24 +525,6 @@ unsigned long get_wchan(struct task_struct *p)
 	 * We need to read FP and IP, so we need to adjust the upper
 	 * bound by another unsigned long.
 	 */
-<<<<<<< HEAD
-	top = start + THREAD_SIZE;
-	top -= 2 * sizeof(unsigned long);
-	bottom = start + sizeof(struct thread_info);
-
-	sp = ACCESS_ONCE(p->thread.sp);
-	if (sp < bottom || sp > top)
-		return 0;
-
-	fp = ACCESS_ONCE(*(unsigned long *)sp);
-	do {
-		if (fp < bottom || fp > top)
-			return 0;
-		ip = ACCESS_ONCE(*(unsigned long *)(fp + sizeof(unsigned long)));
-		if (!in_sched_functions(ip))
-			return ip;
-		fp = ACCESS_ONCE(*(unsigned long *)fp);
-=======
 	top = start + THREAD_SIZE - TOP_OF_KERNEL_STACK_PADDING;
 	top -= 2 * sizeof(unsigned long);
 	bottom = start + sizeof(struct thread_info);
@@ -566,7 +541,6 @@ unsigned long get_wchan(struct task_struct *p)
 		if (!in_sched_functions(ip))
 			return ip;
 		fp = READ_ONCE(*(unsigned long *)fp);
->>>>>>> android-3.18
 	} while (count++ < 16 && p->state != TASK_RUNNING);
 	return 0;
 }

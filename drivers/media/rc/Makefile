@@ -13,12 +13,7 @@ obj-$(CONFIG_IR_SANYO_DECODER) += ir-sanyo-decoder.o
 obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
 obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
 obj-$(CONFIG_IR_LIRC_CODEC) += ir-lirc-codec.o
-<<<<<<< HEAD
-obj-$(CONFIG_USER_RC_INPUT) += user-rc-input.o
-obj-$(CONFIG_USER_SP_RC_INPUT) += user-sp-rc-input.o
-=======
 obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
->>>>>>> android-3.18
 
 # stand-alone IR receivers/transmitters
 obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o

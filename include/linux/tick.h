@@ -8,15 +8,11 @@
 
 #include <linux/clockchips.h>
 #include <linux/irqflags.h>
-<<<<<<< HEAD
-#include <linux/hrtimer.h>
-=======
 #include <linux/percpu.h>
 #include <linux/hrtimer.h>
 #include <linux/context_tracking_state.h>
 #include <linux/cpumask.h>
 #include <linux/sched.h>
->>>>>>> android-3.18
 
 #ifdef CONFIG_GENERIC_CLOCKEVENTS
 

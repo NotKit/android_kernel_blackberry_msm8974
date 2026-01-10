@@ -1000,28 +1000,6 @@ out_unlock:
 	return ret;
 }
 
-<<<<<<< HEAD
-static bool ttm_bo_mem_compat(struct ttm_placement *placement,
-			      struct ttm_mem_reg *mem,
-			      uint32_t *new_flags)
-{
-	int i;
-
-	if (mem->mm_node && placement->lpfn != 0 &&
-	    (mem->start < placement->fpfn ||
-	     mem->start + mem->num_pages > placement->lpfn))
-		return false;
-
-	for (i = 0; i < placement->num_placement; i++) {
-		*new_flags = placement->placement[i];
-		if ((*new_flags & mem->placement & TTM_PL_MASK_CACHING) &&
-		    (*new_flags & mem->placement & TTM_PL_MASK_MEM))
-			return true;
-	}
-
-	for (i = 0; i < placement->num_busy_placement; i++) {
-		*new_flags = placement->busy_placement[i];
-=======
 bool ttm_bo_mem_compat(struct ttm_placement *placement,
 		       struct ttm_mem_reg *mem,
 		       uint32_t *new_flags)
@@ -1036,14 +1014,11 @@ bool ttm_bo_mem_compat(struct ttm_placement *placement,
 			continue;
 
 		*new_flags = heap->flags;
->>>>>>> android-3.18
 		if ((*new_flags & mem->placement & TTM_PL_MASK_CACHING) &&
 		    (*new_flags & mem->placement & TTM_PL_MASK_MEM))
 			return true;
 	}
 
-<<<<<<< HEAD
-=======
 	for (i = 0; i < placement->num_busy_placement; i++) {
 		const struct ttm_place *heap = &placement->busy_placement[i];
 		if (mem->mm_node &&
@@ -1057,7 +1032,6 @@ bool ttm_bo_mem_compat(struct ttm_placement *placement,
 			return true;
 	}
 
->>>>>>> android-3.18
 	return false;
 }
 EXPORT_SYMBOL(ttm_bo_mem_compat);
@@ -1075,12 +1049,8 @@ int ttm_bo_validate(struct ttm_buffer_object *bo,
 	 * Check whether we need to move buffer.
 	 */
 	if (!ttm_bo_mem_compat(placement, &bo->mem, &new_flags)) {
-<<<<<<< HEAD
-		ret = ttm_bo_move_buffer(bo, placement, interruptible, no_wait_reserve, no_wait_gpu);
-=======
 		ret = ttm_bo_move_buffer(bo, placement, interruptible,
 					 no_wait_gpu);
->>>>>>> android-3.18
 		if (ret)
 			return ret;
 	} else {
@@ -1655,20 +1625,10 @@ static int ttm_bo_swapout(struct ttm_mem_shrink *shrink)
 			break;
 	}
 
-<<<<<<< HEAD
-		if (!list_empty(&bo->ddestroy)) {
-			spin_unlock(&glob->lru_lock);
-			(void) ttm_bo_cleanup_refs(bo, false, false, false);
-			kref_put(&bo->list_kref, ttm_bo_release_list);
-			spin_lock(&glob->lru_lock);
-			continue;
-		}
-=======
 	if (ret) {
 		spin_unlock(&glob->lru_lock);
 		return ret;
 	}
->>>>>>> android-3.18
 
 	kref_get(&bo->list_kref);
 

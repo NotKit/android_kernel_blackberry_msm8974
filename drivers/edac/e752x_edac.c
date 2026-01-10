@@ -1179,20 +1179,10 @@ static int e752x_get_devs(struct pci_dev *pdev, int dev_idx,
 	pvt->dev_d0f1 = pci_get_device(PCI_VENDOR_ID_INTEL,
 				pvt->dev_info->err_dev, NULL);
 
-<<<<<<< HEAD
-	pvt->bridge_ck = pci_get_device(PCI_VENDOR_ID_INTEL,
-				pvt->dev_info->err_dev, pvt->bridge_ck);
-
-	if (pvt->bridge_ck == NULL) {
-		pvt->bridge_ck = pci_scan_single_device(pdev->bus,
-							PCI_DEVFN(0, 1));
-		pci_dev_get(pvt->bridge_ck);
-=======
 	if (pvt->dev_d0f1 == NULL) {
 		pvt->dev_d0f1 = pci_scan_single_device(pdev->bus,
 							PCI_DEVFN(0, 1));
 		pci_dev_get(pvt->dev_d0f1);
->>>>>>> android-3.18
 	}
 
 	if (pvt->dev_d0f1 == NULL) {

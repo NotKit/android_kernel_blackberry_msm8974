@@ -112,15 +112,7 @@ extern void of_fdt_limit_memory(int limit);
 static inline void early_init_fdt_scan_reserved_mem(void) {}
 static inline const char *of_flat_dt_get_machine_name(void) { return NULL; }
 static inline void unflatten_device_tree(void) {}
-<<<<<<< HEAD
-static inline void *of_get_flat_dt_prop(unsigned long node, const char *name,
-				 unsigned long *size) { return NULL; }
-
-static inline int of_flat_dt_is_compatible(unsigned long node,
-				const char *name) { return 0; }
-=======
 static inline void unflatten_and_copy_device_tree(void) {}
->>>>>>> android-3.18
 #endif /* CONFIG_OF_FLATTREE */
 
 #endif /* __ASSEMBLY__ */

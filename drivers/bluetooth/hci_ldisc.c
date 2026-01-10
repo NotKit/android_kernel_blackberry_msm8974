@@ -168,8 +168,6 @@ restart:
 		goto restart;
 
 	clear_bit(HCI_UART_SENDING, &hu->tx_state);
-<<<<<<< HEAD
-=======
 }
 
 static void hci_uart_init_work(struct work_struct *work)
@@ -199,7 +197,6 @@ int hci_uart_init_ready(struct hci_uart *hu)
 	schedule_work(&hu->init_ready);
 
 	return 0;
->>>>>>> android-3.18
 }
 
 /* ------- Interface to HCI layer ------ */
@@ -258,11 +255,6 @@ static int hci_uart_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
 
-<<<<<<< HEAD
-	hu = (struct hci_uart *) hdev->driver_data;
-
-=======
->>>>>>> android-3.18
 	BT_DBG("%s: type %d len %d", hdev->name, bt_cb(skb)->pkt_type, skb->len);
 
 	hu->proto->enqueue(hu, skb);
@@ -312,10 +304,7 @@ static int hci_uart_tty_open(struct tty_struct *tty)
 	hu->tty = tty;
 	tty->receive_room = 65536;
 
-<<<<<<< HEAD
-=======
 	INIT_WORK(&hu->init_ready, hci_uart_init_work);
->>>>>>> android-3.18
 	INIT_WORK(&hu->write_work, hci_uart_write_work);
 
 	spin_lock_init(&hu->rx_lock);
@@ -358,17 +347,6 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 
 	cancel_work_sync(&hu->write_work);
 
-<<<<<<< HEAD
-		tasklet_kill(&hu->tty_wakeup_task);
-
-		if (test_and_clear_bit(HCI_UART_PROTO_SET, &hu->flags)) {
-			hu->proto->close(hu);
-			if (hdev) {
-				hci_unregister_dev(hdev);
-				hci_free_dev(hdev);
-			}
-		}
-=======
 	if (test_and_clear_bit(HCI_UART_PROTO_READY, &hu->flags)) {
 		if (hdev) {
 			if (test_bit(HCI_UART_REGISTERED, &hu->flags))
@@ -376,7 +354,6 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 			hci_free_dev(hdev);
 		}
 		hu->proto->close(hu);
->>>>>>> android-3.18
 	}
 	clear_bit(HCI_UART_PROTO_SET, &hu->flags);
 
@@ -449,17 +426,11 @@ static void hci_uart_tty_receive(struct tty_struct *tty, const u8 *data, char *f
 		return;
 
 	spin_lock(&hu->rx_lock);
-<<<<<<< HEAD
-	ret = hu->proto->recv(hu, (void *) data, count);
-	if (ret > 0)
-		hu->hdev->stat.byte_rx += count;
-=======
 	hu->proto->recv(hu, (void *) data, count);
 
 	if (hu->hdev)
 		hu->hdev->stat.byte_rx += count;
 
->>>>>>> android-3.18
 	spin_unlock(&hu->rx_lock);
 
 	tty_unthrottle(tty);
@@ -487,25 +458,15 @@ static int hci_uart_register_dev(struct hci_uart *hu)
 	hdev->close = hci_uart_close;
 	hdev->flush = hci_uart_flush;
 	hdev->send  = hci_uart_send_frame;
-<<<<<<< HEAD
-	hdev->destruct = hci_uart_destruct;
-	hdev->parent = hu->tty->dev;
-=======
 	SET_HCIDEV_DEV(hdev, hu->tty->dev);
->>>>>>> android-3.18
 
 	hdev->owner = THIS_MODULE;
 
-<<<<<<< HEAD
-	if (!reset)
-		set_bit(HCI_QUIRK_NO_RESET, &hdev->quirks);
-=======
 	if (test_bit(HCI_UART_EXT_CONFIG, &hu->hdev_flags))
 		set_bit(HCI_QUIRK_EXTERNAL_CONFIG, &hdev->quirks);
 
 	if (!test_bit(HCI_UART_RESET_ON_INIT, &hu->hdev_flags))
 		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);
->>>>>>> android-3.18
 
 	if (test_bit(HCI_UART_RAW_DEVICE, &hu->hdev_flags))
 		set_bit(HCI_QUIRK_RAW_DEVICE, &hdev->quirks);
@@ -699,13 +660,8 @@ static int __init hci_uart_init(void)
 #ifdef CONFIG_BT_HCIUART_ATH3K
 	ath_init();
 #endif
-<<<<<<< HEAD
-#ifdef CONFIG_BT_HCIUART_IBS
-	ibs_init();
-=======
 #ifdef CONFIG_BT_HCIUART_3WIRE
 	h5_init();
->>>>>>> android-3.18
 #endif
 
 	return 0;
@@ -727,13 +683,8 @@ static void __exit hci_uart_exit(void)
 #ifdef CONFIG_BT_HCIUART_ATH3K
 	ath_deinit();
 #endif
-<<<<<<< HEAD
-#ifdef CONFIG_BT_HCIUART_IBS
-	ibs_deinit();
-=======
 #ifdef CONFIG_BT_HCIUART_3WIRE
 	h5_deinit();
->>>>>>> android-3.18
 #endif
 
 	/* Release tty registration of line discipline */

@@ -1272,11 +1272,8 @@ EXPORT_SYMBOL(drm_crtc_vblank_on);
  */
 void drm_vblank_pre_modeset(struct drm_device *dev, int crtc)
 {
-<<<<<<< HEAD
-=======
 	struct drm_vblank_crtc *vblank = &dev->vblank[crtc];
 
->>>>>>> android-3.18
 	/* vblank is not initialized (IRQ not installed ?), or has been freed */
 	if (!dev->num_crtcs)
 		return;
@@ -1316,11 +1313,7 @@ void drm_vblank_post_modeset(struct drm_device *dev, int crtc)
 	if (!dev->num_crtcs)
 		return;
 
-<<<<<<< HEAD
-	if (dev->vblank_inmodeset[crtc]) {
-=======
 	if (vblank->inmodeset) {
->>>>>>> android-3.18
 		spin_lock_irqsave(&dev->vbl_lock, irqflags);
 		dev->vblank_disable_allowed = true;
 		spin_unlock_irqrestore(&dev->vbl_lock, irqflags);

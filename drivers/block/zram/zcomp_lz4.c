@@ -15,16 +15,6 @@
 
 #include "zcomp_lz4.h"
 
-<<<<<<< HEAD
-static void *zcomp_lz4_create(gfp_t flags)
-{
-	void *ret;
-
-	ret = kmalloc(LZ4_MEM_COMPRESS, flags);
-	if (!ret)
-		ret = __vmalloc(LZ4_MEM_COMPRESS,
-				flags | __GFP_HIGHMEM,
-=======
 static void *zcomp_lz4_create(void)
 {
 	void *ret;
@@ -43,7 +33,6 @@ static void *zcomp_lz4_create(void)
 		ret = __vmalloc(LZ4_MEM_COMPRESS,
 				GFP_NOIO | __GFP_NORETRY | __GFP_NOWARN |
 				__GFP_ZERO | __GFP_HIGHMEM,
->>>>>>> android-3.18
 				PAGE_KERNEL);
 	return ret;
 }

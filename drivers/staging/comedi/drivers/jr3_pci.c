@@ -740,20 +740,6 @@ static int jr3_pci_auto_attach(struct comedi_device *dev,
 	/*  Reset DSP card */
 	writel(0, &devpriv->iobase->channel[0].reset);
 
-<<<<<<< HEAD
-	result = comedi_load_firmware(dev, "jr3pci.idm", jr3_download_firmware);
-	dev_dbg(dev->hw_dev, "Firmare load %d\n", result);
-
-	if (result < 0)
-		goto out;
-/*
- * TODO: use firmware to load preferred offset tables. Suggested
- * format:
- *     model serial Fx Fy Fz Mx My Mz\n
- *
- *     comedi_load_firmware(dev, "jr3_offsets_table", jr3_download_firmware);
- */
-=======
 	ret = comedi_load_firmware(dev, &comedi_to_pci_dev(dev)->dev,
 				   "comedi/jr3pci.idm",
 				   jr3_download_firmware, 0);
@@ -769,7 +755,6 @@ static int jr3_pci_auto_attach(struct comedi_device *dev,
 	 *                          "comedi/jr3_offsets_table",
 	 *                          jr3_download_firmware, 1);
 	 */
->>>>>>> android-3.18
 
 	/*
 	 * It takes a few milliseconds for software to settle as much as we

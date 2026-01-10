@@ -1470,15 +1470,9 @@ int ubi_eba_init(struct ubi_device *ubi, struct ubi_attach_info *ai)
 				 * This may happen in case of an unclean reboot
 				 * during re-size.
 				 */
-<<<<<<< HEAD
-				ubi_scan_move_to_list(sv, seb, &si->erase);
-			else
-				vol->eba_tbl[seb->lnum] = seb->pnum;
-=======
 				ubi_move_aeb_to_list(av, aeb, &ai->erase);
 			else
 				vol->eba_tbl[aeb->lnum] = aeb->pnum;
->>>>>>> android-3.18
 		}
 	}
 

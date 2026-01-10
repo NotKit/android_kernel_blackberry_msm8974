@@ -64,12 +64,7 @@ bool radeon_ddc_probe(struct radeon_connector *radeon_connector, bool use_aux)
 		radeon_router_select_ddc_port(radeon_connector);
 
 	if (use_aux) {
-<<<<<<< HEAD
-		struct radeon_connector_atom_dig *dig = radeon_connector->con_priv;
-		ret = i2c_transfer(&dig->dp_i2c_bus->adapter, msgs, 2);
-=======
 		ret = i2c_transfer(&radeon_connector->ddc_bus->aux.ddc, msgs, 2);
->>>>>>> android-3.18
 	} else {
 		ret = i2c_transfer(&radeon_connector->ddc_bus->adapter, msgs, 2);
 	}

@@ -1677,19 +1677,11 @@ struct net_device {
 
 	/* mid-layer private */
 	union {
-<<<<<<< HEAD
-		void				*ml_priv;
-		struct pcpu_lstats __percpu	*lstats; /* loopback stats */
-		struct pcpu_tstats __percpu	*tstats; /* tunnel stats */
-		struct pcpu_dstats __percpu	*dstats; /* dummy stats */
-		struct pcpu_vstats __percpu	*vstats; /* veth stats */
-=======
 		void					*ml_priv;
 		struct pcpu_lstats __percpu		*lstats;
 		struct pcpu_sw_netstats __percpu	*tstats;
 		struct pcpu_dstats __percpu		*dstats;
 		struct pcpu_vstats __percpu		*vstats;
->>>>>>> android-3.18
 	};
 
 	struct garp_port __rcu	*garp_port;
@@ -1706,11 +1698,7 @@ struct net_device {
 	unsigned int		gso_max_size;
 #define GSO_MAX_SEGS		65535
 	u16			gso_max_segs;
-<<<<<<< HEAD
-
-=======
 	u16			gso_min_segs;
->>>>>>> android-3.18
 #ifdef CONFIG_DCB
 	const struct dcbnl_rtnl_ops *dcbnl_ops;
 #endif
@@ -1965,13 +1953,6 @@ struct offload_callbacks {
 						netdev_features_t features);
 	struct sk_buff		**(*gro_receive)(struct sk_buff **head,
 					       struct sk_buff *skb);
-<<<<<<< HEAD
-	int			(*gro_complete)(struct sk_buff *skb);
-	bool			(*id_match)(struct packet_type *ptype,
-					    struct sock *sk);
-	void			*af_packet_priv;
-	struct list_head	list;
-=======
 	int			(*gro_complete)(struct sk_buff *skb, int nhoff);
 };
 
@@ -1985,7 +1966,6 @@ struct udp_offload {
 	__be16			 port;
 	u8			 ipproto;
 	struct offload_callbacks callbacks;
->>>>>>> android-3.18
 };
 
 /* often modified stats are per cpu, other are shared (netdev->stats) */
@@ -2347,8 +2327,6 @@ static inline int dev_rebuild_header(struct sk_buff *skb)
 	return dev->header_ops->rebuild(skb);
 }
 
-<<<<<<< HEAD
-=======
 /* ll_header must have at least hard_header_len allocated */
 static inline bool dev_validate_header(const struct net_device *dev,
 				       char *ll_header, int len)
@@ -2369,7 +2347,6 @@ static inline bool dev_validate_header(const struct net_device *dev,
 	return false;
 }
 
->>>>>>> android-3.18
 typedef int gifconf_func_t(struct net_device * dev, char __user * bufptr, int len);
 int register_gifconf(unsigned int family, gifconf_func_t *gifconf);
 static inline int unregister_gifconf(unsigned int family)
@@ -3861,8 +3838,6 @@ do {								\
 })
 #endif
 
-<<<<<<< HEAD
-=======
 /*
  *	The list of packet types we will receive (as opposed to discard)
  *	and the routines to invoke.
@@ -3893,5 +3868,4 @@ do {								\
 #define PTYPE_HASH_SIZE	(16)
 #define PTYPE_HASH_MASK	(PTYPE_HASH_SIZE - 1)
 
->>>>>>> android-3.18
 #endif	/* _LINUX_NETDEVICE_H */

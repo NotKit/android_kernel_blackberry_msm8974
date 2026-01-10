@@ -391,24 +391,12 @@ struct usb_bus {
 	u8 otg_port;			/* 0, or number of OTG/HNP port */
 	unsigned is_b_host:1;		/* true during some HNP roleswitches */
 	unsigned b_hnp_enable:1;	/* OTG: did A-Host enable HNP? */
-<<<<<<< HEAD
-	unsigned hnp_support:1;		/* OTG: HNP is supported on OTG port */
-	unsigned quick_hnp:1;		/* OTG: Indiacates if hnp is required
-					   irrespective of host_request flag
-					 */
-	unsigned otg_vbus_off:1;	/* OTG: OTG test device feature bit that
-					 * tells A-device to turn off VBUS after
-					 * B-device is disconnected.
-					 */
-	struct delayed_work hnp_polling;/* OTG: HNP polling work */
-=======
 	unsigned no_stop_on_short:1;    /*
 					 * Quirk: some controllers don't stop
 					 * the ep queue on a short transfer
 					 * with the URB_SHORT_NOT_OK flag set.
 					 */
 	unsigned no_sg_constraint:1;	/* no sg constraint */
->>>>>>> android-3.18
 	unsigned sg_tablesize;		/* 0 or largest number of sg list entries */
 
 	int devnum_next;		/* Next open device number in
@@ -449,30 +437,7 @@ struct usb_bus {
 
 struct usb_dev_state;
 
-<<<<<<< HEAD
-/* This is arbitrary.
- * From USB 2.0 spec Table 11-13, offset 7, a hub can
- * have up to 255 ports. The most yet reported is 10.
- *
- * Current Wireless USB host hardware (Intel i1480 for example) allows
- * up to 22 devices to connect. Upcoming hardware might raise that
- * limit. Because the arrays need to add a bit for hub status data, we
- * do 31, so plus one evens out to four bytes.
- */
-
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-#define USB_OTG_SUSPEND		0x1
-#define USB_OTG_ENUMERATE	0x2
-#define USB_OTG_DISCONNECT	0x4
-#define USB_OTG_RESUME		0x8
-#define USB_OTG_REMOTEWAKEUP	0x10
-#define USB_OTG_WAKEUP_ALL	0x20
-#endif
-
-#define USB_MAXCHILDREN		(31)
-=======
 /* ----------------------------------------------------------------------- */
->>>>>>> android-3.18
 
 struct usb_tt;
 

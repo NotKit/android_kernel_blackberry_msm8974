@@ -56,30 +56,7 @@ static ssize_t brightness_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(brightness);
 
-<<<<<<< HEAD
-static ssize_t led_max_brightness_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
-{
-	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-	ssize_t ret = -EINVAL;
-	unsigned long state = 0;
-
-	ret = strict_strtoul(buf, 10, &state);
-	if (!ret) {
-		ret = size;
-		if (state > LED_FULL)
-			state = LED_FULL;
-		led_cdev->max_brightness = state;
-		led_set_brightness(led_cdev, led_cdev->brightness);
-	}
-
-	return ret;
-}
-
-static ssize_t led_max_brightness_show(struct device *dev,
-=======
 static ssize_t max_brightness_show(struct device *dev,
->>>>>>> android-3.18
 		struct device_attribute *attr, char *buf)
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
@@ -109,15 +86,8 @@ static const struct attribute_group led_group = {
 	.attrs = led_class_attrs,
 };
 
-<<<<<<< HEAD
-static struct device_attribute led_class_attrs[] = {
-	__ATTR(brightness, 0644, led_brightness_show, led_brightness_store),
-	__ATTR(max_brightness, 0644, led_max_brightness_show,
-			led_max_brightness_store),
-=======
 static const struct attribute_group *led_groups[] = {
 	&led_group,
->>>>>>> android-3.18
 #ifdef CONFIG_LEDS_TRIGGERS
 	&led_trigger_group,
 #endif

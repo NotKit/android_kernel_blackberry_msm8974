@@ -129,7 +129,4 @@ ENTRY(clmul_ghash_update)
 	movups DATA, (%rdi)
 .Lupdate_just_ret:
 	ret
-<<<<<<< HEAD
-=======
 ENDPROC(clmul_ghash_update)
->>>>>>> android-3.18

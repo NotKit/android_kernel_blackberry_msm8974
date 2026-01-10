@@ -1,8 +1,4 @@
 #include <asm/asm-offsets.h>
-<<<<<<< HEAD
-#include <asm/page.h>
-#include <asm/thread_info.h>
-=======
 #include <asm/thread_info.h>
 
 #define PAGE_SIZE _PAGE_SIZE
@@ -13,7 +9,6 @@
  */
 #define BSS_FIRST_SECTIONS *(.bss..swapper_pg_dir)
 
->>>>>>> android-3.18
 #include <asm-generic/vmlinux.lds.h>
 
 #undef mips

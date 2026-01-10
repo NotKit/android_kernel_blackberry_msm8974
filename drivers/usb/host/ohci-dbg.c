@@ -18,60 +18,6 @@
 	} temp;})
 #define pipestring(pipe) edstring(usb_pipetype(pipe))
 
-<<<<<<< HEAD
-/* debug| print the main components of an URB
- * small: 0) header + data packets 1) just header
- */
-static void __maybe_unused
-urb_print(struct urb * urb, char * str, int small, int status)
-{
-	unsigned int pipe= urb->pipe;
-
-	if (!urb->dev || !urb->dev->bus) {
-		dbg("%s URB: no dev", str);
-		return;
-	}
-
-#ifndef	OHCI_VERBOSE_DEBUG
-	if (status != 0)
-#endif
-	dbg("%s %pK dev=%d ep=%d%s-%s flags=%x len=%d/%d stat=%d",
-		    str,
-		    urb,
-		    usb_pipedevice (pipe),
-		    usb_pipeendpoint (pipe),
-		    usb_pipeout (pipe)? "out" : "in",
-		    pipestring (pipe),
-		    urb->transfer_flags,
-		    urb->actual_length,
-		    urb->transfer_buffer_length,
-		    status);
-
-#ifdef	OHCI_VERBOSE_DEBUG
-	if (!small) {
-		int i, len;
-
-		if (usb_pipecontrol (pipe)) {
-			printk (KERN_DEBUG "%s: setup(8):", __FILE__);
-			for (i = 0; i < 8 ; i++)
-				printk (" %02x", ((__u8 *) urb->setup_packet) [i]);
-			printk ("\n");
-		}
-		if (urb->transfer_buffer_length > 0 && urb->transfer_buffer) {
-			printk (KERN_DEBUG "%s: data(%d/%d):", __FILE__,
-				urb->actual_length,
-				urb->transfer_buffer_length);
-			len = usb_pipeout (pipe)?
-						urb->transfer_buffer_length: urb->actual_length;
-			for (i = 0; i < 16 && i < len; i++)
-				printk (" %02x", ((__u8 *) urb->transfer_buffer) [i]);
-			printk ("%s stat:%d\n", i < len? "...": "", status);
-		}
-	}
-#endif
-}
-=======
->>>>>>> android-3.18
 
 #define ohci_dbg_sw(ohci, next, size, format, arg...) \
 	do { \

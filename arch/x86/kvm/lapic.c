@@ -897,11 +897,7 @@ static u32 apic_get_tmcct(struct kvm_lapic *apic)
 	ASSERT(apic != NULL);
 
 	/* if initial count is 0, current count should also be 0 */
-<<<<<<< HEAD
-	if (apic_get_reg(apic, APIC_TMICT) == 0 ||
-=======
 	if (kvm_apic_get_reg(apic, APIC_TMICT) == 0 ||
->>>>>>> android-3.18
 		apic->lapic_timer.period == 0)
 		return 0;
 
@@ -1701,11 +1697,7 @@ void kvm_apic_post_state_restore(struct kvm_vcpu *vcpu,
 
 	apic_update_ppr(apic);
 	hrtimer_cancel(&apic->lapic_timer.timer);
-<<<<<<< HEAD
-	apic_manage_nmi_watchdog(apic, apic_get_reg(apic, APIC_LVT0));
-=======
 	apic_manage_nmi_watchdog(apic, kvm_apic_get_reg(apic, APIC_LVT0));
->>>>>>> android-3.18
 	update_divide_count(apic);
 	start_apic_timer(apic);
 	apic->irr_pending = true;
@@ -1777,11 +1769,7 @@ void kvm_lapic_sync_from_vapic(struct kvm_vcpu *vcpu)
 		return;
 
 	kvm_read_guest_cached(vcpu->kvm, &vcpu->arch.apic->vapic_cache, &data,
-<<<<<<< HEAD
-			      sizeof(u32));
-=======
 				sizeof(u32));
->>>>>>> android-3.18
 
 	apic_set_tpr(vcpu->arch.apic, data & 0xff);
 }
@@ -1816,13 +1804,9 @@ void kvm_lapic_sync_to_vapic(struct kvm_vcpu *vcpu)
 {
 	u32 data, tpr;
 	int max_irr, max_isr;
-<<<<<<< HEAD
-	struct kvm_lapic *apic;
-=======
 	struct kvm_lapic *apic = vcpu->arch.apic;
 
 	apic_sync_pv_eoi_to_guest(vcpu, apic);
->>>>>>> android-3.18
 
 	if (!test_bit(KVM_APIC_CHECK_VAPIC, &vcpu->arch.apic_attention))
 		return;
@@ -1837,34 +1821,20 @@ void kvm_lapic_sync_to_vapic(struct kvm_vcpu *vcpu)
 	data = (tpr & 0xff) | ((max_isr & 0xf0) << 8) | (max_irr << 24);
 
 	kvm_write_guest_cached(vcpu->kvm, &vcpu->arch.apic->vapic_cache, &data,
-<<<<<<< HEAD
-			       sizeof(u32));
-=======
 				sizeof(u32));
->>>>>>> android-3.18
 }
 
 int kvm_lapic_set_vapic_addr(struct kvm_vcpu *vcpu, gpa_t vapic_addr)
 {
-<<<<<<< HEAD
-	if (!irqchip_in_kernel(vcpu->kvm))
-		return -EINVAL;
-
-=======
->>>>>>> android-3.18
 	if (vapic_addr) {
 		if (kvm_gfn_to_hva_cache_init(vcpu->kvm,
 					&vcpu->arch.apic->vapic_cache,
 					vapic_addr, sizeof(u32)))
 			return -EINVAL;
-<<<<<<< HEAD
-       }
-=======
 		__set_bit(KVM_APIC_CHECK_VAPIC, &vcpu->arch.apic_attention);
 	} else {
 		__clear_bit(KVM_APIC_CHECK_VAPIC, &vcpu->arch.apic_attention);
 	}
->>>>>>> android-3.18
 
 	vcpu->arch.apic->vapic_addr = vapic_addr;
 	return 0;

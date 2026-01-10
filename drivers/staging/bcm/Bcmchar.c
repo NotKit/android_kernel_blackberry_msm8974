@@ -2525,18 +2525,9 @@ static long bcm_char_ioctl(struct file *filp, UINT cmd, ULONG arg)
 		status = bcm_char_ioctl_bulk_wrm(argp, ad, cmd);
 		return status;
 
-<<<<<<< HEAD
-		memset(&DevInfo, 0, sizeof(DevInfo));
-		DevInfo.MaxRDMBufferSize = BUFFER_4K;
-		DevInfo.u32DSDStartOffset = EEPROM_CALPARAM_START;
-		DevInfo.u32RxAlignmentCorrection = 0;
-		DevInfo.u32NVMType = Adapter->eNVMType;
-		DevInfo.u32InterfaceType = BCM_USB;
-=======
 	case IOCTL_BCM_GET_NVM_SIZE:
 		status = bcm_char_ioctl_get_nvm_size(argp, ad);
 		return status;
->>>>>>> android-3.18
 
 	case IOCTL_BCM_CAL_INIT:
 		status = bcm_char_ioctl_cal_init(argp, ad);

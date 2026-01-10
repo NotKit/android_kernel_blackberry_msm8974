@@ -5,10 +5,7 @@
 #include <linux/relay.h>
 #include <linux/compat.h>
 #include <uapi/linux/blktrace_api.h>
-<<<<<<< HEAD
-=======
 #include <linux/list.h>
->>>>>>> android-3.18
 
 #if defined(CONFIG_BLK_DEV_IO_TRACE)
 

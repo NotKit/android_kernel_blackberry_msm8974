@@ -226,21 +226,6 @@ dotraplinkage void do_##name(struct pt_regs *regs, long error_code)	\
 	do_error_trap(regs, error_code, str, trapnr, signr);		\
 }
 
-<<<<<<< HEAD
-DO_ERROR_INFO(X86_TRAP_DE, SIGFPE, "divide error", divide_error, FPE_INTDIV,
-		regs->ip)
-DO_ERROR(X86_TRAP_OF, SIGSEGV, "overflow", overflow)
-DO_ERROR(X86_TRAP_BR, SIGSEGV, "bounds", bounds)
-DO_ERROR_INFO(X86_TRAP_UD, SIGILL, "invalid opcode", invalid_op, ILL_ILLOPN,
-		regs->ip)
-DO_ERROR(X86_TRAP_OLD_MF, SIGFPE, "coprocessor segment overrun",
-		coprocessor_segment_overrun)
-DO_ERROR(X86_TRAP_TS, SIGSEGV, "invalid TSS", invalid_TSS)
-DO_ERROR(X86_TRAP_NP, SIGBUS, "segment not present", segment_not_present)
-DO_ERROR(X86_TRAP_SS, SIGBUS, "stack segment", stack_segment)
-DO_ERROR_INFO(X86_TRAP_AC, SIGBUS, "alignment check", alignment_check,
-		BUS_ADRALN, 0)
-=======
 DO_ERROR(X86_TRAP_DE,     SIGFPE,  "divide error",		divide_error)
 DO_ERROR(X86_TRAP_OF,     SIGSEGV, "overflow",			overflow)
 DO_ERROR(X86_TRAP_BR,     SIGSEGV, "bounds",			bounds)
@@ -250,7 +235,6 @@ DO_ERROR(X86_TRAP_TS,     SIGSEGV, "invalid TSS",		invalid_TSS)
 DO_ERROR(X86_TRAP_NP,     SIGBUS,  "segment not present",	segment_not_present)
 DO_ERROR(X86_TRAP_SS,     SIGBUS,  "stack segment",		stack_segment)
 DO_ERROR(X86_TRAP_AC,     SIGBUS,  "alignment check",		alignment_check)
->>>>>>> android-3.18
 
 #ifdef CONFIG_X86_64
 /* Runs on IST stack */
@@ -283,10 +267,7 @@ dotraplinkage void do_double_fault(struct pt_regs *regs, long error_code)
 	}
 #endif
 
-<<<<<<< HEAD
-=======
 	exception_enter();
->>>>>>> android-3.18
 	/* Return not checked because double check cannot be ignored */
 	notify_die(DIE_TRAP, str, regs, error_code, X86_TRAP_DF, SIGSEGV);
 
@@ -406,11 +387,7 @@ NOKPROBE_SYMBOL(do_int3);
  * for scheduling or signal handling. The actual stack switch is done in
  * entry.S
  */
-<<<<<<< HEAD
-asmlinkage notrace __kprobes struct pt_regs *sync_regs(struct pt_regs *eregs)
-=======
 asmlinkage __visible notrace struct pt_regs *sync_regs(struct pt_regs *eregs)
->>>>>>> android-3.18
 {
 	struct pt_regs *regs = eregs;
 	/* Did already sync */
@@ -429,21 +406,14 @@ asmlinkage __visible notrace struct pt_regs *sync_regs(struct pt_regs *eregs)
 		*regs = *eregs;
 	return regs;
 }
-<<<<<<< HEAD
-=======
 NOKPROBE_SYMBOL(sync_regs);
->>>>>>> android-3.18
 
 struct bad_iret_stack {
 	void *error_entry_ret;
 	struct pt_regs regs;
 };
 
-<<<<<<< HEAD
-asmlinkage notrace __kprobes
-=======
 asmlinkage __visible notrace
->>>>>>> android-3.18
 struct bad_iret_stack *fixup_bad_iret(struct bad_iret_stack *s)
 {
 	/*
@@ -466,10 +436,7 @@ struct bad_iret_stack *fixup_bad_iret(struct bad_iret_stack *s)
 	BUG_ON(!user_mode_vm(&new_stack->regs));
 	return new_stack;
 }
-<<<<<<< HEAD
-=======
 NOKPROBE_SYMBOL(fixup_bad_iret);
->>>>>>> android-3.18
 #endif
 
 /*
@@ -846,16 +813,6 @@ void __init trap_init(void)
 #else
 	set_intr_gate_ist(X86_TRAP_DF, &double_fault, DOUBLEFAULT_STACK);
 #endif
-<<<<<<< HEAD
-	set_intr_gate(X86_TRAP_OLD_MF, &coprocessor_segment_overrun);
-	set_intr_gate(X86_TRAP_TS, &invalid_TSS);
-	set_intr_gate(X86_TRAP_NP, &segment_not_present);
-	set_intr_gate(X86_TRAP_SS, stack_segment);
-	set_intr_gate(X86_TRAP_GP, &general_protection);
-	set_intr_gate(X86_TRAP_SPURIOUS, &spurious_interrupt_bug);
-	set_intr_gate(X86_TRAP_MF, &coprocessor_error);
-	set_intr_gate(X86_TRAP_AC, &alignment_check);
-=======
 	set_intr_gate(X86_TRAP_OLD_MF, coprocessor_segment_overrun);
 	set_intr_gate(X86_TRAP_TS, invalid_TSS);
 	set_intr_gate(X86_TRAP_NP, segment_not_present);
@@ -864,7 +821,6 @@ void __init trap_init(void)
 	set_intr_gate(X86_TRAP_SPURIOUS, spurious_interrupt_bug);
 	set_intr_gate(X86_TRAP_MF, coprocessor_error);
 	set_intr_gate(X86_TRAP_AC, alignment_check);
->>>>>>> android-3.18
 #ifdef CONFIG_X86_MCE
 	set_intr_gate_ist(X86_TRAP_MC, &machine_check, MCE_STACK);
 #endif

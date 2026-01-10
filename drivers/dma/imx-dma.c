@@ -624,11 +624,7 @@ static void imxdma_tasklet(unsigned long data)
 {
 	struct imxdma_channel *imxdmac = (void *)data;
 	struct imxdma_engine *imxdma = imxdmac->imxdma;
-<<<<<<< HEAD
-	struct imxdma_desc *desc;
-=======
 	struct imxdma_desc *desc, *next_desc;
->>>>>>> android-3.18
 	unsigned long flags;
 
 	spin_lock_irqsave(&imxdma->lock, flags);
@@ -640,13 +636,8 @@ static void imxdma_tasklet(unsigned long data)
 	}
 	desc = list_first_entry(&imxdmac->ld_active, struct imxdma_desc, node);
 
-<<<<<<< HEAD
-	/* If we are dealing with a cyclic descriptor keep it on ld_active
-	 * and dont mark the descripor as complete.
-=======
 	/* If we are dealing with a cyclic descriptor, keep it on ld_active
 	 * and dont mark the descriptor as complete.
->>>>>>> android-3.18
 	 * Only in non-cyclic cases it would be marked as complete
 	 */
 	if (imxdma_chan_is_doing_cyclic(imxdmac))

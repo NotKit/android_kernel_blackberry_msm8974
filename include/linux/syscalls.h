@@ -889,14 +889,6 @@ asmlinkage long sys_process_vm_writev(pid_t pid,
 				      unsigned long riovcnt,
 				      unsigned long flags);
 
-<<<<<<< HEAD
-asmlinkage long sys_seccomp(unsigned int op, unsigned int flags,
-			    const char __user *uargs);
-
-asmlinkage long sys_getrandom(char __user *buf, size_t count,
-			      unsigned int flags);
-
-=======
 asmlinkage long sys_kcmp(pid_t pid1, pid_t pid2, int type,
 			 unsigned long idx1, unsigned long idx2);
 asmlinkage long sys_finit_module(int fd, const char __user *uargs, int flags);
@@ -905,5 +897,4 @@ asmlinkage long sys_seccomp(unsigned int op, unsigned int flags,
 asmlinkage long sys_getrandom(char __user *buf, size_t count,
 			      unsigned int flags);
 asmlinkage long sys_bpf(int cmd, union bpf_attr *attr, unsigned int size);
->>>>>>> android-3.18
 #endif

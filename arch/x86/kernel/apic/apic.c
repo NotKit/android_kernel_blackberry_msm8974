@@ -1402,13 +1402,6 @@ void setup_local_APIC(void)
 			       acked);
 			break;
 		}
-<<<<<<< HEAD
-		if (cpu_has_tsc && cpu_khz) {
-			rdtscll(ntsc);
-			max_loops = (cpu_khz << 10) - (ntsc - tsc);
-		} else
-			max_loops--;
-=======
 		if (queued) {
 			if (cpu_has_tsc && cpu_khz) {
 				rdtscll(ntsc);
@@ -1416,7 +1409,6 @@ void setup_local_APIC(void)
 			} else
 				max_loops--;
 		}
->>>>>>> android-3.18
 	} while (queued && max_loops > 0);
 	WARN_ON(max_loops <= 0);
 

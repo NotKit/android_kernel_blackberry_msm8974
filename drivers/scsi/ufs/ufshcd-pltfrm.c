@@ -34,11 +34,6 @@
  */
 
 #include <linux/platform_device.h>
-<<<<<<< HEAD
-
-#include "ufshcd.h"
-
-=======
 #include <linux/pm_runtime.h>
 #include <linux/of.h>
 
@@ -242,77 +237,35 @@ out:
 	return err;
 }
 
->>>>>>> android-3.18
 #ifdef CONFIG_PM
 /**
  * ufshcd_pltfrm_suspend - suspend power management function
  * @dev: pointer to device handle
  *
-<<<<<<< HEAD
- *
- * Returns 0
- */
-static int ufshcd_pltfrm_suspend(struct device *dev)
-{
-	struct platform_device *pdev = to_platform_device(dev);
-	struct ufs_hba *hba =  platform_get_drvdata(pdev);
-
-	/*
-	 * TODO:
-	 * 1. Call ufshcd_suspend
-	 * 2. Do bus specific power management
-	 */
-
-	disable_irq(hba->irq);
-
-	return 0;
-=======
  * Returns 0 if successful
  * Returns non-zero otherwise
  */
 static int ufshcd_pltfrm_suspend(struct device *dev)
 {
 	return ufshcd_system_suspend(dev_get_drvdata(dev));
->>>>>>> android-3.18
 }
 
 /**
  * ufshcd_pltfrm_resume - resume power management function
  * @dev: pointer to device handle
  *
-<<<<<<< HEAD
- * Returns 0
- */
-static int ufshcd_pltfrm_resume(struct device *dev)
-{
-	struct platform_device *pdev = to_platform_device(dev);
-	struct ufs_hba *hba =  platform_get_drvdata(pdev);
-
-	/*
-	 * TODO:
-	 * 1. Call ufshcd_resume.
-	 * 2. Do bus specific wake up
-	 */
-
-	enable_irq(hba->irq);
-
-	return 0;
-=======
  * Returns 0 if successful
  * Returns non-zero otherwise
  */
 static int ufshcd_pltfrm_resume(struct device *dev)
 {
 	return ufshcd_system_resume(dev_get_drvdata(dev));
->>>>>>> android-3.18
 }
 #else
 #define ufshcd_pltfrm_suspend	NULL
 #define ufshcd_pltfrm_resume	NULL
 #endif
 
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_PM_RUNTIME
 static int ufshcd_pltfrm_runtime_suspend(struct device *dev)
 {
@@ -337,7 +290,6 @@ static void ufshcd_pltfrm_shutdown(struct platform_device *pdev)
 	ufshcd_shutdown((struct ufs_hba *)platform_get_drvdata(pdev));
 }
 
->>>>>>> android-3.18
 /**
  * ufshcd_pltfrm_probe - probe routine of the driver
  * @pdev: pointer to Platform device handle
@@ -353,22 +305,9 @@ static int ufshcd_pltfrm_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 
 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-<<<<<<< HEAD
-	if (!mem_res) {
-		dev_err(dev, "Memory resource not available\n");
-		err = -ENODEV;
-		goto out;
-	}
-
-	mmio_base = devm_ioremap_resource(dev, mem_res);
-	if (IS_ERR(mmio_base)) {
-		dev_err(dev, "memory map failed\n");
-		err = PTR_ERR(mmio_base);
-=======
 	mmio_base = devm_ioremap_resource(dev, mem_res);
 	if (IS_ERR(*(void **)&mmio_base)) {
 		err = PTR_ERR(*(void **)&mmio_base);
->>>>>>> android-3.18
 		goto out;
 	}
 
@@ -379,16 +318,6 @@ static int ufshcd_pltfrm_probe(struct platform_device *pdev)
 		goto out;
 	}
 
-<<<<<<< HEAD
-	err = ufshcd_init(dev, &hba, mmio_base, irq);
-	if (err) {
-		dev_err(dev, "Intialization failed\n");
-		goto out;
-	}
-
-	platform_set_drvdata(pdev, hba);
-
-=======
 	err = ufshcd_alloc_host(dev, &hba);
 	if (err) {
 		dev_err(&pdev->dev, "Allocation failed\n");
@@ -426,7 +355,6 @@ static int ufshcd_pltfrm_probe(struct platform_device *pdev)
 out_disable_rpm:
 	pm_runtime_disable(&pdev->dev);
 	pm_runtime_set_suspended(&pdev->dev);
->>>>>>> android-3.18
 out:
 	return err;
 }
@@ -441,11 +369,7 @@ static int ufshcd_pltfrm_remove(struct platform_device *pdev)
 {
 	struct ufs_hba *hba =  platform_get_drvdata(pdev);
 
-<<<<<<< HEAD
-	disable_irq(hba->irq);
-=======
 	pm_runtime_get_sync(&(pdev)->dev);
->>>>>>> android-3.18
 	ufshcd_remove(hba);
 	return 0;
 }
@@ -458,21 +382,15 @@ static const struct of_device_id ufs_of_match[] = {
 static const struct dev_pm_ops ufshcd_dev_pm_ops = {
 	.suspend	= ufshcd_pltfrm_suspend,
 	.resume		= ufshcd_pltfrm_resume,
-<<<<<<< HEAD
-=======
 	.runtime_suspend = ufshcd_pltfrm_runtime_suspend,
 	.runtime_resume  = ufshcd_pltfrm_runtime_resume,
 	.runtime_idle    = ufshcd_pltfrm_runtime_idle,
->>>>>>> android-3.18
 };
 
 static struct platform_driver ufshcd_pltfrm_driver = {
 	.probe	= ufshcd_pltfrm_probe,
 	.remove	= ufshcd_pltfrm_remove,
-<<<<<<< HEAD
-=======
 	.shutdown = ufshcd_pltfrm_shutdown,
->>>>>>> android-3.18
 	.driver	= {
 		.name	= "ufshcd",
 		.owner	= THIS_MODULE,

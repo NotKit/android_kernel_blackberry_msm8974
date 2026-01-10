@@ -18,65 +18,15 @@
 #include <linux/notifier.h>
 #include <linux/spinlock.h>
 #include <linux/sysfs.h>
-<<<<<<< HEAD
-#include <linux/completion.h>
-#include <linux/workqueue.h>
-#include <linux/cpumask.h>
-#include <asm/div64.h>
 #include <asm/cputime.h>
-
-#define CPUFREQ_NAME_LEN 16
-=======
-#include <asm/cputime.h>
->>>>>>> android-3.18
 
 
 /*********************************************************************
  *                        CPUFREQ INTERFACE                          *
  *********************************************************************/
-<<<<<<< HEAD
-
-#define CPUFREQ_TRANSITION_NOTIFIER	(0)
-#define CPUFREQ_POLICY_NOTIFIER		(1)
-
-#ifdef CONFIG_CPU_FREQ
-int cpufreq_register_notifier(struct notifier_block *nb, unsigned int list);
-int cpufreq_unregister_notifier(struct notifier_block *nb, unsigned int list);
-extern void disable_cpufreq(void);
-#else		/* CONFIG_CPU_FREQ */
-static inline int cpufreq_register_notifier(struct notifier_block *nb,
-						unsigned int list)
-{
-	return 0;
-}
-static inline int cpufreq_unregister_notifier(struct notifier_block *nb,
-						unsigned int list)
-{
-	return 0;
-}
-static inline void disable_cpufreq(void) { }
-#endif		/* CONFIG_CPU_FREQ */
-
-/* if (cpufreq_driver->target) exists, the ->governor decides what frequency
- * within the limits is used. If (cpufreq_driver->setpolicy> exists, these
- * two generic policies are available:
- */
-
-#define CPUFREQ_POLICY_POWERSAVE	(1)
-#define CPUFREQ_POLICY_PERFORMANCE	(2)
-
-/* Minimum frequency cutoff to notify the userspace about cpu utilization
- * changes */
-#define MIN_CPU_UTIL_NOTIFY   40
-
-/* Frequency values here are CPU kHz so that hardware which doesn't run
- * with some frequencies can complain without having to guess what per
- * cent / per mille means.
-=======
 /*
  * Frequency values here are CPU kHz
  *
->>>>>>> android-3.18
  * Maximum transition latency is in nanoseconds - if it's unknown,
  * CPUFREQ_ETERNAL shall be used.
  */
@@ -127,13 +77,9 @@ struct cpufreq_policy {
 	unsigned int		max;    /* in kHz */
 	unsigned int		cur;    /* in kHz, only needed if cpufreq
 					 * governors are used */
-<<<<<<< HEAD
-	unsigned int            util;  /* CPU utilization at max frequency */
-=======
 	unsigned int		restore_freq; /* = policy->cur before transition */
 	unsigned int		suspend_freq; /* freq to set during suspend */
 
->>>>>>> android-3.18
 	unsigned int		policy; /* see above */
 	struct cpufreq_governor	*governor; /* see below */
 	void			*governor_data;
@@ -149,14 +95,6 @@ struct cpufreq_policy {
 	struct kobject		kobj;
 	struct completion	kobj_unregister;
 
-<<<<<<< HEAD
-#define CPUFREQ_ADJUST		(0)
-#define CPUFREQ_INCOMPATIBLE	(1)
-#define CPUFREQ_NOTIFY		(2)
-#define CPUFREQ_START		(3)
-#define CPUFREQ_CREATE_POLICY (5)
-#define CPUFREQ_REMOVE_POLICY (6)
-=======
 	/*
 	 * The rules for this semaphore:
 	 * - Any routine that wants to read from the policy structure will
@@ -180,7 +118,6 @@ struct cpufreq_policy {
 	/* For cpufreq driver's internal use */
 	void			*driver_data;
 };
->>>>>>> android-3.18
 
 /* Only for ACPI */
 #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
@@ -265,10 +202,6 @@ __ATTR(_name, _perm, show_##_name, NULL)
 static struct freq_attr _name =			\
 __ATTR(_name, 0644, show_##_name, store_##_name)
 
-<<<<<<< HEAD
-int lock_policy_rwsem_write(int cpu);
-void unlock_policy_rwsem_write(int cpu);
-=======
 struct global_attr {
 	struct attribute attr;
 	ssize_t (*show)(struct kobject *kobj,
@@ -276,7 +209,6 @@ struct global_attr {
 	ssize_t (*store)(struct kobject *a, struct attribute *b,
 			 const char *c, size_t count);
 };
->>>>>>> android-3.18
 
 #define define_one_global_ro(_name)		\
 static struct global_attr _name =		\
@@ -371,12 +303,6 @@ struct cpufreq_driver {
  */
 #define CPUFREQ_ASYNC_NOTIFICATION  (1 << 4)
 
-<<<<<<< HEAD
-void cpufreq_notify_utilization(struct cpufreq_policy *policy,
-		unsigned int load);
-void cpufreq_notify_transition(struct cpufreq_policy *policy,
-		struct cpufreq_freqs *freqs, unsigned int state);
-=======
 /*
  * Set by drivers which want cpufreq core to check if CPU is running at a
  * frequency present in freq-table exposed by the driver. For these drivers if
@@ -399,7 +325,6 @@ int cpufreq_unregister_driver(struct cpufreq_driver *driver_data);
 
 const char *cpufreq_get_current_driver(void);
 void *cpufreq_get_driver_data(void);
->>>>>>> android-3.18
 
 static inline void cpufreq_verify_within_limits(struct cpufreq_policy *policy,
 		unsigned int min, unsigned int max)
@@ -457,19 +382,10 @@ static inline void cpufreq_resume(void) {}
 int cpufreq_register_notifier(struct notifier_block *nb, unsigned int list);
 int cpufreq_unregister_notifier(struct notifier_block *nb, unsigned int list);
 
-<<<<<<< HEAD
-/*********************************************************************
- *                        CPUFREQ 2.6. INTERFACE                     *
- *********************************************************************/
-u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy);
-int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu);
-int cpufreq_update_policy(unsigned int cpu);
-=======
 void cpufreq_freq_transition_begin(struct cpufreq_policy *policy,
 		struct cpufreq_freqs *freqs);
 void cpufreq_freq_transition_end(struct cpufreq_policy *policy,
 		struct cpufreq_freqs *freqs, int transition_failed);
->>>>>>> android-3.18
 
 #else /* CONFIG_CPU_FREQ */
 static inline int cpufreq_register_notifier(struct notifier_block *nb,
@@ -579,12 +495,9 @@ extern struct cpufreq_governor cpufreq_gov_conservative;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE)
 extern struct cpufreq_governor cpufreq_gov_interactive;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_interactive)
-<<<<<<< HEAD
-=======
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_SCHED)
 extern struct cpufreq_governor cpufreq_gov_sched;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_sched)
->>>>>>> android-3.18
 #endif
 
 /*********************************************************************
@@ -708,16 +621,7 @@ int cpufreq_generic_init(struct cpufreq_policy *policy,
 
 void acct_update_power(struct task_struct *p, cputime_t cputime);
 
-<<<<<<< HEAD
-/*********************************************************************
- *                         CPUFREQ STATS                             *
- *********************************************************************/
-
-void acct_update_power(struct task_struct *p, cputime_t cputime);
-
-=======
 struct sched_domain;
 unsigned long cpufreq_scale_freq_capacity(struct sched_domain *sd, int cpu);
 unsigned long cpufreq_scale_max_freq_capacity(int cpu);
->>>>>>> android-3.18
 #endif /* _LINUX_CPUFREQ_H */

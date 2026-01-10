@@ -28,12 +28,7 @@
  *      Chris Wilson <chris@chris-wilson.co.uk>
  */
 
-<<<<<<< HEAD
-#include <linux/moduleparam.h>
-#include "intel_drv.h"
-=======
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->>>>>>> android-3.18
 
 #include <linux/kernel.h>
 #include <linux/moduleparam.h>
@@ -486,32 +481,7 @@ static u32 intel_panel_compute_brightness(struct intel_connector *connector,
 	return val;
 }
 
-<<<<<<< HEAD
-static int i915_panel_invert_brightness;
-MODULE_PARM_DESC(invert_brightness, "Invert backlight brightness "
-	"(-1 force normal, 0 machine defaults, 1 force inversion), please "
-	"report PCI device ID, subsystem vendor and subsystem device ID "
-	"to dri-devel@lists.freedesktop.org, if your machine needs it. "
-	"It will then be included in an upcoming module version.");
-module_param_named(invert_brightness, i915_panel_invert_brightness, int, 0600);
-static u32 intel_panel_compute_brightness(struct drm_device *dev, u32 val)
-{
-	struct drm_i915_private *dev_priv = dev->dev_private;
-
-	if (i915_panel_invert_brightness < 0)
-		return val;
-
-	if (i915_panel_invert_brightness > 0 ||
-	    dev_priv->quirks & QUIRK_INVERT_BRIGHTNESS)
-		return intel_panel_get_max_backlight(dev) - val;
-
-	return val;
-}
-
-u32 intel_panel_get_backlight(struct drm_device *dev)
-=======
 static u32 bdw_get_backlight(struct intel_connector *connector)
->>>>>>> android-3.18
 {
 	struct drm_device *dev = connector->base.dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
@@ -545,9 +515,6 @@ static u32 i9xx_get_backlight(struct intel_connector *connector)
 		val *= lbpc;
 	}
 
-<<<<<<< HEAD
-	val = intel_panel_compute_brightness(dev, val);
-=======
 	return val;
 }
 
@@ -580,7 +547,6 @@ static u32 intel_panel_get_backlight(struct intel_connector *connector)
 
 	spin_unlock_irqrestore(&dev_priv->backlight_lock, flags);
 
->>>>>>> android-3.18
 	DRM_DEBUG_DRIVER("get backlight PWM = %d\n", val);
 	return val;
 }
@@ -599,10 +565,6 @@ static void pch_set_backlight(struct intel_connector *connector, u32 level)
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	u32 tmp;
 
-<<<<<<< HEAD
-	DRM_DEBUG_DRIVER("set backlight PWM = %d\n", level);
-	level = intel_panel_compute_brightness(dev, level);
-=======
 	tmp = I915_READ(BLC_PWM_CPU_CTL) & ~BACKLIGHT_DUTY_CYCLE_MASK;
 	I915_WRITE(BLC_PWM_CPU_CTL, tmp | level);
 }
@@ -613,7 +575,6 @@ static void i9xx_set_backlight(struct intel_connector *connector, u32 level)
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct intel_panel *panel = &connector->panel;
 	u32 tmp, mask;
->>>>>>> android-3.18
 
 	WARN_ON(panel->backlight.max == 0);
 
@@ -826,15 +787,6 @@ static void bdw_enable_backlight(struct intel_connector *connector)
 	POSTING_READ(BLC_PWM_PCH_CTL1);
 	I915_WRITE(BLC_PWM_PCH_CTL1, pch_ctl1 | BLM_PCH_PWM_ENABLE);
 
-<<<<<<< HEAD
-	if (WARN_ON(dev_priv->backlight))
-		return -ENODEV;
-
-	if (dev_priv->int_lvds_connector)
-		connector = dev_priv->int_lvds_connector;
-	else if (dev_priv->int_edp_connector)
-		connector = dev_priv->int_edp_connector;
-=======
 	/* This won't stick until the above enable. */
 	intel_panel_actually_set_backlight(connector, panel->backlight.level);
 }
@@ -865,7 +817,6 @@ static void pch_enable_backlight(struct intel_connector *connector)
 
 	if (cpu_transcoder == TRANSCODER_EDP)
 		cpu_ctl2 = BLM_TRANSCODER_EDP;
->>>>>>> android-3.18
 	else
 		cpu_ctl2 = BLM_PIPE(cpu_transcoder);
 	I915_WRITE(BLC_PWM_CPU_CTL2, cpu_ctl2);
@@ -1147,12 +1098,6 @@ static u32 get_backlight_min_vbt(struct intel_connector *connector)
 {
 	struct drm_device *dev = connector->base.dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
-<<<<<<< HEAD
-	if (dev_priv->backlight) {
-		backlight_device_unregister(dev_priv->backlight);
-		dev_priv->backlight = NULL;
-	}
-=======
 	struct intel_panel *panel = &connector->panel;
 	int min;
 
@@ -1226,7 +1171,6 @@ static int pch_setup_backlight(struct intel_connector *connector)
 		(pch_ctl1 & BLM_PCH_PWM_ENABLE) && panel->backlight.level != 0;
 
 	return 0;
->>>>>>> android-3.18
 }
 
 static int i9xx_setup_backlight(struct intel_connector *connector)

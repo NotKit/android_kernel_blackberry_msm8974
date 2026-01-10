@@ -3219,10 +3219,7 @@ static int arcmsr_polling_ccbdone(struct AdapterControlBlock *acb,
 static int arcmsr_iop_confirm(struct AdapterControlBlock *acb)
 {
 	uint32_t cdb_phyaddr, cdb_phyaddr_hi32;
-<<<<<<< HEAD
-=======
 	dma_addr_t dma_coherent_handle;
->>>>>>> android-3.18
 
 	/*
 	********************************************************************
@@ -3230,10 +3227,6 @@ static int arcmsr_iop_confirm(struct AdapterControlBlock *acb)
 	** if freeccb.HighPart is not zero
 	********************************************************************
 	*/
-<<<<<<< HEAD
-	cdb_phyaddr = lower_32_bits(acb->dma_coherent_handle);
-	cdb_phyaddr_hi32 = upper_32_bits(acb->dma_coherent_handle);
-=======
 	switch (acb->adapter_type) {
 	case ACB_ADAPTER_TYPE_B:
 	case ACB_ADAPTER_TYPE_D:
@@ -3245,7 +3238,6 @@ static int arcmsr_iop_confirm(struct AdapterControlBlock *acb)
 	}
 	cdb_phyaddr = lower_32_bits(dma_coherent_handle);
 	cdb_phyaddr_hi32 = upper_32_bits(dma_coherent_handle);
->>>>>>> android-3.18
 	acb->cdb_phyaddr_hi32 = cdb_phyaddr_hi32;
 	/*
 	***********************************************************************

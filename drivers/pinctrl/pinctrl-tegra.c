@@ -94,9 +94,6 @@ static void tegra_pinctrl_pin_dbg_show(struct pinctrl_dev *pctldev,
 }
 #endif
 
-<<<<<<< HEAD
-static struct pinctrl_ops tegra_pinctrl_ops = {
-=======
 static const struct cfg_param {
 	const char *property;
 	enum tegra_pinconf_param param;
@@ -229,7 +226,6 @@ static int tegra_pinctrl_dt_node_to_map(struct pinctrl_dev *pctldev,
 }
 
 static const struct pinctrl_ops tegra_pinctrl_ops = {
->>>>>>> android-3.18
 	.get_groups_count = tegra_pinctrl_get_groups_count,
 	.get_group_name = tegra_pinctrl_get_group_name,
 	.get_group_pins = tegra_pinctrl_get_group_pins,
@@ -297,29 +293,7 @@ static int tegra_pinctrl_set_mux(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
-<<<<<<< HEAD
-static void tegra_pinctrl_disable(struct pinctrl_dev *pctldev,
-				  unsigned function, unsigned group)
-{
-	struct tegra_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
-	const struct tegra_pingroup *g;
-	u32 val;
-
-	g = &pmx->soc->groups[group];
-
-	if (g->mux_reg < 0)
-		return;
-
-	val = pmx_readl(pmx, g->mux_bank, g->mux_reg);
-	val &= ~(0x3 << g->mux_bit);
-	val |= g->func_safe << g->mux_bit;
-	pmx_writel(pmx, val, g->mux_bank, g->mux_reg);
-}
-
-static struct pinmux_ops tegra_pinmux_ops = {
-=======
 static const struct pinmux_ops tegra_pinmux_ops = {
->>>>>>> android-3.18
 	.get_functions_count = tegra_pinctrl_get_funcs_count,
 	.get_function_name = tegra_pinctrl_get_func_name,
 	.get_function_groups = tegra_pinctrl_get_func_groups,

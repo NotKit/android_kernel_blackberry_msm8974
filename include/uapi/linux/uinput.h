@@ -20,11 +20,8 @@
  * Author: Aristeu Sergio Rozanski Filho <aris@cathedrallabs.org>
  *
  * Changes/Revisions:
-<<<<<<< HEAD
-=======
  *	0.4	01/09/2014 (Benjamin Tissoires <benjamin.tissoires@redhat.com>)
  *		- add UI_GET_SYSNAME ioctl
->>>>>>> android-3.18
  *	0.3	24/05/2006 (Anssi Hannula <anssi.hannulagmail.com>)
  *		- update ff support for the changes in kernel interface
  *		- add UINPUT_VERSION
@@ -40,11 +37,7 @@
 #include <linux/types.h>
 #include <linux/input.h>
 
-<<<<<<< HEAD
-#define UINPUT_VERSION		3
-=======
 #define UINPUT_VERSION		4
->>>>>>> android-3.18
 
 
 struct uinput_ff_upload {
@@ -82,8 +75,6 @@ struct uinput_ff_erase {
 #define UI_BEGIN_FF_ERASE	_IOWR(UINPUT_IOCTL_BASE, 202, struct uinput_ff_erase)
 #define UI_END_FF_ERASE		_IOW(UINPUT_IOCTL_BASE, 203, struct uinput_ff_erase)
 
-<<<<<<< HEAD
-=======
 /**
  * UI_GET_SYSNAME - get the sysfs name of the created uinput device
  *
@@ -102,7 +93,6 @@ struct uinput_ff_erase {
  */
 #define UI_GET_VERSION		_IOR(UINPUT_IOCTL_BASE, 301, unsigned int)
 
->>>>>>> android-3.18
 /*
  * To write a force-feedback-capable driver, the upload_effect
  * and erase_effect callbacks in input_dev must be implemented.

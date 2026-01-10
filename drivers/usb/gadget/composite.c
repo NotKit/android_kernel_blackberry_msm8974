@@ -46,50 +46,11 @@ struct usb_os_string {
  * with the relevant device-wide data.
  */
 
-<<<<<<< HEAD
-/* big enough to hold our biggest descriptor */
-#define USB_BUFSIZ	4096
-
-static struct usb_composite_driver *composite;
-static int (*composite_gadget_bind)(struct usb_composite_dev *cdev);
-
-/* Some systems will need runtime overrides for the  product identifiers
- * published in the device descriptor, either numbers or strings or both.
- * String parameters are in UTF-8 (superset of ASCII's 7 bit characters).
- */
-
-static ushort idVendor;
-module_param(idVendor, ushort, 0);
-MODULE_PARM_DESC(idVendor, "USB Vendor ID");
-
-static ushort idProduct;
-module_param(idProduct, ushort, 0);
-MODULE_PARM_DESC(idProduct, "USB Product ID");
-
-static ushort bcdDevice;
-module_param(bcdDevice, ushort, 0);
-MODULE_PARM_DESC(bcdDevice, "USB Device version (BCD)");
-
-static char *iManufacturer;
-module_param(iManufacturer, charp, 0);
-MODULE_PARM_DESC(iManufacturer, "USB Manufacturer string");
-
-static char *iProduct;
-module_param(iProduct, charp, 0);
-MODULE_PARM_DESC(iProduct, "USB Product string");
-
-static char *iSerialNumber;
-module_param(iSerialNumber, charp, 0);
-MODULE_PARM_DESC(iSerialNumber, "SerialNumber string");
-
-static char composite_manufacturer[50];
-=======
 static struct usb_gadget_strings **get_containers_gs(
 		struct usb_gadget_string_container *uc)
 {
 	return (struct usb_gadget_strings **)uc->stash;
 }
->>>>>>> android-3.18
 
 /**
  * next_ep_desc() - advance to the next EP descriptor
@@ -214,17 +175,12 @@ ep_found:
 			_ep->maxburst = comp_desc->bMaxBurst + 1;
 			break;
 		default:
-<<<<<<< HEAD
-			if (comp_desc->bMaxBurst != 0)
-				ERROR(cdev, "ep0 bMaxBurst must be 0\n");
-=======
 			if (comp_desc->bMaxBurst != 0) {
 				struct usb_composite_dev *cdev;
 
 				cdev = get_gadget_data(g);
 				ERROR(cdev, "ep0 bMaxBurst must be 0\n");
 			}
->>>>>>> android-3.18
 			_ep->maxburst = 1;
 			break;
 		}
@@ -453,12 +409,7 @@ static int config_buf(struct usb_configuration *config,
 	c->bConfigurationValue = config->bConfigurationValue;
 	c->iConfiguration = config->iConfiguration;
 	c->bmAttributes = USB_CONFIG_ATT_ONE | config->bmAttributes;
-<<<<<<< HEAD
-	c->bMaxPower = config->bMaxPower ? :
-		(CONFIG_USB_GADGET_VBUS_DRAW / config->cdev->vbus_draw_units);
-=======
 	c->bMaxPower = encode_bMaxPower(speed, config);
->>>>>>> android-3.18
 
 	/* There may be e.g. OTG descriptors */
 	if (config->descriptors) {
@@ -811,12 +762,7 @@ static int set_config(struct usb_composite_dev *cdev,
 	}
 
 	/* when we return, be sure our power usage is valid */
-<<<<<<< HEAD
-	power = c->bMaxPower ? (cdev->vbus_draw_units * c->bMaxPower) :
-			CONFIG_USB_GADGET_VBUS_DRAW;
-=======
 	power = c->MaxPower ? c->MaxPower : CONFIG_USB_GADGET_VBUS_DRAW;
->>>>>>> android-3.18
 done:
 	if (power <= USB_SELF_POWER_VBUS_MAX_DRAW)
 		usb_gadget_set_selfpowered(gadget);
@@ -886,24 +832,6 @@ int usb_add_config(struct usb_composite_dev *cdev,
 	if (status)
 		goto done;
 
-<<<<<<< HEAD
-	/* Prevent duplicate configuration identifiers */
-	list_for_each_entry(c, &cdev->configs, list) {
-		if (c->bConfigurationValue == config->bConfigurationValue) {
-			status = -EBUSY;
-			goto done;
-		}
-	}
-
-	config->cdev = cdev;
-	list_add_tail(&config->list, &cdev->configs);
-
-	INIT_LIST_HEAD(&config->functions);
-	config->next_interface_id = 0;
-	memset(config->interface, 0, sizeof(config->interface));
-
-=======
->>>>>>> android-3.18
 	status = bind(config);
 	if (status < 0) {
 		while (!list_empty(&config->functions)) {
@@ -1731,20 +1659,8 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 		 */
 		if (w_value && !f->get_alt)
 			break;
-<<<<<<< HEAD
-		/*
-		 * We put interfaces in default settings (alt 0)
-		 * upon set config#1. Call set_alt for non-zero
-		 * alternate setting.
-		 */
-		if (!w_value && cdev->config && !f->get_alt) {
-			value = 0;
-			break;
-		}
-=======
 
 		spin_lock(&cdev->lock);
->>>>>>> android-3.18
 		value = f->set_alt(f, w_index, w_value);
 		if (value == USB_GADGET_DELAYED_STATUS) {
 			DBG(cdev,
@@ -2021,17 +1937,8 @@ void composite_disconnect(struct usb_gadget *gadget)
 	cdev->suspended = 0;
 	if (cdev->config)
 		reset_config(cdev);
-<<<<<<< HEAD
-	if (composite->disconnect)
-		composite->disconnect(cdev);
-	if (cdev->delayed_status != 0) {
-		INFO(cdev, "delayed status mismatch..resetting\n");
-		cdev->delayed_status = 0;
-	}
-=======
 	if (cdev->driver->disconnect)
 		cdev->driver->disconnect(cdev);
->>>>>>> android-3.18
 	spin_unlock_irqrestore(&cdev->lock, flags);
 }
 
@@ -2064,12 +1971,7 @@ static void __composite_unbind(struct usb_gadget *gadget, bool unbind_driver)
 		struct usb_configuration	*c;
 		c = list_first_entry(&cdev->configs,
 				struct usb_configuration, list);
-<<<<<<< HEAD
-		list_del(&c->list);
-		unbind_config(cdev, c);
-=======
 		remove_config(cdev, c);
->>>>>>> android-3.18
 	}
 	if (cdev->driver->unbind && unbind_driver)
 		cdev->driver->unbind(cdev);
@@ -2136,14 +2038,9 @@ int composite_dev_prepare(struct usb_composite_driver *composite,
 	/* preallocate control response and buffer */
 	cdev->req = usb_ep_alloc_request(gadget->ep0, GFP_KERNEL);
 	if (!cdev->req)
-<<<<<<< HEAD
-		goto fail;
-	cdev->req->buf = kzalloc(USB_BUFSIZ, GFP_KERNEL);
-=======
 		return -ENOMEM;
 
 	cdev->req->buf = kmalloc(USB_COMP_EP0_BUFSIZ, GFP_KERNEL);
->>>>>>> android-3.18
 	if (!cdev->req->buf)
 		goto fail;
 
@@ -2326,12 +2223,7 @@ composite_resume(struct usb_gadget *gadget)
 			usb_gadget_clear_selfpowered(gadget);
 
 		usb_gadget_vbus_draw(gadget, maxpower ?
-<<<<<<< HEAD
-			(cdev->vbus_draw_units * maxpower) :
-			CONFIG_USB_GADGET_VBUS_DRAW);
-=======
 			maxpower : CONFIG_USB_GADGET_VBUS_DRAW);
->>>>>>> android-3.18
 	}
 
 	cdev->suspended = 0;
@@ -2339,12 +2231,8 @@ composite_resume(struct usb_gadget *gadget)
 
 /*-------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
-static struct usb_gadget_driver composite_driver = {
-=======
 static const struct usb_gadget_driver composite_driver_template = {
 	.bind		= composite_bind,
->>>>>>> android-3.18
 	.unbind		= composite_unbind,
 
 	.setup		= composite_setup,
@@ -2377,33 +2265,13 @@ static const struct usb_gadget_driver composite_driver_template = {
  */
 int usb_composite_probe(struct usb_composite_driver *driver)
 {
-<<<<<<< HEAD
-	int retval;
-
-	if (!driver || !driver->dev || !bind)
-=======
 	struct usb_gadget_driver *gadget_driver;
 
 	if (!driver || !driver->dev || !driver->bind)
->>>>>>> android-3.18
 		return -EINVAL;
 
 	if (!driver->name)
 		driver->name = "composite";
-<<<<<<< HEAD
-	if (!driver->iProduct)
-		driver->iProduct = driver->name;
-	composite_driver.function =  (char *) driver->name;
-	composite_driver.driver.name = driver->name;
-	composite_driver.max_speed = driver->max_speed;
-	composite = driver;
-	composite_gadget_bind = bind;
-
-	retval = usb_gadget_probe_driver(&composite_driver, composite_bind);
-	if (retval)
-		composite = NULL;
-	return retval;
-=======
 
 	driver->gadget_driver = composite_driver_template;
 	gadget_driver = &driver->gadget_driver;
@@ -2413,7 +2281,6 @@ int usb_composite_probe(struct usb_composite_driver *driver)
 	gadget_driver->max_speed = driver->max_speed;
 
 	return usb_gadget_probe_driver(gadget_driver);
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(usb_composite_probe);
 

@@ -9,15 +9,9 @@
 #include <linux/syscore_ops.h>
 #include <linux/mutex.h>
 #include <linux/module.h>
-<<<<<<< HEAD
-#include <linux/interrupt.h>
-#include <linux/wakeup_reason.h>
-#include <linux/irq.h>
-=======
 #include <linux/suspend.h>
 #include <trace/events/power.h>
 #include <linux/wakeup_reason.h>
->>>>>>> android-3.18
 
 static LIST_HEAD(syscore_ops_list);
 static DEFINE_MUTEX(syscore_ops_lock);

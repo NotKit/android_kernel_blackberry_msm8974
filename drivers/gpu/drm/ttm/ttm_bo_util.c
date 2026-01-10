@@ -360,12 +360,8 @@ int ttm_bo_move_memcpy(struct ttm_buffer_object *bo,
 		goto out2;
 	}
 
-<<<<<<< HEAD
-	/* TTM might be null for moves within the same region.
-=======
 	/*
 	 * TTM might be null for moves within the same region.
->>>>>>> android-3.18
 	 */
 	if (ttm && ttm->state == tt_unpopulated) {
 		ret = ttm->bdev->driver->ttm_tt_populate(ttm);

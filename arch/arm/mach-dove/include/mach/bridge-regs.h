@@ -51,12 +51,7 @@
 
 #define POWER_MANAGEMENT	(BRIDGE_VIRT_BASE + 0x011c)
 
-<<<<<<< HEAD
-#define TIMER_VIRT_BASE		(BRIDGE_VIRT_BASE | 0x0300)
-#define TIMER_PHYS_BASE         (BRIDGE_PHYS_BASE | 0x0300)
-=======
 #define TIMER_VIRT_BASE		(BRIDGE_VIRT_BASE + 0x0300)
 #define TIMER_PHYS_BASE         (BRIDGE_PHYS_BASE + 0x0300)
->>>>>>> android-3.18
 
 #endif

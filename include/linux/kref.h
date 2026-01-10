@@ -19,10 +19,7 @@
 #include <linux/atomic.h>
 #include <linux/kernel.h>
 #include <linux/mutex.h>
-<<<<<<< HEAD
-=======
 #include <linux/spinlock.h>
->>>>>>> android-3.18
 
 struct kref {
 	atomic_t refcount;
@@ -109,8 +106,6 @@ static inline int kref_put(struct kref *kref, void (*release)(struct kref *kref)
 	return kref_sub(kref, 1, release);
 }
 
-<<<<<<< HEAD
-=======
 /**
  * kref_put_spinlock_irqsave - decrement refcount for object.
  * @kref: object.
@@ -143,17 +138,12 @@ static inline int kref_put_spinlock_irqsave(struct kref *kref,
 	return 0;
 }
 
->>>>>>> android-3.18
 static inline int kref_put_mutex(struct kref *kref,
 				 void (*release)(struct kref *kref),
 				 struct mutex *lock)
 {
 	WARN_ON(release == NULL);
-<<<<<<< HEAD
-        if (unlikely(!atomic_add_unless(&kref->refcount, -1, 1))) {
-=======
 	if (unlikely(!atomic_add_unless(&kref->refcount, -1, 1))) {
->>>>>>> android-3.18
 		mutex_lock(lock);
 		if (unlikely(!atomic_dec_and_test(&kref->refcount))) {
 			mutex_unlock(lock);
@@ -165,10 +155,6 @@ static inline int kref_put_mutex(struct kref *kref,
 	return 0;
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 /**
  * kref_get_unless_zero - Increment refcount for object unless it is zero.
  * @kref: object.

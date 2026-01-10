@@ -72,8 +72,6 @@
 #define EFX_TXQ_TYPES		4
 #define EFX_MAX_TX_QUEUES	(EFX_TXQ_TYPES * EFX_MAX_CHANNELS)
 
-<<<<<<< HEAD
-=======
 /* Maximum possible MTU the driver supports */
 #define EFX_MAX_MTU (9 * 1024)
 
@@ -96,7 +94,6 @@
 struct efx_ptp_data;
 struct hwtstamp_config;
 
->>>>>>> android-3.18
 struct efx_self_tests;
 
 /**
@@ -269,20 +266,6 @@ struct efx_tx_queue {
  * @dma_addr: DMA base address of the buffer
  * @page: The associated page buffer.
  *	Will be %NULL if the buffer slot is currently free.
-<<<<<<< HEAD
- * @page: The associated page buffer. Valif iff @flags & %EFX_RX_BUF_PAGE.
- *	Will be %NULL if the buffer slot is currently free.
- * @page_offset: Offset within page. Valid iff @flags & %EFX_RX_BUF_PAGE.
- * @len: Buffer length, in bytes.
- * @flags: Flags for buffer and packet state.
- */
-struct efx_rx_buffer {
-	dma_addr_t dma_addr;
-	union {
-		struct sk_buff *skb;
-		struct page *page;
-	} u;
-=======
  * @page_offset: If pending: offset in @page of DMA base address.
  *	If completed: offset in @page of Ethernet header.
  * @len: If pending: length for DMA descriptor.
@@ -293,7 +276,6 @@ struct efx_rx_buffer {
 struct efx_rx_buffer {
 	dma_addr_t dma_addr;
 	struct page *page;
->>>>>>> android-3.18
 	u16 page_offset;
 	u16 len;
 	u16 flags;
@@ -1143,10 +1125,6 @@ struct efx_mtd_partition {
  * @handle_global_event: Handle a "global" event (may be %NULL)
  * @fini_dmaq: Flush and finalise DMA queues (RX and TX queues)
  * @prepare_flush: Prepare the hardware for flushing the DMA queues
-<<<<<<< HEAD
- * @finish_flush: Clean up after flushing the DMA queues
- * @update_stats: Update statistics not provided by event handling
-=======
  *	(for Falcon architecture)
  * @finish_flush: Clean up after flushing the DMA queues (for Falcon
  *	architecture)
@@ -1155,7 +1133,6 @@ struct efx_mtd_partition {
  * @describe_stats: Describe statistics for ethtool
  * @update_stats: Update statistics not provided by event handling.
  *	Either argument may be %NULL.
->>>>>>> android-3.18
  * @start_stats: Start the regular fetching of statistics
  * @pull_stats: Pull stats from the NIC and wait until they arrive.
  * @stop_stats: Stop the regular fetching of statistics
@@ -1169,11 +1146,7 @@ struct efx_mtd_partition {
  * @get_wol: Get WoL configuration from driver state
  * @set_wol: Push WoL configuration to the NIC
  * @resume_wol: Synchronise WoL state between driver and MC (e.g. after resume)
-<<<<<<< HEAD
- * @test_chip: Test registers.  Should use efx_nic_test_registers(), and is
-=======
  * @test_chip: Test registers.  May use efx_farch_test_registers(), and is
->>>>>>> android-3.18
  *	expected to reset the NIC.
  * @test_nvram: Test validity of NVRAM contents
  * @mcdi_request: Send an MCDI request with the given header and SDU.
@@ -1285,15 +1258,11 @@ struct efx_nic_type {
 	int (*fini_dmaq)(struct efx_nic *efx);
 	void (*prepare_flush)(struct efx_nic *efx);
 	void (*finish_flush)(struct efx_nic *efx);
-<<<<<<< HEAD
-	void (*update_stats)(struct efx_nic *efx);
-=======
 	void (*prepare_flr)(struct efx_nic *efx);
 	void (*finish_flr)(struct efx_nic *efx);
 	size_t (*describe_stats)(struct efx_nic *efx, u8 *names);
 	size_t (*update_stats)(struct efx_nic *efx, u64 *full_stats,
 			       struct rtnl_link_stats64 *core_stats);
->>>>>>> android-3.18
 	void (*start_stats)(struct efx_nic *efx);
 	void (*pull_stats)(struct efx_nic *efx);
 	void (*stop_stats)(struct efx_nic *efx);

@@ -277,10 +277,7 @@ extern int rs690_mc_wait_for_idle(struct radeon_device *rdev);
 struct rv515_mc_save {
 	u32 vga_render_control;
 	u32 vga_hdp_control;
-<<<<<<< HEAD
-=======
 	bool crtc_enabled[2];
->>>>>>> android-3.18
 };
 
 int rv515_init(struct radeon_device *rdev);

@@ -206,56 +206,6 @@ static void tcm_loop_submission_work(struct work_struct *work)
 
 	}
 
-<<<<<<< HEAD
-	if (transport_lookup_cmd_lun(se_cmd, tl_cmd->sc->device->lun) < 0) {
-		kmem_cache_free(tcm_loop_cmd_cache, tl_cmd);
-		set_host_byte(sc, DID_NO_CONNECT);
-		goto out_done;
-	}
-
-	/*
-	 * Because some userspace code via scsi-generic do not memset their
-	 * associated read buffers, go ahead and do that here for type
-	 * SCF_SCSI_CONTROL_SG_IO_CDB.  Also note that this is currently
-	 * guaranteed to be a single SGL for SCF_SCSI_CONTROL_SG_IO_CDB
-	 * by target core in target_setup_cmd_from_cdb() ->
-	 * transport_generic_cmd_sequencer().
-	 */
-	if (se_cmd->se_cmd_flags & SCF_SCSI_CONTROL_SG_IO_CDB &&
-	    se_cmd->data_direction == DMA_FROM_DEVICE) {
-		struct scatterlist *sg = scsi_sglist(sc);
-		unsigned char *buf = kmap(sg_page(sg)) + sg->offset;
-
-		if (buf != NULL) {
-			memset(buf, 0, sg->length);
-			kunmap(sg_page(sg));
-		}
-	}
-
-	ret = target_setup_cmd_from_cdb(se_cmd, sc->cmnd);
-	if (ret == -ENOMEM) {
-		transport_send_check_condition_and_sense(se_cmd,
-				TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE, 0);
-		transport_generic_free_cmd(se_cmd, 0);
-		return;
-	} else if (ret < 0) {
-		if (se_cmd->se_cmd_flags & SCF_SCSI_RESERVATION_CONFLICT)
-			tcm_loop_queue_status(se_cmd);
-		else
-			transport_send_check_condition_and_sense(se_cmd,
-					se_cmd->scsi_sense_reason, 0);
-		transport_generic_free_cmd(se_cmd, 0);
-		return;
-	}
-
-	ret = transport_generic_map_mem_to_cmd(se_cmd, scsi_sglist(sc),
-			scsi_sg_count(sc), sgl_bidi, sgl_bidi_count);
-	if (ret) {
-		transport_send_check_condition_and_sense(se_cmd,
-					se_cmd->scsi_sense_reason, 0);
-		transport_generic_free_cmd(se_cmd, 0);
-		return;
-=======
 	transfer_length = scsi_transfer_length(sc);
 	if (!scsi_prot_sg_count(sc) &&
 	    scsi_get_prot_op(sc) != SCSI_PROT_NORMAL) {
@@ -278,7 +228,6 @@ static void tcm_loop_submission_work(struct work_struct *work)
 	if (rc < 0) {
 		set_host_byte(sc, DID_NO_CONNECT);
 		goto out_done;
->>>>>>> android-3.18
 	}
 	return;
 

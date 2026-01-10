@@ -247,10 +247,6 @@ static int vnt_init_registers(struct vnt_private *priv)
 	} else  {
 		priv->rx_antenna_sel = 0;
 
-<<<<<<< HEAD
-	return 0;
-}
-=======
 		if (antenna & EEP_ANTENNA_AUX) {
 			priv->tx_antenna_mode = ANT_A;
 
@@ -260,7 +256,6 @@ static int vnt_init_registers(struct vnt_private *priv)
 				priv->rx_antenna_mode = ANT_A;
 		} else {
 			priv->tx_antenna_mode = ANT_B;
->>>>>>> android-3.18
 
 		if (priv->tx_rx_ant_inv == true)
 			priv->rx_antenna_mode = ANT_A;
@@ -322,10 +317,6 @@ static int vnt_init_registers(struct vnt_private *priv)
 		}
 	}
 
-<<<<<<< HEAD
-	if (!(device->flags & DEVICE_FLAGS_OPENED))
-		device_open(device->dev);
-=======
 	/* get permanent network address */
 	memcpy(priv->permanent_net_addr, init_rsp->net_addr, 6);
 	memcpy(priv->current_net_addr, priv->permanent_net_addr, ETH_ALEN);
@@ -333,7 +324,6 @@ static int vnt_init_registers(struct vnt_private *priv)
 	/* if exist SW network address, use it */
 	dev_dbg(&priv->usb->dev, "Network address = %pM\n",
 		priv->current_net_addr);
->>>>>>> android-3.18
 
 	/*
 	* set BB and packet type at the same time
@@ -568,73 +558,7 @@ free_all:
 	usb_kill_urb(priv->interrupt_urb);
 	usb_free_urb(priv->interrupt_urb);
 
-<<<<<<< HEAD
-    if (pDevice->bLinkPass) {
-	bScheduleCommand((void *) pDevice, WLAN_CMD_DISASSOCIATE, NULL);
-        mdelay(30);
-    }
-
-device_release_WPADEV(pDevice);
-
-        memset(pMgmt->abyDesireSSID, 0, WLAN_IEHDR_LEN + WLAN_SSID_MAXLEN + 1);
-        pMgmt->bShareKeyAlgorithm = FALSE;
-        pDevice->bEncryptionEnable = FALSE;
-        pDevice->eEncryptionStatus = Ndis802_11EncryptionDisabled;
-	spin_lock_irq(&pDevice->lock);
-	for (uu = 0; uu < MAX_KEY_TABLE; uu++)
-                MACvDisableKeyEntry(pDevice,uu);
-	spin_unlock_irq(&pDevice->lock);
-
-    if ((pDevice->flags & DEVICE_FLAGS_UNPLUG) == FALSE) {
-        MACbShutdown(pDevice);
-    }
-    netif_stop_queue(pDevice->dev);
-    MP_SET_FLAG(pDevice, fMP_DISCONNECTED);
-    MP_CLEAR_FLAG(pDevice, fMP_POST_WRITES);
-    MP_CLEAR_FLAG(pDevice, fMP_POST_READS);
-    pDevice->fKillEventPollingThread = TRUE;
-    del_timer(&pDevice->sTimerCommand);
-    del_timer(&pMgmt->sTimerSecondCallback);
-
-    del_timer(&pDevice->sTimerTxData);
-
-    if (pDevice->bDiversityRegCtlON) {
-        del_timer(&pDevice->TimerSQ3Tmax1);
-        del_timer(&pDevice->TimerSQ3Tmax2);
-        del_timer(&pDevice->TimerSQ3Tmax3);
-    }
-    tasklet_kill(&pDevice->RxMngWorkItem);
-    tasklet_kill(&pDevice->ReadWorkItem);
-    tasklet_kill(&pDevice->EventWorkItem);
-
-   pDevice->bRoaming = FALSE;
-   pDevice->bIsRoaming = FALSE;
-   pDevice->bEnableRoaming = FALSE;
-    pDevice->bCmdRunning = FALSE;
-    pDevice->bLinkPass = FALSE;
-    memset(pMgmt->abyCurrBSSID, 0, 6);
-    pMgmt->eCurrState = WMAC_STATE_IDLE;
-
-	pDevice->flags &= ~DEVICE_FLAGS_OPENED;
-
-    device_free_tx_bufs(pDevice);
-    device_free_rx_bufs(pDevice);
-    device_free_int_bufs(pDevice);
-    device_free_frag_bufs(pDevice);
-
-	usb_kill_urb(pDevice->pControlURB);
-	usb_kill_urb(pDevice->pInterruptURB);
-    usb_free_urb(pDevice->pControlURB);
-    usb_free_urb(pDevice->pInterruptURB);
-
-    BSSvClearNodeDBTable(pDevice, 0);
-
-    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "device_close2 \n");
-
-    return 0;
-=======
 	return -ENOMEM;
->>>>>>> android-3.18
 }
 
 static void vnt_stop(struct ieee80211_hw *hw)

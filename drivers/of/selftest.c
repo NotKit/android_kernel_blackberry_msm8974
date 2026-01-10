@@ -418,8 +418,6 @@ static void __init of_selftest_property_string(void)
 	strings[1] = NULL;
 	rc = of_property_read_string_array(np, "phandle-list-names", strings, 1);
 	selftest(rc == 1 && strings[1] == NULL, "Overwrote end of string array; rc=%i, str='%s'\n", rc, strings[1]);
-<<<<<<< HEAD
-=======
 }
 
 #define propcmp(p1, p2) (((p1)->length == (p2)->length) && \
@@ -921,7 +919,6 @@ static void selftest_data_remove(void)
 			}
 		}
 	}
->>>>>>> android-3.18
 }
 
 static int __init of_selftest(void)
@@ -950,9 +947,6 @@ static int __init of_selftest(void)
 	of_selftest_dynamic();
 	of_selftest_parse_phandle_with_args();
 	of_selftest_property_string();
-<<<<<<< HEAD
-	pr_info("end of selftest - %s\n", selftest_passed ? "PASS" : "FAIL");
-=======
 	of_selftest_property_copy();
 	of_selftest_changeset();
 	of_selftest_parse_interrupts();
@@ -969,7 +963,6 @@ static int __init of_selftest(void)
 	pr_info("end of selftest - %i passed, %i failed\n",
 		selftest_results.passed, selftest_results.failed);
 
->>>>>>> android-3.18
 	return 0;
 }
 late_initcall(of_selftest);

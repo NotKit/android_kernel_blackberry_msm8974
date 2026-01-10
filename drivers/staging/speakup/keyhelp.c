@@ -120,12 +120,8 @@ static void say_key(int key)
 			synth_printf(" %s", spk_msg_get(MSG_STATES_START + i));
 	}
 	if ((key > 0) && (key <= num_key_names))
-<<<<<<< HEAD
-		synth_printf(" %s\n", spk_msg_get(MSG_KEYNAMES_START + (key - 1)));
-=======
 		synth_printf(" %s\n",
 				spk_msg_get(MSG_KEYNAMES_START + (key - 1)));
->>>>>>> android-3.18
 }
 
 static int help_init(void)
@@ -133,17 +129,11 @@ static int help_init(void)
 	char start = SPACE;
 	int i;
 	int num_funcs = MSG_FUNCNAMES_END - MSG_FUNCNAMES_START + 1;
-<<<<<<< HEAD
-state_tbl = spk_our_keys[0]+SHIFT_TBL_SIZE+2;
-	for (i = 0; i < num_funcs; i++) {
-		char *cur_funcname = spk_msg_get(MSG_FUNCNAMES_START + i);
-=======
 
 	state_tbl = spk_our_keys[0]+SHIFT_TBL_SIZE+2;
 	for (i = 0; i < num_funcs; i++) {
 		char *cur_funcname = spk_msg_get(MSG_FUNCNAMES_START + i);
 
->>>>>>> android-3.18
 		if (start == *cur_funcname)
 			continue;
 		start = *cur_funcname;
@@ -185,13 +175,9 @@ int spk_handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			cur_item--;
 		else
 			return -1;
-<<<<<<< HEAD
-	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !spk_special_handler) {
-=======
 	} else if (type == KT_SPKUP
 			&& ch == SPEAKUP_HELP
 			&& !spk_special_handler) {
->>>>>>> android-3.18
 		spk_special_handler = spk_handle_help;
 		synth_printf("%s\n", spk_msg_get(MSG_HELP_INFO));
 		build_key_data(); /* rebuild each time in case new mapping */

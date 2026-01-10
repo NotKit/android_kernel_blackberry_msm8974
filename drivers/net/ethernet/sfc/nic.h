@@ -780,19 +780,6 @@ static inline int efx_nic_irq_test_irq_cpu(struct efx_nic *efx)
 }
 
 /* Global Resources */
-<<<<<<< HEAD
-extern int efx_nic_flush_queues(struct efx_nic *efx);
-extern void siena_prepare_flush(struct efx_nic *efx);
-extern void siena_finish_flush(struct efx_nic *efx);
-extern void falcon_start_nic_stats(struct efx_nic *efx);
-extern void falcon_stop_nic_stats(struct efx_nic *efx);
-extern void falcon_setup_xaui(struct efx_nic *efx);
-extern int falcon_reset_xaui(struct efx_nic *efx);
-extern void
-efx_nic_dimension_resources(struct efx_nic *efx, unsigned sram_lim_qw);
-extern void efx_nic_init_common(struct efx_nic *efx);
-extern void efx_nic_push_rx_indir_table(struct efx_nic *efx);
-=======
 int efx_nic_flush_queues(struct efx_nic *efx);
 void siena_prepare_flush(struct efx_nic *efx);
 int efx_farch_fini_dmaq(struct efx_nic *efx);
@@ -805,7 +792,6 @@ void efx_farch_dimension_resources(struct efx_nic *efx, unsigned sram_lim_qw);
 void efx_farch_init_common(struct efx_nic *efx);
 void efx_ef10_handle_drain_event(struct efx_nic *efx);
 void efx_farch_rx_push_indir_table(struct efx_nic *efx);
->>>>>>> android-3.18
 
 int efx_nic_alloc_buffer(struct efx_nic *efx, struct efx_buffer *buffer,
 			 unsigned int len, gfp_t gfp_flags);

@@ -60,11 +60,7 @@ static int uid_stat_atomic_int_show(struct seq_file *m, void *v)
 
 static int uid_stat_read_atomic_int_open(struct inode *inode, struct file *file)
 {
-<<<<<<< HEAD
-	return single_open(file, uid_stat_atomic_int_show, PDE(inode)->data);
-=======
 	return single_open(file, uid_stat_atomic_int_show, PDE_DATA(inode));
->>>>>>> android-3.18
 }
 
 static const struct file_operations uid_stat_read_atomic_int_fops = {

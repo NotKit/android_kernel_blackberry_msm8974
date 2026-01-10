@@ -1324,16 +1324,12 @@ static void __init enable_timeouts(void)
 		 */
 		mmr_image |= (1L << SOFTACK_MSHIFT);
 		if (is_uv2_hub()) {
-<<<<<<< HEAD
-			mmr_image |= (1L << UV2_EXT_SHFT);
-=======
 			/* do not touch the legacy mode bit */
 			/* hw bug workaround; do not use extended status */
 			mmr_image &= ~(1L << UV2_EXT_SHFT);
 		} else if (is_uv3_hub()) {
 			mmr_image &= ~(1L << PREFETCH_HINT_SHFT);
 			mmr_image |= (1L << SB_STATUS_SHFT);
->>>>>>> android-3.18
 		}
 		write_mmr_misc_control(pnode, mmr_image);
 	}

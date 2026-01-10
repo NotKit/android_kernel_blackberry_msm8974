@@ -475,11 +475,7 @@ smp_prepare_boot_cpu(void)
 {
 }
 
-<<<<<<< HEAD
-int __cpuinit
-=======
 int
->>>>>>> android-3.18
 __cpu_up(unsigned int cpu, struct task_struct *tidle)
 {
 	smp_boot_one_cpu(cpu, tidle);

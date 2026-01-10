@@ -481,7 +481,6 @@ static struct sk_buff *dm9601_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	*/
 
 	len = skb->len + DM_TX_OVERHEAD;
-<<<<<<< HEAD
 
 	/* workaround for dm962x errata with tx fifo getting out of
 	 * sync if a USB bulk transfer retry happens right after a
@@ -491,17 +490,6 @@ static struct sk_buff *dm9601_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	while ((len & 1) || !(len % dev->maxpacket))
 		len++;
 
-=======
-
-	/* workaround for dm962x errata with tx fifo getting out of
-	 * sync if a USB bulk transfer retry happens right after a
-	 * packet with odd / maxpacket length by adding up to 3 bytes
-	 * padding.
-	 */
-	while ((len & 1) || !(len % dev->maxpacket))
-		len++;
-
->>>>>>> android-3.18
 	len -= DM_TX_OVERHEAD; /* hw header doesn't count as part of length */
 	pad = len - skb->len;
 

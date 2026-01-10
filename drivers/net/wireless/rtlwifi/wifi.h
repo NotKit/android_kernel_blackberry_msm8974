@@ -2271,15 +2271,11 @@ struct rtl_locks {
 	spinlock_t rf_lock;
 	spinlock_t lps_lock;
 	spinlock_t waitq_lock;
-<<<<<<< HEAD
-	spinlock_t usb_lock;
-=======
 	spinlock_t entry_list_lock;
 	spinlock_t usb_lock;
 
 	/*FW clock change */
 	spinlock_t fw_ps_lock;
->>>>>>> android-3.18
 
 	/*Dual mac*/
 	spinlock_t cck_and_rw_pagea_lock;

@@ -573,16 +573,10 @@ int xen_blkif_schedule(void *arg)
 {
 	struct xen_blkif *blkif = arg;
 	struct xen_vbd *vbd = &blkif->vbd;
-<<<<<<< HEAD
-	int ret;
-
-	xen_blkif_get(blkif);
-=======
 	unsigned long timeout;
 	int ret;
 	bool do_eoi;
 	unsigned int eoi_flags = XEN_EOI_FLAG_SPURIOUS;
->>>>>>> android-3.18
 
 	while (!kthread_should_stop()) {
 		if (try_to_freeze())
@@ -611,18 +605,12 @@ int xen_blkif_schedule(void *arg)
 		blkif->waiting_reqs = 0;
 		smp_mb(); /* clear flag *before* checking for work */
 
-<<<<<<< HEAD
-		ret = do_block_io_op(blkif);
-=======
 		ret = do_block_io_op(blkif, &eoi_flags);
->>>>>>> android-3.18
 		if (ret > 0)
 			blkif->waiting_reqs = 1;
 		if (ret == -EACCES)
 			wait_event_interruptible(blkif->shutdown_wq,
 						 kthread_should_stop());
-<<<<<<< HEAD
-=======
 
 		if (do_eoi && !blkif->waiting_reqs) {
 			xen_irq_lateeoi(blkif->irq, eoi_flags);
@@ -638,7 +626,6 @@ purge_gnt_list:
 
 		/* Shrink if we have more than xen_blkif_max_buffer_pages */
 		shrink_free_pagepool(blkif, xen_blkif_max_buffer_pages);
->>>>>>> android-3.18
 
 		if (log_stats && time_after(jiffies, blkif->st_print))
 			print_stats(blkif);
@@ -709,12 +696,6 @@ static void xen_blkbk_unmap(struct xen_blkif *blkif,
 		BUG_ON(ret);
 		put_free_pages(blkif, unmap_pages, invcount);
 	}
-<<<<<<< HEAD
-
-	ret = gnttab_unmap_refs(unmap, NULL, pages, invcount);
-	BUG_ON(ret);
-=======
->>>>>>> android-3.18
 }
 
 static int xen_blkbk_map(struct xen_blkif *blkif,
@@ -962,11 +943,7 @@ static int dispatch_other_io(struct xen_blkif *blkif,
 			     struct blkif_request *req,
 			     struct pending_req *pending_req)
 {
-<<<<<<< HEAD
-	free_req(pending_req);
-=======
 	free_req(blkif, pending_req);
->>>>>>> android-3.18
 	make_response(blkif, req->u.other.id, req->operation,
 		      BLKIF_RSP_EOPNOTSUPP);
 	return -EIO;
@@ -1121,19 +1098,12 @@ __do_block_io_op(struct xen_blkif *blkif, unsigned int *eoi_flags)
 		case BLKIF_OP_WRITE:
 		case BLKIF_OP_WRITE_BARRIER:
 		case BLKIF_OP_FLUSH_DISKCACHE:
-<<<<<<< HEAD
-=======
 		case BLKIF_OP_INDIRECT:
->>>>>>> android-3.18
 			if (dispatch_rw_block_io(blkif, &req, pending_req))
 				goto done;
 			break;
 		case BLKIF_OP_DISCARD:
-<<<<<<< HEAD
-			free_req(pending_req);
-=======
 			free_req(blkif, pending_req);
->>>>>>> android-3.18
 			if (dispatch_discard_io(blkif, &req))
 				goto done;
 			break;

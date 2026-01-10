@@ -681,13 +681,6 @@ static int efx_vfdi_fini_all_queues(struct efx_vf *vf)
 
 	BUILD_BUG_ON(VF_MAX_RX_QUEUES >
 		     MC_CMD_FLUSH_RX_QUEUES_IN_QID_OFST_MAXNUM);
-<<<<<<< HEAD
-
-	rxqs = kmalloc(count * sizeof(*rxqs), GFP_KERNEL);
-	if (rxqs == NULL)
-		return VFDI_RC_ENOMEM;
-=======
->>>>>>> android-3.18
 
 	rtnl_lock();
 	siena_prepare_flush(efx);

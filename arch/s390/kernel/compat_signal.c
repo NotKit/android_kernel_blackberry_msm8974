@@ -222,21 +222,6 @@ static int restore_sigregs32(struct pt_regs *regs,_sigregs32 __user *sregs)
 	int i;
 
 	/* Alwys make any pending restarted system call return -EINTR */
-<<<<<<< HEAD
-	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-
-	err = __copy_from_user(&regs32, &sregs->regs, sizeof(regs32));
-	if (err)
-		return err;
-	regs->psw.mask = (regs->psw.mask & ~PSW_MASK_USER) |
-		(__u64)(regs32.psw.mask & PSW32_MASK_USER) << 32 |
-		(__u64)(regs32.psw.addr & PSW32_ADDR_AMODE);
-	/* Check for invalid user address space control. */
-	if ((regs->psw.mask & PSW_MASK_ASC) >= (psw_kernel_bits & PSW_MASK_ASC))
-		regs->psw.mask = (psw_user_bits & PSW_MASK_ASC) |
-			(regs->psw.mask & ~PSW_MASK_ASC);
-	regs->psw.addr = (__u64)(regs32.psw.addr & PSW32_ADDR_INSN);
-=======
 	current->restart_block.fn = do_no_restart_syscall;
 
 	if (__copy_from_user(&user_sregs, &sregs->regs, sizeof(user_sregs)))
@@ -259,7 +244,6 @@ static int restore_sigregs32(struct pt_regs *regs,_sigregs32 __user *sregs)
 		regs->psw.mask = PSW_ASC_PRIMARY |
 			(regs->psw.mask & ~PSW_MASK_ASC);
 	regs->psw.addr = (__u64)(user_sregs.regs.psw.addr & PSW32_ADDR_INSN);
->>>>>>> android-3.18
 	for (i = 0; i < NUM_GPRS; i++)
 		regs->gprs[i] = (__u64) user_sregs.regs.gprs[i];
 	memcpy(&current->thread.acrs, &user_sregs.regs.acrs,
@@ -478,15 +462,9 @@ static int setup_frame32(struct ksignal *ksig, sigset_t *set,
 	regs->gprs[15] = (__force __u64) frame;
 	/* Force 31 bit amode and default user address space control. */
 	regs->psw.mask = PSW_MASK_BA |
-<<<<<<< HEAD
-		(psw_user_bits & PSW_MASK_ASC) |
-		(regs->psw.mask & ~PSW_MASK_ASC);
-	regs->psw.addr = (__force __u64) ka->sa.sa_handler;
-=======
 		(PSW_USER_BITS & PSW_MASK_ASC) |
 		(regs->psw.mask & ~PSW_MASK_ASC);
 	regs->psw.addr = (__force __u64) ksig->ka.sa.sa_handler;
->>>>>>> android-3.18
 
 	regs->gprs[2] = map_signal(sig);
 	regs->gprs[3] = (__force __u64) &frame->sc;
@@ -569,15 +547,9 @@ static int setup_rt_frame32(struct ksignal *ksig, sigset_t *set,
 	regs->gprs[15] = (__force __u64) frame;
 	/* Force 31 bit amode and default user address space control. */
 	regs->psw.mask = PSW_MASK_BA |
-<<<<<<< HEAD
-		(psw_user_bits & PSW_MASK_ASC) |
-		(regs->psw.mask & ~PSW_MASK_ASC);
-	regs->psw.addr = (__u64) ka->sa.sa_handler;
-=======
 		(PSW_USER_BITS & PSW_MASK_ASC) |
 		(regs->psw.mask & ~PSW_MASK_ASC);
 	regs->psw.addr = (__u64 __force) ksig->ka.sa.sa_handler;
->>>>>>> android-3.18
 
 	regs->gprs[2] = map_signal(ksig->sig);
 	regs->gprs[3] = (__force __u64) &frame->info;

@@ -40,32 +40,6 @@ static const struct usb_device_id wdm_ids[] = {
 		.bInterfaceClass = USB_CLASS_COMM,
 		.bInterfaceSubClass = USB_CDC_SUBCLASS_DMM
 	},
-<<<<<<< HEAD
-	{
-		/* 
-		 * Huawei E392, E398 and possibly other Qualcomm based modems
-		 * embed the Qualcomm QMI protocol inside CDC on CDC ECM like
-		 * control interfaces.  Userspace access to this is required
-		 * to configure the accompanying data interface
-		 */
-		.match_flags        = USB_DEVICE_ID_MATCH_VENDOR |
-					USB_DEVICE_ID_MATCH_INT_INFO,
-		.idVendor           = HUAWEI_VENDOR_ID,
-		.bInterfaceClass    = USB_CLASS_VENDOR_SPEC,
-		.bInterfaceSubClass = 1,
-		.bInterfaceProtocol = 9, /* NOTE: CDC ECM control interface! */
-	},
-	{
-		 /* Vodafone/Huawei K5005 (12d1:14c8) and similar modems */
-		.match_flags        = USB_DEVICE_ID_MATCH_VENDOR |
-				      USB_DEVICE_ID_MATCH_INT_INFO,
-		.idVendor           = HUAWEI_VENDOR_ID,
-		.bInterfaceClass    = USB_CLASS_VENDOR_SPEC,
-		.bInterfaceSubClass = 1,
-		.bInterfaceProtocol = 57, /* NOTE: CDC ECM control interface! */
-	},
-=======
->>>>>>> android-3.18
 	{ }
 };
 
@@ -298,15 +272,9 @@ static void wdm_int_callback(struct urb *urb)
 	}
 
 	spin_lock(&desc->iuspin);
-<<<<<<< HEAD
-	clear_bit(WDM_READ, &desc->flags);
-	responding = test_and_set_bit(WDM_RESPONDING, &desc->flags);
-	if (!responding && !test_bit(WDM_DISCONNECTING, &desc->flags)
-=======
 	responding = test_and_set_bit(WDM_RESPONDING, &desc->flags);
 	if (!desc->resp_count++ && !responding
 		&& !test_bit(WDM_DISCONNECTING, &desc->flags)
->>>>>>> android-3.18
 		&& !test_bit(WDM_SUSPENDING, &desc->flags)) {
 		rv = usb_submit_urb(desc->response, GFP_ATOMIC);
 		dev_dbg(&desc->intf->dev, "%s: usb_submit_urb %d",
@@ -576,11 +544,7 @@ retry:
 
 		if (!desc->reslength) { /* zero length read */
 			dev_dbg(&desc->intf->dev, "%s: zero length - clearing WDM_READ\n", __func__);
-<<<<<<< HEAD
-			clear_bit(WDM_READ, &desc->flags);
-=======
 			rv = clear_wdm_read_flag(desc);
->>>>>>> android-3.18
 			spin_unlock_irq(&desc->iuspin);
 			if (rv < 0)
 				goto err;
@@ -629,16 +593,6 @@ static int wdm_wait_for_response(struct file *file, long timeout)
 			      test_bit(WDM_DISCONNECTING, &desc->flags),
 			      timeout);
 
-<<<<<<< HEAD
-	wait_event(desc->wait, !test_bit(WDM_IN_USE, &desc->flags));
-
-	/* cannot dereference desc->intf if WDM_DISCONNECTING */
-	if (desc->werr < 0 && !test_bit(WDM_DISCONNECTING, &desc->flags))
-		dev_err(&desc->intf->dev, "Error in flush path: %d\n",
-			desc->werr);
-
-	return usb_translate_errors(desc->werr);
-=======
 	/*
 	 * To report the correct error. This is best effort.
 	 * We are inevitably racing with the hardware.
@@ -677,7 +631,6 @@ static int wdm_fsync(struct file *file, loff_t start, loff_t end, int datasync)
 static int wdm_flush(struct file *file, fl_owner_t id)
 {
 	return wdm_wait_for_response(file, WDM_FLUSH_TIMEOUT);
->>>>>>> android-3.18
 }
 
 static unsigned int wdm_poll(struct file *file, struct poll_table_struct *wait)
@@ -768,12 +721,9 @@ static int wdm_release(struct inode *inode, struct file *file)
 		if (!test_bit(WDM_DISCONNECTING, &desc->flags)) {
 			dev_dbg(&desc->intf->dev, "wdm_release: cleanup");
 			kill_urbs(desc);
-<<<<<<< HEAD
-=======
 			spin_lock_irq(&desc->iuspin);
 			desc->resp_count = 0;
 			spin_unlock_irq(&desc->iuspin);
->>>>>>> android-3.18
 			desc->manage_power(desc->intf, 0);
 		} else {
 			/* must avoid dev_printk here as desc->intf is invalid */

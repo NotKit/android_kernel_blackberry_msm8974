@@ -3,17 +3,6 @@
 #
 
 obj-$(CONFIG_THERMAL)		+= thermal_sys.o
-<<<<<<< HEAD
-obj-$(CONFIG_THERMAL_MSM_POPMEM)	+= msm_popmem-tm.o
-obj-$(CONFIG_THERMAL_TSENS)	+= msm_tsens.o
-obj-$(CONFIG_THERMAL_TSENS8960) += msm8960_tsens.o
-obj-$(CONFIG_THERMAL_PM8XXX)	+= pm8xxx-tm.o
-obj-$(CONFIG_THERMAL_MONITOR)	+= msm_thermal.o msm_thermal-dev.o
-obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
-obj-$(CONFIG_THERMAL_TSENS8974)	+= msm8974-tsens.o
-obj-$(CONFIG_THERMAL_QPNP)	+= qpnp-temp-alarm.o
-obj-$(CONFIG_THERMAL_QPNP_ADC_TM)	+= qpnp-adc-tm.o
-=======
 thermal_sys-y			+= thermal_core.o
 
 # interface to/from other layers providing sensors
@@ -45,4 +34,3 @@ obj-$(CONFIG_INTEL_SOC_DTS_THERMAL)	+= intel_soc_dts_thermal.o
 obj-$(CONFIG_TI_SOC_THERMAL)	+= ti-soc-thermal/
 obj-$(CONFIG_INT340X_THERMAL)  += int340x_thermal/
 obj-$(CONFIG_ST_THERMAL)	+= st/
->>>>>>> android-3.18

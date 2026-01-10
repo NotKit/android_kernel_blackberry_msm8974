@@ -1,8 +1,5 @@
 #include <uapi/asm-generic/unistd.h>
-<<<<<<< HEAD
-=======
 #include <linux/export.h>
->>>>>>> android-3.18
 
 /*
  * These are required system calls, we should
@@ -13,25 +10,3 @@
 #define __ARCH_WANT_STAT64
 #define __ARCH_WANT_SYS_LLSEEK
 #endif
-<<<<<<< HEAD
-#define __ARCH_WANT_SYS_RT_SIGACTION
-#define __ARCH_WANT_SYS_RT_SIGSUSPEND
-#define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
-
-/*
- * "Conditional" syscalls
- *
- * What we want is __attribute__((weak,alias("sys_ni_syscall"))),
- * but it doesn't work on all toolchains, so we just do it by hand
- */
-#ifndef cond_syscall
-#define cond_syscall(x) asm(".weak\t" #x "\n\t.set\t" #x ",sys_ni_syscall")
-#endif
-<<<<<<< HEAD
-
-#endif /* __KERNEL__ */
-#endif /* _ASM_GENERIC_UNISTD_H */
-=======
->>>>>>> 8a1ab3155c2a (UAPI: (Scripted) Disintegrate include/asm-generic)
-=======
->>>>>>> android-3.18

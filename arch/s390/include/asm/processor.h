@@ -175,11 +175,7 @@ struct stack_frame {
 	regs->gprs[15]	= new_stackp;					\
 	__tlb_flush_mm(current->mm);					\
 	crst_table_downgrade(current->mm, 1UL << 31);			\
-<<<<<<< HEAD
-	update_mm(current->mm, current);				\
-=======
 	execve_tail();							\
->>>>>>> android-3.18
 } while (0)
 
 /* Forward declaration, a strange C thing */

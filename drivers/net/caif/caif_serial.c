@@ -342,10 +342,6 @@ static int ldisc_open(struct tty_struct *tty)
 	if (!capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_TTY_CONFIG))
 		return -EPERM;
 
-<<<<<<< HEAD
-	sprintf(name, "cf%s", tty->name);
-	dev = alloc_netdev(sizeof(*ser), name, caifdev_setup);
-=======
 	/* release devices to avoid name collision */
 	ser_release(NULL);
 
@@ -354,7 +350,6 @@ static int ldisc_open(struct tty_struct *tty)
 		return -EINVAL;
 	dev = alloc_netdev(sizeof(*ser), name, NET_NAME_UNKNOWN,
 			   caifdev_setup);
->>>>>>> android-3.18
 	if (!dev)
 		return -ENOMEM;
 

@@ -51,16 +51,6 @@ extern unsigned long oom_badness(struct task_struct *p,
 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
 		unsigned long totalpages);
 
-<<<<<<< HEAD
-extern unsigned int oom_badness(struct task_struct *p, struct mem_cgroup *memcg,
-			const nodemask_t *nodemask, unsigned long totalpages);
-
-extern int oom_kills_count(void);
-extern void note_oom_kill(void);
-
-extern int try_set_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
-extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
-=======
 extern int oom_kills_count(void);
 extern void note_oom_kill(void);
 extern void oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
@@ -77,7 +67,6 @@ extern void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
 extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
 		unsigned long totalpages, const nodemask_t *nodemask,
 		bool force_kill);
->>>>>>> android-3.18
 
 extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
 		int order, nodemask_t *mask, bool force_kill);

@@ -60,15 +60,12 @@ enum clock_event_mode {
  * Core shall set the interrupt affinity dynamically in broadcast mode
  */
 #define CLOCK_EVT_FEAT_DYNIRQ		0x000020
-<<<<<<< HEAD
-=======
 #define CLOCK_EVT_FEAT_PERCPU		0x000040
 
 /*
  * Clockevent device is based on a hrtimer for broadcast
  */
 #define CLOCK_EVT_FEAT_HRTIMER		0x000080
->>>>>>> android-3.18
 
 /**
  * struct clock_event_device - clock event device descriptor

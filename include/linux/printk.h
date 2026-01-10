@@ -127,27 +127,16 @@ void early_printk(const char *s, ...) { }
 #ifdef CONFIG_PRINTK
 asmlinkage __printf(5, 0)
 int vprintk_emit(int facility, int level,
-<<<<<<< HEAD
-		const char *dict, size_t dictlen,
-		const char *fmt, va_list args);
-=======
 		 const char *dict, size_t dictlen,
 		 const char *fmt, va_list args);
->>>>>>> android-3.18
 
 asmlinkage __printf(1, 0)
 int vprintk(const char *fmt, va_list args);
 
 asmlinkage __printf(5, 6) __cold
-<<<<<<< HEAD
-asmlinkage int printk_emit(int facility, int level,
-				const char *dict, size_t dictlen,
-				const char *fmt, ...);
-=======
 int printk_emit(int facility, int level,
 		const char *dict, size_t dictlen,
 		const char *fmt, ...);
->>>>>>> android-3.18
 
 asmlinkage __printf(1, 2) __cold
 int printk(const char *fmt, ...);
@@ -268,11 +257,7 @@ extern asmlinkage void dump_stack(void) __cold;
 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
 #endif
 
-<<<<<<< HEAD
-extern const struct file_operations kmsg_fops;
-=======
 #include <linux/dynamic_debug.h>
->>>>>>> android-3.18
 
 /* If you are writing a driver, please use dev_dbg instead */
 #if defined(CONFIG_DYNAMIC_DEBUG)

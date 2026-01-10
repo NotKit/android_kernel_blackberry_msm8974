@@ -16,11 +16,8 @@
 #include <asm/processor.h>
 #include <asm/cache.h>
 
-<<<<<<< HEAD
-=======
 extern spinlock_t pa_dbit_lock;
 
->>>>>>> android-3.18
 /*
  * kern_addr_valid(ADDR) tests if ADDR is pointing to valid kernel
  * memory.  For the return value to be meaningful, ADDR must be >=
@@ -49,16 +46,11 @@ extern void purge_tlb_entries(struct mm_struct *, unsigned long);
 
 #define set_pte_at(mm, addr, ptep, pteval)                      \
 	do {                                                    \
-<<<<<<< HEAD
-		set_pte(ptep, pteval);                          \
-		purge_tlb_entries(mm, addr);                    \
-=======
 		unsigned long flags;				\
 		spin_lock_irqsave(&pa_dbit_lock, flags);	\
 		set_pte(ptep, pteval);                          \
 		purge_tlb_entries(mm, addr);                    \
 		spin_unlock_irqrestore(&pa_dbit_lock, flags);	\
->>>>>>> android-3.18
 	} while (0)
 
 #endif /* !__ASSEMBLY__ */
@@ -483,26 +475,11 @@ static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
 
 static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
 {
-<<<<<<< HEAD
-#ifdef CONFIG_SMP
-	unsigned long new, old;
-
-	do {
-		old = pte_val(*ptep);
-		new = pte_val(pte_wrprotect(__pte (old)));
-	} while (cmpxchg((unsigned long *) ptep, old, new) != old);
-	purge_tlb_entries(mm, addr);
-#else
-	pte_t old_pte = *ptep;
-	set_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
-#endif
-=======
 	unsigned long flags;
 	spin_lock_irqsave(&pa_dbit_lock, flags);
 	set_pte(ptep, pte_wrprotect(*ptep));
 	purge_tlb_entries(mm, addr);
 	spin_unlock_irqrestore(&pa_dbit_lock, flags);
->>>>>>> android-3.18
 }
 
 #define pte_same(A,B)	(pte_val(A) == pte_val(B))

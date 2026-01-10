@@ -47,29 +47,6 @@
 #define MASK_BLKPTR_LO    0xFF000000
 #define MCG_XBLK_ADDR     0xC0000400
 
-<<<<<<< HEAD
-struct threshold_block {
-	unsigned int		block;
-	unsigned int		bank;
-	unsigned int		cpu;
-	u32			address;
-	u16			interrupt_enable;
-	bool			interrupt_capable;
-	u16			threshold_limit;
-	struct kobject		kobj;
-	struct list_head	miscj;
-};
-
-struct threshold_bank {
-	struct kobject		*kobj;
-	struct threshold_block	*blocks;
-	cpumask_var_t		cpus;
-};
-static DEFINE_PER_CPU(struct threshold_bank * [NR_BANKS], threshold_banks);
-
-static unsigned char shared_bank[NR_BANKS] = {
-	0, 0, 0, 0, 1
-=======
 static const char * const th_names[] = {
 	"load_store",
 	"insn_fetch",
@@ -77,7 +54,6 @@ static const char * const th_names[] = {
 	"decode_unit",
 	"northbridge",
 	"execution_unit",
->>>>>>> android-3.18
 };
 
 static DEFINE_PER_CPU(struct threshold_bank **, threshold_banks);
@@ -97,8 +73,6 @@ struct thresh_restart {
 	u16			old_limit;
 };
 
-<<<<<<< HEAD
-=======
 static inline bool is_shared_bank(int bank)
 {
 	/* Bank 4 is for northbridge reporting and is thus shared */
@@ -125,7 +99,6 @@ static const char * const bank4_names(struct threshold_block *b)
 };
 
 
->>>>>>> android-3.18
 static bool lvt_interrupt_supported(unsigned int bank, u32 msr_high_bits)
 {
 	/*
@@ -266,11 +239,6 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
 
 			if (!block)
 				per_cpu(bank_map, cpu) |= (1 << bank);
-<<<<<<< HEAD
-			if (shared_bank[bank] && c->cpu_core_id)
-				break;
-=======
->>>>>>> android-3.18
 
 			memset(&b, 0, sizeof(b));
 			b.cpu			= cpu;
@@ -385,11 +353,7 @@ store_interrupt_enable(struct threshold_block *b, const char *buf, size_t size)
 	if (!b->interrupt_capable)
 		return -EINVAL;
 
-<<<<<<< HEAD
-	if (strict_strtoul(buf, 0, &new) < 0)
-=======
 	if (kstrtoul(buf, 0, &new) < 0)
->>>>>>> android-3.18
 		return -EINVAL;
 
 	b->interrupt_enable = !!new;

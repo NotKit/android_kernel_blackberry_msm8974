@@ -43,13 +43,8 @@ struct atmel_lcdfb_pdata {
 	unsigned int		default_dmacon;
 	void (*atmel_lcdfb_power_control)(struct atmel_lcdfb_pdata *pdata, int on);
 	struct fb_monspecs	*default_monspecs;
-<<<<<<< HEAD
-	u32			pseudo_palette[16];
-	bool			have_intensity_bit;
-=======
 
 	struct list_head	pwr_gpios;
->>>>>>> android-3.18
 };
 
 #define ATMEL_LCDC_DMABADDR1	0x00

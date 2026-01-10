@@ -22,8 +22,6 @@ struct sock_extended_err {
 
 #define SO_EE_OFFENDER(ee)	((struct sockaddr*)((ee)+1))
 
-<<<<<<< HEAD
-=======
 /**
  *	struct scm_timestamping - timestamps exposed through cmsg
  *
@@ -44,6 +42,5 @@ enum {
 	SCM_TSTAMP_SCHED,	/* data entered the packet scheduler */
 	SCM_TSTAMP_ACK,		/* data acknowledged by peer */
 };
->>>>>>> android-3.18
 
 #endif /* _UAPI_LINUX_ERRQUEUE_H */

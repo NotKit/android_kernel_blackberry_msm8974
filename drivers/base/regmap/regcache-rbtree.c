@@ -479,13 +479,8 @@ static int regcache_rbtree_sync(struct regmap *map, unsigned int min,
 		else
 			start = 0;
 
-<<<<<<< HEAD
-		if (max < rbnode->base_reg + rbnode->blklen)
-			end = max - rbnode->base_reg + 1;
-=======
 		if (max < top_reg)
 			end = (max - base_reg) / map->reg_stride + 1;
->>>>>>> android-3.18
 		else
 			end = rbnode->blklen;
 

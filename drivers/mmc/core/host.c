@@ -35,11 +35,7 @@
 static void mmc_host_classdev_release(struct device *dev)
 {
 	struct mmc_host *host = cls_dev_to_mmc_host(dev);
-<<<<<<< HEAD
-	kfree(host->wlock_name);
-=======
 	mutex_destroy(&host->slot.lock);
->>>>>>> android-3.18
 	kfree(host);
 }
 
@@ -963,28 +959,9 @@ int mmc_add_host(struct mmc_host *host)
 	mmc_add_host_debugfs(host);
 #endif
 	mmc_host_clk_sysfs_init(host);
-<<<<<<< HEAD
-
-	host->clk_scaling.up_threshold = 35;
-	host->clk_scaling.down_threshold = 5;
-	host->clk_scaling.polling_delay_ms = 100;
-	host->clk_scaling.scale_down_in_low_wr_load = false;
-
-	err = sysfs_create_group(&host->class_dev.kobj, &clk_scaling_attr_grp);
-	if (err)
-		pr_err("%s: failed to create clk scale sysfs group with err %d\n",
-				__func__, err);
-
-	err = sysfs_create_group(&host->class_dev.kobj, &dev_attr_grp);
-	if (err)
-		pr_err("%s: failed to create sysfs group with err %d\n",
-							 __func__, err);
-
-=======
 #ifdef CONFIG_BLOCK
 	mmc_latency_hist_sysfs_init(host);
 #endif
->>>>>>> android-3.18
 	mmc_start_host(host);
 	if (!(host->pm_flags & MMC_PM_IGNORE_PM_NOTIFY))
 		register_pm_notifier(&host->pm_notify);
@@ -1012,14 +989,9 @@ void mmc_remove_host(struct mmc_host *host)
 #ifdef CONFIG_DEBUG_FS
 	mmc_remove_host_debugfs(host);
 #endif
-<<<<<<< HEAD
-	sysfs_remove_group(&host->parent->kobj, &dev_attr_grp);
-	sysfs_remove_group(&host->class_dev.kobj, &clk_scaling_attr_grp);
-=======
 #ifdef CONFIG_BLOCK
 	mmc_latency_hist_sysfs_exit(host);
 #endif
->>>>>>> android-3.18
 
 	device_del(&host->class_dev);
 

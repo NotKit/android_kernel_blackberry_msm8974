@@ -827,18 +827,10 @@ void b43_rx(struct b43_wldev *dev, struct sk_buff *skb, const void *_rxhdr)
 		 * channel number in b43. */
 		if (chanstat & B43_RX_CHAN_5GHZ)
 			status.band = IEEE80211_BAND_5GHZ;
-<<<<<<< HEAD
-			status.freq = b43_channel_to_freq_5ghz(chanid);
-		} else {
-			status.band = IEEE80211_BAND_2GHZ;
-			status.freq = b43_channel_to_freq_2ghz(chanid);
-		}
-=======
 		else
 			status.band = IEEE80211_BAND_2GHZ;
 		status.freq =
 			ieee80211_channel_to_frequency(chanid, status.band);
->>>>>>> android-3.18
 		break;
 	default:
 		B43_WARN_ON(1);

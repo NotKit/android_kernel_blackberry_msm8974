@@ -19,10 +19,6 @@
 #include <linux/usb/xhci_pdriver.h>
 
 #include "core.h"
-<<<<<<< HEAD
-#include "xhci.h"
-=======
->>>>>>> android-3.18
 
 int dwc3_host_init(struct dwc3 *dwc)
 {
@@ -48,12 +44,6 @@ int dwc3_host_init(struct dwc3 *dwc)
 			__ffs(DWC3_GSNPSID_MASK) & DWC3_GSNPSREV_MASK);
 	pdata.revision = dwc->revision & DWC3_GSNPSREV_MASK;
 
-<<<<<<< HEAD
-	ret = platform_device_add_data(xhci, (const void *) &pdata,
-			sizeof(struct xhci_plat_data));
-	if (ret) {
-		dev_err(dwc->dev, "couldn't add pdata to xHCI device\n");
-=======
 	ret = platform_device_add_resources(xhci, dwc->xhci_resources,
 						DWC3_XHCI_RESOURCES_NUM);
 	if (ret) {
@@ -70,7 +60,6 @@ int dwc3_host_init(struct dwc3 *dwc)
 	ret = platform_device_add_data(xhci, &pdata, sizeof(pdata));
 	if (ret) {
 		dev_err(dwc->dev, "couldn't add platform data to xHCI device\n");
->>>>>>> android-3.18
 		goto err1;
 	}
 

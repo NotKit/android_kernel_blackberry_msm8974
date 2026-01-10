@@ -1303,17 +1303,10 @@ static SIMPLE_DEV_PM_OPS(cdns_uart_dev_pm_ops, cdns_uart_suspend,
  */
 static int cdns_uart_probe(struct platform_device *pdev)
 {
-<<<<<<< HEAD
-	int rc, irq;
-	struct uart_port *port;
-	struct resource *res;
-	int clk = 0;
-=======
 	int rc, id, irq;
 	struct uart_port *port;
 	struct resource *res;
 	struct cdns_uart *cdns_uart_data;
->>>>>>> android-3.18
 
 	cdns_uart_data = devm_kzalloc(&pdev->dev, sizeof(*cdns_uart_data),
 			GFP_KERNEL);
@@ -1360,10 +1353,6 @@ static int cdns_uart_probe(struct platform_device *pdev)
 	}
 
 	irq = platform_get_irq(pdev, 0);
-<<<<<<< HEAD
-	if (irq <= 0)
-		return -ENXIO;
-=======
 	if (irq <= 0) {
 		rc = -ENXIO;
 		goto err_out_clk_disable;
@@ -1380,7 +1369,6 @@ static int cdns_uart_probe(struct platform_device *pdev)
 	id = of_alias_get_id(pdev->dev.of_node, "serial");
 	if (id < 0)
 		id = 0;
->>>>>>> android-3.18
 
 	/* Initialize the port structure */
 	port = cdns_uart_get_port(id);

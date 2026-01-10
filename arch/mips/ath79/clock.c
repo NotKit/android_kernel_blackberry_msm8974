@@ -205,10 +205,6 @@ static void __init ar933x_clocks_init(void)
 		ahb_rate = freq / t;
 	}
 
-<<<<<<< HEAD
-	ath79_wdt_clk.rate = ath79_ahb_clk.rate;
-	ath79_uart_clk.rate = ath79_ref_clk.rate;
-=======
 	ath79_add_sys_clkdev("ref", ref_rate);
 	ath79_add_sys_clkdev("cpu", cpu_rate);
 	ath79_add_sys_clkdev("ddr", ddr_rate);
@@ -437,7 +433,6 @@ static void __init qca955x_clocks_init(void)
 
 	clk_add_alias("wdt", NULL, "ref", NULL);
 	clk_add_alias("uart", NULL, "ref", NULL);
->>>>>>> android-3.18
 }
 
 void __init ath79_clocks_init(void)

@@ -1,10 +1,7 @@
 #ifndef _UAPI__LINUX_NETLINK_H
 #define _UAPI__LINUX_NETLINK_H
 
-<<<<<<< HEAD
-=======
 #include <linux/kernel.h>
->>>>>>> android-3.18
 #include <linux/socket.h> /* for __kernel_sa_family_t */
 #include <linux/types.h>
 
@@ -82,11 +79,7 @@ struct nlmsghdr {
 #define NLMSG_ALIGNTO	4U
 #define NLMSG_ALIGN(len) ( ((len)+NLMSG_ALIGNTO-1) & ~(NLMSG_ALIGNTO-1) )
 #define NLMSG_HDRLEN	 ((int) NLMSG_ALIGN(sizeof(struct nlmsghdr)))
-<<<<<<< HEAD
-#define NLMSG_LENGTH(len) ((len)+NLMSG_ALIGN(NLMSG_HDRLEN))
-=======
 #define NLMSG_LENGTH(len) ((len) + NLMSG_HDRLEN)
->>>>>>> android-3.18
 #define NLMSG_SPACE(len) NLMSG_ALIGN(NLMSG_LENGTH(len))
 #define NLMSG_DATA(nlh)  ((void*)(((char*)nlh) + NLMSG_LENGTH(0)))
 #define NLMSG_NEXT(nlh,len)	 ((len) -= NLMSG_ALIGN((nlh)->nlmsg_len), \
@@ -113,20 +106,15 @@ struct nlmsgerr {
 #define NETLINK_PKTINFO		3
 #define NETLINK_BROADCAST_ERROR	4
 #define NETLINK_NO_ENOBUFS	5
-<<<<<<< HEAD
-=======
 #ifndef __KERNEL__
 #define NETLINK_RX_RING		6
 #define NETLINK_TX_RING		7
 #endif
->>>>>>> android-3.18
 
 struct nl_pktinfo {
 	__u32	group;
 };
 
-<<<<<<< HEAD
-=======
 struct nl_mmap_req {
 	unsigned int	nm_block_size;
 	unsigned int	nm_block_nr;
@@ -158,7 +146,6 @@ enum nl_mmap_status {
 #define NL_MMAP_HDRLEN			NL_MMAP_MSG_ALIGN(sizeof(struct nl_mmap_hdr))
 #endif
 
->>>>>>> android-3.18
 #define NET_MAJOR 36		/* Major 36 is reserved for networking 						*/
 
 enum {
@@ -198,10 +185,5 @@ struct nlattr {
 #define NLA_ALIGN(len)		(((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
 #define NLA_HDRLEN		((int) NLA_ALIGN(sizeof(struct nlattr)))
 
-<<<<<<< HEAD
-#define NL_NONROOT_RECV 0x1
-#define NL_NONROOT_SEND 0x2
-=======
->>>>>>> android-3.18
 
 #endif /* _UAPI__LINUX_NETLINK_H */

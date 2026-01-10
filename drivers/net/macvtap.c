@@ -553,88 +553,6 @@ static inline struct sk_buff *macvtap_alloc_skb(struct sock *sk, size_t prepad,
 	return skb;
 }
 
-<<<<<<< HEAD
-/* set skb frags from iovec, this can move to core network code for reuse */
-static int zerocopy_sg_from_iovec(struct sk_buff *skb, const struct iovec *from,
-				  int offset, size_t count)
-{
-	int len = iov_length(from, count) - offset;
-	int copy = skb_headlen(skb);
-	int size, offset1 = 0;
-	int i = 0;
-
-	/* Skip over from offset */
-	while (count && (offset >= from->iov_len)) {
-		offset -= from->iov_len;
-		++from;
-		--count;
-	}
-
-	/* copy up to skb headlen */
-	while (count && (copy > 0)) {
-		size = min_t(unsigned int, copy, from->iov_len - offset);
-		if (copy_from_user(skb->data + offset1, from->iov_base + offset,
-				   size))
-			return -EFAULT;
-		if (copy > size) {
-			++from;
-			--count;
-			offset = 0;
-		} else
-			offset += size;
-		copy -= size;
-		offset1 += size;
-	}
-
-	if (len == offset1)
-		return 0;
-
-	while (count--) {
-		struct page *page[MAX_SKB_FRAGS];
-		int num_pages;
-		unsigned long base;
-		unsigned long truesize;
-
-		len = from->iov_len - offset;
-		if (!len) {
-			offset = 0;
-			++from;
-			continue;
-		}
-		base = (unsigned long)from->iov_base + offset;
-		size = ((base & ~PAGE_MASK) + len + ~PAGE_MASK) >> PAGE_SHIFT;
-		if (i + size > MAX_SKB_FRAGS)
-			return -EMSGSIZE;
-		num_pages = get_user_pages_fast(base, size, 0, &page[i]);
-		if (num_pages != size) {
-			int j;
-
-			for (j = 0; j < num_pages; j++)
-				put_page(page[i + j]);
-		}
-		truesize = size * PAGE_SIZE;
-		skb->data_len += len;
-		skb->len += len;
-		skb->truesize += truesize;
-		atomic_add(truesize, &skb->sk->sk_wmem_alloc);
-		while (len) {
-			int off = base & ~PAGE_MASK;
-			int size = min_t(int, len, PAGE_SIZE - off);
-			__skb_fill_page_desc(skb, i, page[i], off, size);
-			skb_shinfo(skb)->nr_frags++;
-			/* increase sk_wmem_alloc */
-			base += size;
-			len -= size;
-			i++;
-		}
-		offset = 0;
-		++from;
-	}
-	return 0;
-}
-
-=======
->>>>>>> android-3.18
 /*
  * macvtap_skb_from_vnet_hdr and macvtap_skb_to_vnet_hdr should
  * be shared with the tun/tap driver.
@@ -719,33 +637,8 @@ static void macvtap_skb_to_vnet_hdr(const struct sk_buff *skb,
 	} /* else everything is zero */
 }
 
-<<<<<<< HEAD
-static unsigned long iov_pages(const struct iovec *iv, int offset,
-			       unsigned long nr_segs)
-{
-	unsigned long seg, base;
-	int pages = 0, len, size;
-
-	while (nr_segs && (offset >= iv->iov_len)) {
-		offset -= iv->iov_len;
-		++iv;
-		--nr_segs;
-	}
-
-	for (seg = 0; seg < nr_segs; seg++) {
-		base = (unsigned long)iv[seg].iov_base + offset;
-		len = iv[seg].iov_len - offset;
-		size = ((base & ~PAGE_MASK) + len + ~PAGE_MASK) >> PAGE_SHIFT;
-		pages += size;
-		offset = 0;
-	}
-
-	return pages;
-}
-=======
 /* Neighbour code has some assumptions on HH_DATA_MOD alignment */
 #define MACVTAP_RESERVE HH_DATA_OFF(ETH_HLEN)
->>>>>>> android-3.18
 
 /* Get packet from user space buffer */
 static ssize_t macvtap_get_user(struct macvtap_queue *q, struct msghdr *m,
@@ -795,11 +688,8 @@ static ssize_t macvtap_get_user(struct macvtap_queue *q, struct msghdr *m,
 
 	if (m && m->msg_control && sock_flag(&q->sk, SOCK_ZEROCOPY)) {
 		copylen = vnet_hdr.hdr_len ? vnet_hdr.hdr_len : GOODCOPY_LEN;
-<<<<<<< HEAD
-=======
 		if (copylen > good_linear)
 			copylen = good_linear;
->>>>>>> android-3.18
 		linear = copylen;
 		if (iov_pages(iv, vnet_hdr_len + copylen, count)
 		    <= MAX_SKB_FRAGS)
@@ -808,12 +698,6 @@ static ssize_t macvtap_get_user(struct macvtap_queue *q, struct msghdr *m,
 
 	if (!zerocopy) {
 		copylen = len;
-<<<<<<< HEAD
-		linear = vnet_hdr.hdr_len;
-	}
-
-	skb = macvtap_alloc_skb(&q->sk, NET_IP_ALIGN, copylen,
-=======
 		if (vnet_hdr.hdr_len > good_linear)
 			linear = good_linear;
 		else
@@ -821,7 +705,6 @@ static ssize_t macvtap_get_user(struct macvtap_queue *q, struct msghdr *m,
 	}
 
 	skb = macvtap_alloc_skb(&q->sk, MACVTAP_RESERVE, copylen,
->>>>>>> android-3.18
 				linear, noblock, &err);
 	if (!skb)
 		goto err;
@@ -833,11 +716,7 @@ static ssize_t macvtap_get_user(struct macvtap_queue *q, struct msghdr *m,
 						   len);
 		if (!err && m && m->msg_control) {
 			struct ubuf_info *uarg = m->msg_control;
-<<<<<<< HEAD
-			uarg->callback(uarg);
-=======
 			uarg->callback(uarg, false);
->>>>>>> android-3.18
 		}
 	}
 
@@ -862,19 +741,12 @@ static ssize_t macvtap_get_user(struct macvtap_queue *q, struct msghdr *m,
 	if (zerocopy) {
 		skb_shinfo(skb)->destructor_arg = m->msg_control;
 		skb_shinfo(skb)->tx_flags |= SKBTX_DEV_ZEROCOPY;
-<<<<<<< HEAD
-	}
-	if (vlan)
-		macvlan_start_xmit(skb, vlan->dev);
-	else
-=======
 		skb_shinfo(skb)->tx_flags |= SKBTX_SHARED_FRAG;
 	}
 	if (vlan) {
 		skb->dev = vlan->dev;
 		dev_queue_xmit(skb);
 	} else {
->>>>>>> android-3.18
 		kfree_skb(skb);
 	}
 	rcu_read_unlock();
@@ -1017,11 +889,7 @@ static ssize_t macvtap_aio_read(struct kiocb *iocb, const struct iovec *iv,
 		goto out;
 	}
 
-<<<<<<< HEAD
-	ret = macvtap_do_read(q, iocb, iv, len, file->f_flags & O_NONBLOCK);
-=======
 	ret = macvtap_do_read(q, iv, len, file->f_flags & O_NONBLOCK);
->>>>>>> android-3.18
 	ret = min_t(ssize_t, ret, len);
 	if (ret > 0)
 		iocb->ki_pos = ret;

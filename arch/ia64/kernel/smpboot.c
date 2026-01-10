@@ -728,11 +728,7 @@ static inline void set_cpu_sibling_map(int cpu)
 	}
 }
 
-<<<<<<< HEAD
-int __cpuinit
-=======
 int
->>>>>>> android-3.18
 __cpu_up(unsigned int cpu, struct task_struct *tidle)
 {
 	int ret;

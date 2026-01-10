@@ -180,11 +180,6 @@ void vmw_fifo_release(struct vmw_private *dev_priv, struct vmw_fifo_state *fifo)
 {
 	__le32 __iomem *fifo_mem = dev_priv->mmio_virt;
 
-<<<<<<< HEAD
-	mutex_lock(&dev_priv->hw_mutex);
-
-=======
->>>>>>> android-3.18
 	vmw_write(dev_priv, SVGA_REG_SYNC, SVGA_SYNC_GENERIC);
 	while (vmw_read(dev_priv, SVGA_REG_BUSY) != 0)
 		;

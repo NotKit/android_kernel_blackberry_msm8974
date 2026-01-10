@@ -84,12 +84,9 @@ void __init efi_call_phys_prolog(void)
 	unsigned long vaddress;
 	int pgd;
 	int n_pgds;
-<<<<<<< HEAD
-=======
 
 	if (!efi_enabled(EFI_OLD_MEMMAP))
 		return;
->>>>>>> android-3.18
 
 	early_code_mapping_set_exec(1);
 	local_irq_save(efi_flags);
@@ -112,13 +109,10 @@ void __init efi_call_phys_epilog(void)
 	 */
 	int pgd;
 	int n_pgds = DIV_ROUND_UP((max_pfn << PAGE_SHIFT) , PGDIR_SIZE);
-<<<<<<< HEAD
-=======
 
 	if (!efi_enabled(EFI_OLD_MEMMAP))
 		return;
 
->>>>>>> android-3.18
 	for (pgd = 0; pgd < n_pgds; pgd++)
 		set_pgd(pgd_offset_k(pgd * PGDIR_SIZE), save_pgd[pgd]);
 	kfree(save_pgd);

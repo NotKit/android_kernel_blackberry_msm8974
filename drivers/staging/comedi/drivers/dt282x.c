@@ -343,45 +343,11 @@ static int dt282x_prep_ai_dma(struct comedi_device *dev, int dma_index, int n)
 	if (!devpriv->ntrig)
 		return 0;
 
-<<<<<<< HEAD
-/*
- *    danger! macro abuse... a is the expression to wait on, and b is
- *      the statement(s) to execute if it doesn't happen.
- */
-#define wait_for(a, b)						\
-	do {							\
-		int _i;						\
-		for (_i = 0; _i < DT2821_TIMEOUT; _i++) {	\
-			if (a) {				\
-				_i = 0;				\
-				break;				\
-			}					\
-			udelay(5);				\
-		}						\
-		if (_i) {					\
-			b					\
-		}						\
-	} while (0)
-
-static int dt282x_attach(struct comedi_device *dev,
-			 struct comedi_devconfig *it);
-static int dt282x_detach(struct comedi_device *dev);
-static struct comedi_driver driver_dt282x = {
-	.driver_name = "dt282x",
-	.module = THIS_MODULE,
-	.attach = dt282x_attach,
-	.detach = dt282x_detach,
-	.board_name = &boardtypes[0].name,
-	.num_names = n_boardtypes,
-	.offset = sizeof(struct dt282x_board),
-};
-=======
 	if (n == 0)
 		n = devpriv->dma_maxsize;
 	if (n > devpriv->ntrig * 2)
 		n = devpriv->ntrig * 2;
 	devpriv->ntrig -= n / 2;
->>>>>>> android-3.18
 
 	devpriv->dma[dma_index].size = n;
 	dma_chan = devpriv->dma[dma_index].chan;

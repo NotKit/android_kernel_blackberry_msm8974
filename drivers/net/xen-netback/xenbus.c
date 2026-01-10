@@ -333,8 +333,6 @@ static int netback_probe(struct xenbus_device *dev,
 		goto fail;
 	}
 
-<<<<<<< HEAD
-=======
 	/*
 	 * Split event channels support, this is optional so it is not
 	 * put inside the above loop.
@@ -351,7 +349,6 @@ static int netback_probe(struct xenbus_device *dev,
 	if (err)
 		pr_debug("Error writing multi-queue-max-queues\n");
 
->>>>>>> android-3.18
 	script = xenbus_read(XBT_NIL, dev->nodename, "script", NULL);
 	if (IS_ERR(script)) {
 		err = PTR_ERR(script);

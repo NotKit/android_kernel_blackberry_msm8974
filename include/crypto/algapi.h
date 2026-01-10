@@ -394,24 +394,6 @@ static inline int crypto_requires_sync(u32 type, u32 mask)
 }
 
 noinline unsigned long __crypto_memneq(const void *a, const void *b, size_t size);
-<<<<<<< HEAD
-
-/**
- * crypto_memneq - Compare two areas of memory without leaking
- *		   timing information.
- *
- * @a: One area of memory
- * @b: Another area of memory
- * @size: The size of the area.
- *
- * Returns 0 when data is equal, 1 otherwise.
- */
-static inline int crypto_memneq(const void *a, const void *b, size_t size)
-{
-	return __crypto_memneq(a, b, size) != 0UL ? 1 : 0;
-}
-
-=======
 
 /**
  * crypto_memneq - Compare two areas of memory without leaking
@@ -434,5 +416,4 @@ static inline void crypto_yield(u32 flags)
 		cond_resched();
 }
 
->>>>>>> android-3.18
 #endif	/* _CRYPTO_ALGAPI_H */

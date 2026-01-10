@@ -448,15 +448,8 @@ target_emulate_set_target_port_groups(struct se_cmd *cmd)
 
 out:
 	transport_kunmap_data_sg(cmd);
-<<<<<<< HEAD
-	if (!rc) {
-		task->task_scsi_status = GOOD;
-		transport_complete_task(task, 1);
-	}
-=======
 	if (!rc)
 		target_complete_cmd(cmd, GOOD);
->>>>>>> android-3.18
 	return rc;
 }
 
@@ -581,9 +574,6 @@ static inline int core_alua_state_standby(
 	case REPORT_LUNS:
 	case RECEIVE_DIAGNOSTIC:
 	case SEND_DIAGNOSTIC:
-<<<<<<< HEAD
-		return 0;
-=======
 	case READ_CAPACITY:
 		return 0;
 	case SERVICE_ACTION_IN:
@@ -594,7 +584,6 @@ static inline int core_alua_state_standby(
 			set_ascq(cmd, ASCQ_04H_ALUA_TG_PT_STANDBY);
 			return 1;
 		}
->>>>>>> android-3.18
 	case MAINTENANCE_IN:
 		switch (cdb[1] & 0x1f) {
 		case MI_REPORT_TARGET_PGS:

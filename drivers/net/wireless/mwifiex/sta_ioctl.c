@@ -60,19 +60,12 @@ int mwifiex_wait_queue_complete(struct mwifiex_adapter *adapter,
 	int status;
 
 	/* Wait for completion */
-<<<<<<< HEAD
-	status = wait_event_interruptible(adapter->cmd_wait_q.wait,
-					  *(cmd_queued->condition));
-	if (status) {
-		dev_err(adapter->dev, "cmd_wait_q terminated: %d\n", status);
-=======
 	status = wait_event_interruptible_timeout(adapter->cmd_wait_q.wait,
 						  *(cmd_queued->condition),
 						  (12 * HZ));
 	if (status <= 0) {
 		dev_err(adapter->dev, "cmd_wait_q terminated: %d\n", status);
 		mwifiex_cancel_all_pending_cmd(adapter);
->>>>>>> android-3.18
 		return status;
 	}
 
@@ -113,18 +106,6 @@ int mwifiex_request_set_multicast_list(struct mwifiex_private *priv,
 		} else {
 			priv->curr_pkt_filter &=
 				~HostCmd_ACT_MAC_ALL_MULTICAST_ENABLE;
-<<<<<<< HEAD
-			if (mcast_list->num_multicast_addr) {
-				dev_dbg(priv->adapter->dev,
-					"info: Set multicast list=%d\n",
-				       mcast_list->num_multicast_addr);
-				/* Send multicast addresses to firmware */
-				ret = mwifiex_send_cmd_async(priv,
-					HostCmd_CMD_MAC_MULTICAST_ADR,
-					HostCmd_ACT_GEN_SET, 0,
-					mcast_list);
-			}
-=======
 			dev_dbg(priv->adapter->dev,
 				"info: Set multicast list=%d\n",
 				mcast_list->num_multicast_addr);
@@ -133,7 +114,6 @@ int mwifiex_request_set_multicast_list(struct mwifiex_private *priv,
 					       HostCmd_CMD_MAC_MULTICAST_ADR,
 					       HostCmd_ACT_GEN_SET, 0,
 					       mcast_list, false);
->>>>>>> android-3.18
 		}
 	}
 	dev_dbg(priv->adapter->dev,
@@ -545,14 +525,9 @@ int mwifiex_enable_hs(struct mwifiex_adapter *adapter)
 		return false;
 	}
 
-<<<<<<< HEAD
-	if (wait_event_interruptible(adapter->hs_activate_wait_q,
-				     adapter->hs_activate_wait_q_woken)) {
-=======
 	if (wait_event_interruptible_timeout(adapter->hs_activate_wait_q,
 					     adapter->hs_activate_wait_q_woken,
 					     (10 * HZ)) <= 0) {
->>>>>>> android-3.18
 		dev_err(adapter->dev, "hs_activate_wait_q terminated\n");
 		return false;
 	}

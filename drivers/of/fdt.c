@@ -385,13 +385,7 @@ static void __unflatten_device_tree(void *blob,
 
 	memset(mem, 0, size);
 
-<<<<<<< HEAD
-	memset((void *)mem, 0, size);
-
-	((__be32 *)mem)[size / 4] = cpu_to_be32(0xdeadbeef);
-=======
 	*(__be32 *)(mem + size) = cpu_to_be32(0xdeadbeef);
->>>>>>> android-3.18
 
 	pr_debug("  unflattening %p...\n", mem);
 

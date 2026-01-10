@@ -63,10 +63,7 @@ struct linux_binprm;
  * Note that this algorithm is imperfect: the distribution of the vdso
  * start address within a PMD is biased toward the end.
  *
-<<<<<<< HEAD
-=======
  * Only used for the 64-bit and x32 vdsos.
->>>>>>> android-3.18
  */
 static unsigned long vdso_addr(unsigned long start, unsigned len)
 {

@@ -73,11 +73,6 @@ void of_device_make_bus_id(struct device *dev)
 	struct device_node *node = dev->of_node;
 	const __be32 *reg;
 	u64 addr;
-<<<<<<< HEAD
-	const __be32 *addrp;
-	int magic;
-=======
->>>>>>> android-3.18
 
 	/* Construct the name, using parent nodes if necessary to ensure uniqueness */
 	while (node->parent) {
@@ -93,32 +88,10 @@ void of_device_make_bus_id(struct device *dev)
 			return;
 		}
 
-<<<<<<< HEAD
-	/*
-	 * For MMIO, get the physical address
-	 */
-	reg = of_get_property(node, "reg", NULL);
-	if (reg) {
-		if (of_can_translate_address(node)) {
-			addr = of_translate_address(node, reg);
-		} else {
-			addrp = of_get_address(node, 0, NULL, NULL);
-			if (addrp)
-				addr = of_read_number(addrp, 1);
-			else
-				addr = OF_BAD_ADDR;
-		}
-		if (addr != OF_BAD_ADDR) {
-			dev_set_name(dev, "%llx.%s",
-				     (unsigned long long)addr, node->name);
-			return;
-		}
-=======
 		/* format arguments only used if dev_name() resolves to NULL */
 		dev_set_name(dev, dev_name(dev) ? "%s:%s" : "%s",
 			     strrchr(node->full_name, '/') + 1, dev_name(dev));
 		node = node->parent;
->>>>>>> android-3.18
 	}
 }
 
@@ -256,14 +229,7 @@ static struct platform_device *of_platform_device_create_pdata(
 	if (!dev)
 		goto err_clear_flag;
 
-<<<<<<< HEAD
-#if defined(CONFIG_MICROBLAZE)
-	dev->archdata.dma_mask = 0xffffffffUL;
-#endif
-	dev->dev.coherent_dma_mask = DMA_BIT_MASK(sizeof(dma_addr_t) * 8);
-=======
 	of_dma_configure(&dev->dev);
->>>>>>> android-3.18
 	dev->dev.bus = &platform_bus_type;
 	dev->dev.platform_data = platform_data;
 

@@ -108,15 +108,10 @@ static int ch341_control_in(struct usb_device *dev,
 			    char *buf, unsigned bufsize)
 {
 	int r;
-<<<<<<< HEAD
-	dbg("ch341_control_in(%02x,%02x,%04x,%04x,%pK,%u)", USB_DIR_IN|0x40,
-		(int)request, (int)value, (int)index, buf, (int)bufsize);
-=======
 
 	dev_dbg(&dev->dev, "ch341_control_in(%02x,%02x,%04x,%04x,%p,%u)\n",
 		USB_DIR_IN|0x40, (int)request, (int)value, (int)index, buf,
 		(int)bufsize);
->>>>>>> android-3.18
 
 	r = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0), request,
 			    USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
@@ -309,10 +304,6 @@ static void ch341_dtr_rts(struct usb_serial_port *port, int on)
 		priv->line_control &= ~(CH341_BIT_RTS | CH341_BIT_DTR);
 	spin_unlock_irqrestore(&priv->lock, flags);
 	ch341_set_handshake(port->serial->dev, priv->line_control);
-<<<<<<< HEAD
-	wake_up_interruptible(&port->delta_msr_wait);
-=======
->>>>>>> android-3.18
 }
 
 static void ch341_close(struct usb_serial_port *port)
@@ -531,102 +522,13 @@ static void ch341_read_int_callback(struct urb *urb)
 		goto exit;
 	}
 
-<<<<<<< HEAD
-	usb_serial_debug_data(debug, &port->dev, __func__,
-			      urb->actual_length, urb->transfer_buffer);
-
-	if (actual_length >= 4) {
-		struct ch341_private *priv = usb_get_serial_port_data(port);
-		unsigned long flags;
-		u8 prev_line_status = priv->line_status;
-
-		spin_lock_irqsave(&priv->lock, flags);
-		priv->line_status = (~(data[2])) & CH341_BITS_MODEM_STAT;
-		if ((data[1] & CH341_MULT_STAT))
-			priv->multi_status_change = 1;
-		spin_unlock_irqrestore(&priv->lock, flags);
-
-		if ((priv->line_status ^ prev_line_status) & CH341_BIT_DCD) {
-			struct tty_struct *tty = tty_port_tty_get(&port->port);
-			if (tty)
-				usb_serial_handle_dcd_change(port, tty,
-					    priv->line_status & CH341_BIT_DCD);
-			tty_kref_put(tty);
-		}
-
-		wake_up_interruptible(&port->delta_msr_wait);
-	}
-
-=======
 	usb_serial_debug_data(&port->dev, __func__, len, data);
 	ch341_update_line_status(port, data, len);
->>>>>>> android-3.18
 exit:
 	status = usb_submit_urb(urb, GFP_ATOMIC);
 	if (status) {
 		dev_err(&urb->dev->dev, "%s - usb_submit_urb failed: %d\n",
 			__func__, status);
-<<<<<<< HEAD
-}
-
-static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
-{
-	struct ch341_private *priv = usb_get_serial_port_data(port);
-	unsigned long flags;
-	u8 prevstatus;
-	u8 status;
-	u8 changed;
-	u8 multi_change = 0;
-
-	spin_lock_irqsave(&priv->lock, flags);
-	prevstatus = priv->line_status;
-	priv->multi_status_change = 0;
-	spin_unlock_irqrestore(&priv->lock, flags);
-
-	while (!multi_change) {
-		interruptible_sleep_on(&port->delta_msr_wait);
-		/* see if a signal did it */
-		if (signal_pending(current))
-			return -ERESTARTSYS;
-
-		if (port->serial->disconnected)
-			return -EIO;
-
-		spin_lock_irqsave(&priv->lock, flags);
-		status = priv->line_status;
-		multi_change = priv->multi_status_change;
-		spin_unlock_irqrestore(&priv->lock, flags);
-
-		changed = prevstatus ^ status;
-
-		if (((arg & TIOCM_RNG) && (changed & CH341_BIT_RI)) ||
-		    ((arg & TIOCM_DSR) && (changed & CH341_BIT_DSR)) ||
-		    ((arg & TIOCM_CD)  && (changed & CH341_BIT_DCD)) ||
-		    ((arg & TIOCM_CTS) && (changed & CH341_BIT_CTS))) {
-			return 0;
-		}
-		prevstatus = status;
-	}
-
-	return 0;
-}
-
-static int ch341_ioctl(struct tty_struct *tty,
-			unsigned int cmd, unsigned long arg)
-{
-	struct usb_serial_port *port = tty->driver_data;
-	dbg("%s (%d) cmd = 0x%04x", __func__, port->number, cmd);
-
-	switch (cmd) {
-	case TIOCMIWAIT:
-		dbg("%s (%d) TIOCMIWAIT", __func__,  port->number);
-		return wait_modem_info(port, arg);
-
-	default:
-		dbg("%s not supported = 0x%04x", __func__, cmd);
-		break;
-=======
->>>>>>> android-3.18
 	}
 }
 

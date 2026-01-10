@@ -934,19 +934,7 @@ static void sender(void                *send_info,
 	else
 		list_add_tail(&msg->link, &smi_info->xmit_msgs);
 
-<<<<<<< HEAD
-	if (smi_info->si_state == SI_NORMAL && smi_info->curr_msg == NULL) {
-		smi_mod_timer(smi_info, jiffies + SI_TIMEOUT_JIFFIES);
-
-		if (smi_info->thread)
-			wake_up_process(smi_info->thread);
-
-		start_next_msg(smi_info);
-		smi_event_handler(smi_info, 0);
-	}
-=======
 	check_start_timer_thread(smi_info);
->>>>>>> android-3.18
 	spin_unlock_irqrestore(&smi_info->si_lock, flags);
 }
 

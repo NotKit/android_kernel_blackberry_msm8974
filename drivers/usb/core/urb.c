@@ -768,11 +768,7 @@ void usb_block_urb(struct urb *urb)
 EXPORT_SYMBOL_GPL(usb_block_urb);
 
 /**
-<<<<<<< HEAD
- * usb_kill_anchored_urbs - cancel transfer requests en masse
-=======
  * usb_kill_anchored_urbs - kill all URBs associated with an anchor
->>>>>>> android-3.18
  * @anchor: anchor the requests are bound to
  *
  * This kills all outstanding URBs starting from the back of the queue,

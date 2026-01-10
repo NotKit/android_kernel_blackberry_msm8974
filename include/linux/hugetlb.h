@@ -214,12 +214,8 @@ static inline struct hugetlbfs_sb_info *HUGETLBFS_SB(struct super_block *sb)
 extern const struct file_operations hugetlbfs_file_operations;
 extern const struct vm_operations_struct hugetlb_vm_ops;
 struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
-<<<<<<< HEAD
-				struct user_struct **user, int creat_flags);
-=======
 				struct user_struct **user, int creat_flags,
 				int page_size_log);
->>>>>>> android-3.18
 
 static inline int is_file_hugepages(struct file *file)
 {
@@ -237,12 +233,8 @@ static inline int is_file_hugepages(struct file *file)
 #define is_file_hugepages(file)			0
 static inline struct file *
 hugetlb_file_setup(const char *name, size_t size, vm_flags_t acctflag,
-<<<<<<< HEAD
-		struct user_struct **user, int creat_flags)
-=======
 		struct user_struct **user, int creat_flags,
 		int page_size_log)
->>>>>>> android-3.18
 {
 	return ERR_PTR(-ENOSYS);
 }
@@ -393,14 +385,11 @@ static inline unsigned hstate_index_to_shift(unsigned index)
 	return hstates[index].order + PAGE_SHIFT;
 }
 
-<<<<<<< HEAD
-=======
 static inline int hstate_index(struct hstate *h)
 {
 	return h - hstates;
 }
 
->>>>>>> android-3.18
 pgoff_t __basepage_index(struct page *page);
 
 /* Return page->index in PAGE_SIZE units */
@@ -412,8 +401,6 @@ static inline pgoff_t basepage_index(struct page *page)
 	return __basepage_index(page);
 }
 
-<<<<<<< HEAD
-=======
 extern void dissolve_free_huge_pages(unsigned long start_pfn,
 				     unsigned long end_pfn);
 static inline int hugepage_migration_supported(struct hstate *h)
@@ -443,7 +430,6 @@ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
 #define hugepages_supported() (HPAGE_SHIFT != 0)
 #endif
 
->>>>>>> android-3.18
 #else	/* CONFIG_HUGETLB_PAGE */
 struct hstate {};
 #define alloc_huge_page_node(h, nid) NULL
@@ -465,18 +451,12 @@ static inline unsigned int pages_per_huge_page(struct hstate *h)
 	return 1;
 }
 #define hstate_index_to_shift(index) 0
-<<<<<<< HEAD
-=======
 #define hstate_index(h) 0
->>>>>>> android-3.18
 
 static inline pgoff_t basepage_index(struct page *page)
 {
 	return page->index;
 }
-<<<<<<< HEAD
-#endif
-=======
 #define dissolve_free_huge_pages(s, e)	do {} while (0)
 #define hugepage_migration_supported(h)	0
 
@@ -496,6 +476,5 @@ static inline spinlock_t *huge_pte_lock(struct hstate *h,
 	spin_lock(ptl);
 	return ptl;
 }
->>>>>>> android-3.18
 
 #endif /* _LINUX_HUGETLB_H */

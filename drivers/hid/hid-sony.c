@@ -2035,8 +2035,6 @@ static const struct hid_device_id sony_devices[] = {
 		.driver_data = VAIO_RDESC_CONSTANT },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_SONY, USB_DEVICE_ID_SONY_VAIO_VGP_MOUSE),
 		.driver_data = VAIO_RDESC_CONSTANT },
-<<<<<<< HEAD
-=======
 	/* Wired Buzz Controller. Reported as Sony Hub from its USB ID and as
 	 * Logitech joystick from the device descriptor. */
 	{ HID_USB_DEVICE(USB_VENDOR_ID_SONY, USB_DEVICE_ID_SONY_BUZZ_CONTROLLER),
@@ -2063,7 +2061,6 @@ static const struct hid_device_id sony_devices[] = {
 		.driver_data = DUALSHOCK4_CONTROLLER_BT },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_SONY, USB_DEVICE_ID_SONY_PS4_CONTROLLER_DONGLE),
 		.driver_data = DUALSHOCK4_CONTROLLER_USB },
->>>>>>> android-3.18
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, sony_devices);

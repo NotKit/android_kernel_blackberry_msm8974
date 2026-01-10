@@ -19,14 +19,11 @@
 #include <linux/vmalloc.h>
 #include <net/netlink.h>
 #include <uapi/linux/netfilter/ipset/ip_set.h>
-<<<<<<< HEAD
-=======
 
 #define _IP_SET_MODULE_DESC(a, b, c)		\
 	MODULE_DESCRIPTION(a " type of IP sets, revisions " b "-" c)
 #define IP_SET_MODULE_DESC(a, b, c)		\
 	_IP_SET_MODULE_DESC(a, __stringify(b), __stringify(c))
->>>>>>> android-3.18
 
 /* Set features */
 enum ip_set_feature {
@@ -534,8 +531,6 @@ bitmap_bytes(u32 a, u32 b)
 	return 4 * ((((b - a + 8) / 8) + 3) / 4);
 }
 
-<<<<<<< HEAD
-=======
 #include <linux/netfilter/ipset/ip_set_timeout.h>
 #include <linux/netfilter/ipset/ip_set_comment.h>
 
@@ -576,5 +571,4 @@ ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
 #define IPSET_CONCAT(a, b)		a##b
 #define IPSET_TOKEN(a, b)		IPSET_CONCAT(a, b)
 
->>>>>>> android-3.18
 #endif /*_IP_SET_H */

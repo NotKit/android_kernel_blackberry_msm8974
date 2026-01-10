@@ -153,20 +153,10 @@ ATOMIC_OPS(sub, -=)
 #define atomic_sub_and_test(i,v)	(atomic_sub_return((i),(v)) == 0)
 
 #define ATOMIC_INIT(i)	{ (i) }
-<<<<<<< HEAD
-
-#define smp_mb__before_atomic_dec()	smp_mb()
-#define smp_mb__after_atomic_dec()	smp_mb()
-#define smp_mb__before_atomic_inc()	smp_mb()
-#define smp_mb__after_atomic_inc()	smp_mb()
-=======
->>>>>>> android-3.18
 
 #ifdef CONFIG_64BIT
 
 #define ATOMIC64_INIT(i) { (i) }
-<<<<<<< HEAD
-=======
 
 #define ATOMIC64_OP(op, c_op)						\
 static __inline__ void atomic64_##op(s64 i, atomic64_t *v)		\
@@ -190,7 +180,6 @@ static __inline__ s64 atomic64_##op##_return(s64 i, atomic64_t *v)	\
 									\
 	return ret;							\
 }
->>>>>>> android-3.18
 
 #define ATOMIC64_OPS(op, c_op) ATOMIC64_OP(op, c_op) ATOMIC64_OP_RETURN(op, c_op)
 

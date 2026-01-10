@@ -80,83 +80,6 @@ int no_pci_devices(void)
 }
 EXPORT_SYMBOL(no_pci_devices);
 
-<<<<<<< HEAD
-static struct pci_host_bridge *pci_host_bridge(struct pci_bus *bus)
-{
-	struct pci_host_bridge *bridge;
-
-	while (bus->parent)
-		bus = bus->parent;
-
-	list_for_each_entry(bridge, &pci_host_bridges, list) {
-		if (bridge->bus == bus)
-			return bridge;
-	}
-
-	return NULL;
-}
-
-static bool resource_contains(struct resource *res1, struct resource *res2)
-{
-	return res1->start <= res2->start && res1->end >= res2->end;
-}
-
-void pcibios_resource_to_bus(struct pci_bus *bus, struct pci_bus_region *region,
-			     struct resource *res)
-{
-	struct pci_host_bridge *bridge = pci_host_bridge(bus);
-	struct pci_host_bridge_window *window;
-	resource_size_t offset = 0;
-
-	list_for_each_entry(window, &bridge->windows, list) {
-		if (resource_type(res) != resource_type(window->res))
-			continue;
-
-		if (resource_contains(window->res, res)) {
-			offset = window->offset;
-			break;
-		}
-	}
-
-	region->start = res->start - offset;
-	region->end = res->end - offset;
-}
-EXPORT_SYMBOL(pcibios_resource_to_bus);
-
-static bool region_contains(struct pci_bus_region *region1,
-			    struct pci_bus_region *region2)
-{
-	return region1->start <= region2->start && region1->end >= region2->end;
-}
-
-void pcibios_bus_to_resource(struct pci_bus *bus, struct resource *res,
-			     struct pci_bus_region *region)
-{
-	struct pci_host_bridge *bridge = pci_host_bridge(bus);
-	struct pci_host_bridge_window *window;
-	struct pci_bus_region bus_region;
-	resource_size_t offset = 0;
-
-	list_for_each_entry(window, &bridge->windows, list) {
-		if (resource_type(res) != resource_type(window->res))
-			continue;
-
-		bus_region.start = window->res->start - window->offset;
-		bus_region.end = window->res->end - window->offset;
-
-		if (region_contains(&bus_region, region)) {
-			offset = window->offset;
-			break;
-		}
-	}
-
-	res->start = region->start + offset;
-	res->end = region->end + offset;
-}
-EXPORT_SYMBOL(pcibios_bus_to_resource);
-
-=======
->>>>>>> android-3.18
 /*
  * PCI Bus Class
  */
@@ -335,21 +258,6 @@ int __pci_read_base(struct pci_dev *dev, enum pci_bar_type type,
 			goto out;
 		}
 
-<<<<<<< HEAD
-		if ((sizeof(resource_size_t) < 8) && l) {
-			/* Address above 32-bit boundary; disable the BAR */
-			pci_write_config_dword(dev, pos, 0);
-			pci_write_config_dword(dev, pos + 4, 0);
-			region.start = 0;
-			region.end = sz64;
-			pcibios_bus_to_resource(dev->bus, res, &region);
-		} else {
-			region.start = l64;
-			region.end = l64 + sz64;
-			pcibios_bus_to_resource(dev->bus, res, &region);
-			dev_printk(KERN_DEBUG, &dev->dev, "reg %x: %pR\n",
-				   pos, res);
-=======
 		if ((sizeof(dma_addr_t) < 8) && l) {
 			/* Above 32-bit boundary; try to reallocate */
 			res->flags |= IORESOURCE_UNSET;
@@ -360,7 +268,6 @@ int __pci_read_base(struct pci_dev *dev, enum pci_bar_type type,
 		} else {
 			region.start = l64;
 			region.end = l64 + sz64;
->>>>>>> android-3.18
 		}
 	} else {
 		sz = pci_size(l, sz, mask);
@@ -370,14 +277,10 @@ int __pci_read_base(struct pci_dev *dev, enum pci_bar_type type,
 
 		region.start = l;
 		region.end = l + sz;
-<<<<<<< HEAD
-		pcibios_bus_to_resource(dev->bus, res, &region);
-=======
 	}
 
 	pcibios_bus_to_resource(dev->bus, res, &region);
 	pcibios_resource_to_bus(dev->bus, &inverted_region, res);
->>>>>>> android-3.18
 
 	/*
 	 * If "A" is a BAR value (a bus address), "bus_to_resource(A)" is
@@ -479,17 +382,8 @@ static void pci_read_bridge_io(struct pci_bus *child)
 	if (base <= limit) {
 		res->flags = (io_base_lo & PCI_IO_RANGE_TYPE_MASK) | IORESOURCE_IO;
 		region.start = base;
-<<<<<<< HEAD
-		region.end = limit + 0xfff;
-		pcibios_bus_to_resource(dev->bus, &res2, &region);
-		if (!res->start)
-			res->start = res2.start;
-		if (!res->end)
-			res->end = res2.end;
-=======
 		region.end = limit + io_granularity - 1;
 		pcibios_bus_to_resource(dev->bus, res, &region);
->>>>>>> android-3.18
 		dev_printk(KERN_DEBUG, &dev->dev, "  bridge window %pR\n", res);
 	}
 }
@@ -1322,21 +1216,15 @@ int pci_setup_device(struct pci_dev *dev)
 				res = &dev->resource[0];
 				res->flags = LEGACY_IO_RESOURCE;
 				pcibios_bus_to_resource(dev->bus, res, &region);
-<<<<<<< HEAD
-=======
 				dev_info(&dev->dev, "legacy IDE quirk: reg 0x10: %pR\n",
 					 res);
->>>>>>> android-3.18
 				region.start = 0x3F6;
 				region.end = 0x3F6;
 				res = &dev->resource[1];
 				res->flags = LEGACY_IO_RESOURCE;
 				pcibios_bus_to_resource(dev->bus, res, &region);
-<<<<<<< HEAD
-=======
 				dev_info(&dev->dev, "legacy IDE quirk: reg 0x14: %pR\n",
 					 res);
->>>>>>> android-3.18
 			}
 			if ((progif & 4) == 0) {
 				region.start = 0x170;
@@ -1344,21 +1232,15 @@ int pci_setup_device(struct pci_dev *dev)
 				res = &dev->resource[2];
 				res->flags = LEGACY_IO_RESOURCE;
 				pcibios_bus_to_resource(dev->bus, res, &region);
-<<<<<<< HEAD
-=======
 				dev_info(&dev->dev, "legacy IDE quirk: reg 0x18: %pR\n",
 					 res);
->>>>>>> android-3.18
 				region.start = 0x376;
 				region.end = 0x376;
 				res = &dev->resource[3];
 				res->flags = LEGACY_IO_RESOURCE;
 				pcibios_bus_to_resource(dev->bus, res, &region);
-<<<<<<< HEAD
-=======
 				dev_info(&dev->dev, "legacy IDE quirk: reg 0x1c: %pR\n",
 					 res);
->>>>>>> android-3.18
 			}
 		}
 		break;

@@ -262,9 +262,6 @@ struct ethtool_ops {
 	int	(*set_tunable)(struct net_device *,
 			       const struct ethtool_tunable *, const void *);
 
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 };
 #endif /* _LINUX_ETHTOOL_H */

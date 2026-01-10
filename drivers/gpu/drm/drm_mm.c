@@ -823,14 +823,11 @@ static unsigned long drm_mm_dump_hole(struct seq_file *m, struct drm_mm_node *en
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
 /**
  * drm_mm_dump_table - dump allocator state to a seq_file
  * @m: seq_file to dump to
  * @mm: drm_mm allocator to dump
  */
->>>>>>> android-3.18
 int drm_mm_dump_table(struct seq_file *m, struct drm_mm *mm)
 {
 	struct drm_mm_node *entry;

@@ -24,10 +24,7 @@
 #define _LINUX_AUDIT_H_
 
 #include <linux/sched.h>
-<<<<<<< HEAD
-=======
 #include <linux/ptrace.h>
->>>>>>> android-3.18
 #include <uapi/linux/audit.h>
 
 struct audit_sig_info {
@@ -90,11 +87,6 @@ extern int is_audit_feature_set(int which);
 extern int __init audit_register_class(int class, unsigned *list);
 extern int audit_classify_syscall(int abi, unsigned syscall);
 extern int audit_classify_arch(int arch);
-<<<<<<< HEAD
-
-struct filename;
-
-=======
 /* only for compat system calls */
 extern unsigned compat_write_class[];
 extern unsigned compat_read_class[];
@@ -124,7 +116,6 @@ extern void audit_log_session_info(struct audit_buffer *ab);
 #define audit_is_compat(arch)  false
 #endif
 
->>>>>>> android-3.18
 #ifdef CONFIG_AUDITSYSCALL
 #include <asm/syscall.h> /* for syscall_get_arch() */
 
@@ -135,13 +126,6 @@ extern void __audit_free(struct task_struct *task);
 extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
 				  unsigned long a2, unsigned long a3);
 extern void __audit_syscall_exit(int ret_success, long ret_value);
-<<<<<<< HEAD
-extern void __audit_getname(struct filename *name);
-extern void audit_putname(struct filename *name);
-extern void __audit_inode(const char *name, const struct dentry *dentry);
-extern void __audit_inode_child(const struct dentry *dentry,
-				const struct inode *parent);
-=======
 extern struct filename *__audit_reusename(const __user char *uptr);
 extern void __audit_getname(struct filename *name);
 extern void audit_putname(struct filename *name);
@@ -153,7 +137,6 @@ extern void __audit_inode(struct filename *name, const struct dentry *dentry,
 extern void __audit_inode_child(const struct inode *parent,
 				const struct dentry *dentry,
 				const unsigned char type);
->>>>>>> android-3.18
 extern void __audit_seccomp(unsigned long syscall, long signr, int code);
 extern void __audit_ptrace(struct task_struct *t);
 
@@ -172,11 +155,7 @@ static inline void audit_syscall_entry(int major, unsigned long a0,
 				       unsigned long a3)
 {
 	if (unlikely(current->audit_context))
-<<<<<<< HEAD
-		__audit_syscall_entry(arch, major, a0, a1, a2, a3);
-=======
 		__audit_syscall_entry(major, a0, a1, a2, a3);
->>>>>>> android-3.18
 }
 static inline void audit_syscall_exit(void *pt_regs)
 {
@@ -187,15 +166,12 @@ static inline void audit_syscall_exit(void *pt_regs)
 		__audit_syscall_exit(success, return_code);
 	}
 }
-<<<<<<< HEAD
-=======
 static inline struct filename *audit_reusename(const __user char *name)
 {
 	if (unlikely(!audit_dummy_context()))
 		return __audit_reusename(name);
 	return NULL;
 }
->>>>>>> android-3.18
 static inline void audit_getname(struct filename *name)
 {
 	if (unlikely(!audit_dummy_context()))
@@ -228,12 +204,8 @@ void audit_core_dumps(long signr);
 
 static inline void audit_seccomp(unsigned long syscall, long signr, int code)
 {
-<<<<<<< HEAD
-	if (unlikely(!audit_dummy_context()))
-=======
 	/* Force a record to be reported if a signal was delivered. */
 	if (signr || unlikely(!audit_dummy_context()))
->>>>>>> android-3.18
 		__audit_seccomp(syscall, signr, code);
 }
 
@@ -367,39 +339,6 @@ static inline void audit_mmap_fd(int fd, int flags)
 extern int audit_n_rules;
 extern int audit_signals;
 #else /* CONFIG_AUDITSYSCALL */
-<<<<<<< HEAD
-#define audit_alloc(t) ({ 0; })
-#define audit_free(t) do { ; } while (0)
-#define audit_syscall_entry(ta,a,b,c,d,e) do { ; } while (0)
-#define audit_syscall_exit(r) do { ; } while (0)
-#define audit_dummy_context() 1
-#define audit_getname(n) do { ; } while (0)
-#define audit_putname(n) do { ; } while (0)
-#define __audit_inode(n,d) do { ; } while (0)
-#define __audit_inode_child(i,p) do { ; } while (0)
-#define audit_inode(n,d) do { (void)(d); } while (0)
-#define audit_inode_child(i,p) do { ; } while (0)
-#define audit_core_dumps(i) do { ; } while (0)
-#define audit_seccomp(i,s,c) do { ; } while (0)
-#define auditsc_get_stamp(c,t,s) (0)
-#define audit_get_loginuid(t) (-1)
-#define audit_get_sessionid(t) (-1)
-#define audit_log_task_context(b) do { ; } while (0)
-#define audit_ipc_obj(i) ((void)0)
-#define audit_ipc_set_perm(q,u,g,m) ((void)0)
-#define audit_bprm(p) ({ 0; })
-#define audit_socketcall(n,a) ((void)0)
-#define audit_fd_pair(n,a) ((void)0)
-#define audit_sockaddr(len, addr) ({ 0; })
-#define audit_mq_open(o,m,a) ((void)0)
-#define audit_mq_sendrecv(d,l,p,t) ((void)0)
-#define audit_mq_notify(d,n) ((void)0)
-#define audit_mq_getsetattr(d,s) ((void)0)
-#define audit_log_bprm_fcaps(b, ncr, ocr) ({ 0; })
-#define audit_log_capset(pid, ncr, ocr) ((void)0)
-#define audit_mmap_fd(fd, flags) ((void)0)
-#define audit_ptrace(t) ((void)0)
-=======
 static inline int audit_alloc(struct task_struct *task)
 {
 	return 0;
@@ -509,7 +448,6 @@ static inline void audit_mmap_fd(int fd, int flags)
 { }
 static inline void audit_ptrace(struct task_struct *t)
 { }
->>>>>>> android-3.18
 #define audit_n_rules 0
 #define audit_signals 0
 #endif /* CONFIG_AUDITSYSCALL */
@@ -567,29 +505,6 @@ extern int		    audit_update_lsm_rules(void);
 				/* Private API (for audit.c only) */
 extern int audit_filter_user(int type);
 extern int audit_filter_type(int type);
-<<<<<<< HEAD
-extern int  audit_receive_filter(int type, int pid, int uid, int seq,
-				void *data, size_t datasz, uid_t loginuid,
-				u32 sessionid, u32 sid);
-extern int audit_enabled;
-#else
-#define audit_log(c,g,t,f,...) do { ; } while (0)
-#define audit_log_start(c,g,t) ({ NULL; })
-#define audit_log_vformat(b,f,a) do { ; } while (0)
-#define audit_log_format(b,f,...) do { ; } while (0)
-#define audit_log_end(b) do { ; } while (0)
-#define audit_log_n_hex(a,b,l) do { ; } while (0)
-#define audit_log_n_string(a,c,l) do { ; } while (0)
-#define audit_log_string(a,c) do { ; } while (0)
-#define audit_log_n_untrustedstring(a,n,s) do { ; } while (0)
-#define audit_log_untrustedstring(a,s) do { ; } while (0)
-#define audit_log_d_path(b, p, d) do { ; } while (0)
-#define audit_log_key(b, k) do { ; } while (0)
-#define audit_log_link_denied(o, l) do { ; } while (0)
-#define audit_log_secctx(b,s) do { ; } while (0)
-#define audit_enabled 0
-#endif
-=======
 extern int audit_rule_change(int type, __u32 portid, int seq,
 				void *data, size_t datasz);
 extern int audit_list_rules_send(struct sk_buff *request_skb, int seq);
@@ -647,5 +562,4 @@ static inline void audit_log_string(struct audit_buffer *ab, const char *buf)
 	audit_log_n_string(ab, buf, strlen(buf));
 }
 
->>>>>>> android-3.18
 #endif

@@ -307,15 +307,6 @@ void __init orion_ge00_init(struct mv643xx_eth_platform_data *eth_data,
 			    unsigned long mapbase,
 			    unsigned long irq,
 			    unsigned long irq_err,
-<<<<<<< HEAD
-			    int tclk,
-			    unsigned int tx_csum_limit)
-{
-	fill_resources(&orion_ge00_shared, orion_ge00_shared_resources,
-		       mapbase + 0x2000, SZ_16K - 1, irq_err);
-	orion_ge00_shared_data.tx_csum_limit = tx_csum_limit;
-	ge_complete(&orion_ge00_shared_data, tclk,
-=======
 			    unsigned int tx_csum_limit)
 {
 	fill_resources(&orion_ge00_shared, orion_ge00_shared_resources,
@@ -324,7 +315,6 @@ void __init orion_ge00_init(struct mv643xx_eth_platform_data *eth_data,
 			mapbase + 0x2004, 0x84 - 1, irq_err);
 	orion_ge00_shared_data.tx_csum_limit = tx_csum_limit;
 	ge_complete(&orion_ge00_shared_data,
->>>>>>> android-3.18
 		    orion_ge00_resources, irq, &orion_ge00_shared,
 		    &orion_ge_mvmdio,
 		    eth_data, &orion_ge00);
@@ -370,22 +360,12 @@ void __init orion_ge01_init(struct mv643xx_eth_platform_data *eth_data,
 			    unsigned long mapbase,
 			    unsigned long irq,
 			    unsigned long irq_err,
-<<<<<<< HEAD
-			    int tclk,
-			    unsigned int tx_csum_limit)
-{
-	fill_resources(&orion_ge01_shared, orion_ge01_shared_resources,
-		       mapbase + 0x2000, SZ_16K - 1, irq_err);
-	orion_ge01_shared_data.tx_csum_limit = tx_csum_limit;
-	ge_complete(&orion_ge01_shared_data, tclk,
-=======
 			    unsigned int tx_csum_limit)
 {
 	fill_resources(&orion_ge01_shared, orion_ge01_shared_resources,
 		       mapbase + 0x2000, SZ_16K - 1, NO_IRQ);
 	orion_ge01_shared_data.tx_csum_limit = tx_csum_limit;
 	ge_complete(&orion_ge01_shared_data,
->>>>>>> android-3.18
 		    orion_ge01_resources, irq, &orion_ge01_shared,
 		    NULL,
 		    eth_data, &orion_ge01);
@@ -615,17 +595,10 @@ void __init orion_spi_1_init(unsigned long mapbase)
 /*****************************************************************************
  * Watchdog
  ****************************************************************************/
-<<<<<<< HEAD
-static struct orion_wdt_platform_data orion_wdt_data;
-
-static struct resource orion_wdt_resource =
-		DEFINE_RES_MEM(TIMER_PHYS_BASE, 0x28);
-=======
 static struct resource orion_wdt_resource[] = {
 		DEFINE_RES_MEM(TIMER_PHYS_BASE, 0x04),
 		DEFINE_RES_MEM(RSTOUTn_MASK_PHYS, 0x04),
 };
->>>>>>> android-3.18
 
 static struct platform_device orion_wdt_device = {
 	.name		= "orion_wdt",

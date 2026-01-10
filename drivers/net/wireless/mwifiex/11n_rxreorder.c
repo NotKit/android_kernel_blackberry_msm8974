@@ -369,11 +369,7 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 	}
 
 	if (last_seq != MWIFIEX_DEF_11N_RX_SEQ_NUM &&
-<<<<<<< HEAD
-	    last_seq >= new_node->start_win)
-=======
 	    last_seq >= new_node->start_win) {
->>>>>>> android-3.18
 		new_node->start_win = last_seq + 1;
 		new_node->flags |= RXREOR_INIT_WINDOW_SHIFT;
 	}
@@ -787,10 +783,6 @@ void mwifiex_11n_cleanup_reorder_tbl(struct mwifiex_private *priv)
 	INIT_LIST_HEAD(&priv->rx_reorder_tbl_ptr);
 	spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock, flags);
 
-<<<<<<< HEAD
-	INIT_LIST_HEAD(&priv->rx_reorder_tbl_ptr);
-	mwifiex_reset_11n_rx_seq_num(priv);
-=======
 	mwifiex_reset_11n_rx_seq_num(priv);
 }
 
@@ -822,5 +814,4 @@ void mwifiex_update_rxreor_flags(struct mwifiex_adapter *adapter, u8 flags)
 	}
 
 	return;
->>>>>>> android-3.18
 }

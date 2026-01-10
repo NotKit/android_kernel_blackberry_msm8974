@@ -18,55 +18,6 @@ typedef struct {
 
 #define __ARCH_HAS_SA_RESTORER
 
-<<<<<<< HEAD
-#include <asm-generic/signal-defs.h>
-
-#ifdef __KERNEL__
-struct old_sigaction {
-	__sighandler_t sa_handler;
-	old_sigset_t sa_mask;
-	unsigned long sa_flags;
-	void (*sa_restorer)(void);
-};
-
-struct sigaction {
-	__sighandler_t sa_handler;
-	unsigned long sa_flags;
-	void (*sa_restorer)(void);
-	sigset_t sa_mask;		/* mask last for extensibility */
-};
-#define __ARCH_HAS_SA_RESTORER
-
-struct k_sigaction {
-	struct sigaction sa;
-};
-#else
-/* Here we must cater to libcs that poke about in kernel headers.  */
-
-struct sigaction {
-	union {
-	  __sighandler_t _sa_handler;
-	  void (*_sa_sigaction)(int, struct siginfo *, void *);
-	} _u;
-	sigset_t sa_mask;
-	unsigned long sa_flags;
-	void (*sa_restorer)(void);
-};
-
-#define sa_handler	_u._sa_handler
-#define sa_sigaction	_u._sa_sigaction
-
-#endif /* __KERNEL__ */
-
-typedef struct sigaltstack {
-	void *ss_sp;
-	int ss_flags;
-	size_t ss_size;
-} stack_t;
-
-#ifdef __KERNEL__
-=======
->>>>>>> android-3.18
 #include <asm/sigcontext.h>
 
 #endif

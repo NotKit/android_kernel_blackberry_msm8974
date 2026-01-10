@@ -547,9 +547,6 @@ config BLK_DEV_RBD
 
 	  If unsure, say N.
 
-<<<<<<< HEAD
-source "drivers/block/zram/Kconfig"
-=======
 config BLK_DEV_RSXX
 	tristate "IBM Flash Adapter 900GB Full Height PCIe Device Driver"
 	depends on PCI
@@ -560,6 +557,5 @@ config BLK_DEV_RSXX
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called rsxx.
->>>>>>> android-3.18
 
 endif # BLK_DEV

@@ -1265,17 +1265,10 @@ static int st_open(struct inode *inode, struct file *filp)
 	normalize_buffer(STp->buffer);
 	spin_lock(&st_use_lock);
 	STp->in_use = 0;
-<<<<<<< HEAD
-	if (resumed)
-		scsi_autopm_put_device(STp->device);
-	scsi_tape_put(STp);
-	mutex_unlock(&st_mutex);
-=======
 	spin_unlock(&st_use_lock);
 	if (resumed)
 		scsi_autopm_put_device(STp->device);
 	scsi_tape_put(STp);
->>>>>>> android-3.18
 	return retval;
 
 }

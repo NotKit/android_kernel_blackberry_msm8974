@@ -756,11 +756,7 @@ static loff_t memory_lseek(struct file *file, loff_t offset, int orig)
 #endif
 
 #if defined(CONFIG_DEVMEM) || defined(CONFIG_DEVKMEM) || defined(CONFIG_DEVPORT)
-<<<<<<< HEAD
-static int open_port(struct inode * inode, struct file * filp)
-=======
 static int open_port(struct inode *inode, struct file *filp)
->>>>>>> android-3.18
 {
 	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
 }
@@ -839,17 +835,6 @@ static const struct file_operations full_fops = {
 	.write		= write_full,
 };
 
-<<<<<<< HEAD
-#ifdef CONFIG_CRASH_DUMP
-static const struct file_operations oldmem_fops = {
-	.read	= read_oldmem,
-	.open	= open_oldmem,
-	.llseek = default_llseek,
-};
-#endif
-
-=======
->>>>>>> android-3.18
 static const struct memdev {
 	const char *name;
 	umode_t mode;
@@ -872,12 +857,6 @@ static const struct memdev {
 	 [9] = { "urandom", 0666, &urandom_fops, NULL },
 #ifdef CONFIG_PRINTK
 	[11] = { "kmsg", 0644, &kmsg_fops, NULL },
-<<<<<<< HEAD
-#endif
-#ifdef CONFIG_CRASH_DUMP
-	[12] = { "oldmem", 0, &oldmem_fops, NULL },
-=======
->>>>>>> android-3.18
 #endif
 };
 

@@ -3690,11 +3690,7 @@ static int pci_probe(struct pci_dev *dev,
 	ohci->it_context_support = reg_read(ohci, OHCI1394_IsoXmitIntMaskSet);
 	/* JMicron JMB38x often shows 0 at first read, just ignore it */
 	if (!ohci->it_context_support) {
-<<<<<<< HEAD
-		dev_notice(&dev->dev, "overriding IsoXmitIntMask\n");
-=======
 		ohci_notice(ohci, "overriding IsoXmitIntMask\n");
->>>>>>> android-3.18
 		ohci->it_context_support = 0xf;
 	}
 	reg_write(ohci, OHCI1394_IsoXmitIntMaskClear, ~0);

@@ -8,14 +8,7 @@ obj-y				  += backlight/
 
 obj-y				  += fbdev/
 
-<<<<<<< HEAD
-#video output switch sysfs driver
-obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
-
-obj-$(CONFIG_SLIMPORT_ANX7808)	+= slimport/
-=======
 obj-$(CONFIG_VIDEOMODE_HELPERS) += display_timing.o videomode.o
 ifeq ($(CONFIG_OF),y)
 obj-$(CONFIG_VIDEOMODE_HELPERS) += of_display_timing.o of_videomode.o
 endif
->>>>>>> android-3.18

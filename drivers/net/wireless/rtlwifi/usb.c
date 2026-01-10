@@ -75,19 +75,11 @@ static int _usbctrl_vendorreq_async_write(struct usb_device *udev, u8 request,
 	pipe = usb_sndctrlpipe(udev, 0); /* write_out */
 	reqtype =  REALTEK_USB_VENQT_WRITE;
 
-<<<<<<< HEAD
-	dr = kmalloc(sizeof(*dr), GFP_ATOMIC);
-	if (!dr)
-		return -ENOMEM;
-
-	databuf = kmalloc(databuf_maxlen, GFP_ATOMIC);
-=======
 	dr = kzalloc(sizeof(*dr), GFP_ATOMIC);
 	if (!dr)
 		return -ENOMEM;
 
 	databuf = kzalloc(databuf_maxlen, GFP_ATOMIC);
->>>>>>> android-3.18
 	if (!databuf) {
 		kfree(dr);
 		return -ENOMEM;
@@ -239,11 +231,7 @@ static void _usb_writeN_sync(struct rtl_priv *rtlpriv, u32 addr, void *data,
 	u8 *buffer;
 
 	wvalue = (u16)(addr & 0x0000ffff);
-<<<<<<< HEAD
-	buffer = kmalloc(len, GFP_ATOMIC);
-=======
 	buffer = kmemdup(data, len, GFP_ATOMIC);
->>>>>>> android-3.18
 	if (!buffer)
 		return;
 	usb_control_msg(udev, pipe, request, reqtype, wvalue,
@@ -561,9 +549,6 @@ static void _rtl_rx_pre_process(struct ieee80211_hw *hw, struct sk_buff *skb)
 	while (!skb_queue_empty(&rx_queue)) {
 		_skb = skb_dequeue(&rx_queue);
 		_rtl_usb_rx_process_agg(hw, _skb);
-<<<<<<< HEAD
-		ieee80211_rx_irqsafe(hw, _skb);
-=======
 		ieee80211_rx(hw, _skb);
 	}
 }
@@ -618,7 +603,6 @@ static unsigned int _rtl_rx_get_padding(struct ieee80211_hdr *hdr,
 		if ((unsigned long)qc - (unsigned long)hdr < len &&
 		    *qc & IEEE80211_QOS_CTL_A_MSDU_PRESENT)
 			padding ^= NET_IP_ALIGN;
->>>>>>> android-3.18
 	}
 
 	if (ieee80211_has_a4(hdr->frame_control))
@@ -1091,11 +1075,6 @@ int rtl_usb_probe(struct usb_interface *intf,
 	if (!rtlpriv->usb_data) {
 		ieee80211_free_hw(hw);
 		return -ENOMEM;
-<<<<<<< HEAD
-
-	/* this spin lock must be initialized early */
-	spin_lock_init(&rtlpriv->locks.usb_lock);
-=======
 	}
 
 	/* this spin lock must be initialized early */
@@ -1104,7 +1083,6 @@ int rtl_usb_probe(struct usb_interface *intf,
 		  rtl_fill_h2c_cmd_work_callback);
 	INIT_WORK(&rtlpriv->works.lps_change_work,
 		  rtl_lps_change_work_callback);
->>>>>>> android-3.18
 
 	rtlpriv->usb_data_index = 0;
 	init_completion(&rtlpriv->firmware_loading_complete);

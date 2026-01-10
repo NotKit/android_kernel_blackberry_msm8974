@@ -3,10 +3,7 @@
 
 #include <linux/device.h>
 #include <linux/async.h>
-<<<<<<< HEAD
-=======
 #include <scsi/scsi_device.h>
->>>>>>> android-3.18
 
 struct request_queue;
 struct request;
@@ -91,12 +88,9 @@ extern void scsi_next_command(struct scsi_cmnd *cmd);
 extern void scsi_io_completion(struct scsi_cmnd *, unsigned int);
 extern void scsi_run_host_queues(struct Scsi_Host *shost);
 extern struct request_queue *scsi_alloc_queue(struct scsi_device *sdev);
-<<<<<<< HEAD
-=======
 extern struct request_queue *scsi_mq_alloc_queue(struct scsi_device *sdev);
 extern int scsi_mq_setup_tags(struct Scsi_Host *shost);
 extern void scsi_mq_destroy_tags(struct Scsi_Host *shost);
->>>>>>> android-3.18
 extern int scsi_init_queue(void);
 extern void scsi_exit_queue(void);
 struct request_queue;
@@ -176,10 +170,7 @@ static inline int scsi_autopm_get_host(struct Scsi_Host *h) { return 0; }
 static inline void scsi_autopm_put_host(struct Scsi_Host *h) {}
 #endif /* CONFIG_PM_RUNTIME */
 
-<<<<<<< HEAD
-=======
 extern struct async_domain scsi_sd_pm_domain;
->>>>>>> android-3.18
 extern struct async_domain scsi_sd_probe_domain;
 
 /* 

@@ -33,10 +33,6 @@
 
 struct sysmem_info sysmem __initdata;
 
-<<<<<<< HEAD
-extern char _stext, _etext, _sdata, _edata, _rodata_end;
-extern char __init_begin, __init_end;
-=======
 static void __init sysmem_dump(void)
 {
 	unsigned i;
@@ -153,7 +149,6 @@ int __init add_sysmem_bank(unsigned long start, unsigned long end)
 	move_banks(it + 1, sysmem.bank + i);
 	return 0;
 }
->>>>>>> android-3.18
 
 /*
  * mem_reserve(start, end, must_exist)
@@ -329,24 +324,7 @@ void __init mem_init(void)
 	max_mapnr = max_pfn - ARCH_PFN_OFFSET;
 	high_memory = (void *)__va(max_low_pfn << PAGE_SHIFT);
 
-<<<<<<< HEAD
-	codesize =  (unsigned long) &_etext - (unsigned long) &_stext;
-	datasize =  (unsigned long) &_edata - (unsigned long) &_sdata;
-	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
-
-	printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, "
-	       "%ldk data, %ldk init %ldk highmem)\n",
-	       nr_free_pages() << (PAGE_SHIFT-10),
-	       ram << (PAGE_SHIFT-10),
-	       codesize >> 10,
-	       reservedpages << (PAGE_SHIFT-10),
-	       datasize >> 10,
-	       initsize >> 10,
-	       highmemsize >> 10);
-}
-=======
 	free_all_bootmem();
->>>>>>> android-3.18
 
 	mem_init_print_info(NULL);
 	pr_info("virtual kernel memory layout:\n"

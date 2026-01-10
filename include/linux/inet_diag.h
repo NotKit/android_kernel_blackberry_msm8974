@@ -3,10 +3,7 @@
 
 #include <uapi/linux/inet_diag.h>
 
-<<<<<<< HEAD
-=======
 struct net;
->>>>>>> android-3.18
 struct sock;
 struct inet_hashinfo;
 struct nlattr;

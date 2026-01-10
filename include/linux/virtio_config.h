@@ -152,8 +152,6 @@ int virtqueue_set_affinity(struct virtqueue *vq, int cpu)
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
 /* Config space accessors. */
 #define virtio_cread(vdev, structname, member, ptr)			\
 	do {								\
@@ -288,6 +286,5 @@ static inline void virtio_cwrite64(struct virtio_device *vdev,
 			virtio_cread((vdev), structname, member, ptr);	\
 		_r;							\
 	})
->>>>>>> android-3.18
 
 #endif /* _LINUX_VIRTIO_CONFIG_H */

@@ -750,21 +750,6 @@ out:
 int comedi_auto_config(struct device *hardware_device,
 		       struct comedi_driver *driver, unsigned long context)
 {
-<<<<<<< HEAD
-	struct comedi_devconfig it;
-	int minor;
-	struct comedi_device_file_info *dev_file_info;
-	int retval;
-
-	if (!comedi_autoconfig)
-		return 0;
-
-	minor = comedi_alloc_board_minor(hardware_device);
-	if (minor < 0)
-		return minor;
-
-	dev_file_info = comedi_get_device_file_info(minor);
-=======
 	struct comedi_device *dev;
 	int ret;
 
@@ -784,7 +769,6 @@ int comedi_auto_config(struct device *hardware_device,
 			 driver->driver_name);
 		return -EINVAL;
 	}
->>>>>>> android-3.18
 
 	dev = comedi_alloc_board_minor(hardware_device);
 	if (IS_ERR(dev)) {
@@ -802,11 +786,6 @@ int comedi_auto_config(struct device *hardware_device,
 		ret = comedi_device_postconfig(dev);
 	mutex_unlock(&dev->mutex);
 
-<<<<<<< HEAD
-	if (retval < 0)
-		comedi_free_board_minor(minor);
-	return retval;
-=======
 	if (ret < 0) {
 		dev_warn(hardware_device,
 			 "driver '%s' failed to auto-configure device.\n",
@@ -822,27 +801,14 @@ int comedi_auto_config(struct device *hardware_device,
 			 driver->driver_name, dev->board_name);
 	}
 	return ret;
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(comedi_auto_config);
 
 void comedi_auto_unconfig(struct device *hardware_device)
 {
-<<<<<<< HEAD
-	int minor;
-
-	if (hardware_device == NULL)
-		return;
-	minor = comedi_find_board_minor(hardware_device);
-	if (minor < 0)
-		return;
-	BUG_ON(minor >= COMEDI_NUM_BOARD_MINORS);
-	comedi_free_board_minor(minor);
-=======
 	if (hardware_device == NULL)
 		return;
 	comedi_release_hardware_device(hardware_device);
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(comedi_auto_unconfig);
 

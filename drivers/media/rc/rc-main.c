@@ -857,17 +857,6 @@ static ssize_t show_protocols(struct device *device,
 
 	mutex_lock(&dev->lock);
 
-<<<<<<< HEAD
-	if (dev->driver_type == RC_DRIVER_SCANCODE) {
-		enabled = dev->rc_map.rc_type;
-		allowed = dev->allowed_protos;
-	} else if (dev->raw) {
-		enabled = dev->raw->enabled_protocols;
-		allowed = ir_raw_get_allowed_protocols();
-	} else {
-		mutex_unlock(&dev->lock);
-		return -ENODEV;
-=======
 	if (fattr->type == RC_FILTER_NORMAL) {
 		enabled = dev->enabled_protocols;
 		allowed = dev->allowed_protocols;
@@ -876,7 +865,6 @@ static ssize_t show_protocols(struct device *device,
 	} else {
 		enabled = dev->enabled_wakeup_protocols;
 		allowed = dev->allowed_wakeup_protocols;
->>>>>>> android-3.18
 	}
 
 	mutex_unlock(&dev->lock);

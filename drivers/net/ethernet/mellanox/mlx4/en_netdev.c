@@ -1280,11 +1280,7 @@ static void mlx4_en_netpoll(struct net_device *dev)
 	int i;
 
 	for (i = 0; i < priv->rx_ring_num; i++) {
-<<<<<<< HEAD
-		cq = &priv->rx_cq[i];
-=======
 		cq = priv->rx_cq[i];
->>>>>>> android-3.18
 		napi_schedule(&cq->napi);
 	}
 }

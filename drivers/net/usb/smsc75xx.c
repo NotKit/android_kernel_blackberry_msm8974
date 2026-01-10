@@ -926,14 +926,10 @@ static int smsc75xx_change_mtu(struct net_device *netdev, int new_mtu)
 		return -EINVAL;
 
 	ret = smsc75xx_set_rx_max_frame_length(dev, new_mtu + ETH_HLEN);
-<<<<<<< HEAD
-	check_warn_return(ret, "Failed to set mac rx frame length");
-=======
 	if (ret < 0) {
 		netdev_warn(dev->net, "Failed to set mac rx frame length\n");
 		return ret;
 	}
->>>>>>> android-3.18
 
 	return usbnet_change_mtu(netdev, new_mtu);
 }
@@ -1396,14 +1392,10 @@ static int smsc75xx_reset(struct usbnet *dev)
 	netif_dbg(dev, ifup, dev->net, "FCT_TX_CTL set to 0x%08x\n", buf);
 
 	ret = smsc75xx_set_rx_max_frame_length(dev, dev->net->mtu + ETH_HLEN);
-<<<<<<< HEAD
-	check_warn_return(ret, "Failed to set max rx frame length");
-=======
 	if (ret < 0) {
 		netdev_warn(dev->net, "Failed to set max rx frame length\n");
 		return ret;
 	}
->>>>>>> android-3.18
 
 	ret = smsc75xx_read_reg(dev, MAC_RX, &buf);
 	if (ret < 0) {
@@ -1489,8 +1481,6 @@ static int smsc75xx_bind(struct usbnet *dev, struct usb_interface *intf)
 
 	dev->net->hw_features = NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM |
 				NETIF_F_RXCSUM;
-<<<<<<< HEAD
-=======
 
 	ret = smsc75xx_wait_ready(dev, 0);
 	if (ret < 0) {
@@ -1499,7 +1489,6 @@ static int smsc75xx_bind(struct usbnet *dev, struct usb_interface *intf)
 	}
 
 	smsc75xx_init_mac_address(dev);
->>>>>>> android-3.18
 
 	/* Init all registers */
 	ret = smsc75xx_reset(dev);
@@ -2282,13 +2271,7 @@ static struct sk_buff *smsc75xx_tx_fixup(struct usbnet *dev,
 {
 	u32 tx_cmd_a, tx_cmd_b;
 
-<<<<<<< HEAD
-	if (skb_headroom(skb) < SMSC75XX_TX_OVERHEAD) {
-		struct sk_buff *skb2 =
-			skb_copy_expand(skb, SMSC75XX_TX_OVERHEAD, 0, flags);
-=======
 	if (skb_cow_head(skb, SMSC75XX_TX_OVERHEAD)) {
->>>>>>> android-3.18
 		dev_kfree_skb_any(skb);
 		return NULL;
 	}

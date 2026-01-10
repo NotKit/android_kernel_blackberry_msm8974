@@ -1396,16 +1396,6 @@ config RTC_DRV_LOONGSON1
 	  This driver can also be built as a module. If so, the module
 	  will be called rtc-ls1x.
 
-<<<<<<< HEAD
-config RTC_DRV_QPNP
-	tristate "Qualcomm QPNP PMIC RTC"
-	depends on SPMI && OF_SPMI && MSM_QPNP_INT
-	help
-	  Say Y here if you want to support the Qualcomm QPNP PMIC RTC.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called qpnp-rtc.
-=======
 config RTC_DRV_MXC
 	tristate "Freescale MXC Real Time Clock"
 	depends on ARCH_MXC
@@ -1469,6 +1459,5 @@ config RTC_DRV_HID_SENSOR_TIME
 	  If this driver is compiled as a module, it will be named
 	  rtc-hid-sensor-time.
 
->>>>>>> android-3.18
 
 endif # RTC_CLASS

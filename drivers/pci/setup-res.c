@@ -54,10 +54,7 @@ void pci_update_resource(struct pci_dev *dev, int resno)
 		return;
 
 	pcibios_resource_to_bus(dev->bus, &region, res);
-<<<<<<< HEAD
-=======
 	new = region.start;
->>>>>>> android-3.18
 
 	if (res->flags & IORESOURCE_IO) {
 		mask = (u32)PCI_BASE_ADDRESS_IO_MASK;
@@ -212,13 +209,8 @@ static int pci_revert_fw_address(struct resource *res, struct pci_dev *dev,
 	return 0;
 }
 
-<<<<<<< HEAD
-static int _pci_assign_resource(struct pci_dev *dev, int resno,
-				resource_size_t size, resource_size_t min_align)
-=======
 static int __pci_assign_resource(struct pci_bus *bus, struct pci_dev *dev,
 		int resno, resource_size_t size, resource_size_t align)
->>>>>>> android-3.18
 {
 	struct resource *res = dev->resource + resno;
 	resource_size_t min;

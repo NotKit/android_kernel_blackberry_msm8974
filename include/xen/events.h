@@ -18,13 +18,10 @@ int bind_evtchn_to_irqhandler(evtchn_port_t evtchn,
 			      irq_handler_t handler,
 			      unsigned long irqflags, const char *devname,
 			      void *dev_id);
-<<<<<<< HEAD
-=======
 int bind_evtchn_to_irqhandler_lateeoi(evtchn_port_t evtchn,
 				      irq_handler_t handler,
 				      unsigned long irqflags, const char *devname,
 				      void *dev_id);
->>>>>>> android-3.18
 int bind_virq_to_irq(unsigned int virq, unsigned int cpu, bool percpu);
 int bind_virq_to_irqhandler(unsigned int virq, unsigned int cpu,
 			    irq_handler_t handler,

@@ -9,10 +9,7 @@
 #include <linux/perf_event.h>
 #include <linux/module.h>
 #include <linux/pci.h>
-<<<<<<< HEAD
-=======
 #include <linux/ptrace.h>
->>>>>>> android-3.18
 #include <linux/syscore_ops.h>
 
 #include <asm/apic.h>
@@ -898,11 +895,7 @@ static inline void perf_ibs_pm_init(void) { }
 
 #endif
 
-<<<<<<< HEAD
-static int __cpuinit
-=======
 static int
->>>>>>> android-3.18
 perf_ibs_cpu_notifier(struct notifier_block *self, unsigned long action, void *hcpu)
 {
 	switch (action & ~CPU_TASKS_FROZEN) {
@@ -934,11 +927,7 @@ static __init int amd_ibs_init(void)
 		goto out;
 
 	perf_ibs_pm_init();
-<<<<<<< HEAD
-	get_online_cpus();
-=======
 	cpu_notifier_register_begin();
->>>>>>> android-3.18
 	ibs_caps = caps;
 	/* make ibs_caps visible to other cpus: */
 	smp_mb();

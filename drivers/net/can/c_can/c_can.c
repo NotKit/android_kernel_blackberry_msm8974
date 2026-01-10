@@ -432,37 +432,7 @@ static int c_can_read_msg_object(struct net_device *dev, int iface, u32 ctrl)
 }
 
 static void c_can_setup_receive_object(struct net_device *dev, int iface,
-<<<<<<< HEAD
-					int objno, unsigned int mask,
-					unsigned int id, unsigned int mcont)
-{
-	struct c_can_priv *priv = netdev_priv(dev);
-
-	priv->write_reg(priv, &priv->regs->ifregs[iface].mask1,
-			IFX_WRITE_LOW_16BIT(mask));
-
-	/* According to C_CAN documentation, the reserved bit
-	 * in IFx_MASK2 register is fixed 1
-	 */
-	priv->write_reg(priv, &priv->regs->ifregs[iface].mask2,
-			IFX_WRITE_HIGH_16BIT(mask) | BIT(13));
-
-	priv->write_reg(priv, &priv->regs->ifregs[iface].arb1,
-			IFX_WRITE_LOW_16BIT(id));
-	priv->write_reg(priv, &priv->regs->ifregs[iface].arb2,
-			(IF_ARB_MSGVAL | IFX_WRITE_HIGH_16BIT(id)));
-
-	priv->write_reg(priv, &priv->regs->ifregs[iface].msg_cntrl, mcont);
-	c_can_object_put(dev, iface, objno, IF_COMM_ALL & ~IF_COMM_TXRQST);
-
-	netdev_dbg(dev, "obj no:%d, msgval:0x%08x\n", objno,
-			c_can_read_reg32(priv, &priv->regs->msgval1));
-}
-
-static void c_can_inval_msg_object(struct net_device *dev, int iface, int objno)
-=======
 				       u32 obj, u32 mask, u32 id, u32 mcont)
->>>>>>> android-3.18
 {
 	struct c_can_priv *priv = netdev_priv(dev);
 
@@ -723,19 +693,6 @@ static int __c_can_get_berr_counter(const struct net_device *dev,
 	return 0;
 }
 
-<<<<<<< HEAD
-/*
- * theory of operation:
- *
- * priv->tx_echo holds the number of the oldest can_frame put for
- * transmission into the hardware, but not yet ACKed by the CAN tx
- * complete IRQ.
- *
- * We iterate from priv->tx_echo to priv->tx_next and check if the
- * packet has been transmitted, echo it back to the CAN framework.
- * If we discover a not yet transmitted packet, stop looking for more.
- */
-=======
 static int c_can_get_berr_counter(const struct net_device *dev,
 				  struct can_berr_counter *bec)
 {
@@ -749,7 +706,6 @@ static int c_can_get_berr_counter(const struct net_device *dev,
 	return err;
 }
 
->>>>>>> android-3.18
 static void c_can_do_tx(struct net_device *dev)
 {
 	struct c_can_priv *priv = netdev_priv(dev);
@@ -771,21 +727,6 @@ static void c_can_do_tx(struct net_device *dev)
 	/* Clear the bits in the tx_active mask */
 	atomic_sub(clr, &priv->tx_active);
 
-<<<<<<< HEAD
-	for (/* nix */; (priv->tx_next - priv->tx_echo) > 0; priv->tx_echo++) {
-		msg_obj_no = get_tx_echo_msg_obj(priv);
-		val = c_can_read_reg32(priv, &priv->regs->txrqst1);
-		if (!(val & (1 << (msg_obj_no - 1)))) {
-			can_get_echo_skb(dev,
-					msg_obj_no - C_CAN_MSG_OBJ_TX_FIRST);
-			stats->tx_bytes += priv->read_reg(priv,
-					&priv->regs->ifregs[0].msg_cntrl)
-					& IF_MCONT_DLC_MASK;
-			stats->tx_packets++;
-			c_can_inval_msg_object(dev, 0, msg_obj_no);
-		} else {
-			break;
-=======
 	if (clr & (1 << (C_CAN_MSG_OBJ_TX_NUM - 1)))
 		netif_wake_queue(dev);
 
@@ -858,7 +799,6 @@ static int c_can_read_objects(struct net_device *dev, struct c_can_priv *priv,
 			pkts += n;
 			quota -= n;
 			continue;
->>>>>>> android-3.18
 		}
 
 		/*
@@ -904,54 +844,6 @@ static inline u32 c_can_get_pending(struct c_can_priv *priv)
 static int c_can_do_rx_poll(struct net_device *dev, int quota)
 {
 	struct c_can_priv *priv = netdev_priv(dev);
-<<<<<<< HEAD
-	u32 val = c_can_read_reg32(priv, &priv->regs->intpnd1);
-
-	for (msg_obj = C_CAN_MSG_OBJ_RX_FIRST;
-			msg_obj <= C_CAN_MSG_OBJ_RX_LAST && quota > 0;
-			val = c_can_read_reg32(priv, &priv->regs->intpnd1),
-			msg_obj++) {
-		/*
-		 * as interrupt pending register's bit n-1 corresponds to
-		 * message object n, we need to handle the same properly.
-		 */
-		if (val & (1 << (msg_obj - 1))) {
-			c_can_object_get(dev, 0, msg_obj, IF_COMM_ALL &
-					~IF_COMM_TXRQST);
-			msg_ctrl_save = priv->read_reg(priv,
-					&priv->regs->ifregs[0].msg_cntrl);
-
-			if (msg_ctrl_save & IF_MCONT_MSGLST) {
-				c_can_handle_lost_msg_obj(dev, 0, msg_obj);
-				num_rx_pkts++;
-				quota--;
-				continue;
-			}
-
-			if (msg_ctrl_save & IF_MCONT_EOB)
-				return num_rx_pkts;
-
-			if (!(msg_ctrl_save & IF_MCONT_NEWDAT))
-				continue;
-
-			/* read the data from the message object */
-			c_can_read_msg_object(dev, 0, msg_ctrl_save);
-
-			if (msg_obj < C_CAN_MSG_RX_LOW_LAST)
-				c_can_mark_rx_msg_obj(dev, 0,
-						msg_ctrl_save, msg_obj);
-			else if (msg_obj > C_CAN_MSG_RX_LOW_LAST)
-				/* activate this msg obj */
-				c_can_activate_rx_msg_obj(dev, 0,
-						msg_ctrl_save, msg_obj);
-			else if (msg_obj == C_CAN_MSG_RX_LOW_LAST)
-				/* activate all lower message objects */
-				c_can_activate_all_lower_rx_msg_obj(dev,
-						0, msg_ctrl_save);
-
-			num_rx_pkts++;
-			quota--;
-=======
 	u32 pkts = 0, pend = 0, toread, n;
 
 	/*
@@ -973,7 +865,6 @@ static int c_can_do_rx_poll(struct net_device *dev, int quota)
 			toread = c_can_adjust_pending(pend);
 		} else {
 			toread = pend;
->>>>>>> android-3.18
 		}
 		/* Remove the bits from pend */
 		pend &= ~toread;
@@ -1147,11 +1038,6 @@ static int c_can_poll(struct napi_struct *napi, int quota)
 	u16 curr, last = priv->last_status;
 	int work_done = 0;
 
-<<<<<<< HEAD
-	irqstatus = priv->irqstatus;
-	if (!irqstatus)
-		goto end;
-=======
 	/* Only read the status register if a status interrupt was pending */
 	if (atomic_xchg(&priv->sie_pending, 0)) {
 		priv->last_status = curr = priv->read_reg(priv, C_CAN_STS_REG);
@@ -1162,7 +1048,6 @@ static int c_can_poll(struct napi_struct *napi, int quota)
 		/* no change detected ... */
 		curr = last;
 	}
->>>>>>> android-3.18
 
 	/* handle state changes */
 	if ((curr & STATUS_EWARN) && (!(last & STATUS_EWARN))) {
@@ -1215,13 +1100,8 @@ static irqreturn_t c_can_isr(int irq, void *dev_id)
 	struct c_can_priv *priv = netdev_priv(dev);
 	int reg_int;
 
-<<<<<<< HEAD
-	priv->irqstatus = priv->read_reg(priv, &priv->regs->interrupt);
-	if (!priv->irqstatus)
-=======
 	reg_int = priv->read_reg(priv, C_CAN_INT_REG);
 	if (!reg_int)
->>>>>>> android-3.18
 		return IRQ_NONE;
 
 	/* save for later use */
@@ -1267,12 +1147,9 @@ static int c_can_open(struct net_device *dev)
 
 	can_led_event(dev, CAN_LED_EVENT_OPEN);
 
-<<<<<<< HEAD
-=======
 	napi_enable(&priv->napi);
 	/* enable status change, error and module interrupts */
 	c_can_irq_control(priv, true);
->>>>>>> android-3.18
 	netif_start_queue(dev);
 
 	return 0;

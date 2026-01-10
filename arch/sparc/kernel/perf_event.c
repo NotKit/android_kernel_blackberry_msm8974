@@ -819,24 +819,17 @@ static u64 nop_for_index(int idx)
 static inline void sparc_pmu_enable_event(struct cpu_hw_events *cpuc, struct hw_perf_event *hwc, int idx)
 {
 	u64 enc, val, mask = mask_for_index(idx);
-<<<<<<< HEAD
-=======
 	int pcr_index = 0;
 
 	if (sparc_pmu->num_pcrs > 1)
 		pcr_index = idx;
->>>>>>> android-3.18
 
 	enc = perf_event_get_enc(cpuc->events[idx]);
 
 	val = cpuc->pcr[pcr_index];
 	val &= ~mask;
 	val |= event_encoding(enc, idx);
-<<<<<<< HEAD
-	cpuc->pcr = val;
-=======
 	cpuc->pcr[pcr_index] = val;
->>>>>>> android-3.18
 
 	pcr_ops->write_pcr(pcr_index, cpuc->pcr[pcr_index]);
 }

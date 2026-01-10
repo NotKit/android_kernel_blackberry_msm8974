@@ -96,18 +96,11 @@ ENTRY(xen_iret)
 
 	/* Store vcpu_info pointer for easy access */
 #ifdef CONFIG_SMP
-<<<<<<< HEAD
-	GET_THREAD_INFO(%eax)
-	movl %ss:TI_cpu(%eax), %eax
-	movl %ss:__per_cpu_offset(,%eax,4), %eax
-	mov %ss:xen_vcpu(%eax), %eax
-=======
 	pushw %fs
 	movl $(__KERNEL_PERCPU), %eax
 	movl %eax, %fs
 	movl %fs:xen_vcpu, %eax
 	POP_FS
->>>>>>> android-3.18
 #else
 	movl %ss:xen_vcpu, %eax
 #endif

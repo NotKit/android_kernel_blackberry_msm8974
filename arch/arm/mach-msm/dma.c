@@ -18,15 +18,10 @@
 #include <linux/err.h>
 #include <linux/io.h>
 #include <linux/interrupt.h>
-<<<<<<< HEAD
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/spinlock.h>
 #include <linux/pm_runtime.h>
-=======
-#include <linux/completion.h>
-#include <linux/module.h>
->>>>>>> android-3.18
 #include <mach/dma.h>
 #include <mach/msm_iomap.h>
 
@@ -529,11 +524,7 @@ void msm_dmov_flush(unsigned int id, int graceful)
 	/* spin_unlock_irqrestore has the necessary barrier */
 	spin_unlock_irqrestore(&dmov_conf[adm].lock, irq_flags);
 }
-<<<<<<< HEAD
 EXPORT_SYMBOL(msm_dmov_flush);
-=======
-EXPORT_SYMBOL_GPL(msm_dmov_enqueue_cmd);
->>>>>>> android-3.18
 
 struct msm_dmov_exec_cmdptr_cmd {
 	struct msm_dmov_cmd dmov_cmd;
@@ -692,7 +683,6 @@ static irqreturn_t msm_dmov_isr(int irq, void *dev_id)
 				writel_relaxed(0, DMOV_REG(DMOV_FLUSH0(ch),
 					       adm));
 			}
-<<<<<<< HEAD
 			rmb();
 			ch_status = readl_relaxed(DMOV_REG(DMOV_STATUS(ch),
 						  adm));
@@ -709,17 +699,6 @@ static irqreturn_t msm_dmov_isr(int irq, void *dev_id)
 						DMOV_REG(DMOV_FLUSH0(ch), adm));
 					}
 				}
-=======
-			ch_status = readl(DMOV_STATUS(id));
-			PRINT_FLOW("msm_datamover_irq_handler id %d, status %x\n", id, ch_status);
-			if ((ch_status & DMOV_STATUS_CMD_PTR_RDY) && !list_empty(&ready_commands[id])) {
-				cmd = list_entry(ready_commands[id].next, typeof(*cmd), list);
-				list_move_tail(&cmd->list, &active_commands[id]);
-				if (cmd->execute_func)
-					cmd->execute_func(cmd);
-				PRINT_FLOW("msm_datamover_irq_handler id %d, start command\n", id);
-				writel(cmd->cmdptr, DMOV_CMD_PTR(id));
->>>>>>> android-3.18
 			}
 		} while (ch_status & DMOV_STATUS_RSLT_VALID);
 		if (list_empty(&dmov_conf[adm].active_commands[ch]) &&
@@ -910,7 +889,6 @@ static int msm_dmov_probe(struct platform_device *pdev)
 		     | DMOV_RSLT_CONF_FORCE_FLUSH_RSLT,
 		     DMOV_REG(DMOV_RSLT_CONF(i), adm));
 	}
-<<<<<<< HEAD
 	wmb();
 	msm_dmov_clk_off(adm);
 	return ret;
@@ -937,20 +915,8 @@ static int __init msm_init_datamover(void)
 {
 	int ret;
 	ret = platform_driver_register(&msm_dmov_driver);
-=======
-	clk = clk_get(NULL, "adm_clk");
-	if (IS_ERR(clk))
-		return PTR_ERR(clk);
-	clk_prepare(clk);
-	msm_dmov_clk = clk;
-	ret = request_irq(INT_ADM_AARM, msm_datamover_irq_handler, 0, "msmdatamover", NULL);
->>>>>>> android-3.18
 	if (ret)
 		return ret;
 	return 0;
 }
-<<<<<<< HEAD
 arch_initcall(msm_init_datamover);
-=======
-module_init(msm_init_datamover);
->>>>>>> android-3.18

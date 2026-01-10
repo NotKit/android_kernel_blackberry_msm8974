@@ -36,13 +36,6 @@
 struct srcu_struct_array {
 	unsigned long c[2];
 	unsigned long seq[2];
-<<<<<<< HEAD
-};
-
-struct rcu_batch {
-	struct rcu_head *head, **tail;
-=======
->>>>>>> android-3.18
 };
 
 struct rcu_batch {
@@ -89,8 +82,6 @@ int init_srcu_struct(struct srcu_struct *sp);
 #define __SRCU_DEP_MAP_INIT(srcu_name)
 #endif /* #else #ifdef CONFIG_DEBUG_LOCK_ALLOC */
 
-<<<<<<< HEAD
-=======
 void process_srcu(struct work_struct *work);
 
 #define __SRCU_STRUCT_INIT(name)					\
@@ -119,7 +110,6 @@ void process_srcu(struct work_struct *work);
 	static DEFINE_PER_CPU(struct srcu_struct_array, name##_srcu_array);\
 	static struct srcu_struct name = __SRCU_STRUCT_INIT(name);
 
->>>>>>> android-3.18
 /**
  * call_srcu() - Queue a callback for invocation after an SRCU grace period
  * @sp: srcu_struct in queue the callback

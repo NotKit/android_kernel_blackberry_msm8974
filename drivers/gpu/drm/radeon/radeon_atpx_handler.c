@@ -34,12 +34,6 @@ static struct radeon_atpx_priv {
 	bool atpx_detected;
 	/* handle for device - and atpx */
 	acpi_handle dhandle;
-<<<<<<< HEAD
-	acpi_handle atpx_handle;
-} radeon_atpx_priv;
-
-static int radeon_atpx_get_version(acpi_handle handle)
-=======
 	struct radeon_atpx atpx;
 } radeon_atpx_priv;
 
@@ -81,7 +75,6 @@ bool radeon_has_atpx(void) {
  */
 static union acpi_object *radeon_atpx_call(acpi_handle handle, int function,
 					   struct acpi_buffer *params)
->>>>>>> android-3.18
 {
 	acpi_status status;
 	union acpi_object atpx_arg_elements[2];
@@ -468,11 +461,7 @@ static bool radeon_atpx_pci_probe_handle(struct pci_dev *pdev)
 		return false;
 
 	radeon_atpx_priv.dhandle = dhandle;
-<<<<<<< HEAD
-	radeon_atpx_priv.atpx_handle = atpx_handle;
-=======
 	radeon_atpx_priv.atpx.handle = atpx_handle;
->>>>>>> android-3.18
 	return true;
 }
 

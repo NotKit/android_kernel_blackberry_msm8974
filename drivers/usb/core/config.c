@@ -259,8 +259,6 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno, int inum,
 
 			/*
 			 * Adjust bInterval for quirked devices.
-<<<<<<< HEAD
-=======
 			 */
 			/*
 			 * This quirk fixes bIntervals reported in ms.
@@ -271,7 +269,6 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno, int inum,
 				i = j = n;
 			}
 			/*
->>>>>>> android-3.18
 			 * This quirk fixes bIntervals reported in
 			 * linear microframes.
 			 */
@@ -958,10 +955,6 @@ int usb_get_bos_descriptor(struct usb_device *dev)
 			break;
 		}
 		length = cap->bLength;
-<<<<<<< HEAD
-		total_len -= length;
-=======
->>>>>>> android-3.18
 
 		if (cap->bDescriptorType != USB_DT_DEVICE_CAPABILITY) {
 			dev_warn(ddev, "descriptor type invalid, skip\n");

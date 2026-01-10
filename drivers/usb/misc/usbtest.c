@@ -11,15 +11,12 @@
 #include <linux/usb.h>
 
 #define SIMPLE_IO_TIMEOUT	10000	/* in milliseconds */
-<<<<<<< HEAD
-=======
 
 /*-------------------------------------------------------------------------*/
 
 static int override_alt = -1;
 module_param_named(alt, override_alt, int, 0644);
 MODULE_PARM_DESC(alt, ">= 0 to override altsetting selection");
->>>>>>> android-3.18
 
 /*-------------------------------------------------------------------------*/
 
@@ -550,10 +547,6 @@ static void sg_timeout(unsigned long _req)
 {
 	struct usb_sg_request	*req = (struct usb_sg_request *) _req;
 
-<<<<<<< HEAD
-	req->status = -ETIMEDOUT;
-=======
->>>>>>> android-3.18
 	usb_sg_cancel(req);
 }
 
@@ -584,15 +577,10 @@ static int perform_sglist(
 		mod_timer(&sg_timer, jiffies +
 				msecs_to_jiffies(SIMPLE_IO_TIMEOUT));
 		usb_sg_wait(req);
-<<<<<<< HEAD
-		del_timer_sync(&sg_timer);
-		retval = req->status;
-=======
 		if (!del_timer_sync(&sg_timer))
 			retval = -ETIMEDOUT;
 		else
 			retval = req->status;
->>>>>>> android-3.18
 
 		/* FIXME check resulting data pattern */
 
@@ -1688,15 +1676,9 @@ static int halt_simple(struct usbtest_dev *dev)
 	struct usb_device	*udev = testdev_to_usbdev(dev);
 
 	if (udev->speed == USB_SPEED_SUPER)
-<<<<<<< HEAD
-		urb = simple_alloc_urb(udev, 0, 1024);
-	else
-		urb = simple_alloc_urb(udev, 0, 512);
-=======
 		urb = simple_alloc_urb(udev, 0, 1024, 0);
 	else
 		urb = simple_alloc_urb(udev, 0, 512, 0);
->>>>>>> android-3.18
 	if (urb == NULL)
 		return -ENOMEM;
 

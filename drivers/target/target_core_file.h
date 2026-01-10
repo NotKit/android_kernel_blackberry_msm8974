@@ -19,8 +19,6 @@
 #define FBDF_HAS_PATH		0x01
 #define FBDF_HAS_SIZE		0x02
 #define FDBD_HAS_BUFFERED_IO_WCE 0x04
-<<<<<<< HEAD
-=======
 #define FDBD_FORMAT_UNIT_SIZE	2048
 
 struct fd_prot {
@@ -28,7 +26,6 @@ struct fd_prot {
 	struct scatterlist *prot_sg;
 	u32 prot_sg_nents;
 };
->>>>>>> android-3.18
 
 struct fd_dev {
 	struct se_device dev;

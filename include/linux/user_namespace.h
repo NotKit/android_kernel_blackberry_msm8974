@@ -16,25 +16,15 @@ struct uid_gid_map {	/* 64 bytes -- 1 cache line */
 		u32 count;
 	} extent[UID_GID_MAP_MAX_EXTENTS];
 };
-<<<<<<< HEAD
-=======
 
 #define USERNS_SETGROUPS_ALLOWED 1UL
 
 #define USERNS_INIT_FLAGS USERNS_SETGROUPS_ALLOWED
->>>>>>> android-3.18
 
 struct user_namespace {
 	struct uid_gid_map	uid_map;
 	struct uid_gid_map	gid_map;
 	struct uid_gid_map	projid_map;
-<<<<<<< HEAD
-	struct kref		kref;
-	struct user_namespace	*parent;
-	kuid_t			owner;
-	kgid_t			group;
-	unsigned int		proc_inum;
-=======
 	atomic_t		count;
 	struct user_namespace	*parent;
 	int			level;
@@ -48,7 +38,6 @@ struct user_namespace {
 	struct key		*persistent_keyring_register;
 	struct rw_semaphore	persistent_keyring_register_sem;
 #endif
->>>>>>> android-3.18
 };
 
 extern struct user_namespace init_user_ns;
@@ -64,11 +53,7 @@ static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
 
 extern int create_user_ns(struct cred *new);
 extern int unshare_userns(unsigned long unshare_flags, struct cred **new_cred);
-<<<<<<< HEAD
-extern void free_user_ns(struct kref *kref);
-=======
 extern void free_user_ns(struct user_namespace *ns);
->>>>>>> android-3.18
 
 static inline void put_user_ns(struct user_namespace *ns)
 {
@@ -77,14 +62,6 @@ static inline void put_user_ns(struct user_namespace *ns)
 }
 
 struct seq_operations;
-<<<<<<< HEAD
-extern struct seq_operations proc_uid_seq_operations;
-extern struct seq_operations proc_gid_seq_operations;
-extern struct seq_operations proc_projid_seq_operations;
-extern ssize_t proc_uid_map_write(struct file *, const char __user *, size_t, loff_t *);
-extern ssize_t proc_gid_map_write(struct file *, const char __user *, size_t, loff_t *);
-extern ssize_t proc_projid_map_write(struct file *, const char __user *, size_t, loff_t *);
-=======
 extern const struct seq_operations proc_uid_seq_operations;
 extern const struct seq_operations proc_gid_seq_operations;
 extern const struct seq_operations proc_projid_seq_operations;
@@ -94,7 +71,6 @@ extern ssize_t proc_projid_map_write(struct file *, const char __user *, size_t,
 extern ssize_t proc_setgroups_write(struct file *, const char __user *, size_t, loff_t *);
 extern int proc_setgroups_show(struct seq_file *m, void *v);
 extern bool userns_may_setgroups(const struct user_namespace *ns);
->>>>>>> android-3.18
 #else
 
 static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
@@ -109,37 +85,12 @@ static inline int create_user_ns(struct cred *new)
 
 static inline int unshare_userns(unsigned long unshare_flags,
 				 struct cred **new_cred)
-<<<<<<< HEAD
 {
 	if (unshare_flags & CLONE_NEWUSER)
 		return -EINVAL;
 	return 0;
 }
 
-static inline void put_user_ns(struct user_namespace *ns)
-=======
->>>>>>> android-3.18
-{
-	if (unshare_flags & CLONE_NEWUSER)
-		return -EINVAL;
-	return 0;
-}
-
-<<<<<<< HEAD
-#endif
-
-static inline uid_t user_ns_map_uid(struct user_namespace *to,
-	const struct cred *cred, kuid_t uid)
-{
-	return from_kuid_munged(to, uid);
-}
-
-static inline gid_t user_ns_map_gid(struct user_namespace *to,
-	const struct cred *cred, kgid_t gid)
-{
-	return from_kgid_munged(to, gid);
-}
-=======
 static inline void put_user_ns(struct user_namespace *ns)
 {
 }
@@ -149,6 +100,5 @@ static inline bool userns_may_setgroups(const struct user_namespace *ns)
 	return true;
 }
 #endif
->>>>>>> android-3.18
 
 #endif /* _LINUX_USER_H */

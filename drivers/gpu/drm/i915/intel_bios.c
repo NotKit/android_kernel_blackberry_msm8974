@@ -306,13 +306,6 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 		/* check the resolution, just to be sure */
 		if (fp_timing->x_res == panel_fixed_mode->hdisplay &&
 		    fp_timing->y_res == panel_fixed_mode->vdisplay) {
-<<<<<<< HEAD
-			dev_priv->bios_lvds_val = fp_timing->lvds_reg_val;
-			DRM_DEBUG_KMS("VBT initial LVDS value %x\n",
-				      dev_priv->bios_lvds_val);
-		}
-	}
-=======
 			dev_priv->vbt.bios_lvds_val = fp_timing->lvds_reg_val;
 			DRM_DEBUG_KMS("VBT initial LVDS value %x\n",
 				      dev_priv->vbt.bios_lvds_val);
@@ -354,7 +347,6 @@ parse_lfp_backlight(struct drm_i915_private *dev_priv, struct bdb_header *bdb)
 		      dev_priv->vbt.backlight.active_low_pwm ? "low" : "high",
 		      dev_priv->vbt.backlight.min_brightness,
 		      backlight_data->level[panel_type]);
->>>>>>> android-3.18
 }
 
 /* Try to find sdvo panel data */
@@ -585,11 +577,7 @@ parse_edp(struct drm_i915_private *dev_priv, struct bdb_header *bdb)
 
 	edp = find_section(bdb, BDB_EDP);
 	if (!edp) {
-<<<<<<< HEAD
-		if (SUPPORTS_EDP(dev_priv->dev) && dev_priv->edp.support)
-=======
 		if (dev_priv->vbt.edp_support)
->>>>>>> android-3.18
 			DRM_DEBUG_KMS("No eDP BDB found but eDP panel supported.\n");
 		return;
 	}
@@ -1128,11 +1116,6 @@ init_vbt_defaults(struct drm_i915_private *dev_priv)
 	dev_priv->vbt.int_crt_support = 1;
 
 	/* Default to using SSC */
-<<<<<<< HEAD
-	dev_priv->lvds_use_ssc = 1;
-	dev_priv->lvds_ssc_freq = intel_bios_ssc_frequency(dev, 1);
-	DRM_DEBUG_KMS("Set default to SSC at %dMHz\n", dev_priv->lvds_ssc_freq);
-=======
 	dev_priv->vbt.lvds_use_ssc = 1;
 	/*
 	 * Core/SandyBridge/IvyBridge use alternative (120MHz) reference
@@ -1152,7 +1135,6 @@ init_vbt_defaults(struct drm_i915_private *dev_priv)
 		info->supports_hdmi = info->supports_dvi;
 		info->supports_dp = (port != PORT_E);
 	}
->>>>>>> android-3.18
 }
 
 static int intel_no_opregion_vbt_callback(const struct dmi_system_id *id)

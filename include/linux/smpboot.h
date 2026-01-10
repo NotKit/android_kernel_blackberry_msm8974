@@ -31,11 +31,7 @@ struct smpboot_thread_data;
  * @thread_comm:	The base name of the thread
  */
 struct smp_hotplug_thread {
-<<<<<<< HEAD
-	struct task_struct __percpu	**store;
-=======
 	struct task_struct		* __percpu *store;
->>>>>>> android-3.18
 	struct list_head		list;
 	int				(*thread_should_run)(unsigned int cpu);
 	void				(*thread_fn)(unsigned int cpu);

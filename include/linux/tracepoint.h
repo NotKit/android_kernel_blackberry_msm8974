@@ -51,16 +51,6 @@ struct tp_module {
 	struct list_head list;
 	struct module *mod;
 };
-<<<<<<< HEAD
-bool trace_module_has_bad_taint(struct module *mod);
-#else
-static inline bool trace_module_has_bad_taint(struct module *mod)
-{
-	return false;
-}
-#endif /* CONFIG_MODULES */
-=======
->>>>>>> android-3.18
 
 bool trace_module_has_bad_taint(struct module *mod);
 extern int register_tracepoint_module_notifier(struct notifier_block *nb);

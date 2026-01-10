@@ -701,14 +701,9 @@ static void cpsw_tx_handler(void *token, int len, int status)
 	 */
 	if (unlikely(netif_queue_stopped(ndev)))
 		netif_wake_queue(ndev);
-<<<<<<< HEAD
-	priv->stats.tx_packets++;
-	priv->stats.tx_bytes += len;
-=======
 	cpts_tx_timestamp(priv->cpts, skb);
 	ndev->stats.tx_packets++;
 	ndev->stats.tx_bytes += len;
->>>>>>> android-3.18
 	dev_kfree_skb_any(skb);
 }
 

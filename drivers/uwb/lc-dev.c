@@ -433,11 +433,7 @@ void uwbd_dev_onair(struct uwb_rc *rc, struct uwb_beca_e *bce)
 	uwb_dev->dev.bus = &uwb_bus_type;
 	uwb_dev->mac_addr = *bce->mac_addr;
 	uwb_dev->dev_addr = bce->dev_addr;
-<<<<<<< HEAD
-	dev_set_name(&uwb_dev->dev, macbuf);
-=======
 	dev_set_name(&uwb_dev->dev, "%s", macbuf);
->>>>>>> android-3.18
 
 	/* plug the beacon cache */
 	bce->uwb_dev = uwb_dev;

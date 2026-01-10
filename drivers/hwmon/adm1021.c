@@ -424,29 +424,6 @@ static int adm1021_detect(struct i2c_client *client,
 				return -ENODEV;
 			type_name = "max1617";
 		}
-<<<<<<< HEAD
-	}
-
-	pr_debug("adm1021: Detected chip %s at adapter %d, address 0x%02x.\n",
-		 type_name, i2c_adapter_id(adapter), client->addr);
-	strlcpy(info->type, type_name, I2C_NAME_SIZE);
-
-	return 0;
-}
-
-static int adm1021_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
-{
-	struct adm1021_data *data;
-	int err;
-
-	data = kzalloc(sizeof(struct adm1021_data), GFP_KERNEL);
-	if (!data) {
-		pr_debug("adm1021: detect failed, kzalloc failed!\n");
-		err = -ENOMEM;
-		goto error0;
-=======
->>>>>>> android-3.18
 	}
 
 	pr_debug("Detected chip %s at adapter %d, address 0x%02x.\n",

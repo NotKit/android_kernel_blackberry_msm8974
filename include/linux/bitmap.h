@@ -121,13 +121,8 @@ extern int __bitmap_subset(const unsigned long *bitmap1,
 			const unsigned long *bitmap2, unsigned int nbits);
 extern int __bitmap_weight(const unsigned long *bitmap, unsigned int nbits);
 
-<<<<<<< HEAD
-extern void bitmap_set(unsigned long *map, int i, int len);
-extern void bitmap_clear(unsigned long *map, int start, int nr);
-=======
 extern void bitmap_set(unsigned long *map, unsigned int start, int len);
 extern void bitmap_clear(unsigned long *map, unsigned int start, int len);
->>>>>>> android-3.18
 
 extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 						    unsigned long size,
@@ -136,8 +131,6 @@ extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 						    unsigned long align_mask,
 						    unsigned long align_offset);
 
-<<<<<<< HEAD
-=======
 /**
  * bitmap_find_next_zero_area - find a contiguous aligned zero area
  * @map: The address to base the search on
@@ -150,7 +143,6 @@ extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
  * the bit offset of all zero areas this function finds is multiples of that
  * power of 2. A @align_mask of 0 means no alignment is required.
  */
->>>>>>> android-3.18
 static inline unsigned long
 bitmap_find_next_zero_area(unsigned long *map,
 			   unsigned long size,

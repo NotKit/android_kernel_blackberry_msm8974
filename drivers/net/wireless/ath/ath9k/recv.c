@@ -68,18 +68,11 @@ static void ath_rx_buf_link(struct ath_softc *sc, struct ath_rxbuf *bf,
 	sc->rx.rxlink = &ds->ds_link;
 }
 
-<<<<<<< HEAD
-static void ath_rx_buf_relink(struct ath_softc *sc, struct ath_buf *bf)
-{
-	if (sc->rx.buf_hold)
-		ath_rx_buf_link(sc, sc->rx.buf_hold);
-=======
 static void ath_rx_buf_relink(struct ath_softc *sc, struct ath_rxbuf *bf,
 			      bool flush)
 {
 	if (sc->rx.buf_hold)
 		ath_rx_buf_link(sc, sc->rx.buf_hold, flush);
->>>>>>> android-3.18
 
 	sc->rx.buf_hold = bf;
 }
@@ -714,11 +707,7 @@ static struct ath_rxbuf *ath_get_next_rx_buf(struct ath_softc *sc,
 		return NULL;
 	}
 
-<<<<<<< HEAD
-	bf = list_first_entry(&sc->rx.rxbuf, struct ath_buf, list);
-=======
 	bf = list_first_entry(&sc->rx.rxbuf, struct ath_rxbuf, list);
->>>>>>> android-3.18
 	if (bf == sc->rx.buf_hold)
 		return NULL;
 
@@ -802,21 +791,10 @@ static void ath9k_process_tsf(struct ath_rx_status *rs,
 {
 	u32 tsf_lower = tsf & 0xffffffff;
 
-<<<<<<< HEAD
-	/*
-	 * Key miss events are only relevant for pairwise keys where the
-	 * descriptor does contain a valid key index. This has been observed
-	 * mostly with CCMP encryption.
-	 */
-	if (rx_stats->rs_keyix == ATH9K_RXKEYIX_INVALID ||
-	    !test_bit(rx_stats->rs_keyix, common->ccmp_keymap))
-		rx_stats->rs_status &= ~ATH9K_RXERR_KEYMISS;
-=======
 	rxs->mactime = (tsf & ~0xffffffffULL) | rs->rs_tstamp;
 	if (rs->rs_tstamp > tsf_lower &&
 	    unlikely(rs->rs_tstamp - tsf_lower > 0x10000000))
 		rxs->mactime -= 0x100000000ULL;
->>>>>>> android-3.18
 
 	if (rs->rs_tstamp < tsf_lower &&
 	    unlikely(tsf_lower - rs->rs_tstamp > 0x10000000))
@@ -1045,12 +1023,6 @@ int ath_rx_tasklet(struct ath_softc *sc, int flush, bool hp)
 
 	do {
 		bool decrypt_error = false;
-<<<<<<< HEAD
-		/* If handling rx interrupt and flush is in progress => exit */
-		if ((sc->sc_flags & SC_OP_RXFLUSH) && (flush == 0))
-			break;
-=======
->>>>>>> android-3.18
 
 		memset(&rs, 0, sizeof(rs));
 		if (edma)
@@ -1181,16 +1153,6 @@ requeue_drop_frag:
 		}
 requeue:
 		list_add_tail(&bf->list, &sc->rx.rxbuf);
-<<<<<<< HEAD
-		if (flush)
-			continue;
-
-		if (edma) {
-			ath_rx_edma_buf_link(sc, qtype);
-		} else {
-			ath_rx_buf_relink(sc, bf);
-			ath9k_hw_rxena(ah);
-=======
 
 		if (!edma) {
 			ath_rx_buf_relink(sc, bf, flush);
@@ -1198,7 +1160,6 @@ requeue:
 				ath9k_hw_rxena(ah);
 		} else if (!flush) {
 			ath_rx_edma_buf_link(sc, qtype);
->>>>>>> android-3.18
 		}
 
 		if (!budget--)

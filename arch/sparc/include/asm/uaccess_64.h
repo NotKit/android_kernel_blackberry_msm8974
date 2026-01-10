@@ -265,17 +265,10 @@ __must_check long strnlen_user(const char __user *str, long n);
 #define __copy_to_user_inatomic __copy_to_user
 #define __copy_from_user_inatomic __copy_from_user
 
-<<<<<<< HEAD
-#define strlen_user __strlen_user
-#define strnlen_user __strnlen_user
-#define __copy_to_user_inatomic __copy_to_user
-#define __copy_from_user_inatomic __copy_from_user
-=======
 struct pt_regs;
 unsigned long compute_effective_address(struct pt_regs *,
 					unsigned int insn,
 					unsigned int rd);
->>>>>>> android-3.18
 
 #endif  /* __ASSEMBLY__ */
 

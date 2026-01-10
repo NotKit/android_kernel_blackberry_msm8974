@@ -2336,11 +2336,8 @@ static int b43_try_request_fw(struct b43_request_fw_context *ctx)
 		filename = "ucode5";
 		break;
 	}
-<<<<<<< HEAD
-=======
 	if (!filename)
 		goto err_no_ucode;
->>>>>>> android-3.18
 	err = b43_do_request_fw(ctx, filename, &fw->ucode, true);
 	if (err)
 		goto err_load;
@@ -2415,11 +2412,8 @@ static int b43_try_request_fw(struct b43_request_fw_context *ctx)
 			filename = "ac0initvals40";
 		break;
 	}
-<<<<<<< HEAD
-=======
 	if (!filename)
 		goto err_no_initvals;
->>>>>>> android-3.18
 	err = b43_do_request_fw(ctx, filename, &fw->initvals, false);
 	if (err)
 		goto err_load;
@@ -2478,11 +2472,8 @@ static int b43_try_request_fw(struct b43_request_fw_context *ctx)
 			filename = "ac0bsinitvals40";
 		break;
 	}
-<<<<<<< HEAD
-=======
 	if (!filename)
 		goto err_no_initvals;
->>>>>>> android-3.18
 	err = b43_do_request_fw(ctx, filename, &fw->initvals_band, false);
 	if (err)
 		goto err_load;
@@ -5746,15 +5737,7 @@ static void b43_ssb_remove(struct ssb_device *sdev)
 	B43_WARN_ON(!wl);
 	if (!wldev->fw.ucode.data)
 		return;			/* NULL if firmware never loaded */
-<<<<<<< HEAD
-	if (wl->current_dev == wldev) {
-		/* Restore the queues count before unregistering, because firmware detect
-		 * might have modified it. Restoring is important, so the networking
-		 * stack can properly free resources. */
-		wl->hw->queues = wl->mac80211_initially_registered_queues;
-=======
 	if (wl->current_dev == wldev && wl->hw_registred) {
->>>>>>> android-3.18
 		b43_leds_stop(wldev);
 		ieee80211_unregister_hw(wl->hw);
 	}
@@ -5764,18 +5747,8 @@ static void b43_ssb_remove(struct ssb_device *sdev)
 	/* Unregister HW RNG driver */
 	b43_rng_exit(wl);
 
-<<<<<<< HEAD
-	if (list_empty(&wl->devlist)) {
-		b43_leds_unregister(wl);
-		/* Last core on the chip unregistered.
-		 * We can destroy common struct b43_wl.
-		 */
-		b43_wireless_exit(dev, wl);
-	}
-=======
 	b43_leds_unregister(wl);
 	b43_wireless_exit(dev, wl);
->>>>>>> android-3.18
 }
 
 static struct ssb_driver b43_ssb_driver = {

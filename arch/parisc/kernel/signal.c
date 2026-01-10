@@ -507,16 +507,10 @@ syscall_restart(struct pt_regs *regs, struct k_sigaction *ka)
 		}
 		/* fallthrough */
 	case -ERESTARTNOINTR:
-<<<<<<< HEAD
-		check_syscallno_in_delay_branch(regs);
-		/* Preserve original r28. */
-		regs->gr[28] = regs->orig_r28;
-=======
 		/* A syscall is just a branch, so all
 		 * we have to do is fiddle the return pointer.
 		 */
 		regs->gr[31] -= 8; /* delayed branching */
->>>>>>> android-3.18
 		break;
 	}
 }
@@ -565,10 +559,6 @@ insert_restart_trampoline(struct pt_regs *regs)
 	}
 	case -ERESTARTNOHAND:
 	case -ERESTARTSYS:
-<<<<<<< HEAD
-	case -ERESTARTNOINTR:
-		check_syscallno_in_delay_branch(regs);
-=======
 	case -ERESTARTNOINTR: {
 		/* Hooray for delayed branching.  We don't
 		 * have to restore %r20 (the system call
@@ -576,7 +566,6 @@ insert_restart_trampoline(struct pt_regs *regs)
 		 * slot of the branch external instruction.
 		 */
 		regs->gr[31] -= 8;
->>>>>>> android-3.18
 		return;
 	default:
 		break;

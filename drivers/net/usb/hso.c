@@ -2897,14 +2897,6 @@ static int hso_probe(struct usb_interface *interface,
 		port_spec = hso_get_config_data(interface);
 		if (port_spec < 0)
 			goto exit;
-<<<<<<< HEAD
-	}
-
-	if (interface->cur_altsetting->desc.bInterfaceClass != 0xFF) {
-		dev_err(&interface->dev, "Not our interface\n");
-		return -ENODEV;
-=======
->>>>>>> android-3.18
 	}
 
 	/* Check if we need to switch to alt interfaces prior to port

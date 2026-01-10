@@ -97,12 +97,7 @@ EXPORT_SYMBOL_GPL(timed_output_dev_register);
 
 void timed_output_dev_unregister(struct timed_output_dev *tdev)
 {
-<<<<<<< HEAD
-	device_remove_file(tdev->dev, &dev_attr_enable);
-	dev_set_drvdata(tdev->dev, NULL);
-=======
 	tdev->enable(tdev, 0);
->>>>>>> android-3.18
 	device_destroy(timed_output_class, MKDEV(0, tdev->index));
 }
 EXPORT_SYMBOL_GPL(timed_output_dev_unregister);

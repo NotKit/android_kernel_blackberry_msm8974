@@ -322,23 +322,6 @@ out:
 
 }
 
-<<<<<<< HEAD
-static void drop_ref(struct hidraw *hidraw, int exists_bit)
-{
-	if (exists_bit) {
-		hid_hw_close(hidraw->hid);
-		hidraw->exist = 0;
-		if (hidraw->open)
-			wake_up_interruptible(&hidraw->wait);
-	} else {
-		--hidraw->open;
-	}
-
-	if (!hidraw->open && !hidraw->exist) {
-		device_destroy(hidraw_class, MKDEV(hidraw_major, hidraw->minor));
-		hidraw_table[hidraw->minor] = NULL;
-		kfree(hidraw);
-=======
 static int hidraw_fasync(int fd, struct file *file, int on)
 {
 	struct hidraw_list *list = file->private_data;
@@ -368,7 +351,6 @@ static void drop_ref(struct hidraw *hidraw, int exists_bit)
 			hid_hw_power(hidraw->hid, PM_HINT_NORMAL);
 			hid_hw_close(hidraw->hid);
 		}
->>>>>>> android-3.18
 	}
 }
 
@@ -376,19 +358,13 @@ static int hidraw_release(struct inode * inode, struct file * file)
 {
 	unsigned int minor = iminor(inode);
 	struct hidraw_list *list = file->private_data;
-<<<<<<< HEAD
-=======
 	unsigned long flags;
->>>>>>> android-3.18
 
 	mutex_lock(&minors_lock);
 
 	spin_lock_irqsave(&hidraw_table[minor]->list_lock, flags);
 	list_del(&list->node);
-<<<<<<< HEAD
-=======
 	spin_unlock_irqrestore(&hidraw_table[minor]->list_lock, flags);
->>>>>>> android-3.18
 	kfree(list);
 
 	drop_ref(hidraw_table[minor], 0);
@@ -517,10 +493,7 @@ int hidraw_report_event(struct hid_device *hid, u8 *data, int len)
 	struct hidraw *dev = hid->hidraw;
 	struct hidraw_list *list;
 	int ret = 0;
-<<<<<<< HEAD
-=======
 	unsigned long flags;
->>>>>>> android-3.18
 
 	spin_lock_irqsave(&dev->list_lock, flags);
 	list_for_each_entry(list, &dev->list, node) {
@@ -606,15 +579,9 @@ void hidraw_disconnect(struct hid_device *hid)
 	struct hidraw *hidraw = hid->hidraw;
 
 	mutex_lock(&minors_lock);
-<<<<<<< HEAD
 
 	drop_ref(hidraw, 1);
 
-=======
-
-	drop_ref(hidraw, 1);
-
->>>>>>> android-3.18
 	mutex_unlock(&minors_lock);
 }
 EXPORT_SYMBOL_GPL(hidraw_disconnect);
@@ -645,10 +612,7 @@ int __init hidraw_init(void)
 	if (result < 0)
 		goto error_class;
 
-<<<<<<< HEAD
-=======
 	printk(KERN_INFO "hidraw: raw HID events driver (C) Jiri Kosina\n");
->>>>>>> android-3.18
 out:
 	return result;
 

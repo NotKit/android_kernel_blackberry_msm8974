@@ -2620,28 +2620,6 @@ static int isp1362_remove(struct platform_device *pdev)
 	remove_debug_file(isp1362_hcd);
 	DBG(0, "%s: Removing HCD\n", __func__);
 	usb_remove_hcd(hcd);
-<<<<<<< HEAD
-
-	DBG(0, "%s: Unmapping data_reg @ %pK\n", __func__,
-	    isp1362_hcd->data_reg);
-	iounmap(isp1362_hcd->data_reg);
-
-	DBG(0, "%s: Unmapping addr_reg @ %pK\n", __func__,
-	    isp1362_hcd->addr_reg);
-	iounmap(isp1362_hcd->addr_reg);
-
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	DBG(0, "%s: release mem_region: %08lx\n", __func__, (long unsigned int)res->start);
-	if (res)
-		release_mem_region(res->start, resource_size(res));
-
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	DBG(0, "%s: release mem_region: %08lx\n", __func__, (long unsigned int)res->start);
-	if (res)
-		release_mem_region(res->start, resource_size(res));
-
-=======
->>>>>>> android-3.18
 	DBG(0, "%s: put_hcd\n", __func__);
 	usb_put_hcd(hcd);
 	DBG(0, "%s: Done\n", __func__);
@@ -2737,28 +2715,8 @@ static int isp1362_probe(struct platform_device *pdev)
 
 	return 0;
 
-<<<<<<< HEAD
- err6:
-	DBG(0, "%s: Freeing dev %pK\n", __func__, isp1362_hcd);
-	usb_put_hcd(hcd);
- err5:
-	DBG(0, "%s: Unmapping data_reg @ %pK\n", __func__, data_reg);
-	iounmap(data_reg);
- err4:
-	DBG(0, "%s: Releasing mem region %08lx\n", __func__, (long unsigned int)data->start);
-	release_mem_region(data->start, resource_size(data));
- err3:
-	DBG(0, "%s: Unmapping addr_reg @ %pK\n", __func__, addr_reg);
-	iounmap(addr_reg);
- err2:
-	DBG(0, "%s: Releasing mem region %08lx\n", __func__, (long unsigned int)addr->start);
-	release_mem_region(addr->start, resource_size(addr));
- err1:
-	pr_err("%s: init error, %d\n", __func__, retval);
-=======
  err:
 	usb_put_hcd(hcd);
->>>>>>> android-3.18
 
 	return retval;
 }

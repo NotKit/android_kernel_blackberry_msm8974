@@ -14,44 +14,6 @@
 #include <linux/kernel.h>
 #include <linux/syscalls.h>
 
-<<<<<<< HEAD
-#include <asm/types.h>
-#include <asm/uaccess.h>
-#include <asm/mmu_context.h>
-
-#include "sys32.h"
-
-#undef DEBUG
-
-#ifdef DEBUG
-#define DBG(x)	printk x
-#else
-#define DBG(x)
-#endif
-
-/*
- * sys32_execve() executes a new program.
- */
-
-asmlinkage int sys32_execve(struct pt_regs *regs)
-{
-	int error;
-	struct filename *filename;
-
-	DBG(("sys32_execve(%p) r26 = 0x%lx\n", regs, regs->gr[26]));
-	filename = getname((const char __user *) regs->gr[26]);
-	error = PTR_ERR(filename);
-	if (IS_ERR(filename))
-		goto out;
-	error = compat_do_execve(filename->name, compat_ptr(regs->gr[25]),
-				 compat_ptr(regs->gr[24]), regs);
-	putname(filename);
-out:
-
-	return error;
-}
-=======
->>>>>>> android-3.18
 
 asmlinkage long sys32_unimplemented(int r26, int r25, int r24, int r23,
 	int r22, int r21, int r20)

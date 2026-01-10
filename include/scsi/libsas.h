@@ -174,9 +174,6 @@ struct sata_device {
 
 	struct ata_port *ap;
 	struct ata_host ata_host;
-<<<<<<< HEAD
-	u8     fis[ATA_RESP_FIS_SIZE];
-=======
 	struct smp_resp rps_resp ____cacheline_aligned; /* report_phy_sata_resp */
 	u8     fis[ATA_RESP_FIS_SIZE];
 };
@@ -184,7 +181,6 @@ struct sata_device {
 struct ssp_device {
 	struct list_head eh_list_node; /* pending a user requested eh action */
 	struct scsi_lun reset_lun;
->>>>>>> android-3.18
 };
 
 enum {

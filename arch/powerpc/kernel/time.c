@@ -213,17 +213,10 @@ static u64 scan_dispatch_log(u64 stop_tb)
 
 	if (i == be64_to_cpu(vpa->dtl_idx))
 		return 0;
-<<<<<<< HEAD
-	while (i < vpa->dtl_idx) {
-		dtb = dtl->timebase;
-		tb_delta = dtl->enqueue_to_dispatch_time +
-			dtl->ready_to_enqueue_time;
-=======
 	while (i < be64_to_cpu(vpa->dtl_idx)) {
 		dtb = be64_to_cpu(dtl->timebase);
 		tb_delta = be32_to_cpu(dtl->enqueue_to_dispatch_time) +
 			be32_to_cpu(dtl->ready_to_enqueue_time);
->>>>>>> android-3.18
 		barrier();
 		if (i + N_DISPATCH_LOG < be64_to_cpu(vpa->dtl_idx)) {
 			/* buffer has overflowed */
@@ -535,11 +528,6 @@ void timer_interrupt(struct pt_regs * regs)
 {
 	struct pt_regs *old_regs;
 	u64 *next_tb = &__get_cpu_var(decrementers_next_tb);
-<<<<<<< HEAD
-	struct clock_event_device *evt = &__get_cpu_var(decrementers);
-	u64 now;
-=======
->>>>>>> android-3.18
 
 	/* Ensure a positive value is written to the decrementer, or else
 	 * some CPUs will continue to take decrementer exceptions.
@@ -571,34 +559,7 @@ void timer_interrupt(struct pt_regs * regs)
 	old_regs = set_irq_regs(regs);
 	irq_enter();
 
-<<<<<<< HEAD
-	if (test_irq_work_pending()) {
-		clear_irq_work_pending();
-		irq_work_run();
-	}
-
-	now = get_tb_or_rtc();
-	if (now >= *next_tb) {
-		*next_tb = ~(u64)0;
-		if (evt->event_handler)
-			evt->event_handler(evt);
-	} else {
-		now = *next_tb - now;
-		if (now <= DECREMENTER_MAX)
-			set_dec((int)now);
-	}
-
-#ifdef CONFIG_PPC64
-	/* collect purr register values often, for accurate calculations */
-	if (firmware_has_feature(FW_FEATURE_SPLPAR)) {
-		struct cpu_usage *cu = &__get_cpu_var(cpu_usage_array);
-		cu->current_tb = mfspr(SPRN_PURR);
-	}
-#endif
-
-=======
 	__timer_interrupt();
->>>>>>> android-3.18
 	irq_exit();
 	set_irq_regs(old_regs);
 }

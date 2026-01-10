@@ -384,12 +384,9 @@ static int hpet_mmap(struct file *file, struct vm_area_struct *vma)
 	struct hpet_dev *devp;
 	unsigned long addr;
 
-<<<<<<< HEAD
-=======
 	if (!hpet_mmap_enabled)
 		return -EACCES;
 
->>>>>>> android-3.18
 	devp = file->private_data;
 	addr = devp->hd_hpets->hp_hpet_phys;
 
@@ -398,10 +395,7 @@ static int hpet_mmap(struct file *file, struct vm_area_struct *vma)
 
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 	return vm_iomap_memory(vma, addr, PAGE_SIZE);
-<<<<<<< HEAD
-=======
 }
->>>>>>> android-3.18
 #else
 static int hpet_mmap(struct file *file, struct vm_area_struct *vma)
 {

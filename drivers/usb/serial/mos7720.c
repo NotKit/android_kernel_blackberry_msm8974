@@ -234,13 +234,6 @@ static int read_mos_reg(struct usb_serial *serial, unsigned int serial_portnum,
 
 	status = usb_control_msg(usbdev, pipe, request, requesttype, value,
 				     index, buf, 1, MOS_WDR_TIMEOUT);
-<<<<<<< HEAD
-	if (status == 1)
-		*data = *buf;
-	else if (status < 0)
-		dev_err(&usbdev->dev,
-			"mos7720: usb_control_msg() failed: %d", status);
-=======
 	if (status == 1) {
 		*data = *buf;
 	} else {
@@ -251,7 +244,6 @@ static int read_mos_reg(struct usb_serial *serial, unsigned int serial_portnum,
 		*data = 0;
 	}
 
->>>>>>> android-3.18
 	kfree(buf);
 
 	return status;
@@ -386,15 +378,6 @@ static int write_parport_reg_nonblock(struct mos7715_parport *mos_parport,
 		kfree(urbtrack);
 		return -ENOMEM;
 	}
-<<<<<<< HEAD
-	urbtrack->setup = kmalloc(sizeof(*urbtrack->setup), GFP_ATOMIC);
-	if (!urbtrack->setup) {
-		usb_free_urb(urbtrack->urb);
-		kfree(urbtrack);
-		return -ENOMEM;
-	}
-=======
->>>>>>> android-3.18
 	urbtrack->setup->bRequestType = (__u8)0x40;
 	urbtrack->setup->bRequest = (__u8)0x0e;
 	urbtrack->setup->wValue = cpu_to_le16(get_reg_value(reg, dummy));
@@ -1050,13 +1033,7 @@ static int mos7720_open(struct tty_struct *tty, struct usb_serial_port *port)
 	port_number = port->port_number;
 	read_mos_reg(serial, port_number, LSR, &data);
 
-<<<<<<< HEAD
-	dbg("SS::%pK LSR:%x", mos7720_port, data);
-
-	dbg("Check:Sending Command ..........");
-=======
 	dev_dbg(&port->dev, "SS::%p LSR:%x\n", mos7720_port, data);
->>>>>>> android-3.18
 
 	write_mos_reg(serial, dummy, SP1_REG, 0x02);
 	write_mos_reg(serial, dummy, SP2_REG, 0x02);
@@ -1952,16 +1929,6 @@ static int mos7720_startup(struct usb_serial *serial)
 	/* setting configuration feature to one */
 	usb_control_msg(serial->dev, usb_sndctrlpipe(serial->dev, 0),
 			(__u8)0x03, 0x00, 0x01, 0x00, NULL, 0x00, 5000);
-<<<<<<< HEAD
-
-	/* start the interrupt urb */
-	ret_val = usb_submit_urb(serial->port[0]->interrupt_in_urb, GFP_KERNEL);
-	if (ret_val)
-		dev_err(&dev->dev,
-			"%s - Error %d submitting control urb\n",
-			__func__, ret_val);
-=======
->>>>>>> android-3.18
 
 #ifdef CONFIG_USB_SERIAL_MOS7715_PARPORT
 	if (product == MOSCHIP_DEVICE_ID_7715) {

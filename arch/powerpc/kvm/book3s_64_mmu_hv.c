@@ -471,22 +471,13 @@ static int kvmppc_mmu_book3s_64_hv_xlate(struct kvm_vcpu *vcpu, gva_t eaddr,
 		preempt_enable();
 		return -ENOENT;
 	}
-<<<<<<< HEAD
-	hptep = (unsigned long *)(kvm->arch.hpt_virt + (index << 4));
-	v = hptep[0] & ~HPTE_V_HVLOCK;
-=======
 	hptep = (__be64 *)(kvm->arch.hpt_virt + (index << 4));
 	v = be64_to_cpu(hptep[0]) & ~HPTE_V_HVLOCK;
->>>>>>> android-3.18
 	gr = kvm->arch.revmap[index].guest_rpte;
 
 	/* Unlock the HPTE */
 	asm volatile("lwsync" : : : "memory");
-<<<<<<< HEAD
-	hptep[0] = v;
-=======
 	hptep[0] = cpu_to_be64(v);
->>>>>>> android-3.18
 	preempt_enable();
 
 	gpte->eaddr = eaddr;

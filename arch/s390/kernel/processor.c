@@ -23,12 +23,7 @@ static DEFINE_PER_CPU(struct cpuid, cpu_id);
  */
 void cpu_init(void)
 {
-<<<<<<< HEAD
-	struct cpuid *id = &per_cpu(cpu_id, smp_processor_id());
-	struct s390_idle_data *idle = &__get_cpu_var(s390_idle);
-=======
 	struct cpuid *id = this_cpu_ptr(&cpu_id);
->>>>>>> android-3.18
 
 	get_cpu_id(id);
 	atomic_inc(&init_mm.mm_count);

@@ -2984,11 +2984,7 @@ static void get_command(struct seq_file *m, Scsi_Cmnd * ptr)
 	int i;
 
 	SPRINTF("%p: target=%d; lun=%d; cmnd=( ",
-<<<<<<< HEAD
-		ptr, ptr->device->id, ptr->device->lun);
-=======
 		ptr, ptr->device->id, (u8)ptr->device->lun);
->>>>>>> android-3.18
 
 	for (i = 0; i < COMMAND_SIZE(ptr->cmnd[0]); i++)
 		SPRINTF("0x%02x ", ptr->cmnd[i]);

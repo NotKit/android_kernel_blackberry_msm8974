@@ -454,10 +454,6 @@ struct snd_pcm_str {
 #endif
 #endif
 	struct snd_kcontrol *chmap_kctl; /* channel-mapping controls */
-<<<<<<< HEAD
-	struct snd_kcontrol *vol_kctl; /* volume controls */
-=======
->>>>>>> android-3.18
 };
 
 struct snd_pcm {
@@ -1214,8 +1210,6 @@ static inline void snd_pcm_limit_isa_dma_size(int dma, size_t *max)
 
 const char *snd_pcm_format_name(snd_pcm_format_t format);
 
-<<<<<<< HEAD
-=======
 /**
  * snd_pcm_stream_str - Get a string naming the direction of a stream
  * @substream: the pcm substream instance
@@ -1230,7 +1224,6 @@ static inline const char *snd_pcm_stream_str(struct snd_pcm_substream *substream
 		return "Capture";
 }
 
->>>>>>> android-3.18
 /*
  * PCM channel-mapping control API
  */
@@ -1251,15 +1244,11 @@ struct snd_pcm_chmap {
 	void *private_data;	/* optional: private data pointer */
 };
 
-<<<<<<< HEAD
-/* get the PCM substream assigned to the given chmap info */
-=======
 /**
  * snd_pcm_chmap_substream - get the PCM substream assigned to the given chmap info
  * @info: chmap information
  * @idx: the substream number index
  */
->>>>>>> android-3.18
 static inline struct snd_pcm_substream *
 snd_pcm_chmap_substream(struct snd_pcm_chmap *info, unsigned int idx)
 {
@@ -1286,31 +1275,6 @@ int snd_pcm_add_chmap_ctls(struct snd_pcm *pcm, int stream,
 			   unsigned long private_value,
 			   struct snd_pcm_chmap **info_ret);
 
-<<<<<<< HEAD
-/*
- * PCM Volume control API
- */
-/* array element of volume */
-struct snd_pcm_volume_elem {
-	int volume;
-};
-
-/* pp information; retrieved via snd_kcontrol_chip() */
-struct snd_pcm_volume {
-	struct snd_pcm *pcm;	/* assigned PCM instance */
-	int stream;		/* PLAYBACK or CAPTURE */
-	struct snd_kcontrol *kctl;
-	const struct snd_pcm_volume_elem *volume;
-	int max_length;
-	void *private_data;	/* optional: private data pointer */
-};
-
-int snd_pcm_add_volume_ctls(struct snd_pcm *pcm, int stream,
-			   const struct snd_pcm_volume_elem *volume,
-			   int max_length,
-			   unsigned long private_value,
-			   struct snd_pcm_volume **info_ret);
-=======
 /**
  * pcm_format_to_bits - Strong-typed conversion of pcm_format to bitwise
  * @pcm_format: PCM format
@@ -1327,6 +1291,5 @@ static inline u64 pcm_format_to_bits(snd_pcm_format_t pcm_format)
 	dev_warn((pcm)->card->dev, fmt, ##args)
 #define pcm_dbg(pcm, fmt, args...) \
 	dev_dbg((pcm)->card->dev, fmt, ##args)
->>>>>>> android-3.18
 
 #endif /* __SOUND_PCM_H */

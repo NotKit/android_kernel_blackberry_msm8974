@@ -894,11 +894,7 @@ out_unlock:
 
 	return NETDEV_TX_OK;
 out_dma_error:
-<<<<<<< HEAD
-	kfree_skb(skb);
-=======
 	dev_kfree_skb_any(skb);
->>>>>>> android-3.18
 	cp->dev->stats.tx_dropped++;
 	goto out_unlock;
 }

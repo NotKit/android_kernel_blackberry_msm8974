@@ -542,16 +542,6 @@ static int btree_split_beneath(struct shadow_spine *s, uint64_t key)
 	if (r < 0)
 		return r;
 
-<<<<<<< HEAD
-	r = new_block(s->info, &right);
-	if (r < 0) {
-		unlock_block(s->info, left);
-		return r;
-	}
-
-	pn = dm_block_data(new_parent);
-=======
->>>>>>> android-3.18
 	ln = dm_block_data(left);
 	nr_left = le32_to_cpu(pn->header.nr_entries) / 2;
 

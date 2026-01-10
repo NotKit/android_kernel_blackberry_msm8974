@@ -68,14 +68,8 @@ s16 ath9k_hw_getchan_noise(struct ath_hw *ah, struct ath9k_channel *chan,
 {
 	s8 noise = ATH_DEFAULT_NOISE_FLOOR;
 
-<<<<<<< HEAD
-	if (chan && chan->noisefloor) {
-		s8 delta = chan->noisefloor -
-			   ATH9K_NF_CAL_NOISE_THRESH -
-=======
 	if (nf) {
 		s8 delta = nf - ATH9K_NF_CAL_NOISE_THRESH -
->>>>>>> android-3.18
 			   ath9k_hw_get_default_nf(ah, chan);
 		if (delta > 0)
 			noise += delta;
@@ -411,12 +405,7 @@ void ath9k_init_nfcal_hist_buffer(struct ath_hw *ah,
 	int i, j;
 
 	ah->caldata->channel = chan->channel;
-<<<<<<< HEAD
-	ah->caldata->channelFlags = chan->channelFlags & ~CHANNEL_CW_INT;
-	ah->caldata->chanmode = chan->chanmode;
-=======
 	ah->caldata->channelFlags = chan->channelFlags;
->>>>>>> android-3.18
 	h = ah->caldata->nfCalHist;
 	default_nf = ath9k_hw_get_default_nf(ah, chan);
 	for (i = 0; i < NUM_NF_READINGS; i++) {

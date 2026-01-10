@@ -713,12 +713,8 @@ err:
 static void fsl_spi_cs_control(struct spi_device *spi, bool on)
 {
 	struct device *dev = spi->dev.parent->parent;
-<<<<<<< HEAD
-	struct mpc8xxx_spi_probe_info *pinfo = to_of_pinfo(dev->platform_data);
-=======
 	struct fsl_spi_platform_data *pdata = dev_get_platdata(dev);
 	struct mpc8xxx_spi_probe_info *pinfo = to_of_pinfo(pdata);
->>>>>>> android-3.18
 	u16 cs = spi->chip_select;
 	int gpio = pinfo->gpios[cs];
 	bool alow = pinfo->alow_flags[cs];

@@ -192,10 +192,6 @@ struct ctlr_info {
 	u64 last_heartbeat_timestamp;
 	u32 heartbeat_sample_interval;
 	atomic_t firmware_flash_in_progress;
-<<<<<<< HEAD
-	u32 lockup_detected;
-	struct list_head lockup_list;
-=======
 	u32 *lockup_detected;
 	struct delayed_work monitor_ctlr_work;
 	int remove_in_progress;
@@ -248,7 +244,6 @@ struct ctlr_info {
 struct offline_device_entry {
 	unsigned char scsi3addr[8];
 	struct list_head offline_list;
->>>>>>> android-3.18
 };
 
 #define HPSA_ABORT_MSG 0

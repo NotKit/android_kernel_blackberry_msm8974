@@ -22,15 +22,12 @@ static DEFINE_IDA(vd_index_ida);
 
 static struct workqueue_struct *virtblk_wq;
 
-<<<<<<< HEAD
-=======
 struct virtio_blk_vq {
 	struct virtqueue *vq;
 	spinlock_t lock;
 	char name[VQ_NAME_LEN];
 } ____cacheline_aligned_in_smp;
 
->>>>>>> android-3.18
 struct virtio_blk
 {
 	struct virtio_device *vdev;
@@ -38,12 +35,8 @@ struct virtio_blk
 	/* The disk structure for the kernel. */
 	struct gendisk *disk;
 
-<<<<<<< HEAD
-	mempool_t *pool;
-=======
 	/* Block layer tags. */
 	struct blk_mq_tag_set tag_set;
->>>>>>> android-3.18
 
 	/* Process context for config space updates */
 	struct work_struct config_work;
@@ -148,47 +141,21 @@ static void virtblk_done(struct virtqueue *vq)
 	unsigned long flags;
 	unsigned int len;
 
-<<<<<<< HEAD
-	spin_lock_irqsave(vblk->disk->queue->queue_lock, flags);
-	while ((vbr = virtqueue_get_buf(vblk->vq, &len)) != NULL) {
-		int error;
-
-		switch (vbr->status) {
-		case VIRTIO_BLK_S_OK:
-			error = 0;
-			break;
-		case VIRTIO_BLK_S_UNSUPP:
-			error = -ENOTTY;
-			break;
-		default:
-			error = -EIO;
-			break;
-=======
 	spin_lock_irqsave(&vblk->vqs[qid].lock, flags);
 	do {
 		virtqueue_disable_cb(vq);
 		while ((vbr = virtqueue_get_buf(vblk->vqs[qid].vq, &len)) != NULL) {
 			blk_mq_complete_request(vbr->req);
 			req_done = true;
->>>>>>> android-3.18
 		}
 		if (unlikely(virtqueue_is_broken(vq)))
 			break;
 	} while (!virtqueue_enable_cb(vq));
 
-<<<<<<< HEAD
-		__blk_end_request_all(vbr->req, error);
-		mempool_free(vbr, vblk->pool);
-	}
-	/* In case queue is stopped waiting for more buffers. */
-	blk_start_queue(vblk->disk->queue);
-	spin_unlock_irqrestore(vblk->disk->queue->queue_lock, flags);
-=======
 	/* In case queue is stopped waiting for more buffers. */
 	if (req_done)
 		blk_mq_start_stopped_hw_queues(vblk->disk->queue, true);
 	spin_unlock_irqrestore(&vblk->vqs[qid].lock, flags);
->>>>>>> android-3.18
 }
 
 static int virtio_queue_rq(struct blk_mq_hw_ctx *hctx, struct request *req,
@@ -255,14 +222,9 @@ static int virtio_queue_rq(struct blk_mq_hw_ctx *hctx, struct request *req,
 		return BLK_MQ_RQ_QUEUE_ERROR;
 	}
 
-<<<<<<< HEAD
-	return true;
-}
-=======
 	if (last && virtqueue_kick_prepare(vblk->vqs[qid].vq))
 		notify = true;
 	spin_unlock_irqrestore(&vblk->vqs[qid].lock, flags);
->>>>>>> android-3.18
 
 	if (notify)
 		virtqueue_notify(vblk->vqs[qid].vq);
@@ -648,9 +610,6 @@ static int virtblk_probe(struct virtio_device *vdev)
 		goto out_free_vq;
 	}
 
-<<<<<<< HEAD
-	q = vblk->disk->queue = blk_init_queue(do_virtblk_request, NULL);
-=======
 	/* Default queue sizing is to fill the ring. */
 	if (!virtblk_queue_depth) {
 		virtblk_queue_depth = vblk->vqs[0].vq->num_free;
@@ -675,7 +634,6 @@ static int virtblk_probe(struct virtio_device *vdev)
 		goto out_put_disk;
 
 	q = blk_mq_init_queue(&vblk->tag_set);
->>>>>>> android-3.18
 	if (!q) {
 		err = -ENOMEM;
 		goto out_free_tags;
@@ -810,20 +768,12 @@ static void virtblk_remove(struct virtio_device *vdev)
 
 	del_gendisk(vblk->disk);
 	blk_cleanup_queue(vblk->disk->queue);
-<<<<<<< HEAD
-=======
 
 	blk_mq_free_tag_set(&vblk->tag_set);
->>>>>>> android-3.18
 
 	/* Stop all the virtqueues. */
 	vdev->config->reset(vdev);
 
-<<<<<<< HEAD
-	flush_work(&vblk->config_work);
-
-=======
->>>>>>> android-3.18
 	refc = atomic_read(&disk_to_dev(vblk->disk)->kobj.kref.refcount);
 	put_disk(vblk->disk);
 	vdev->config->del_vqs(vdev);

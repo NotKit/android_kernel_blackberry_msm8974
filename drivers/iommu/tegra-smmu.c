@@ -638,22 +638,6 @@ static int alloc_pdir(struct smmu_as *as)
 			   GFP_KERNEL);
 	page = alloc_page(GFP_KERNEL | __GFP_DMA);
 
-<<<<<<< HEAD
-	as->pte_count = devm_kzalloc(smmu->dev,
-		     sizeof(as->pte_count[0]) * SMMU_PDIR_COUNT, GFP_ATOMIC);
-	if (!as->pte_count) {
-		dev_err(smmu->dev,
-			"failed to allocate smmu_device PTE cunters\n");
-		return -ENOMEM;
-	}
-	as->pdir_page = alloc_page(GFP_ATOMIC | __GFP_DMA);
-	if (!as->pdir_page) {
-		dev_err(smmu->dev,
-			"failed to allocate smmu_device page directory\n");
-		devm_kfree(smmu->dev, as->pte_count);
-		as->pte_count = NULL;
-		return -ENOMEM;
-=======
 	spin_lock_irqsave(&as->lock, flags);
 
 	if (as->pdir_page) {
@@ -666,7 +650,6 @@ static int alloc_pdir(struct smmu_as *as)
 		dev_err(smmu->dev, "failed to allocate at %s\n", __func__);
 		err = -ENOMEM;
 		goto err_out;
->>>>>>> android-3.18
 	}
 
 	as->pdir_page = page;

@@ -267,10 +267,7 @@ struct SenseSubsystem_info {
 #define BMIC_CACHE_FLUSH 0xc2
 #define HPSA_CACHE_FLUSH 0x01	/* C2 was already being used by HPSA */
 #define BMIC_FLASH_FIRMWARE 0xF7
-<<<<<<< HEAD
-=======
 #define BMIC_SENSE_CONTROLLER_PARAMETERS 0x64
->>>>>>> android-3.18
 
 /* Command List Structure */
 union SCSI3Addr {

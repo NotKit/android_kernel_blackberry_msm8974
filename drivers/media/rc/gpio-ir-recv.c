@@ -130,20 +130,7 @@ err_get_value:
 	return IRQ_HANDLED;
 }
 
-<<<<<<< HEAD
-static void gpio_ir_timer(unsigned long data)
-{
-	struct gpio_rc_dev *gpio_dev = (struct gpio_rc_dev *)data;
-
-	pm_qos_update_request(&gpio_dev->pm_qos_req, PM_QOS_DEFAULT_VALUE);
-	pm_qos_request_active(&gpio_dev->pm_qos_req);
-	gpio_dev->pm_qos_vote = 0;
-}
-
-static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
-=======
 static int gpio_ir_recv_probe(struct platform_device *pdev)
->>>>>>> android-3.18
 {
 	struct gpio_rc_dev *gpio_dev;
 	struct rc_dev *rcdev;
@@ -188,15 +175,11 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
 	rcdev->input_id.version = 0x0100;
 	rcdev->dev.parent = &pdev->dev;
 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
-<<<<<<< HEAD
-	rcdev->map_name = RC_MAP_SAMSUNG_NECX;
-=======
 	if (pdata->allowed_protos)
 		rcdev->allowed_protocols = pdata->allowed_protos;
 	else
 		rcdev->allowed_protocols = RC_BIT_ALL;
 	rcdev->map_name = pdata->map_name ?: RC_MAP_EMPTY;
->>>>>>> android-3.18
 
 	gpio_dev->rcdev = rcdev;
 	gpio_dev->gpio_nr = pdata->gpio_nr;

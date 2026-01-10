@@ -328,30 +328,7 @@ static void send_data(struct work_struct *work)
 
 static int oti6858_attach(struct usb_serial *serial)
 {
-<<<<<<< HEAD
-	struct usb_serial_port *port = serial->port[0];
-	struct oti6858_private *priv;
-	int i;
-
-	for (i = 0; i < serial->num_ports; ++i) {
-		priv = kzalloc(sizeof(struct oti6858_private), GFP_KERNEL);
-		if (!priv)
-			break;
-
-		spin_lock_init(&priv->lock);
-/*		INIT_WORK(&priv->setup_work, setup_line, serial->port[i]); */
-/*		INIT_WORK(&priv->write_work, send_data, serial->port[i]); */
-		priv->port = port;
-		INIT_DELAYED_WORK(&priv->delayed_setup_work, setup_line);
-		INIT_DELAYED_WORK(&priv->delayed_write_work, send_data);
-
-		usb_set_serial_port_data(serial->port[i], priv);
-	}
-	if (i == serial->num_ports)
-		return 0;
-=======
 	unsigned char num_ports = serial->num_ports;
->>>>>>> android-3.18
 
 	if (serial->num_bulk_in < num_ports ||
 			serial->num_bulk_out < num_ports ||
@@ -680,78 +657,6 @@ static int oti6858_tiocmget(struct tty_struct *tty)
 	return result;
 }
 
-<<<<<<< HEAD
-static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
-{
-	struct oti6858_private *priv = usb_get_serial_port_data(port);
-	unsigned long flags;
-	unsigned int prev, status;
-	unsigned int changed;
-
-	spin_lock_irqsave(&priv->lock, flags);
-	prev = priv->status.pin_state;
-	spin_unlock_irqrestore(&priv->lock, flags);
-
-	while (1) {
-		wait_event_interruptible(port->delta_msr_wait,
-					port->serial->disconnected ||
-					priv->status.pin_state != prev);
-		if (signal_pending(current))
-			return -ERESTARTSYS;
-
-		if (port->serial->disconnected)
-			return -EIO;
-
-		spin_lock_irqsave(&priv->lock, flags);
-		status = priv->status.pin_state & PIN_MASK;
-		spin_unlock_irqrestore(&priv->lock, flags);
-
-		changed = prev ^ status;
-		/* FIXME: check if this is correct (active high/low) */
-		if (((arg & TIOCM_RNG) && (changed & PIN_RI)) ||
-		    ((arg & TIOCM_DSR) && (changed & PIN_DSR)) ||
-		    ((arg & TIOCM_CD)  && (changed & PIN_DCD)) ||
-		    ((arg & TIOCM_CTS) && (changed & PIN_CTS)))
-			return 0;
-		prev = status;
-	}
-
-	/* NOTREACHED */
-	return 0;
-}
-
-static int oti6858_ioctl(struct tty_struct *tty,
-			unsigned int cmd, unsigned long arg)
-{
-	struct usb_serial_port *port = tty->driver_data;
-
-	dbg("%s(port = %d, cmd = 0x%04x, arg = 0x%08lx)",
-				__func__, port->number, cmd, arg);
-
-	switch (cmd) {
-	case TIOCMIWAIT:
-		dbg("%s(): TIOCMIWAIT", __func__);
-		return wait_modem_info(port, arg);
-	default:
-		dbg("%s(): 0x%04x not supported", __func__, cmd);
-		break;
-	}
-	return -ENOIOCTLCMD;
-}
-
-
-static void oti6858_release(struct usb_serial *serial)
-{
-	int i;
-
-	dbg("%s()", __func__);
-
-	for (i = 0; i < serial->num_ports; ++i)
-		kfree(usb_get_serial_port_data(serial->port[i]));
-}
-
-=======
->>>>>>> android-3.18
 static void oti6858_read_int_callback(struct urb *urb)
 {
 	struct usb_serial_port *port =  urb->context;
@@ -809,10 +714,6 @@ static void oti6858_read_int_callback(struct urb *urb)
 		}
 
 		if (!priv->transient) {
-<<<<<<< HEAD
-			if (xs->pin_state != priv->status.pin_state)
-				wake_up_interruptible(&port->delta_msr_wait);
-=======
 			u8 delta = xs->pin_state ^ priv->status.pin_state;
 
 			if (delta & PIN_MSR_MASK) {
@@ -828,7 +729,6 @@ static void oti6858_read_int_callback(struct urb *urb)
 				wake_up_interruptible(&port->port.delta_msr_wait);
 			}
 
->>>>>>> android-3.18
 			memcpy(&priv->status, xs, OTI6858_CTRL_PKT_SIZE);
 		}
 

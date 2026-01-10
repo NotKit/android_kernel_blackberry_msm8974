@@ -1034,39 +1034,7 @@ static int init_dma_desc_rings(struct net_device *dev, gfp_t flags)
 	if (bfsize < BUF_SIZE_16KiB)
 		bfsize = stmmac_set_bfsize(dev->mtu, priv->dma_buf_sz);
 
-<<<<<<< HEAD
-#ifdef CONFIG_STMMAC_TIMER
-	/* Disable interrupts on completion for the reception if timer is on */
-	if (likely(priv->tm->enable))
-		dis_ic = 1;
-#endif
-
-	DBG(probe, INFO, "stmmac: txsize %d, rxsize %d, bfsize %d\n",
-	    txsize, rxsize, bfsize);
-
-	priv->rx_skbuff_dma = kmalloc(rxsize * sizeof(dma_addr_t), GFP_KERNEL);
-	priv->rx_skbuff =
-	    kmalloc(sizeof(struct sk_buff *) * rxsize, GFP_KERNEL);
-	priv->dma_rx =
-	    (struct dma_desc *)dma_zalloc_coherent(priv->device, rxsize *
-						   sizeof(struct dma_desc),
-						   &priv->dma_rx_phy,
-						   GFP_KERNEL);
-	priv->tx_skbuff = kmalloc(sizeof(struct sk_buff *) * txsize,
-				       GFP_KERNEL);
-	priv->dma_tx =
-	    (struct dma_desc *)dma_zalloc_coherent(priv->device, txsize *
-						   sizeof(struct dma_desc),
-						   &priv->dma_tx_phy,
-						   GFP_KERNEL);
-
-	if ((priv->dma_rx == NULL) || (priv->dma_tx == NULL)) {
-		pr_err("%s:ERROR allocating the DMA Tx/Rx desc\n", __func__);
-		return;
-	}
-=======
 	priv->dma_buf_sz = bfsize;
->>>>>>> android-3.18
 
 	if (netif_msg_probe(priv))
 		pr_debug("%s: txsize %d, rxsize %d, bfsize %d\n", __func__,
@@ -2140,11 +2108,7 @@ static inline void stmmac_rx_refill(struct stmmac_priv *priv)
 				pr_debug("\trefill entry #%d\n", entry);
 		}
 		wmb();
-<<<<<<< HEAD
-		priv->hw->desc->set_rx_owner(p + entry);
-=======
 		priv->hw->desc->set_rx_owner(p);
->>>>>>> android-3.18
 		wmb();
 	}
 }

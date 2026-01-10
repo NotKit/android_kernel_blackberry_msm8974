@@ -27,20 +27,6 @@ struct seccomp {
 	struct seccomp_filter *filter;
 };
 
-<<<<<<< HEAD
-extern int __secure_computing(int);
-static inline int secure_computing(int this_syscall)
-{
-	if (unlikely(test_thread_flag(TIF_SECCOMP)))
-		return  __secure_computing(this_syscall);
-	return 0;
-}
-
-/* A wrapper for architectures supporting only SECCOMP_MODE_STRICT. */
-static inline void secure_computing_strict(int this_syscall)
-{
-	BUG_ON(secure_computing(this_syscall) != 0);
-=======
 #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
 extern int __secure_computing(const struct seccomp_data *sd);
 static inline int secure_computing(const struct seccomp_data *sd)
@@ -48,7 +34,6 @@ static inline int secure_computing(const struct seccomp_data *sd)
 	if (unlikely(test_thread_flag(TIF_SECCOMP)))
 		return  __secure_computing(sd);
 	return 0;
->>>>>>> android-3.18
 }
 #else
 extern void secure_computing_strict(int this_syscall);
@@ -69,16 +54,11 @@ static inline int seccomp_mode(struct seccomp *s)
 struct seccomp { };
 struct seccomp_filter { };
 
-<<<<<<< HEAD
-static inline int secure_computing(int this_syscall) { return 0; }
-static inline void secure_computing_strict(int this_syscall) { return; }
-=======
 #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
 static inline int secure_computing(struct seccomp_data *sd) { return 0; }
 #else
 static inline void secure_computing_strict(int this_syscall) { return; }
 #endif
->>>>>>> android-3.18
 
 static inline long prctl_get_seccomp(void)
 {
@@ -99,10 +79,6 @@ static inline int seccomp_mode(struct seccomp *s)
 #ifdef CONFIG_SECCOMP_FILTER
 extern void put_seccomp_filter(struct task_struct *tsk);
 extern void get_seccomp_filter(struct task_struct *tsk);
-<<<<<<< HEAD
-extern u32 seccomp_bpf_load(int off);
-=======
->>>>>>> android-3.18
 #else  /* CONFIG_SECCOMP_FILTER */
 static inline void put_seccomp_filter(struct task_struct *tsk)
 {

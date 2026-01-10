@@ -99,8 +99,6 @@ static inline u32 hash32_ptr(const void *ptr)
 #endif
 	return (u32)val;
 }
-<<<<<<< HEAD
-=======
 
 struct fast_hash_ops {
 	u32 (*hash)(const void *data, u32 len, u32 seed);
@@ -136,5 +134,4 @@ extern u32 arch_fast_hash(const void *data, u32 len, u32 seed);
  */
 extern u32 arch_fast_hash2(const u32 *data, u32 len, u32 seed);
 
->>>>>>> android-3.18
 #endif /* _LINUX_HASH_H */

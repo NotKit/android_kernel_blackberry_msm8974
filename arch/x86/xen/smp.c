@@ -771,16 +771,7 @@ static int xen_hvm_cpu_up(unsigned int cpu, struct task_struct *tidle)
 
 static void xen_hvm_cpu_die(unsigned int cpu)
 {
-<<<<<<< HEAD
-	unbind_from_irqhandler(per_cpu(xen_resched_irq, cpu), NULL);
-	unbind_from_irqhandler(per_cpu(xen_callfunc_irq, cpu), NULL);
-	unbind_from_irqhandler(per_cpu(xen_debug_irq, cpu), NULL);
-	unbind_from_irqhandler(per_cpu(xen_callfuncsingle_irq, cpu), NULL);
-	xen_uninit_lock_cpu(cpu);
-	xen_teardown_timer(cpu);
-=======
 	xen_cpu_die(cpu);
->>>>>>> android-3.18
 	native_cpu_die(cpu);
 }
 

@@ -1953,33 +1953,12 @@ static int cayman_startup(struct radeon_device *rdev)
 	/* enable aspm */
 	evergreen_program_aspm(rdev);
 
-<<<<<<< HEAD
-	evergreen_mc_program(rdev);
-
-	if (rdev->flags & RADEON_IS_IGP) {
-		if (!rdev->me_fw || !rdev->pfp_fw || !rdev->rlc_fw) {
-			r = ni_init_microcode(rdev);
-			if (r) {
-				DRM_ERROR("Failed to load firmware!\n");
-				return r;
-			}
-		}
-	} else {
-		if (!rdev->me_fw || !rdev->pfp_fw || !rdev->rlc_fw || !rdev->mc_fw) {
-			r = ni_init_microcode(rdev);
-			if (r) {
-				DRM_ERROR("Failed to load firmware!\n");
-				return r;
-			}
-		}
-=======
 	/* scratch needs to be initialized before MC */
 	r = r600_vram_scratch_init(rdev);
 	if (r)
 		return r;
 
 	evergreen_mc_program(rdev);
->>>>>>> android-3.18
 
 	if (!(rdev->flags & RADEON_IS_IGP) && !rdev->pm.dpm_enabled) {
 		r = ni_mc_load_microcode(rdev);
@@ -1989,13 +1968,6 @@ static int cayman_startup(struct radeon_device *rdev)
 		}
 	}
 
-<<<<<<< HEAD
-	r = r600_vram_scratch_init(rdev);
-	if (r)
-		return r;
-
-=======
->>>>>>> android-3.18
 	r = cayman_pcie_gart_enable(rdev);
 	if (r)
 		return r;
@@ -2237,8 +2209,6 @@ int cayman_init(struct radeon_device *rdev)
 	if (r)
 		return r;
 
-<<<<<<< HEAD
-=======
 	if (rdev->flags & RADEON_IS_IGP) {
 		if (!rdev->me_fw || !rdev->pfp_fw || !rdev->rlc_fw) {
 			r = ni_init_microcode(rdev);
@@ -2260,7 +2230,6 @@ int cayman_init(struct radeon_device *rdev)
 	/* Initialize power management */
 	radeon_pm_init(rdev);
 
->>>>>>> android-3.18
 	ring->ring_obj = NULL;
 	r600_ring_init(rdev, ring, 1024 * 1024);
 

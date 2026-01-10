@@ -9,14 +9,11 @@
  * x86 has arch-specific MMU state beyond what lives in mm_struct.
  */
 typedef struct {
-<<<<<<< HEAD
-=======
 	/*
 	 * ctx_id uniquely identifies this mm_struct.  A ctx_id will never
 	 * be reused, and zero is not a valid ctx_id.
 	 */
 	u64 ctx_id;
->>>>>>> android-3.18
 	struct ldt_struct *ldt;
 
 #ifdef CONFIG_X86_64

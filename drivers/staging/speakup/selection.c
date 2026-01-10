@@ -5,11 +5,8 @@
 #include <linux/device.h> /* for dev_warn */
 #include <linux/selection.h>
 #include <linux/workqueue.h>
-<<<<<<< HEAD
-=======
 #include <linux/tty.h>
 #include <linux/tty_flip.h>
->>>>>>> android-3.18
 #include <asm/cmpxchg.h>
 
 #include "speakup.h"
@@ -144,14 +141,11 @@ static void __speakup_paste_selection(struct work_struct *work)
 	struct tty_ldisc *ld;
 	DECLARE_WAITQUEUE(wait, current);
 
-<<<<<<< HEAD
-=======
 	ld = tty_ldisc_ref(tty);
 	if (!ld)
 		goto tty_unref;
 	tty_buffer_lock_exclusive(&vc->port);
 
->>>>>>> android-3.18
 	add_wait_queue(&vc->paste_wait, &wait);
 	while (sel_buffer && sel_buffer_lth > pasted) {
 		set_current_state(TASK_INTERRUPTIBLE);
@@ -166,13 +160,10 @@ static void __speakup_paste_selection(struct work_struct *work)
 	}
 	remove_wait_queue(&vc->paste_wait, &wait);
 	current->state = TASK_RUNNING;
-<<<<<<< HEAD
-=======
 
 	tty_buffer_unlock_exclusive(&vc->port);
 	tty_ldisc_deref(ld);
 tty_unref:
->>>>>>> android-3.18
 	tty_kref_put(tty);
 }
 

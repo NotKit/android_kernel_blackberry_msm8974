@@ -761,17 +761,6 @@ kvmppc_skip_Hinterrupt:
 	STD_EXCEPTION_COMMON(0x100, system_reset, system_reset_exception)
 
 	STD_EXCEPTION_COMMON_ASYNC(0x500, hardware_interrupt, do_IRQ)
-<<<<<<< HEAD
-	STD_EXCEPTION_COMMON_ASYNC(0x900, decrementer, .timer_interrupt)
-	STD_EXCEPTION_COMMON(0xa00, trap_0a, .unknown_exception)
-	STD_EXCEPTION_COMMON(0xb00, trap_0b, .unknown_exception)
-	STD_EXCEPTION_COMMON(0xd00, single_step, .single_step_exception)
-	STD_EXCEPTION_COMMON(0xe00, trap_0e, .unknown_exception)
-	STD_EXCEPTION_COMMON(0xe40, emulation_assist, .emulation_assist_interrupt)
-        STD_EXCEPTION_COMMON(0xe60, hmi_exception, .unknown_exception)
-	STD_EXCEPTION_COMMON_ASYNC(0xf00, performance_monitor, .performance_monitor_exception)
-	STD_EXCEPTION_COMMON(0x1300, instruction_breakpoint, .instruction_breakpoint_exception)
-=======
 	STD_EXCEPTION_COMMON_ASYNC(0x900, decrementer, timer_interrupt)
 	STD_EXCEPTION_COMMON(0x980, hdecrementer, hdec_interrupt)
 #ifdef CONFIG_PPC_DOORBELL
@@ -792,7 +781,6 @@ kvmppc_skip_Hinterrupt:
 	STD_EXCEPTION_COMMON_ASYNC(0xf00, performance_monitor, performance_monitor_exception)
 	STD_EXCEPTION_COMMON(0x1300, instruction_breakpoint, instruction_breakpoint_exception)
 	STD_EXCEPTION_COMMON(0x1502, denorm, unknown_exception)
->>>>>>> android-3.18
 #ifdef CONFIG_ALTIVEC
 	STD_EXCEPTION_COMMON(0x1700, altivec_assist, altivec_assist_exception)
 #else

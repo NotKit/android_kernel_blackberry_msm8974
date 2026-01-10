@@ -36,11 +36,8 @@
 #include <linux/capability.h>
 #include <linux/compat.h>
 #include <linux/pm_runtime.h>
-<<<<<<< HEAD
-=======
 
 #include <trace/events/mmc.h>
->>>>>>> android-3.18
 
 #include <linux/mmc/ioctl.h>
 #include <linux/mmc/card.h>
@@ -64,30 +61,6 @@ MODULE_ALIAS("mmc:block");
 #define INAND_CMD38_ARG_SECERASE 0x80
 #define INAND_CMD38_ARG_SECTRIM1 0x81
 #define INAND_CMD38_ARG_SECTRIM2 0x88
-<<<<<<< HEAD
-#define MMC_BLK_TIMEOUT_MS  (30 * 1000)        /* 30 sec timeout */
-
-#define MMC_SANITIZE_REQ_TIMEOUT 240000 /* msec */
-
-#define mmc_req_rel_wr(req)	(((req->cmd_flags & REQ_FUA) || \
-			(req->cmd_flags & REQ_META)) && \
-			(rq_data_dir(req) == WRITE))
-#define PACKED_CMD_VER		0x01
-#define PACKED_CMD_WR		0x02
-#define PACKED_TRIGGER_MAX_ELEMENTS	5000
-#define MMC_BLK_MAX_RETRIES 5 /* max # of retries before aborting a command */
-#define MMC_BLK_UPDATE_STOP_REASON(stats, reason)			\
-	do {								\
-		if (stats->enabled)					\
-			stats->pack_stop_reason[reason]++;		\
-	} while (0)
-
-#define PCKD_TRGR_INIT_MEAN_POTEN	17
-#define PCKD_TRGR_POTEN_LOWER_BOUND	5
-#define PCKD_TRGR_URGENT_PENALTY	2
-#define PCKD_TRGR_LOWER_BOUND		5
-#define PCKD_TRGR_PRECISION_MULTIPLIER	100
-=======
 #define MMC_BLK_TIMEOUT_MS  (10 * 60 * 1000)        /* 10 minute timeout */
 #define MMC_SANITIZE_REQ_TIMEOUT 240000
 #define MMC_EXTRACT_INDEX_FROM_ARG(x) ((x & 0x00FF0000) >> 16)
@@ -97,7 +70,6 @@ MODULE_ALIAS("mmc:block");
 				  (rq_data_dir(req) == WRITE))
 #define PACKED_CMD_VER	0x01
 #define PACKED_CMD_WR	0x02
->>>>>>> android-3.18
 
 static DEFINE_MUTEX(block_mutex);
 
@@ -158,15 +130,9 @@ struct mmc_blk_data {
 static DEFINE_MUTEX(open_lock);
 
 enum {
-<<<<<<< HEAD
-	MMC_PACKED_N_IDX = -1,
-	MMC_PACKED_N_ZERO,
-	MMC_PACKED_N_SINGLE,
-=======
 	MMC_PACKED_NR_IDX = -1,
 	MMC_PACKED_NR_ZERO,
 	MMC_PACKED_NR_SINGLE,
->>>>>>> android-3.18
 };
 
 module_param(perdev_minors, int, 0444);
@@ -178,10 +144,6 @@ static int get_card_status(struct mmc_card *card, u32 *status, int retries);
 
 static inline void mmc_blk_clear_packed(struct mmc_queue_req *mqrq)
 {
-<<<<<<< HEAD
-	mqrq->packed_cmd = MMC_PACKED_NONE;
-	mqrq->packed_num = MMC_PACKED_N_ZERO;
-=======
 	struct mmc_packed *packed = mqrq->packed;
 
 	BUG_ON(!packed);
@@ -191,7 +153,6 @@ static inline void mmc_blk_clear_packed(struct mmc_queue_req *mqrq)
 	packed->idx_failure = MMC_PACKED_NR_IDX;
 	packed->retries = 0;
 	packed->blocks = 0;
->>>>>>> android-3.18
 }
 
 static struct mmc_blk_data *mmc_blk_get(struct gendisk *disk)
@@ -274,12 +235,7 @@ static ssize_t power_ro_lock_store(struct device *dev,
 		return -EINVAL;
 	card = md->queue.card;
 
-<<<<<<< HEAD
-	mmc_rpm_hold(card->host, &card->dev);
-	mmc_claim_host(card->host);
-=======
 	mmc_get_card(card);
->>>>>>> android-3.18
 
 	ret = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_BOOT_WP,
 				card->ext_csd.boot_ro_lock |
@@ -290,12 +246,7 @@ static ssize_t power_ro_lock_store(struct device *dev,
 	else
 		card->ext_csd.boot_ro_lock |= EXT_CSD_BOOT_WP_B_PWR_WP_EN;
 
-<<<<<<< HEAD
-	mmc_release_host(card->host);
-	mmc_rpm_release(card->host, &card->dev);
-=======
 	mmc_put_card(card);
->>>>>>> android-3.18
 
 	if (!ret) {
 		pr_info("%s: Locking boot partition ro until next power on\n",
@@ -319,14 +270,7 @@ static ssize_t force_ro_show(struct device *dev, struct device_attribute *attr,
 	int ret;
 	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
 
-<<<<<<< HEAD
-	if (!md)
-		return -EINVAL;
-
-	ret = snprintf(buf, PAGE_SIZE, "%d",
-=======
 	ret = snprintf(buf, PAGE_SIZE, "%d\n",
->>>>>>> android-3.18
 		       get_disk_ro(dev_to_disk(dev)) ^
 		       md->read_only);
 	mmc_blk_put(md);
@@ -356,21 +300,6 @@ out:
 	return ret;
 }
 
-<<<<<<< HEAD
-static ssize_t
-num_wr_reqs_to_start_packing_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
-{
-	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
-	int num_wr_reqs_to_start_packing;
-	int ret;
-
-	if (!md)
-		return -EINVAL;
-	num_wr_reqs_to_start_packing = md->queue.num_wr_reqs_to_start_packing;
-
-	ret = snprintf(buf, PAGE_SIZE, "%d\n", num_wr_reqs_to_start_packing);
-=======
 #ifdef CONFIG_MMC_SIMULATE_MAX_SPEED
 
 static int max_read_speed, max_write_speed, cache_size = 4;
@@ -436,71 +365,11 @@ static ssize_t max_write_speed_show(struct device *dev,
 {
 	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
 	int ret = max_speed_show(atomic_read(&md->queue.max_write_speed), buf);
->>>>>>> android-3.18
 
 	mmc_blk_put(md);
 	return ret;
 }
 
-<<<<<<< HEAD
-static ssize_t
-num_wr_reqs_to_start_packing_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
-{
-	int value;
-	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
-	struct mmc_card *card;
-	int ret = count;
-
-	if (!md)
-		return -EINVAL;
-
-	card = md->queue.card;
-	if (!card) {
-		ret = -EINVAL;
-		goto exit;
-	}
-
-	sscanf(buf, "%d", &value);
-
-	if (value >= 0) {
-		md->queue.num_wr_reqs_to_start_packing =
-		    min_t(int, value, (int)card->ext_csd.max_packed_writes);
-
-		pr_debug("%s: trigger to pack: new value = %d",
-			mmc_hostname(card->host),
-			md->queue.num_wr_reqs_to_start_packing);
-	} else {
-		pr_err("%s: value %d is not valid. old value remains = %d",
-			mmc_hostname(card->host), value,
-			md->queue.num_wr_reqs_to_start_packing);
-		ret = -EINVAL;
-	}
-
-exit:
-	mmc_blk_put(md);
-	return ret;
-}
-
-static ssize_t
-bkops_check_threshold_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
-{
-	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
-	struct mmc_card *card;
-	int ret;
-
-	if (!md)
-		return -EINVAL;
-
-	card = md->queue.card;
-	if (!card)
-		ret = -EINVAL;
-	else
-	    ret = snprintf(buf, PAGE_SIZE, "%d\n",
-		card->bkops_info.size_percentage_to_queue_delayed_work);
-=======
 static ssize_t max_write_speed_store(struct device *dev,
 				  struct device_attribute *attr,
 				  const char *buf, size_t count)
@@ -526,55 +395,11 @@ static ssize_t max_read_speed_show(struct device *dev,
 {
 	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
 	int ret = max_speed_show(atomic_read(&md->queue.max_read_speed), buf);
->>>>>>> android-3.18
 
 	mmc_blk_put(md);
 	return ret;
 }
 
-<<<<<<< HEAD
-static ssize_t
-bkops_check_threshold_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
-{
-	int value;
-	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
-	struct mmc_card *card;
-	unsigned int card_size;
-	int ret = count;
-
-	if (!md)
-		return -EINVAL;
-
-	card = md->queue.card;
-	if (!card) {
-		ret = -EINVAL;
-		goto exit;
-	}
-
-	sscanf(buf, "%d", &value);
-	if ((value <= 0) || (value >= 100)) {
-		ret = -EINVAL;
-		goto exit;
-	}
-
-	card_size = (unsigned int)get_capacity(md->disk);
-	if (card_size <= 0) {
-		ret = -EINVAL;
-		goto exit;
-	}
-	card->bkops_info.size_percentage_to_queue_delayed_work = value;
-	card->bkops_info.min_sectors_to_queue_delayed_work =
-		(card_size * value) / 100;
-
-	pr_debug("%s: size_percentage = %d, min_sectors = %d",
-			mmc_hostname(card->host),
-			card->bkops_info.size_percentage_to_queue_delayed_work,
-			card->bkops_info.min_sectors_to_queue_delayed_work);
-
-exit:
-=======
 static ssize_t max_read_speed_store(struct device *dev,
 				  struct device_attribute *attr,
 				  const char *buf, size_t count)
@@ -588,23 +413,10 @@ static ssize_t max_read_speed_store(struct device *dev,
 	}
 
 	atomic_set(&md->queue.max_read_speed, set);
->>>>>>> android-3.18
 	mmc_blk_put(md);
 	return count;
 }
 
-<<<<<<< HEAD
-static ssize_t
-no_pack_for_random_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
-{
-	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
-	int ret;
-
-	if (!md)
-		return -EINVAL;
-	ret = snprintf(buf, PAGE_SIZE, "%d\n", md->queue.no_pack_for_random);
-=======
 static const DEVICE_ATTR(max_read_speed, S_IRUGO | S_IWUSR,
 	max_read_speed_show, max_read_speed_store);
 
@@ -638,54 +450,11 @@ static ssize_t cache_size_show(struct device *dev,
 				cache_size, size);
 		}
 	}
->>>>>>> android-3.18
 
 	mmc_blk_put(md);
 	return ret;
 }
 
-<<<<<<< HEAD
-static ssize_t
-no_pack_for_random_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
-{
-	int value;
-	struct mmc_blk_data *md = mmc_blk_get(dev_to_disk(dev));
-	struct mmc_card *card;
-	int ret = count;
-
-	if (!md)
-		return -EINVAL;
-
-	card = md->queue.card;
-	if (!card) {
-		ret = -EINVAL;
-		goto exit;
-	}
-
-	sscanf(buf, "%d", &value);
-
-	if (value < 0) {
-		pr_err("%s: value %d is not valid. old value remains = %d",
-			mmc_hostname(card->host), value,
-			md->queue.no_pack_for_random);
-		ret = -EINVAL;
-		goto exit;
-	}
-
-	md->queue.no_pack_for_random = (value > 0) ?  true : false;
-
-	pr_debug("%s: no_pack_for_random: new value = %d",
-		mmc_hostname(card->host),
-		md->queue.no_pack_for_random);
-
-exit:
-	mmc_blk_put(md);
-	return ret;
-}
-
-=======
 static ssize_t cache_size_store(struct device *dev,
 				  struct device_attribute *attr,
 				  const char *buf, size_t count)
@@ -775,7 +544,6 @@ static void mmc_blk_simulate_delay(
 
 #endif
 
->>>>>>> android-3.18
 static int mmc_blk_open(struct block_device *bdev, fmode_t mode)
 {
 	struct mmc_blk_data *md = mmc_blk_get(bdev->bd_disk);
@@ -901,8 +669,6 @@ static int ioctl_rpmb_card_status_poll(struct mmc_card *card, u32 *status,
 	return err;
 }
 
-<<<<<<< HEAD
-=======
 static int ioctl_do_sanitize(struct mmc_card *card)
 {
 	int err;
@@ -933,7 +699,6 @@ out:
 	return err;
 }
 
->>>>>>> android-3.18
 static int mmc_blk_ioctl_cmd(struct block_device *bdev,
 	struct mmc_ioc_cmd __user *ic_ptr)
 {
@@ -963,11 +728,7 @@ static int mmc_blk_ioctl_cmd(struct block_device *bdev,
 	md = mmc_blk_get(bdev->bd_disk);
 	if (!md) {
 		err = -EINVAL;
-<<<<<<< HEAD
-		goto blk_err;
-=======
 		goto cmd_err;
->>>>>>> android-3.18
 	}
 
 	if (md->area_type & MMC_BLK_DATA_AREA_RPMB)
@@ -1021,16 +782,11 @@ static int mmc_blk_ioctl_cmd(struct block_device *bdev,
 
 	mrq.cmd = &cmd;
 
-<<<<<<< HEAD
-	mmc_rpm_hold(card->host, &card->dev);
-	mmc_claim_host(card->host);
-=======
 	mmc_get_card(card);
 
 	err = mmc_blk_part_switch(card, md);
 	if (err)
 		goto cmd_rel_host;
->>>>>>> android-3.18
 
 	err = mmc_blk_part_switch(card, md);
 	if (err)
@@ -1108,20 +864,11 @@ static int mmc_blk_ioctl_cmd(struct block_device *bdev,
 	}
 
 cmd_rel_host:
-<<<<<<< HEAD
-	mmc_release_host(card->host);
-	mmc_rpm_release(card->host, &card->dev);
-
-cmd_done:
-	mmc_blk_put(md);
-blk_err:
-=======
 	mmc_put_card(card);
 
 cmd_done:
 	mmc_blk_put(md);
 cmd_err:
->>>>>>> android-3.18
 	kfree(idata->buf);
 	kfree(idata);
 	return err;
@@ -1819,10 +1566,7 @@ static int mmc_blk_issue_secdiscard_rq(struct mmc_queue *mq,
 		arg = MMC_SECURE_TRIM1_ARG;
 	else
 		arg = MMC_SECURE_ERASE_ARG;
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 retry:
 	if (card->quirks & MMC_QUIRK_INAND_CMD38) {
 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
@@ -1915,20 +1659,6 @@ static int mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
 	struct mmc_card *card = md->queue.card;
 	int ret = 0;
 
-<<<<<<< HEAD
-	ret = mmc_flush_cache(card);
-	if (ret == -ETIMEDOUT) {
-		pr_info("%s: requeue flush request after timeout", __func__);
-		spin_lock_irq(q->queue_lock);
-		blk_requeue_request(q, req);
-		spin_unlock_irq(q->queue_lock);
-		ret = 0;
-		goto exit;
-	} else if (ret) {
-		pr_err("%s: notify flush error to upper layers", __func__);
-		ret = -EIO;
-	}
-=======
 #ifdef CONFIG_MMC_SIMULATE_MAX_SPEED
 	else if (atomic_read(&mq->cache_size)) {
 		long used = mmc_blk_cache_used(mq, jiffies);
@@ -1947,7 +1677,6 @@ static int mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
 	}
 #endif
 	blk_end_request_all(req, ret);
->>>>>>> android-3.18
 
 	blk_end_request_all(req, ret);
 exit:
@@ -2035,12 +1764,7 @@ static int mmc_blk_err_check(struct mmc_card *card,
 	 * program mode, which we have to wait for it to complete.
 	 */
 	if (!mmc_host_is_spi(card->host) && rq_data_dir(req) != READ) {
-<<<<<<< HEAD
-		u32 status;
-		unsigned long timeout;
-=======
 		int err;
->>>>>>> android-3.18
 
 		/* Check stop command response */
 		if (brq->stop.resp[0] & R1_ERROR) {
@@ -2050,41 +1774,6 @@ static int mmc_blk_err_check(struct mmc_card *card,
 			gen_err = 1;
 		}
 
-<<<<<<< HEAD
-		timeout = jiffies + msecs_to_jiffies(MMC_BLK_TIMEOUT_MS);
-		do {
-			int err = get_card_status(card, &status, 5);
-			if (err) {
-				pr_err("%s: error %d requesting status\n",
-				       req->rq_disk->disk_name, err);
-				return MMC_BLK_CMD_ERR;
-			}
-
-			if (status & R1_ERROR) {
-				pr_err("%s: %s: general error sending status command, card status %#x\n",
-				       req->rq_disk->disk_name, __func__,
-				       status);
-				gen_err = 1;
-			}
-
-			/* Timeout if the device never becomes ready for data
-			 * and never leaves the program state.
-			 */
-			if (time_after(jiffies, timeout)) {
-				pr_err("%s: Card stuck in programming state!"\
-					" %s %s\n", mmc_hostname(card->host),
-					req->rq_disk->disk_name, __func__);
-
-				return MMC_BLK_CMD_ERR;
-			}
-			/*
-			 * Some cards mishandle the status bits,
-			 * so make sure to check both the busy
-			 * indication and the card state.
-			 */
-		} while (!(status & R1_READY_FOR_DATA) ||
-			 (R1_CURRENT_STATE(status) == R1_STATE_PRG));
-=======
 		err = card_busy_detect(card, MMC_BLK_TIMEOUT_MS, false, req,
 					&gen_err);
 		if (err)
@@ -2096,7 +1785,6 @@ static int mmc_blk_err_check(struct mmc_card *card,
 		pr_warn("%s: retrying write for general error\n",
 				req->rq_disk->disk_name);
 		return MMC_BLK_RETRY;
->>>>>>> android-3.18
 	}
 
 	/* if general error occurs, retry the write operation. */
@@ -2125,11 +1813,7 @@ static int mmc_blk_err_check(struct mmc_card *card,
 	if (!brq->data.bytes_xfered)
 		return MMC_BLK_RETRY;
 
-<<<<<<< HEAD
-	if (mq_mrq->packed_cmd != MMC_PACKED_NONE) {
-=======
 	if (mmc_packed_cmd(mq_mrq->cmd_type)) {
->>>>>>> android-3.18
 		if (unlikely(brq->data.blocks << 9 != brq->data.bytes_xfered))
 			return MMC_BLK_PARTIAL;
 		else
@@ -2142,142 +1826,12 @@ static int mmc_blk_err_check(struct mmc_card *card,
 	return MMC_BLK_SUCCESS;
 }
 
-<<<<<<< HEAD
-/*
- * mmc_blk_reinsert_req() - re-insert request back to the scheduler
- * @areq:	request to re-insert.
- *
- * Request may be packed or single. When fails to reinsert request, it will be
- * requeued to the the dispatch queue.
- */
-static void mmc_blk_reinsert_req(struct mmc_async_req *areq)
-{
-	struct request *prq;
-	int ret = 0;
-	struct mmc_queue_req *mq_rq;
-	struct request_queue *q;
-
-	mq_rq = container_of(areq, struct mmc_queue_req, mmc_active);
-	q = mq_rq->req->q;
-	if (mq_rq->packed_cmd != MMC_PACKED_NONE) {
-		while (!list_empty(&mq_rq->packed_list)) {
-			/* return requests in reverse order */
-			prq = list_entry_rq(mq_rq->packed_list.prev);
-			list_del_init(&prq->queuelist);
-			spin_lock_irq(q->queue_lock);
-			ret = blk_reinsert_request(q, prq);
-			if (ret) {
-				blk_requeue_request(q, prq);
-				spin_unlock_irq(q->queue_lock);
-				goto reinsert_error;
-			}
-			spin_unlock_irq(q->queue_lock);
-		}
-	} else {
-		spin_lock_irq(q->queue_lock);
-		ret = blk_reinsert_request(q, mq_rq->req);
-		if (ret)
-			blk_requeue_request(q, mq_rq->req);
-		spin_unlock_irq(q->queue_lock);
-	}
-	return;
-
-reinsert_error:
-	pr_err("%s: blk_reinsert_request() failed (%d)",
-			mq_rq->req->rq_disk->disk_name, ret);
-	/*
-	 * -EIO will be reported for this request and rest of packed_list.
-	 *  Urgent request will be proceeded anyway, while upper layer
-	 *  responsibility to re-send failed requests
-	 */
-	while (!list_empty(&mq_rq->packed_list)) {
-		prq = list_entry_rq(mq_rq->packed_list.next);
-		list_del_init(&prq->queuelist);
-		spin_lock_irq(q->queue_lock);
-		blk_requeue_request(q, prq);
-		spin_unlock_irq(q->queue_lock);
-	}
-}
-
-/*
- * mmc_blk_update_interrupted_req() - update of the stopped request
- * @card:	the MMC card associated with the request.
- * @areq:	interrupted async request.
- *
- * Get stopped request state from card and update successfully done part of
- * the request by setting packed_fail_idx.  The packed_fail_idx is index of
- * first uncompleted request in packed request list, for non-packed request
- * packed_fail_idx remains unchanged.
- *
- * Returns: MMC_BLK_SUCCESS for success, MMC_BLK_ABORT otherwise
- */
-static int mmc_blk_update_interrupted_req(struct mmc_card *card,
-					struct mmc_async_req *areq)
-{
-	int ret = MMC_BLK_SUCCESS;
-	u8 *ext_csd;
-	int correctly_done;
-	struct mmc_queue_req *mq_rq = container_of(areq, struct mmc_queue_req,
-				      mmc_active);
-	struct request *prq;
-	u8 req_index = 0;
-
-	if (mq_rq->packed_cmd == MMC_PACKED_NONE)
-		return MMC_BLK_SUCCESS;
-
-	ext_csd = kmalloc(512, GFP_KERNEL);
-	if (!ext_csd)
-		return MMC_BLK_ABORT;
-
-	/* get correctly programmed sectors number from card */
-	ret = mmc_send_ext_csd(card, ext_csd);
-	if (ret) {
-		pr_err("%s: error %d reading ext_csd\n",
-				mmc_hostname(card->host), ret);
-		ret = MMC_BLK_ABORT;
-		goto exit;
-	}
-	correctly_done = card->ext_csd.data_sector_size *
-		(ext_csd[EXT_CSD_CORRECTLY_PRG_SECTORS_NUM + 0] << 0 |
-		 ext_csd[EXT_CSD_CORRECTLY_PRG_SECTORS_NUM + 1] << 8 |
-		 ext_csd[EXT_CSD_CORRECTLY_PRG_SECTORS_NUM + 2] << 16 |
-		 ext_csd[EXT_CSD_CORRECTLY_PRG_SECTORS_NUM + 3] << 24);
-
-	/*
-	 * skip packed command header (1 sector) included by the counter but not
-	 * actually written to the NAND
-	 */
-	if (correctly_done >= card->ext_csd.data_sector_size)
-		correctly_done -= card->ext_csd.data_sector_size;
-
-	list_for_each_entry(prq, &mq_rq->packed_list, queuelist) {
-		if ((correctly_done - (int)blk_rq_bytes(prq)) < 0) {
-			/* prq is not successfull */
-			mq_rq->packed_fail_idx = req_index;
-			break;
-		}
-		correctly_done -= blk_rq_bytes(prq);
-		req_index++;
-	}
-exit:
-	kfree(ext_csd);
-	return ret;
-}
-
-=======
->>>>>>> android-3.18
 static int mmc_blk_packed_err_check(struct mmc_card *card,
 				    struct mmc_async_req *areq)
 {
 	struct mmc_queue_req *mq_rq = container_of(areq, struct mmc_queue_req,
 			mmc_active);
 	struct request *req = mq_rq->req;
-<<<<<<< HEAD
-	int err, check, status;
-	u8 ext_csd[512];
-
-	mq_rq->packed_retries--;
-=======
 	struct mmc_packed *packed = mq_rq->packed;
 	int err, check, status;
 	u8 *ext_csd;
@@ -2285,40 +1839,15 @@ static int mmc_blk_packed_err_check(struct mmc_card *card,
 	BUG_ON(!packed);
 
 	packed->retries--;
->>>>>>> android-3.18
 	check = mmc_blk_err_check(card, areq);
 	err = get_card_status(card, &status, 0);
 	if (err) {
 		pr_err("%s: error %d sending status command\n",
-<<<<<<< HEAD
-				req->rq_disk->disk_name, err);
-=======
 		       req->rq_disk->disk_name, err);
->>>>>>> android-3.18
 		return MMC_BLK_ABORT;
 	}
 
 	if (status & R1_EXCEPTION_EVENT) {
-<<<<<<< HEAD
-		err = mmc_send_ext_csd(card, ext_csd);
-		if (err) {
-			pr_err("%s: error %d sending ext_csd\n",
-					req->rq_disk->disk_name, err);
-			return MMC_BLK_ABORT;
-		}
-
-		if ((ext_csd[EXT_CSD_EXP_EVENTS_STATUS] &
-					EXT_CSD_PACKED_FAILURE) &&
-				(ext_csd[EXT_CSD_PACKED_CMD_STATUS] &
-				 EXT_CSD_PACKED_GENERIC_ERROR)) {
-			if (ext_csd[EXT_CSD_PACKED_CMD_STATUS] &
-					EXT_CSD_PACKED_INDEXED_ERROR) {
-				mq_rq->packed_fail_idx =
-				  ext_csd[EXT_CSD_PACKED_FAILURE_INDEX] - 1;
-				return MMC_BLK_PARTIAL;
-			}
-		}
-=======
 		ext_csd = kzalloc(512, GFP_KERNEL);
 		if (!ext_csd) {
 			pr_err("%s: unable to allocate buffer for ext_csd\n",
@@ -2351,7 +1880,6 @@ static int mmc_blk_packed_err_check(struct mmc_card *card,
 		}
 free:
 		kfree(ext_csd);
->>>>>>> android-3.18
 	}
 
 	return check;
@@ -3204,22 +2732,6 @@ static int mmc_blk_end_packed_req(struct mmc_queue_req *mq_rq)
 	int idx = mq_rq->packed_fail_idx, i = 0;
 	int ret = 0;
 
-<<<<<<< HEAD
-	while (!list_empty(&mq_rq->packed_list)) {
-		prq = list_entry_rq(mq_rq->packed_list.next);
-		if (idx == i) {
-			/* retry from error index */
-			mq_rq->packed_num -= idx;
-			mq_rq->req = prq;
-			ret = 1;
-
-			if (mq_rq->packed_num == MMC_PACKED_N_SINGLE) {
-				list_del_init(&prq->queuelist);
-				mmc_blk_clear_packed(mq_rq);
-			}
-			return ret;
-		}
-=======
 		blocks = mmc_sd_num_wr_blocks(card);
 		if (blocks != (u32)-1) {
 			ret = blk_end_request(req, 0, blocks << 9);
@@ -3254,7 +2766,6 @@ static int mmc_blk_end_packed_req(struct mmc_queue_req *mq_rq)
 			}
 			return ret;
 		}
->>>>>>> android-3.18
 		list_del_init(&prq->queuelist);
 		blk_end_request(prq, 0, blk_rq_bytes(prq));
 		i++;
@@ -3349,33 +2860,15 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 	struct mmc_queue_req *mq_rq;
 	struct request *req = rqc;
 	struct mmc_async_req *areq;
-<<<<<<< HEAD
-	const u8 packed_num = 2;
-	u8 reqs = 0;
-=======
 	const u8 packed_nr = 2;
 	u8 reqs = 0;
 #ifdef CONFIG_MMC_SIMULATE_MAX_SPEED
 	unsigned long waitfor = jiffies;
 #endif
->>>>>>> android-3.18
 
 	if (!rqc && !mq->mqrq_prev->req)
 		return 0;
 
-<<<<<<< HEAD
-	if (rqc) {
-		if ((card->ext_csd.bkops_en) && (rq_data_dir(rqc) == WRITE))
-			card->bkops_info.sectors_changed += blk_rq_sectors(rqc);
-		reqs = mmc_blk_prep_packed_list(mq, rqc);
-	}
-
-	do {
-		if (rqc) {
-			if (reqs >= packed_num)
-				mmc_blk_packed_hdr_wrq_prep(mq->mqrq_cur,
-						card, mq);
-=======
 	if (rqc)
 		reqs = mmc_blk_prep_packed_list(mq, rqc);
 
@@ -3396,7 +2889,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 			if (reqs >= packed_nr)
 				mmc_blk_packed_hdr_wrq_prep(mq->mqrq_cur,
 							    card, mq);
->>>>>>> android-3.18
 			else
 				mmc_blk_rw_rq_prep(mq->mqrq_cur, card, 0, mq);
 			areq = &mq->mqrq_cur->mmc_active;
@@ -3405,11 +2897,7 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 		areq = mmc_start_req(card->host, areq, (int *) &status);
 		if (!areq) {
 			if (status == MMC_BLK_NEW_REQUEST)
-<<<<<<< HEAD
-				set_bit(MMC_QUEUE_NEW_REQUEST, &mq->flags);
-=======
 				mq->flags |= MMC_QUEUE_NEW_REQUEST;
->>>>>>> android-3.18
 			return 0;
 		}
 
@@ -3441,13 +2929,9 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 			 */
 			mmc_blk_reset_success(md, type);
 
-<<<<<<< HEAD
-			if (mq_rq->packed_cmd != MMC_PACKED_NONE) {
-=======
 			mmc_blk_simulate_delay(mq, rqc, waitfor);
 
 			if (mmc_packed_cmd(mq_rq->cmd_type)) {
->>>>>>> android-3.18
 				ret = mmc_blk_end_packed_req(mq_rq);
 				break;
 			} else {
@@ -3470,29 +2954,11 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 			break;
 		case MMC_BLK_CMD_ERR:
 			ret = mmc_blk_cmd_err(md, card, brq, req, ret);
-<<<<<<< HEAD
-			if (!mmc_blk_reset(md, card->host, type)) {
-				if (!ret) {
-					/*
-					 * We have successfully completed block
-					 * request and notified to upper layers.
-					 * As the reset is successful, assume
-					 * h/w is in clean state and proceed
-					 * with new request.
-					 */
-					BUG_ON(card->host->areq);
-					goto start_new_req;
-				}
-				break;
-			}
-			goto cmd_abort;
-=======
 			if (mmc_blk_reset(md, card->host, type))
 				goto cmd_abort;
 			if (!ret)
 				goto start_new_req;
 			break;
->>>>>>> android-3.18
 		case MMC_BLK_RETRY:
 			if (retry++ < MMC_BLK_MAX_RETRIES)
 				break;
@@ -3509,11 +2975,7 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 			if (!err)
 				break;
 			if (err == -ENODEV ||
-<<<<<<< HEAD
-				mq_rq->packed_cmd != MMC_PACKED_NONE)
-=======
 				mmc_packed_cmd(mq_rq->cmd_type))
->>>>>>> android-3.18
 				goto cmd_abort;
 			/* Fall through */
 		}
@@ -3538,21 +3000,12 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 		case MMC_BLK_NOMEDIUM:
 			goto cmd_abort;
 		default:
-<<<<<<< HEAD
-			pr_err("%s:%s: Unhandled return value (%d)",
-					req->rq_disk->disk_name,
-					__func__, status);
-=======
 			pr_err("%s: Unhandled return value (%d)",
 					req->rq_disk->disk_name, status);
->>>>>>> android-3.18
 			goto cmd_abort;
 		}
 
 		if (ret) {
-<<<<<<< HEAD
-			if (mq_rq->packed_cmd == MMC_PACKED_NONE) {
-=======
 			if (mmc_packed_cmd(mq_rq->cmd_type)) {
 				if (!mq_rq->packed->retries)
 					goto cmd_abort;
@@ -3561,7 +3014,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 					      &mq_rq->mmc_active, NULL);
 			} else {
 
->>>>>>> android-3.18
 				/*
 				 * In case of a incomplete request
 				 * prepare it again and resend.
@@ -3570,15 +3022,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 						disable_multi, mq);
 				mmc_start_req(card->host,
 						&mq_rq->mmc_active, NULL);
-<<<<<<< HEAD
-			} else {
-				if (!mq_rq->packed_retries)
-					goto cmd_abort;
-				mmc_blk_packed_hdr_wrq_prep(mq_rq, card, mq);
-				mmc_start_req(card->host,
-						&mq_rq->mmc_active, NULL);
-=======
->>>>>>> android-3.18
 			}
 		}
 	} while (ret);
@@ -3586,39 +3029,19 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 	return 1;
 
  cmd_abort:
-<<<<<<< HEAD
-	if (mq_rq->packed_cmd == MMC_PACKED_NONE) {
-=======
 	if (mmc_packed_cmd(mq_rq->cmd_type)) {
 		mmc_blk_abort_packed_req(mq_rq);
 	} else {
->>>>>>> android-3.18
 		if (mmc_card_removed(card))
 			req->cmd_flags |= REQ_QUIET;
 		while (ret)
 			ret = blk_end_request(req, -EIO,
 					blk_rq_cur_bytes(req));
-<<<<<<< HEAD
-	} else {
-		mmc_blk_abort_packed_req(mq_rq, 0);
-=======
->>>>>>> android-3.18
 	}
 
  start_new_req:
 	if (rqc) {
 		if (mmc_card_removed(card)) {
-<<<<<<< HEAD
-			if (mq_rq->packed_cmd == MMC_PACKED_NONE) {
-				rqc->cmd_flags |= REQ_QUIET;
-				blk_end_request_all(rqc, -EIO);
-			} else {
-				mmc_blk_abort_packed_req(mq_rq, REQ_QUIET);
-			}
-		} else {
-			/* If current request is packed, it needs to put back */
-			if (mq_rq->packed_cmd != MMC_PACKED_NONE)
-=======
 			rqc->cmd_flags |= REQ_QUIET;
 			blk_end_request_all(rqc, -EIO);
 		} else {
@@ -3626,17 +3049,11 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 			 * If current request is packed, it needs to put back.
 			 */
 			if (mmc_packed_cmd(mq->mqrq_cur->cmd_type))
->>>>>>> android-3.18
 				mmc_blk_revert_packed_req(mq, mq->mqrq_cur);
 
 			mmc_blk_rw_rq_prep(mq->mqrq_cur, card, 0, mq);
 			mmc_start_req(card->host,
-<<<<<<< HEAD
-					&mq->mqrq_cur->mmc_active,
-					NULL);
-=======
 				      &mq->mqrq_cur->mmc_active, NULL);
->>>>>>> android-3.18
 		}
 	}
 
@@ -3652,24 +3069,9 @@ static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 	unsigned long flags;
 	unsigned int cmd_flags = req ? req->cmd_flags : 0;
 
-<<<<<<< HEAD
-	if (req && !mq->mqrq_prev->req) {
-		mmc_rpm_hold(host, &card->dev);
-#ifdef CONFIG_MMC_BLOCK_DEFERRED_RESUME
-	if (mmc_bus_needs_resume(card->host)) {
-		mmc_resume_bus(card->host);
-	}
-#endif
-		/* claim host only for the first request */
-		mmc_claim_host(card->host);
-		if (card->ext_csd.bkops_en)
-			mmc_stop_bkops(card);
-	}
-=======
 	if (req && !mq->mqrq_prev->req)
 		/* claim host only for the first request */
 		mmc_get_card(card);
->>>>>>> android-3.18
 
 	ret = mmc_blk_part_switch(card, md);
 	if (ret) {
@@ -3680,21 +3082,8 @@ static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 		goto out;
 	}
 
-<<<<<<< HEAD
-	mmc_blk_write_packing_control(mq, req);
-
-	clear_bit(MMC_QUEUE_NEW_REQUEST, &mq->flags);
-	clear_bit(MMC_QUEUE_URGENT_REQUEST, &mq->flags);
-	if (cmd_flags & REQ_SANITIZE) {
-		/* complete ongoing async transfer before issuing sanitize */
-		if (card->host && card->host->areq)
-			mmc_blk_issue_rw_rq(mq, NULL);
-		ret = mmc_blk_issue_sanitize_rq(mq, req);
-	} else if (cmd_flags & REQ_DISCARD) {
-=======
 	mq->flags &= ~MMC_QUEUE_NEW_REQUEST;
 	if (cmd_flags & REQ_DISCARD) {
->>>>>>> android-3.18
 		/* complete ongoing async transfer before issuing discard */
 		if (card->host->areq)
 			mmc_blk_issue_rw_rq(mq, NULL);
@@ -3718,24 +3107,6 @@ static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 	}
 
 out:
-<<<<<<< HEAD
-	/*
-	 * packet burst is over, when one of the following occurs:
-	 * - no more requests and new request notification is not in progress
-	 * - urgent notification in progress and current request is not urgent
-	 *   (all existing requests completed or reinserted to the block layer)
-	 */
-	if ((!req && !(test_bit(MMC_QUEUE_NEW_REQUEST, &mq->flags))) ||
-			(cmd_flags & MMC_REQ_SPECIAL_MASK) ||
-			((test_bit(MMC_QUEUE_URGENT_REQUEST, &mq->flags)) &&
-			 !(cmd_flags & MMC_REQ_NOREINSERT_MASK))) {
-		if (mmc_card_need_bkops(card))
-			mmc_start_bkops(card, false);
-		/* release host only when there are no more requests */
-		mmc_release_host(card->host);
-		mmc_rpm_release(host, &card->dev);
-	}
-=======
 	if ((!req && !(mq->flags & MMC_QUEUE_NEW_REQUEST)) ||
 	     (cmd_flags & MMC_REQ_SPECIAL_MASK))
 		/*
@@ -3745,7 +3116,6 @@ out:
 		 * the 'mmc_blk_issue_rq' with 'mqrq_prev->req'.
 		 */
 		mmc_put_card(card);
->>>>>>> android-3.18
 	return ret;
 }
 
@@ -3824,11 +3194,7 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
 	md->disk->driverfs_dev = parent;
 	set_disk_ro(md->disk, md->read_only || default_ro);
 	md->disk->flags = GENHD_FL_EXT_DEVT;
-<<<<<<< HEAD
-	if (area_type & MMC_BLK_DATA_AREA_RPMB)
-=======
 	if (area_type & (MMC_BLK_DATA_AREA_RPMB | MMC_BLK_DATA_AREA_BOOT))
->>>>>>> android-3.18
 		md->disk->flags |= GENHD_FL_NO_PART_SCAN;
 
 	/*
@@ -3985,14 +3351,9 @@ static void mmc_blk_remove_req(struct mmc_blk_data *md)
 		 * from being accepted.
 		 */
 		card = md->queue.card;
-<<<<<<< HEAD
-		device_remove_file(disk_to_dev(md->disk),
-				   &md->num_wr_reqs_to_start_packing);
-=======
 		mmc_cleanup_queue(&md->queue);
 		if (md->flags & MMC_BLK_PACKED_CMD)
 			mmc_packed_clean(&md->queue);
->>>>>>> android-3.18
 		if (md->disk->flags & GENHD_FL_UP) {
 			device_remove_file(disk_to_dev(md->disk), &md->force_ro);
 			if ((md->area_type & MMC_BLK_DATA_AREA_BOOT) &&
@@ -4141,14 +3502,11 @@ force_ro_fail:
 	return ret;
 }
 
-<<<<<<< HEAD
-=======
 #define CID_MANFID_SANDISK	0x2
 #define CID_MANFID_TOSHIBA	0x11
 #define CID_MANFID_MICRON	0x13
 #define CID_MANFID_SAMSUNG	0x15
 
->>>>>>> android-3.18
 static const struct mmc_fixup blk_fixups[] =
 {
 	MMC_FIXUP("SEM02G", CID_MANFID_SANDISK, 0x100, add_quirk,

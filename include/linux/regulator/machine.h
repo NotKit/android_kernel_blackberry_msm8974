@@ -196,26 +196,10 @@ int regulator_suspend_finish(void);
 
 #ifdef CONFIG_REGULATOR
 void regulator_has_full_constraints(void);
-<<<<<<< HEAD
-void regulator_use_dummy_regulator(void);
-void regulator_suppress_info_printing(void);
-=======
->>>>>>> android-3.18
 #else
 static inline void regulator_has_full_constraints(void)
 {
 }
-<<<<<<< HEAD
-
-static inline void regulator_use_dummy_regulator(void)
-{
-}
-
-static inline void regulator_suppress_info_printing(void)
-{
-}
-=======
->>>>>>> android-3.18
 #endif
 
 #endif

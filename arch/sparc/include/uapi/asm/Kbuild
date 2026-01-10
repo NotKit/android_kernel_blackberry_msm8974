@@ -3,8 +3,6 @@
 
 include include/uapi/asm-generic/Kbuild.asm
 
-<<<<<<< HEAD
-=======
 header-y += apc.h
 header-y += asi.h
 header-y += auxvec.h
@@ -50,4 +48,3 @@ header-y += uctx.h
 header-y += unistd.h
 header-y += utrap.h
 header-y += watchdog.h
->>>>>>> android-3.18

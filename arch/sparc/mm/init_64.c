@@ -2313,17 +2313,8 @@ unsigned long _PAGE_CACHE __read_mostly;
 EXPORT_SYMBOL(_PAGE_CACHE);
 
 #ifdef CONFIG_SPARSEMEM_VMEMMAP
-<<<<<<< HEAD
-unsigned long vmemmap_table[VMEMMAP_SIZE];
-
-static long __meminitdata addr_start, addr_end;
-static int __meminitdata node_start;
-
-int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
-=======
 int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
 			       int node)
->>>>>>> android-3.18
 {
 	unsigned long pte_base;
 
@@ -2357,17 +2348,6 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
 		if (pud_none(*pud)) {
 			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
 
-<<<<<<< HEAD
-			/* check to see if we have contiguous blocks */
-			if (addr_end != addr || node_start != node) {
-				if (addr_start)
-					printk(KERN_DEBUG " [%lx-%lx] on node %d\n",
-					       addr_start, addr_end-1, node_start);
-				addr_start = addr;
-				node_start = node;
-			}
-			addr_end = addr + VMEMMAP_CHUNK;
-=======
 			if (!new)
 				return -ENOMEM;
 			pud_populate(&init_mm, pud, new);
@@ -2383,27 +2363,14 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
 				return -ENOMEM;
 
 			pmd_val(*pmd) = pte_base | __pa(block);
->>>>>>> android-3.18
 		}
 	}
 
 	return 0;
 }
 
-<<<<<<< HEAD
-void __meminit vmemmap_populate_print_last(void)
-{
-	if (addr_start) {
-		printk(KERN_DEBUG " [%lx-%lx] on node %d\n",
-		       addr_start, addr_end-1, node_start);
-		addr_start = 0;
-		addr_end = 0;
-		node_start = 0;
-	}
-=======
 void vmemmap_free(unsigned long start, unsigned long end)
 {
->>>>>>> android-3.18
 }
 #endif /* CONFIG_SPARSEMEM_VMEMMAP */
 
@@ -2651,8 +2618,6 @@ void __flush_tlb_all(void)
 			     : : "r" (pstate));
 }
 
-<<<<<<< HEAD
-=======
 pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
 			    unsigned long address)
 {
@@ -2872,7 +2837,6 @@ static int __init report_memory(void)
 }
 device_initcall(report_memory);
 
->>>>>>> android-3.18
 #ifdef CONFIG_SMP
 #define do_flush_tlb_kernel_range	smp_flush_tlb_kernel_range
 #else
@@ -2887,13 +2851,8 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 			do_flush_tlb_kernel_range(start, LOW_OBP_ADDRESS);
 		}
 		if (end > HI_OBP_ADDRESS) {
-<<<<<<< HEAD
-			flush_tsb_kernel_range(end, HI_OBP_ADDRESS);
-			do_flush_tlb_kernel_range(end, HI_OBP_ADDRESS);
-=======
 			flush_tsb_kernel_range(HI_OBP_ADDRESS, end);
 			do_flush_tlb_kernel_range(HI_OBP_ADDRESS, end);
->>>>>>> android-3.18
 		}
 	} else {
 		flush_tsb_kernel_range(start, end);

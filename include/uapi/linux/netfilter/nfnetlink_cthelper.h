@@ -4,11 +4,7 @@
 #define NFCT_HELPER_STATUS_DISABLED	0
 #define NFCT_HELPER_STATUS_ENABLED	1
 
-<<<<<<< HEAD
-enum nfnl_acct_msg_types {
-=======
 enum nfnl_cthelper_msg_types {
->>>>>>> android-3.18
 	NFNL_MSG_CTHELPER_NEW,
 	NFNL_MSG_CTHELPER_GET,
 	NFNL_MSG_CTHELPER_DEL,

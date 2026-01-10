@@ -81,38 +81,6 @@ int drm_open(struct inode *inode, struct file *filp)
 {
 	struct drm_device *dev;
 	struct drm_minor *minor;
-<<<<<<< HEAD
-	int retcode = 0;
-
-	minor = idr_find(&drm_minors_idr, minor_id);
-	if (!minor)
-		return -ENODEV;
-
-	if (!(dev = minor->dev))
-		return -ENODEV;
-
-	if (drm_device_is_unplugged(dev))
-		return -ENODEV;
-
-	retcode = drm_open_helper(inode, filp, dev);
-	if (!retcode) {
-		atomic_inc(&dev->counts[_DRM_STAT_OPENS]);
-		if (!dev->open_count++) {
-			retcode = drm_setup(dev);
-			if (retcode)
-				dev->open_count--;
-		}
-	}
-	if (!retcode) {
-		mutex_lock(&dev->struct_mutex);
-		if (minor->type == DRM_MINOR_LEGACY) {
-			if (dev->dev_mapping == NULL)
-				dev->dev_mapping = inode->i_mapping;
-			else if (dev->dev_mapping != inode->i_mapping)
-				retcode = -ENODEV;
-		}
-		mutex_unlock(&dev->struct_mutex);
-=======
 	int retcode;
 	int need_setup = 0;
 
@@ -134,7 +102,6 @@ int drm_open(struct inode *inode, struct file *filp)
 		retcode = drm_setup(dev);
 		if (retcode)
 			goto err_undo;
->>>>>>> android-3.18
 	}
 	return 0;
 

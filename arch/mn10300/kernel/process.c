@@ -60,31 +60,7 @@ EXPORT_SYMBOL(pm_power_off);
 #if !defined(CONFIG_SMP) || defined(CONFIG_HOTPLUG_CPU)
 void arch_cpu_idle(void)
 {
-<<<<<<< HEAD
-	/* endless idle loop with no priority at all */
-	for (;;) {
-		rcu_idle_enter();
-		while (!need_resched()) {
-			void (*idle)(void);
-
-			smp_rmb();
-			idle = pm_idle;
-			if (!idle) {
-#if defined(CONFIG_SMP) && !defined(CONFIG_HOTPLUG_CPU)
-				idle = poll_idle;
-#else  /* CONFIG_SMP && !CONFIG_HOTPLUG_CPU */
-				idle = default_idle;
-#endif /* CONFIG_SMP && !CONFIG_HOTPLUG_CPU */
-			}
-			idle();
-		}
-		rcu_idle_exit();
-
-		schedule_preempt_disabled();
-	}
-=======
 	safe_halt();
->>>>>>> android-3.18
 }
 #endif
 

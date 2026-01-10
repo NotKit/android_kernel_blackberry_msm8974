@@ -6,9 +6,6 @@ obj-$(CONFIG_MTD_TESTS) += mtd_stresstest.o
 obj-$(CONFIG_MTD_TESTS) += mtd_subpagetest.o
 obj-$(CONFIG_MTD_TESTS) += mtd_torturetest.o
 obj-$(CONFIG_MTD_TESTS) += mtd_nandecctest.o
-<<<<<<< HEAD
-obj-$(CONFIG_MTD_TESTS) += mtd_erasepart.o
-=======
 obj-$(CONFIG_MTD_TESTS) += mtd_nandbiterrs.o
 
 mtd_oobtest-objs := oobtest.o mtd_test.o
@@ -19,4 +16,3 @@ mtd_stresstest-objs := stresstest.o mtd_test.o
 mtd_subpagetest-objs := subpagetest.o mtd_test.o
 mtd_torturetest-objs := torturetest.o mtd_test.o
 mtd_nandbiterrs-objs := nandbiterrs.o mtd_test.o
->>>>>>> android-3.18

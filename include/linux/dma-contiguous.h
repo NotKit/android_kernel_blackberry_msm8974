@@ -53,33 +53,6 @@
 
 #ifdef __KERNEL__
 
-<<<<<<< HEAD
-struct cma;
-struct page;
-struct device;
-
-#ifdef CONFIG_CMA
-
-/*
- * There is always at least global CMA area and a few optional device
- * private areas configured in kernel .config.
- */
-#define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
-
-
-phys_addr_t cma_get_base(struct device *dev);
-
-extern struct cma *dma_contiguous_def_area;
-
-void dma_contiguous_reserve(phys_addr_t addr_limit);
-
-int dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t *res_base,
-				  phys_addr_t limit, const char *name,
-				  bool in_system,
-				  bool remove);
-
-int dma_contiguous_add_device(struct device *dev, phys_addr_t base);
-=======
 #include <linux/device.h>
 
 struct cma;
@@ -112,7 +85,6 @@ void dma_contiguous_reserve(phys_addr_t addr_limit);
 int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
 				       phys_addr_t limit, struct cma **res_cma,
 				       bool fixed);
->>>>>>> android-3.18
 
 /**
  * dma_declare_contiguous() - reserve area for contiguous memory handling
@@ -130,32 +102,6 @@ int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
 static inline int dma_declare_contiguous(struct device *dev, phys_addr_t size,
 					 phys_addr_t base, phys_addr_t limit)
 {
-<<<<<<< HEAD
-	int ret;
-	ret = dma_contiguous_reserve_area(size, &base, limit, NULL, true,
-						false);
-	if (ret == 0)
-		ret = dma_contiguous_add_device(dev, base);
-	return ret;
-}
-
-static inline int dma_declare_contiguous_reserved(struct device *dev,
-					 phys_addr_t size,
-					 phys_addr_t base,
-					 phys_addr_t limit)
-{
-	int ret;
-	ret = dma_contiguous_reserve_area(size, &base, limit, NULL, false,
-						false);
-	if (ret == 0)
-		ret = dma_contiguous_add_device(dev, base);
-	return ret;
-}
-
-unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
-				       unsigned int order);
-bool dma_release_from_contiguous(struct device *dev, unsigned long pfn,
-=======
 	struct cma *cma;
 	int ret;
 	ret = dma_contiguous_reserve_area(size, base, limit, &cma, true);
@@ -168,17 +114,10 @@ bool dma_release_from_contiguous(struct device *dev, unsigned long pfn,
 struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
 				       unsigned int order);
 bool dma_release_from_contiguous(struct device *dev, struct page *pages,
->>>>>>> android-3.18
 				 int count);
 
 #else
 
-<<<<<<< HEAD
-#define MAX_CMA_AREAS	(0)
-
-static inline void dma_contiguous_reserve(phys_addr_t limit) { }
-
-=======
 static inline struct cma *dev_get_cma_area(struct device *dev)
 {
 	return NULL;
@@ -197,7 +136,6 @@ static inline int dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base
 	return -ENOSYS;
 }
 
->>>>>>> android-3.18
 static inline
 int dma_declare_contiguous(struct device *dev, phys_addr_t size,
 			   phys_addr_t base, phys_addr_t limit)
@@ -206,16 +144,6 @@ int dma_declare_contiguous(struct device *dev, phys_addr_t size,
 }
 
 static inline
-<<<<<<< HEAD
-unsigned long dma_alloc_from_contiguous(struct device *dev, int count,
-				       unsigned int order)
-{
-	return 0;
-}
-
-static inline
-bool dma_release_from_contiguous(struct device *dev, unsigned long pfn,
-=======
 struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
 				       unsigned int order)
 {
@@ -224,21 +152,11 @@ struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
 
 static inline
 bool dma_release_from_contiguous(struct device *dev, struct page *pages,
->>>>>>> android-3.18
 				 int count)
 {
 	return false;
 }
 
-<<<<<<< HEAD
-
-static inline phys_addr_t cma_get_base(struct device *dev)
-{
-	return 0;
-}
-
-=======
->>>>>>> android-3.18
 #endif
 
 #endif

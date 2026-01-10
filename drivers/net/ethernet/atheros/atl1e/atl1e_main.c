@@ -1943,13 +1943,8 @@ static int atl1e_request_irq(struct atl1e_adapter *adapter)
 	struct net_device *netdev = adapter->netdev;
 	int err = 0;
 
-<<<<<<< HEAD
-	err = request_irq(pdev->irq, atl1e_intr, IRQF_SHARED,
-			  netdev->name, netdev);
-=======
 	err = request_irq(pdev->irq, atl1e_intr, IRQF_SHARED, netdev->name,
 			  netdev);
->>>>>>> android-3.18
 	if (err) {
 		netdev_dbg(adapter->netdev,
 			   "Unable to allocate interrupt Error: %d\n", err);

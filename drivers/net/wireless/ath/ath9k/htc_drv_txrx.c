@@ -1031,21 +1031,6 @@ static bool ath9k_rx_prepare(struct ath9k_htc_priv *priv,
 			&decrypt_error, priv->rxfilter))
 		goto rx_next;
 
-<<<<<<< HEAD
-	if (ieee80211_is_beacon(hdr->frame_control) &&
-	    !is_zero_ether_addr(common->curbssid) &&
-	    compare_ether_addr(hdr->addr3, common->curbssid) == 0) {
-		s8 rssi = rxbuf->rxstatus.rs_rssi;
-
-		if (likely(last_rssi != ATH_RSSI_DUMMY_MARKER))
-			rssi = ATH_EP_RND(last_rssi, ATH_RSSI_EP_MULTIPLIER);
-
-		if (rssi < 0)
-			rssi = 0;
-
-		priv->ah->stats.avgbrssi = rssi;
-	}
-=======
 	ath9k_cmn_rx_skb_postprocess(common, skb, &rx_stats,
 				     rx_status, decrypt_error);
 
@@ -1054,7 +1039,6 @@ static bool ath9k_rx_prepare(struct ath9k_htc_priv *priv,
 
 	rx_stats.is_mybeacon = ath_is_mybeacon(common, hdr);
 	ath9k_cmn_process_rssi(common, hw, &rx_stats, rx_status);
->>>>>>> android-3.18
 
 	rx_status->band = ah->curchan->chan->band;
 	rx_status->freq = ah->curchan->chan->center_freq;

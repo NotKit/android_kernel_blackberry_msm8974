@@ -387,8 +387,6 @@ static const struct pci_device_id ath_pci_id_table[] = {
 
 	{ PCI_VDEVICE(ATHEROS, 0x0034) }, /* PCI-E  AR9462 */
 	{ PCI_VDEVICE(ATHEROS, 0x0037) }, /* PCI-E  AR1111/AR9485 */
-<<<<<<< HEAD
-=======
 
 	/* CUS252 */
 	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_ATHEROS,
@@ -671,7 +669,6 @@ static const struct pci_device_id ath_pci_id_table[] = {
 	{ PCI_VDEVICE(ATHEROS, 0x0036),
 	  .driver_data = ATH9K_PCI_BT_ANT_DIV },
 
->>>>>>> android-3.18
 	{ 0 }
 };
 
@@ -747,16 +744,9 @@ static void ath_pci_aspm_init(struct ath_common *common)
 
 	if ((ath9k_hw_get_btcoex_scheme(ah) != ATH_BTCOEX_CFG_NONE) &&
 	    (AR_SREV_9285(ah))) {
-<<<<<<< HEAD
-		/* Bluetooth coexistance requires disabling ASPM for AR9285. */
-		pci_read_config_byte(pdev, pos + PCI_EXP_LNKCTL, &aspm);
-		aspm &= ~(PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1);
-		pci_write_config_byte(pdev, pos + PCI_EXP_LNKCTL, aspm);
-=======
 		/* Bluetooth coexistence requires disabling ASPM. */
 		pcie_capability_clear_word(pdev, PCI_EXP_LNKCTL,
 			PCI_EXP_LNKCTL_ASPM_L0S | PCI_EXP_LNKCTL_ASPM_L1);
->>>>>>> android-3.18
 
 		/*
 		 * Both upstream and downstream PCIe components should

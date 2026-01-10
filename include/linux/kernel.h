@@ -28,8 +28,6 @@
 #define LLONG_MIN	(-LLONG_MAX - 1)
 #define ULLONG_MAX	(~0ULL)
 #define SIZE_MAX	(~(size_t)0)
-<<<<<<< HEAD
-=======
 
 #define U8_MAX		((u8)~0U)
 #define S8_MAX		((s8)(U8_MAX>>1))
@@ -43,7 +41,6 @@
 #define U64_MAX		((u64)~0ULL)
 #define S64_MAX		((s64)(U64_MAX>>1))
 #define S64_MIN		((s64)(-S64_MAX - 1))
->>>>>>> android-3.18
 
 #define STACK_MAGIC	0xdeadbeef
 
@@ -613,16 +610,10 @@ do {									\
 									\
 	__trace_printk_check_format(fmt, ##args);			\
 									\
-<<<<<<< HEAD
-		__trace_printk(_THIS_IP_, trace_printk_fmt, ##args);	\
-	} else								\
-		__trace_printk(_THIS_IP_, fmt, ##args);		\
-=======
 	if (__builtin_constant_p(fmt))					\
 		__trace_bprintk(_THIS_IP_, trace_printk_fmt, ##args);	\
 	else								\
 		__trace_printk(_THIS_IP_, fmt, ##args);			\
->>>>>>> android-3.18
 } while (0)
 
 extern __printf(2, 3)
@@ -827,10 +818,6 @@ static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
 # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
 #endif
 
-<<<<<<< HEAD
-extern int do_sysinfo(struct sysinfo *info);
-
-=======
 /* Permissions on a sysfs file: you didn't miss the 0 prefix did you? */
 #define VERIFY_OCTAL_PERMISSIONS(perms)					\
 	(BUILD_BUG_ON_ZERO((perms) < 0) +				\
@@ -841,5 +828,4 @@ extern int do_sysinfo(struct sysinfo *info);
 	 /* Other writable?  Generally considered a bad idea. */	\
 	 BUILD_BUG_ON_ZERO((perms) & 2) +				\
 	 (perms))
->>>>>>> android-3.18
 #endif

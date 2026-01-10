@@ -32,13 +32,8 @@ void xhci_dbg_regs(struct xhci_hcd *xhci)
 
 	xhci_dbg(xhci, "// xHCI capability registers at %pK:\n",
 			xhci->cap_regs);
-<<<<<<< HEAD
-	temp = xhci_readl(xhci, &xhci->cap_regs->hc_capbase);
-	xhci_dbg(xhci, "// @%pK = 0x%x (CAPLENGTH AND HCIVERSION)\n",
-=======
 	temp = readl(&xhci->cap_regs->hc_capbase);
 	xhci_dbg(xhci, "// @%p = 0x%x (CAPLENGTH AND HCIVERSION)\n",
->>>>>>> android-3.18
 			&xhci->cap_regs->hc_capbase, temp);
 	xhci_dbg(xhci, "//   CAPLENGTH: 0x%x\n",
 			(unsigned int) HC_LENGTH(temp));
@@ -49,26 +44,15 @@ void xhci_dbg_regs(struct xhci_hcd *xhci)
 
 	xhci_dbg(xhci, "// xHCI operational registers at %pK:\n", xhci->op_regs);
 
-<<<<<<< HEAD
-	temp = xhci_readl(xhci, &xhci->cap_regs->run_regs_off);
-	xhci_dbg(xhci, "// @%pK = 0x%x RTSOFF\n",
-=======
 	temp = readl(&xhci->cap_regs->run_regs_off);
 	xhci_dbg(xhci, "// @%p = 0x%x RTSOFF\n",
->>>>>>> android-3.18
 			&xhci->cap_regs->run_regs_off,
 			(unsigned int) temp & RTSOFF_MASK);
 	xhci_dbg(xhci, "// xHCI runtime registers at %pK:\n", xhci->run_regs);
 
-<<<<<<< HEAD
-	temp = xhci_readl(xhci, &xhci->cap_regs->db_off);
-	xhci_dbg(xhci, "// @%pK = 0x%x DBOFF\n", &xhci->cap_regs->db_off, temp);
-	xhci_dbg(xhci, "// Doorbell array at %pK:\n", xhci->dba);
-=======
 	temp = readl(&xhci->cap_regs->db_off);
 	xhci_dbg(xhci, "// @%p = 0x%x DBOFF\n", &xhci->cap_regs->db_off, temp);
 	xhci_dbg(xhci, "// Doorbell array at %p:\n", xhci->dba);
->>>>>>> android-3.18
 }
 
 static void xhci_print_cap_regs(struct xhci_hcd *xhci)
@@ -203,15 +187,6 @@ void xhci_print_ir_set(struct xhci_hcd *xhci, int set_num)
 			(unsigned int)temp);
 
 	addr = &ir_set->irq_control;
-<<<<<<< HEAD
-	temp = xhci_readl(xhci, addr);
-	xhci_dbg(xhci, "  %pK: ir_set.control = 0x%x\n", addr,
-			(unsigned int)temp);
-
-	addr = &ir_set->erst_size;
-	temp = xhci_readl(xhci, addr);
-	xhci_dbg(xhci, "  %pK: ir_set.erst_size = 0x%x\n", addr,
-=======
 	temp = readl(addr);
 	xhci_dbg(xhci, "  %p: ir_set.control = 0x%x\n", addr,
 			(unsigned int)temp);
@@ -219,7 +194,6 @@ void xhci_print_ir_set(struct xhci_hcd *xhci, int set_num)
 	addr = &ir_set->erst_size;
 	temp = readl(addr);
 	xhci_dbg(xhci, "  %p: ir_set.erst_size = 0x%x\n", addr,
->>>>>>> android-3.18
 			(unsigned int)temp);
 
 	addr = &ir_set->rsvd;
@@ -244,15 +218,9 @@ void xhci_print_run_regs(struct xhci_hcd *xhci)
 	u32 temp;
 	int i;
 
-<<<<<<< HEAD
-	xhci_dbg(xhci, "xHCI runtime registers at %pK:\n", xhci->run_regs);
-	temp = xhci_readl(xhci, &xhci->run_regs->microframe_index);
-	xhci_dbg(xhci, "  %pK: Microframe index = 0x%x\n",
-=======
 	xhci_dbg(xhci, "xHCI runtime registers at %p:\n", xhci->run_regs);
 	temp = readl(&xhci->run_regs->microframe_index);
 	xhci_dbg(xhci, "  %p: Microframe index = 0x%x\n",
->>>>>>> android-3.18
 			&xhci->run_regs->microframe_index,
 			(unsigned int) temp);
 	for (i = 0; i < 7; ++i) {
@@ -540,15 +508,10 @@ static void xhci_dbg_ep_ctx(struct xhci_hcd *xhci,
 		dma_addr_t dma = ctx->dma +
 			((unsigned long)ep_ctx - (unsigned long)ctx->bytes);
 
-<<<<<<< HEAD
-		xhci_dbg(xhci, "Endpoint %02d Context:\n", i);
-		xhci_dbg(xhci, "@%pK (virt) @%08llx (dma) %#08x - ep_info\n",
-=======
 		xhci_dbg(xhci, "%s Endpoint %02d Context (ep_index %02d):\n",
 				usb_endpoint_out(epaddr) ? "OUT" : "IN",
 				epaddr & USB_ENDPOINT_NUMBER_MASK, i);
 		xhci_dbg(xhci, "@%p (virt) @%08llx (dma) %#08x - ep_info\n",
->>>>>>> android-3.18
 				&ep_ctx->ep_info,
 				(unsigned long long)dma, ep_ctx->ep_info);
 		dma += field_size;
@@ -590,16 +553,12 @@ void xhci_dbg_ctx(struct xhci_hcd *xhci,
 	if (ctx->type == XHCI_CTX_TYPE_INPUT) {
 		struct xhci_input_control_ctx *ctrl_ctx =
 			xhci_get_input_control_ctx(xhci, ctx);
-<<<<<<< HEAD
-		xhci_dbg(xhci, "@%pK (virt) @%08llx (dma) %#08x - drop flags\n",
-=======
 		if (!ctrl_ctx) {
 			xhci_warn(xhci, "Could not get input context, bad type.\n");
 			return;
 		}
 
 		xhci_dbg(xhci, "@%p (virt) @%08llx (dma) %#08x - drop flags\n",
->>>>>>> android-3.18
 			 &ctrl_ctx->drop_flags, (unsigned long long)dma,
 			 ctrl_ctx->drop_flags);
 		dma += field_size;

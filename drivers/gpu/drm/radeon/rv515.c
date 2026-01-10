@@ -295,12 +295,9 @@ static int rv515_debugfs_ga_info_init(struct radeon_device *rdev)
 
 void rv515_mc_stop(struct radeon_device *rdev, struct rv515_mc_save *save)
 {
-<<<<<<< HEAD
-=======
 	u32 crtc_enabled, tmp, frame_count, blackout;
 	int i, j;
 
->>>>>>> android-3.18
 	save->vga_render_control = RREG32(R_000300_VGA_RENDER_CONTROL);
 	save->vga_hdp_control = RREG32(R_000328_VGA_HDP_CONTROL);
 

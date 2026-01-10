@@ -165,47 +165,20 @@ static inline int tty_put_user(struct tty_struct *tty, unsigned char x,
 	return put_user(x, ptr);
 }
 
-<<<<<<< HEAD
-/**
- *	n_tty_set_room	-	receive space
- *	@tty: terminal
- *
- *	Sets tty->receive_room to reflect the currently available space
- *	in the input buffer, and re-schedules the flip buffer work if space
- *	just became available.
- *
- *	Locks: Concurrent update is protected with read_lock
- */
-
-static void n_tty_set_room(struct tty_struct *tty)
-{
-	int left;
-	int old_left;
-	unsigned long flags;
-
-	spin_lock_irqsave(&tty->read_lock, flags);
-=======
 static int receive_room(struct tty_struct *tty)
 {
 	struct n_tty_data *ldata = tty->disc_data;
 	int left;
 	size_t tail = smp_load_acquire(&ldata->read_tail);
 	size_t head = ldata->read_head;
->>>>>>> android-3.18
 
 	if (I_PARMRK(tty)) {
 		/* Multiply read_cnt by 3, since each byte might take up to
 		 * three times as many spaces when PARMRK is set (depending on
 		 * its flags, e.g. parity error). */
-<<<<<<< HEAD
-		left = N_TTY_BUF_SIZE - tty->read_cnt * 3 - 1;
-	} else
-		left = N_TTY_BUF_SIZE - tty->read_cnt - 1;
-=======
 		left = N_TTY_BUF_SIZE - (head - tail) * 3 - 1;
 	} else
 		left = N_TTY_BUF_SIZE - (head - tail) - 1;
->>>>>>> android-3.18
 
 	/*
 	 * If we are doing input canonicalization, and there are no
@@ -216,13 +189,6 @@ static int receive_room(struct tty_struct *tty)
 	if (left <= 0)
 		left = ldata->icanon && ldata->canon_head == tail;
 
-<<<<<<< HEAD
-	spin_unlock_irqrestore(&tty->read_lock, flags);
-
-	/* Did this open up the receive buffer? We may need to flip */
-	if (left && !old_left)
-		schedule_work(&tty->buf.work);
-=======
 	return left;
 }
 
@@ -234,7 +200,6 @@ static inline void zero_buffer(struct tty_struct *tty, u8 *buffer, int size)
 
 	if (icanon && no_echo)
 		memset(buffer, 0x00, size);
->>>>>>> android-3.18
 }
 
 static inline int tty_copy_to_user(struct tty_struct *tty,
@@ -1443,13 +1408,8 @@ handle_newline:
 			put_tty_queue(c, ldata);
 			smp_store_release(&ldata->canon_head, ldata->read_head);
 			kill_fasync(&tty->fasync, SIGIO, POLL_IN);
-<<<<<<< HEAD
-			wake_up_interruptible(&tty->read_wait);
-			return;
-=======
 			wake_up_interruptible_poll(&tty->read_wait, POLLIN);
 			return 0;
->>>>>>> android-3.18
 		}
 	}
 
@@ -1734,11 +1694,7 @@ static void __receive_buf(struct tty_struct *tty, const unsigned char *cp,
 
 	if ((read_cnt(ldata) >= ldata->minimum_to_wake) || L_EXTPROC(tty)) {
 		kill_fasync(&tty->fasync, SIGIO, POLL_IN);
-<<<<<<< HEAD
-		wake_up_interruptible(&tty->read_wait);
-=======
 		wake_up_interruptible_poll(&tty->read_wait, POLLIN);
->>>>>>> android-3.18
 	}
 }
 
@@ -1954,10 +1910,7 @@ static void n_tty_set_termios(struct tty_struct *tty, struct ktermios *old)
 	 */
 	if (!I_IXON(tty) && old && (old->c_iflag & IXON) && !tty->flow_stopped) {
 		start_tty(tty);
-<<<<<<< HEAD
-=======
 		process_echoes(tty);
->>>>>>> android-3.18
 	}
 
 	/* The termios change make the tty ready for I/O */
@@ -2256,14 +2209,6 @@ static ssize_t n_tty_read(struct tty_struct *tty, struct file *file,
 	unsigned long flags;
 	int packet;
 
-<<<<<<< HEAD
-do_it_again:
-
-	if (WARN_ON(!tty->read_buf))
-		return -EAGAIN;
-
-=======
->>>>>>> android-3.18
 	c = job_control(tty, file);
 	if (c < 0)
 		return c;
@@ -2358,13 +2303,6 @@ do_it_again:
 				down_read(&tty->termios_rwsem);
 				continue;
 			}
-<<<<<<< HEAD
-			n_tty_set_room(tty);
-			timeout = schedule_timeout(timeout);
-			BUG_ON(!tty->read_buf);
-			continue;
-=======
->>>>>>> android-3.18
 		}
 		__set_current_state(TASK_RUNNING);
 
@@ -2494,20 +2432,12 @@ static ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
 			if (tty->ops->flush_chars)
 				tty->ops->flush_chars(tty);
 		} else {
-<<<<<<< HEAD
-
-			while (nr > 0) {
-				mutex_lock(&tty->output_lock);
-				c = tty->ops->write(tty, b, nr);
-				mutex_unlock(&tty->output_lock);
-=======
 			struct n_tty_data *ldata = tty->disc_data;
 
 			while (nr > 0) {
 				mutex_lock(&ldata->output_lock);
 				c = tty->ops->write(tty, b, nr);
 				mutex_unlock(&ldata->output_lock);
->>>>>>> android-3.18
 				if (c < 0) {
 					retval = c;
 					goto break_out;

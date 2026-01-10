@@ -1211,16 +1211,8 @@ static void x86_pmu_del(struct perf_event *event, int flags)
 			break;
 	}
 
-<<<<<<< HEAD
-			if (i >= cpuc->n_events - cpuc->n_added)
-				--cpuc->n_added;
-
-			if (x86_pmu.put_event_constraints)
-				x86_pmu.put_event_constraints(cpuc, event);
-=======
 	if (WARN_ON_ONCE(i == cpuc->n_events)) /* called ->del() without ->add() ? */
 		return;
->>>>>>> android-3.18
 
 	/* If we have a newly added event; make sure to decrease n_added. */
 	if (i >= cpuc->n_events - cpuc->n_added)

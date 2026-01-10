@@ -17,13 +17,8 @@
    Supports:
 	Intel PIIX4, 440MX
 	Serverworks OSB4, CSB5, CSB6, HT-1000, HT-1100
-<<<<<<< HEAD
-	ATI IXP200, IXP300, IXP400, SB600, SB700, SB800
-	AMD Hudson-2, CZ
-=======
 	ATI IXP200, IXP300, IXP400, SB600, SB700/SP5100, SB800
 	AMD Hudson-2, ML, CZ
->>>>>>> android-3.18
 	SMSC Victory66
 
    Note: we assume there can only be one device, with one or more

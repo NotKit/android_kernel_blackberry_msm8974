@@ -134,16 +134,12 @@ struct menu_device {
 #define LOAD_INT(x) ((x) >> FSHIFT)
 #define LOAD_FRAC(x) LOAD_INT(((x) & (FIXED_1-1)) * 100)
 
-<<<<<<< HEAD
-static inline int which_bucket(unsigned int duration)
-=======
 static inline int get_loadavg(unsigned long load)
 {
 	return LOAD_INT(load) * 10 + LOAD_FRAC(load) / 10;
 }
 
 static inline int which_bucket(unsigned int duration, unsigned long nr_iowaiters)
->>>>>>> android-3.18
 {
 	int bucket = 0;
 
@@ -180,8 +176,6 @@ static inline int performance_multiplier(unsigned long nr_iowaiters, unsigned lo
 {
 	int mult = 1;
 
-<<<<<<< HEAD
-=======
 	/* for higher loadavg, we are more reluctant */
 
 	/*
@@ -191,7 +185,6 @@ static inline int performance_multiplier(unsigned long nr_iowaiters, unsigned lo
 	 */
 	/* mult += 2 * get_loadavg(); */
 
->>>>>>> android-3.18
 	/* for IO wait tasks (per cpu!) we add 5x each */
 	mult += 10 * nr_iowaiters;
 

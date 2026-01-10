@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-obj-y += msm/
-=======
 #
 # Makefile for the video capture/playback device drivers.
 #
@@ -53,4 +50,3 @@ obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
 obj-y	+= omap/
 
 ccflags-y += -I$(srctree)/drivers/media/i2c
->>>>>>> android-3.18

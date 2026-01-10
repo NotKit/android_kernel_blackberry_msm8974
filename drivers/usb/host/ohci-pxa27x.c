@@ -525,26 +525,7 @@ void usb_hcd_pxa27x_remove (struct usb_hcd *hcd, struct platform_device *pdev)
 	unsigned int i;
 
 	usb_remove_hcd(hcd);
-<<<<<<< HEAD
-	pxa27x_stop_hc(ohci, &pdev->dev);
-	iounmap(hcd->regs);
-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
-	usb_put_hcd(hcd);
-	clk_put(ohci->clk);
-}
-
-/*-------------------------------------------------------------------------*/
-
-static int __devinit
-ohci_pxa27x_start (struct usb_hcd *hcd)
-{
-	struct ohci_hcd	*ohci = hcd_to_ohci (hcd);
-	int		ret;
-
-	ohci_dbg (ohci, "ohci_pxa27x_start, ohci:%pK", ohci);
-=======
 	pxa27x_stop_hc(pxa_ohci, &pdev->dev);
->>>>>>> android-3.18
 
 	for (i = 0; i < 3; ++i)
 		pxa27x_ohci_set_vbus_power(pxa_ohci, i, false);

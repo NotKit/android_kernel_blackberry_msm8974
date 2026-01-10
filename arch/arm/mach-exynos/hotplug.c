@@ -18,35 +18,8 @@
 #include <asm/cp15.h>
 #include <asm/smp_plat.h>
 
-<<<<<<< HEAD
-#include <mach/regs-pmu.h>
-
-extern volatile int pen_release;
-
-static inline void cpu_enter_lowpower(void)
-{
-	unsigned int v;
-
-	asm volatile(
-	"	mcr	p15, 0, %1, c7, c5, 0\n"
-	"	mcr	p15, 0, %1, c7, c10, 4\n"
-	/*
-	 * Turn off coherency
-	 */
-	"	mrc	p15, 0, %0, c1, c0, 1\n"
-	"	bic	%0, %0, %3\n"
-	"	mcr	p15, 0, %0, c1, c0, 1\n"
-	"	mrc	p15, 0, %0, c1, c0, 0\n"
-	"	bic	%0, %0, %2\n"
-	"	mcr	p15, 0, %0, c1, c0, 0\n"
-	  : "=&r" (v)
-	  : "r" (0), "Ir" (CR_C), "Ir" (0x40)
-	  : "cc");
-}
-=======
 #include "common.h"
 #include "regs-pmu.h"
->>>>>>> android-3.18
 
 static inline void cpu_leave_lowpower(void)
 {

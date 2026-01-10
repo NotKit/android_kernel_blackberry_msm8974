@@ -217,13 +217,6 @@ static int slave_configure(struct scsi_device *sdev)
 		/*
 		 * Many devices do not respond properly to READ_CAPACITY_16.
 		 * Tell the SCSI layer to try READ_CAPACITY_10 first.
-<<<<<<< HEAD
-		 */
-		sdev->try_rc_10_first = 1;
-
-		/* assume SPC3 or latter devices support sense size > 18 */
-		if (sdev->scsi_level > SCSI_SPC_2)
-=======
 		 * However some USB 3.0 drive enclosures return capacity
 		 * modulo 2TB. Those must use READ_CAPACITY_16
 		 */
@@ -236,7 +229,6 @@ static int slave_configure(struct scsi_device *sdev)
 		 */
 		if (sdev->scsi_level > SCSI_SPC_2 &&
 		    !(us->fflags & US_FL_BAD_SENSE))
->>>>>>> android-3.18
 			us->fflags |= US_FL_SANE_SENSE;
 
 		/* USB-IDE bridges tend to report SK = 0x04 (Non-recoverable
@@ -264,24 +256,14 @@ static int slave_configure(struct scsi_device *sdev)
 				us->protocol == USB_PR_BULK)
 			us->use_last_sector_hacks = 1;
 
-<<<<<<< HEAD
-		if (us->sdev_autosuspend_delay >= 0) {
-			sdev->use_rpm_auto = 1;
-			sdev->autosuspend_delay = us->sdev_autosuspend_delay;
-		}
-=======
 		/* Check if write cache default on flag is set or not */
 		if (us->fflags & US_FL_WRITE_CACHE)
 			sdev->wce_default_on = 1;
->>>>>>> android-3.18
 
 		/* A few buggy USB-ATA bridges don't understand FUA */
 		if (us->fflags & US_FL_BROKEN_FUA)
 			sdev->broken_fua = 1;
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	} else {
 
 		/* Non-disk-type devices don't need to blacklist any pages

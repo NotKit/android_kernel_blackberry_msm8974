@@ -908,8 +908,6 @@ struct mode_page_header {
 	__be16 desc_length;
 };
 
-<<<<<<< HEAD
-=======
 /* removable medium feature descriptor */
 struct rm_feature_desc {
 	__be16 feature_code;
@@ -944,6 +942,5 @@ struct rm_feature_desc {
 	__u8 reserved3;
 	__u8 reserved4;
 };
->>>>>>> android-3.18
 
 #endif /* _UAPI_LINUX_CDROM_H */

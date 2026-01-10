@@ -77,21 +77,6 @@ static int usb_serial_device_probe(struct device *dev)
 	if (retval) {
 		if (driver->port_remove)
 			driver->port_remove(port);
-<<<<<<< HEAD
-		goto exit;
-	}
-
-	minor = port->number;
-	tty_dev = tty_register_device(usb_serial_tty_driver, minor, dev);
-	if (IS_ERR(tty_dev)) {
-		retval = PTR_ERR(tty_dev);
-		device_remove_file(dev, &dev_attr_port_number);
-		if (driver->port_remove)
-			driver->port_remove(port);
-		goto exit;
-	}
-
-=======
 		goto exit_with_autopm;
 	}
 
@@ -105,7 +90,6 @@ static int usb_serial_device_probe(struct device *dev)
 		goto exit_with_autopm;
 	}
 
->>>>>>> android-3.18
 	dev_info(&port->serial->dev->dev,
 		 "%s converter now attached to ttyUSB%d\n",
 		 driver->description, minor);

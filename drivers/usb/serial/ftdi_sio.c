@@ -64,10 +64,6 @@ struct ftdi_private {
 				 */
 	int flags;		/* some ASYNC_xxxx flags are supported */
 	unsigned long last_dtr_rts;	/* saved modem control outputs */
-<<<<<<< HEAD
-	struct async_icount	icount;
-=======
->>>>>>> android-3.18
 	char prev_status;        /* Used for TIOCMIWAIT */
 	char transmit_empty;	/* If transmitter is empty or not */
 	__u16 interface;	/* FT2232C, FT2232H or FT4232H port interface
@@ -143,11 +139,7 @@ static struct ftdi_sio_quirk ftdi_8u2232c_quirk = {
  * Device ID not listed? Test it using
  * /sys/bus/usb-serial/drivers/ftdi_sio/new_id and send a patch or report.
  */
-<<<<<<< HEAD
-static struct usb_device_id id_table_combined [] = {
-=======
 static const struct usb_device_id id_table_combined[] = {
->>>>>>> android-3.18
 	{ USB_DEVICE(FTDI_VID, FTDI_BRICK_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_ZEITCONTROL_TAGTRACE_MIFARE_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_CTI_MINI_PID) },
@@ -612,12 +604,9 @@ static const struct usb_device_id id_table_combined[] = {
 		.driver_info = (kernel_ulong_t)&ftdi_jtag_quirk },
 	{ USB_DEVICE(FTDI_VID, FTDI_NT_ORIONLXM_PID),
 		.driver_info = (kernel_ulong_t)&ftdi_jtag_quirk },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(FTDI_VID, FTDI_NT_ORIONLX_PLUS_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_NT_ORION_IO_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_NT_ORIONMX_PID) },
->>>>>>> android-3.18
 	{ USB_DEVICE(FTDI_VID, FTDI_SYNAPSE_SS200_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_CUSTOMWARE_MINIPLEX_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_CUSTOMWARE_MINIPLEX2_PID) },
@@ -720,10 +709,7 @@ static const struct usb_device_id id_table_combined[] = {
 	{ USB_DEVICE(XSENS_VID, XSENS_AWINDA_STATION_PID) },
 	{ USB_DEVICE(XSENS_VID, XSENS_CONVERTER_PID) },
 	{ USB_DEVICE(XSENS_VID, XSENS_MTDEVBOARD_PID) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(XSENS_VID, XSENS_MTIUSBCONVERTER_PID) },
->>>>>>> android-3.18
 	{ USB_DEVICE(XSENS_VID, XSENS_MTW_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_OMNI1509) },
 	{ USB_DEVICE(MOBILITY_VID, MOBILITY_USB_SERIAL_PID) },
@@ -791,10 +777,7 @@ static const struct usb_device_id id_table_combined[] = {
 		.driver_info = (kernel_ulong_t)&ftdi_NDI_device_quirk },
 	{ USB_DEVICE(TELLDUS_VID, TELLDUS_TELLSTICK_PID) },
 	{ USB_DEVICE(NOVITUS_VID, NOVITUS_BONO_E_PID) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(FTDI_VID, RTSYSTEMS_USB_VX8_PID) },
->>>>>>> android-3.18
 	{ USB_DEVICE(RTSYSTEMS_VID, RTSYSTEMS_USB_S03_PID) },
 	{ USB_DEVICE(RTSYSTEMS_VID, RTSYSTEMS_USB_59_PID) },
 	{ USB_DEVICE(RTSYSTEMS_VID, RTSYSTEMS_USB_57A_PID) },
@@ -830,13 +813,6 @@ static const struct usb_device_id id_table_combined[] = {
 	{ USB_DEVICE(FTDI_VID, FTDI_PROPOX_JTAGCABLEII_PID) },
 	{ USB_DEVICE(FTDI_VID, FTDI_PROPOX_ISPCABLEIII_PID) },
 	{ USB_DEVICE(FTDI_VID, CYBER_CORTEX_AV_PID),
-<<<<<<< HEAD
-		.driver_info = (kernel_ulong_t)&ftdi_jtag_quirk },
-	{ USB_DEVICE(OLIMEX_VID, OLIMEX_ARM_USB_OCD_PID),
-		.driver_info = (kernel_ulong_t)&ftdi_jtag_quirk },
-	{ USB_DEVICE(OLIMEX_VID, OLIMEX_ARM_USB_OCD_H_PID),
-=======
->>>>>>> android-3.18
 		.driver_info = (kernel_ulong_t)&ftdi_jtag_quirk },
 	{ USB_DEVICE_INTERFACE_NUMBER(OLIMEX_VID, OLIMEX_ARM_USB_OCD_PID, 1) },
 	{ USB_DEVICE_INTERFACE_NUMBER(OLIMEX_VID, OLIMEX_ARM_USB_OCD_H_PID, 1) },
@@ -902,10 +878,7 @@ static const struct usb_device_id id_table_combined[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(MICROCHIP_VID, MICROCHIP_USB_BOARD_PID,
 					USB_CLASS_VENDOR_SPEC,
 					USB_SUBCLASS_VENDOR_SPEC, 0x00) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE_INTERFACE_NUMBER(ACTEL_VID, MICROSEMI_ARROW_SF2PLUS_BOARD_PID, 2) },
->>>>>>> android-3.18
 	{ USB_DEVICE(JETI_VID, JETI_SPC1201_PID) },
 	{ USB_DEVICE(MARVELL_VID, MARVELL_SHEEVAPLUG_PID),
 		.driver_info = (kernel_ulong_t)&ftdi_jtag_quirk },
@@ -1019,12 +992,9 @@ static const struct usb_device_id id_table_combined[] = {
 	{ USB_DEVICE(BRAINBOXES_VID, BRAINBOXES_US_842_4_PID) },
 	/* ekey Devices */
 	{ USB_DEVICE(FTDI_VID, FTDI_EKEY_CONV_USB_PID) },
-<<<<<<< HEAD
-=======
 	/* Infineon Devices */
 	{ USB_DEVICE_INTERFACE_NUMBER(INFINEON_VID, INFINEON_TRIBOARD_TC1798_PID, 1) },
 	{ USB_DEVICE_INTERFACE_NUMBER(INFINEON_VID, INFINEON_TRIBOARD_TC2X7_PID, 1) },
->>>>>>> android-3.18
 	/* GE Healthcare devices */
 	{ USB_DEVICE(GE_HEALTHCARE_VID, GE_HEALTHCARE_NEMO_TRACKER_PID) },
 	/* Active Research (Actisense) devices */
@@ -1044,9 +1014,6 @@ static const struct usb_device_id id_table_combined[] = {
 	{ USB_DEVICE(FTDI_VID, CHETCO_SEASMART_DISPLAY_PID) },
 	{ USB_DEVICE(FTDI_VID, CHETCO_SEASMART_LITE_PID) },
 	{ USB_DEVICE(FTDI_VID, CHETCO_SEASMART_ANALOG_PID) },
-<<<<<<< HEAD
-	{ },					/* Optional parameter entry */
-=======
 	/* ICP DAS I-756xU devices */
 	{ USB_DEVICE(ICPDAS_VID, ICPDAS_I7560U_PID) },
 	{ USB_DEVICE(ICPDAS_VID, ICPDAS_I7561U_PID) },
@@ -1074,7 +1041,6 @@ static const struct usb_device_id id_table_combined[] = {
 	{ USB_DEVICE(AIRBUS_DS_VID, AIRBUS_DS_P8GR) },
 	/* EZPrototypes devices */
 	{ USB_DEVICE(EZPROTOTYPES_VID, HJELMSLUND_USB485_ISO_PID) },
->>>>>>> android-3.18
 	{ }					/* Terminating entry */
 };
 
@@ -1698,17 +1664,8 @@ static void ftdi_determine_type(struct usb_serial_port *port)
 static void ftdi_set_max_packet_size(struct usb_serial_port *port)
 {
 	struct ftdi_private *priv = usb_get_serial_port_data(port);
-<<<<<<< HEAD
-	struct usb_serial *serial = port->serial;
-	struct usb_device *udev = serial->dev;
-
-	struct usb_interface *interface = serial->interface;
-	struct usb_endpoint_descriptor *ep_desc;
-
-=======
 	struct usb_interface *interface = port->serial->interface;
 	struct usb_endpoint_descriptor *ep_desc;
->>>>>>> android-3.18
 	unsigned num_endpoints;
 	unsigned i;
 
@@ -1716,17 +1673,9 @@ static void ftdi_set_max_packet_size(struct usb_serial_port *port)
 	if (!num_endpoints)
 		return;
 
-<<<<<<< HEAD
-	if (!num_endpoints)
-		return;
-
-	/* NOTE: some customers have programmed FT232R/FT245R devices
-	 * with an endpoint size of 0 - not good.  In this case, we
-=======
 	/*
 	 * NOTE: Some customers have programmed FT232R/FT245R devices
 	 * with an endpoint size of 0 - not good. In this case, we
->>>>>>> android-3.18
 	 * want to override the endpoint descriptor setting and use a
 	 * value of 64 for wMaxPacketSize.
 	 */
@@ -1887,12 +1836,6 @@ static int ftdi_sio_port_probe(struct usb_serial_port *port)
 		return -ENOMEM;
 
 	mutex_init(&priv->cfg_lock);
-<<<<<<< HEAD
-	memset(&priv->icount, 0x00, sizeof(priv->icount));
-
-	priv->flags = ASYNC_LOW_LATENCY;
-=======
->>>>>>> android-3.18
 
 	if (quirk && quirk->port_probe)
 		quirk->port_probe(priv);
@@ -1988,17 +1931,9 @@ static int ftdi_8u2232c_probe(struct usb_serial *serial)
 	if (udev->manufacturer && !strcmp(udev->manufacturer, "CALAO Systems"))
 		return ftdi_jtag_probe(serial);
 
-<<<<<<< HEAD
-	if (udev->manufacturer && !strcmp(udev->manufacturer, "CALAO Systems"))
-		return ftdi_jtag_probe(serial);
-
-	if (udev->product &&
-		(!strcmp(udev->product, "BeagleBone/XDS100V2") ||
-=======
 	if (udev->product &&
 		(!strcmp(udev->product, "Arrow USB Blaster") ||
 		 !strcmp(udev->product, "BeagleBone/XDS100V2") ||
->>>>>>> android-3.18
 		 !strcmp(udev->product, "SNAP Connect E10")))
 		return ftdi_jtag_probe(serial);
 
@@ -2017,36 +1952,10 @@ static int ftdi_stmclite_probe(struct usb_serial *serial)
 	struct usb_device *udev = serial->dev;
 	struct usb_interface *interface = serial->interface;
 
-<<<<<<< HEAD
-	dbg("%s", __func__);
-
-=======
->>>>>>> android-3.18
 	if (interface == udev->actconfig->interface[0] ||
 	    interface == udev->actconfig->interface[1]) {
 		dev_info(&udev->dev, "Ignoring serial port reserved for JTAG\n");
 		return -ENODEV;
-<<<<<<< HEAD
-	}
-
-	return 0;
-}
-
-/*
- * The Matrix Orbital VK204-25-USB has an invalid IN endpoint.
- * We have to correct it if we want to read from it.
- */
-static int ftdi_mtxorb_hack_setup(struct usb_serial *serial)
-{
-	struct usb_host_endpoint *ep = serial->dev->ep_in[1];
-	struct usb_endpoint_descriptor *ep_desc = &ep->desc;
-
-	if (ep->enabled && ep_desc->wMaxPacketSize == 0) {
-		ep_desc->wMaxPacketSize = cpu_to_le16(0x40);
-		dev_info(&serial->dev->dev,
-			 "Fixing invalid wMaxPacketSize on read pipe\n");
-=======
->>>>>>> android-3.18
 	}
 
 	return 0;
@@ -2056,13 +1965,6 @@ static int ftdi_sio_port_remove(struct usb_serial_port *port)
 {
 	struct ftdi_private *priv = usb_get_serial_port_data(port);
 
-<<<<<<< HEAD
-	dbg("%s", __func__);
-
-	wake_up_interruptible(&port->delta_msr_wait);
-
-=======
->>>>>>> android-3.18
 	remove_sysfs_attrs(port);
 
 	kfree(priv);
@@ -2113,24 +2015,6 @@ static void ftdi_dtr_rts(struct usb_serial_port *port, int on)
 		set_mctrl(port, TIOCM_DTR | TIOCM_RTS);
 	else
 		clear_mctrl(port, TIOCM_DTR | TIOCM_RTS);
-<<<<<<< HEAD
-}
-
-/*
- * usbserial:__serial_close  only calls ftdi_close if the point is open
- *
- *   This only gets called when it is the last close
- */
-static void ftdi_close(struct usb_serial_port *port)
-{
-	struct ftdi_private *priv = usb_get_serial_port_data(port);
-
-	dbg("%s", __func__);
-
-	usb_serial_generic_close(port);
-	kref_put(&priv->kref, ftdi_sio_priv_release);
-=======
->>>>>>> android-3.18
 }
 
 /* The SIO requires the first byte to have:
@@ -2212,11 +2096,7 @@ static int ftdi_process_packet(struct usb_serial_port *port,
 			tty_kref_put(tty);
 		}
 
-<<<<<<< HEAD
-		wake_up_interruptible(&port->delta_msr_wait);
-=======
 		wake_up_interruptible(&port->port.delta_msr_wait);
->>>>>>> android-3.18
 		priv->prev_status = status;
 	}
 
@@ -2367,13 +2247,6 @@ static void ftdi_set_termios(struct tty_struct *tty,
 	}
 
 	/*
-<<<<<<< HEAD
-	 * All FTDI UART chips are limited to CS7/8. We won't pretend to
-	 * support CS5/6 and revert the CSIZE setting instead.
-	 */
-	if ((C_CSIZE(tty) != CS8) && (C_CSIZE(tty) != CS7)) {
-		dev_warn(&port->dev, "requested CSIZE setting not supported\n");
-=======
 	 * All FTDI UART chips are limited to CS7/8. We shouldn't pretend to
 	 * support CS5/6 and revert the CSIZE setting instead.
 	 *
@@ -2389,7 +2262,6 @@ static void ftdi_set_termios(struct tty_struct *tty,
 	 */
 	if (C_CSIZE(tty) == CS6) {
 		dev_warn(ddev, "requested CSIZE setting not supported\n");
->>>>>>> android-3.18
 
 		termios->c_cflag &= ~CSIZE;
 		if (old_termios)
@@ -2435,27 +2307,17 @@ no_skip:
 		urb_value |= FTDI_SIO_SET_DATA_PARITY_NONE;
 	}
 	switch (cflag & CSIZE) {
-<<<<<<< HEAD
-	case CS7:
-		urb_value |= 7;
-		dev_dbg(&port->dev, "Setting CS7\n");
-=======
 	case CS5:
 		dev_dbg(ddev, "Setting CS5 quirk\n");
 		break;
 	case CS7:
 		urb_value |= 7;
 		dev_dbg(ddev, "Setting CS7\n");
->>>>>>> android-3.18
 		break;
 	default:
 	case CS8:
 		urb_value |= 8;
-<<<<<<< HEAD
-		dev_dbg(&port->dev, "Setting CS8\n");
-=======
 		dev_dbg(ddev, "Setting CS8\n");
->>>>>>> android-3.18
 		break;
 	}
 
@@ -2671,38 +2533,6 @@ static int ftdi_ioctl(struct tty_struct *tty,
 	case TIOCSSERIAL: /* sets serial port data */
 		return set_serial_info(tty, port,
 					(struct serial_struct __user *) arg);
-<<<<<<< HEAD
-
-	/*
-	 * Wait for any of the 4 modem inputs (DCD,RI,DSR,CTS) to change
-	 * - mask passed in arg for lines of interest
-	 *   (use |'ed TIOCM_RNG/DSR/CD/CTS for masking)
-	 * Caller should use TIOCGICOUNT to see which one it was.
-	 *
-	 * This code is borrowed from linux/drivers/char/serial.c
-	 */
-	case TIOCMIWAIT:
-		cprev = priv->icount;
-		for (;;) {
-			interruptible_sleep_on(&port->delta_msr_wait);
-			/* see if a signal did it */
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			cnow = priv->icount;
-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-			    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
-				return 0;
-			}
-			cprev = cnow;
-		}
-=======
->>>>>>> android-3.18
 	case TIOCSERGETLSR:
 		return get_lsr_info(port, (struct serial_struct __user *)arg);
 		break;

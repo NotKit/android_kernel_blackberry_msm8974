@@ -33,11 +33,7 @@ struct zcomp_backend {
 	int (*decompress)(const unsigned char *src, size_t src_len,
 			unsigned char *dst);
 
-<<<<<<< HEAD
-	void *(*create)(gfp_t flags);
-=======
 	void *(*create)(void);
->>>>>>> android-3.18
 	void (*destroy)(void *private);
 
 	const char *name;

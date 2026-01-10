@@ -349,27 +349,18 @@ static u16 esdhc_readw_le(struct sdhci_host *host, int reg)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct pltfm_imx_data *imx_data = pltfm_host->priv;
-<<<<<<< HEAD
-
-	if (unlikely(reg == SDHCI_HOST_VERSION)) {
-		reg ^= 2;
-		if (is_imx6q_usdhc(imx_data)) {
-=======
 	u16 ret = 0;
 	u32 val;
 
 	if (unlikely(reg == SDHCI_HOST_VERSION)) {
 		reg ^= 2;
 		if (esdhc_is_usdhc(imx_data)) {
->>>>>>> android-3.18
 			/*
 			 * The usdhc register returns a wrong host version.
 			 * Correct it here.
 			 */
 			return SDHCI_SPEC_300;
 		}
-<<<<<<< HEAD
-=======
 	}
 
 	if (unlikely(reg == SDHCI_HOST_CONTROL2)) {
@@ -409,7 +400,6 @@ static u16 esdhc_readw_le(struct sdhci_host *host, int reg)
 		}
 
 		return ret;
->>>>>>> android-3.18
 	}
 
 	return readw(host->ioaddr + reg);

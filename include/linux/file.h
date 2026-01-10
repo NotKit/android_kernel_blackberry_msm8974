@@ -41,9 +41,6 @@ static inline void fdput(struct fd fd)
 
 extern struct file *fget(unsigned int fd);
 extern struct file *fget_raw(unsigned int fd);
-<<<<<<< HEAD
-extern struct file *fget_raw_light(unsigned int fd, int *fput_needed);
-=======
 extern unsigned long __fdget(unsigned int fd);
 extern unsigned long __fdget_raw(unsigned int fd);
 extern unsigned long __fdget_pos(unsigned int fd);
@@ -63,7 +60,6 @@ static inline struct fd fdget_raw(unsigned int fd)
 	return __to_fd(__fdget_raw(fd));
 }
 
->>>>>>> android-3.18
 extern int f_dupfd(unsigned int from, struct file *file, unsigned flags);
 extern int replace_fd(unsigned fd, struct file *file, unsigned flags);
 extern void set_close_on_exec(unsigned int fd, int flag);

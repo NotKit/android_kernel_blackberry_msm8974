@@ -58,15 +58,11 @@ source "drivers/staging/vt6656/Kconfig"
 
 source "drivers/staging/iio/Kconfig"
 
-<<<<<<< HEAD
-source "drivers/staging/wlags49_h2/Kconfig"
-=======
 source "drivers/staging/xgifb/Kconfig"
 
 source "drivers/staging/emxx_udc/Kconfig"
 
 source "drivers/staging/bcm/Kconfig"
->>>>>>> android-3.18
 
 source "drivers/staging/ft1000/Kconfig"
 

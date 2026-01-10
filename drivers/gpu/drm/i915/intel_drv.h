@@ -620,62 +620,6 @@ struct intel_dp_mst_encoder {
 	void *port; /* store this opaque as its illegal to dereference it */
 };
 
-<<<<<<< HEAD
-#define DIP_HEADER_SIZE	5
-
-#define DIP_TYPE_AVI    0x82
-#define DIP_VERSION_AVI 0x2
-#define DIP_LEN_AVI     13
-
-#define DIP_TYPE_SPD	0x83
-#define DIP_VERSION_SPD	0x1
-#define DIP_LEN_SPD	25
-#define DIP_SPD_UNKNOWN	0
-#define DIP_SPD_DSTB	0x1
-#define DIP_SPD_DVDP	0x2
-#define DIP_SPD_DVHS	0x3
-#define DIP_SPD_HDDVR	0x4
-#define DIP_SPD_DVC	0x5
-#define DIP_SPD_DSC	0x6
-#define DIP_SPD_VCD	0x7
-#define DIP_SPD_GAME	0x8
-#define DIP_SPD_PC	0x9
-#define DIP_SPD_BD	0xa
-#define DIP_SPD_SCD	0xb
-
-struct dip_infoframe {
-	uint8_t type;		/* HB0 */
-	uint8_t ver;		/* HB1 */
-	uint8_t len;		/* HB2 - body len, not including checksum */
-	uint8_t ecc;		/* Header ECC */
-	uint8_t checksum;	/* PB0 */
-	union {
-		struct {
-			/* PB1 - Y 6:5, A 4:4, B 3:2, S 1:0 */
-			uint8_t Y_A_B_S;
-			/* PB2 - C 7:6, M 5:4, R 3:0 */
-			uint8_t C_M_R;
-			/* PB3 - ITC 7:7, EC 6:4, Q 3:2, SC 1:0 */
-			uint8_t ITC_EC_Q_SC;
-			/* PB4 - VIC 6:0 */
-			uint8_t VIC;
-			/* PB5 - PR 3:0 */
-			uint8_t PR;
-			/* PB6 to PB13 */
-			uint16_t top_bar_end;
-			uint16_t bottom_bar_start;
-			uint16_t left_bar_end;
-			uint16_t right_bar_start;
-		} __attribute__ ((packed)) avi;
-		struct {
-			uint8_t vn[8];
-			uint8_t pd[16];
-			uint8_t sdi;
-		} __attribute__ ((packed)) spd;
-		uint8_t payload[27];
-	} __attribute__ ((packed)) body;
-} __attribute__((packed));
-=======
 static inline int
 vlv_dport_to_channel(struct intel_digital_port *dport)
 {
@@ -703,7 +647,6 @@ vlv_pipe_to_channel(enum pipe pipe)
 		BUG();
 	}
 }
->>>>>>> android-3.18
 
 static inline struct drm_crtc *
 intel_get_crtc_for_pipe(struct drm_device *dev, int pipe)
@@ -729,15 +672,12 @@ struct intel_unpin_work {
 #define INTEL_FLIP_INACTIVE	0
 #define INTEL_FLIP_PENDING	1
 #define INTEL_FLIP_COMPLETE	2
-<<<<<<< HEAD
-=======
 	u32 flip_count;
 	u32 gtt_offset;
 	struct intel_engine_cs *flip_queued_ring;
 	u32 flip_queued_seqno;
 	int flip_queued_vblank;
 	int flip_ready_vblank;
->>>>>>> android-3.18
 	bool enable_stall_check;
 };
 
@@ -750,39 +690,11 @@ struct intel_set_config {
 	bool mode_changed;
 };
 
-<<<<<<< HEAD
-int intel_connector_update_modes(struct drm_connector *connector,
-				struct edid *edid);
-int intel_ddc_get_modes(struct drm_connector *c, struct i2c_adapter *adapter);
-extern bool intel_ddc_probe(struct intel_encoder *intel_encoder, int ddc_bus);
-
-extern void intel_attach_force_audio_property(struct drm_connector *connector);
-extern void intel_attach_broadcast_rgb_property(struct drm_connector *connector);
-
-extern void intel_crt_init(struct drm_device *dev);
-extern void intel_hdmi_init(struct drm_device *dev, int sdvox_reg);
-void intel_dip_infoframe_csum(struct dip_infoframe *avi_if);
-extern bool intel_sdvo_init(struct drm_device *dev, int output_device);
-extern void intel_dvo_init(struct drm_device *dev);
-extern void intel_tv_init(struct drm_device *dev);
-extern void intel_mark_busy(struct drm_device *dev,
-			    struct drm_i915_gem_object *obj);
-extern bool intel_lvds_init(struct drm_device *dev);
-extern void intel_dp_init(struct drm_device *dev, int dp_reg);
-void
-intel_dp_set_m_n(struct drm_crtc *crtc, struct drm_display_mode *mode,
-		 struct drm_display_mode *adjusted_mode);
-extern bool intel_dpd_is_edp(struct drm_device *dev);
-extern void intel_edp_link_config(struct intel_encoder *, int *, int *);
-extern bool intel_encoder_is_pch_edp(struct drm_encoder *encoder);
-extern int intel_plane_init(struct drm_device *dev, enum pipe pipe);
-=======
 struct intel_load_detect_pipe {
 	struct drm_framebuffer *release_fb;
 	bool load_detect_temp;
 	int dpms_mode;
 };
->>>>>>> android-3.18
 
 static inline struct intel_encoder *
 intel_attached_encoder(struct drm_connector *connector)

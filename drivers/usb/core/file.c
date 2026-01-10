@@ -236,11 +236,7 @@ void usb_deregister_dev(struct usb_interface *intf,
 	if (intf->minor == -1)
 		return;
 
-<<<<<<< HEAD
-	dbg ("removing %d minor", intf->minor);
-=======
 	dev_dbg(&intf->dev, "removing %d minor\n", intf->minor);
->>>>>>> android-3.18
 	device_destroy(usb_class->class, MKDEV(USB_MAJOR, intf->minor));
 
 	down_write(&minor_rwsem);

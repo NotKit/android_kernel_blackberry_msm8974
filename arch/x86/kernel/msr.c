@@ -177,10 +177,6 @@ static int msr_open(struct inode *inode, struct file *file)
 	if (!capable(CAP_SYS_RAWIO))
 		return -EPERM;
 
-<<<<<<< HEAD
-	cpu = iminor(file->f_path.dentry->d_inode);
-=======
->>>>>>> android-3.18
 	if (cpu >= nr_cpu_ids || !cpu_online(cpu))
 		return -ENXIO;	/* No such CPU */
 

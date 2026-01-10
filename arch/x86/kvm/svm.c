@@ -1127,10 +1127,6 @@ static void init_vmcb(struct vcpu_svm *svm)
 	set_exception_intercept(svm, UD_VECTOR);
 	set_exception_intercept(svm, MC_VECTOR);
 	set_exception_intercept(svm, AC_VECTOR);
-<<<<<<< HEAD
-	set_exception_intercept(svm, DB_VECTOR);
-=======
->>>>>>> android-3.18
 
 	set_intercept(svm, INTERCEPT_INTR);
 	set_intercept(svm, INTERCEPT_NMI);
@@ -1663,11 +1659,7 @@ static void svm_set_segment(struct kvm_vcpu *vcpu,
 	mark_dirty(svm->vmcb, VMCB_SEG);
 }
 
-<<<<<<< HEAD
-static void update_bp_intercept(struct kvm_vcpu *vcpu)
-=======
 static void update_db_bp_intercept(struct kvm_vcpu *vcpu)
->>>>>>> android-3.18
 {
 	struct vcpu_svm *svm = to_svm(vcpu);
 
@@ -1680,23 +1672,6 @@ static void update_db_bp_intercept(struct kvm_vcpu *vcpu)
 		vcpu->guest_debug = 0;
 }
 
-<<<<<<< HEAD
-static void svm_guest_debug(struct kvm_vcpu *vcpu, struct kvm_guest_debug *dbg)
-{
-	struct vcpu_svm *svm = to_svm(vcpu);
-
-	if (vcpu->guest_debug & KVM_GUESTDBG_USE_HW_BP)
-		svm->vmcb->save.dr7 = dbg->arch.debugreg[7];
-	else
-		svm->vmcb->save.dr7 = vcpu->arch.dr7;
-
-	mark_dirty(svm->vmcb, VMCB_DR);
-
-	update_bp_intercept(vcpu);
-}
-
-=======
->>>>>>> android-3.18
 static void new_asid(struct vcpu_svm *svm, struct svm_cpu_data *sd)
 {
 	if (sd->next_asid > sd->max_asid) {
@@ -1796,10 +1771,7 @@ static int db_interception(struct vcpu_svm *svm)
 		if (!(svm->vcpu.guest_debug & KVM_GUESTDBG_SINGLESTEP))
 			svm->vmcb->save.rflags &=
 				~(X86_EFLAGS_TF | X86_EFLAGS_RF);
-<<<<<<< HEAD
-=======
 		update_db_bp_intercept(&svm->vcpu);
->>>>>>> android-3.18
 	}
 
 	if (svm->vcpu.guest_debug &
@@ -3355,11 +3327,7 @@ static int wrmsr_interception(struct vcpu_svm *svm)
 	msr.host_initiated = false;
 
 	svm->next_rip = kvm_rip_read(&svm->vcpu) + 2;
-<<<<<<< HEAD
-	if (kvm_set_msr(&svm->vcpu, ecx, data)) {
-=======
 	if (kvm_set_msr(&svm->vcpu, &msr)) {
->>>>>>> android-3.18
 		trace_kvm_msr_write_ex(ecx, data);
 		kvm_inject_gp(&svm->vcpu, 0);
 	} else {
@@ -3844,10 +3812,7 @@ static void enable_nmi_window(struct kvm_vcpu *vcpu)
 	 */
 	svm->nmi_singlestep = true;
 	svm->vmcb->save.rflags |= (X86_EFLAGS_TF | X86_EFLAGS_RF);
-<<<<<<< HEAD
-=======
 	update_db_bp_intercept(vcpu);
->>>>>>> android-3.18
 }
 
 static int svm_set_tss_addr(struct kvm *kvm, unsigned int addr)

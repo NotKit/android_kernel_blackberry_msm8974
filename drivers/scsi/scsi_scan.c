@@ -1768,12 +1768,9 @@ static void scsi_sysfs_add_devices(struct Scsi_Host *shost)
 		/* target removed before the device could be added */
 		if (sdev->sdev_state == SDEV_DEL)
 			continue;
-<<<<<<< HEAD
-=======
 		/* If device is already visible, skip adding it to sysfs */
 		if (sdev->is_visible)
 			continue;
->>>>>>> android-3.18
 		if (!scsi_host_scan_allowed(shost) ||
 		    scsi_sysfs_add_sdev(sdev) != 0)
 			__scsi_remove_device(sdev);

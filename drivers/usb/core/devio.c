@@ -369,19 +369,11 @@ static void snoop_urb(struct usb_device *udev,
 
 	if (userurb) {		/* Async */
 		if (when == SUBMIT)
-<<<<<<< HEAD
-			dev_info(&udev->dev, "userurb %pK, ep%d %s-%s, "
-					"length %u\n",
-					userurb, ep, t, d, length);
-		else
-			dev_info(&udev->dev, "userurb %pK, ep%d %s-%s, "
-=======
 			dev_info(&udev->dev, "userurb %px, ep%d %s-%s, "
 					"length %u\n",
 					userurb, ep, t, d, length);
 		else
 			dev_info(&udev->dev, "userurb %px, ep%d %s-%s, "
->>>>>>> android-3.18
 					"actual_length %u status %d\n",
 					userurb, ep, t, d, length,
 					timeout_or_status);
@@ -1863,18 +1855,9 @@ static int processcompl_compat(struct async *as, void __user * __user *arg)
 	void __user *addr = as->userurb;
 	unsigned int i;
 
-<<<<<<< HEAD
-	if (as->userbuffer && urb->actual_length) {
-		if (urb->number_of_packets > 0)		/* Isochronous */
-			i = urb->transfer_buffer_length;
-		else					/* Non-Isoc */
-			i = urb->actual_length;
-		if (copy_to_user(as->userbuffer, urb->transfer_buffer, i))
-=======
 	compute_isochronous_actual_length(urb);
 	if (as->userbuffer && urb->actual_length) {
 		if (copy_urb_data_to_user(as->userbuffer, urb))
->>>>>>> android-3.18
 			return -EFAULT;
 	}
 	if (put_user(as->status, &userurb->status))

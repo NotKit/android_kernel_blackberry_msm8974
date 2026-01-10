@@ -42,20 +42,12 @@ void __init orion_ge00_init(struct mv643xx_eth_platform_data *eth_data,
 			    unsigned long mapbase,
 			    unsigned long irq,
 			    unsigned long irq_err,
-<<<<<<< HEAD
-			    int tclk,
-=======
->>>>>>> android-3.18
 			    unsigned int tx_csum_limit);
 
 void __init orion_ge01_init(struct mv643xx_eth_platform_data *eth_data,
 			    unsigned long mapbase,
 			    unsigned long irq,
 			    unsigned long irq_err,
-<<<<<<< HEAD
-			    int tclk,
-=======
->>>>>>> android-3.18
 			    unsigned int tx_csum_limit);
 
 void __init orion_ge10_init(struct mv643xx_eth_platform_data *eth_data,

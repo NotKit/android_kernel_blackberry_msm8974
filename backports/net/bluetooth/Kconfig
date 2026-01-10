@@ -47,13 +47,13 @@ config BACKPORT_BT_BREDR
 	depends on BACKPORT_BT
 	default y
 
-source "$BACKPORT_DIR/net/bluetooth/rfcomm/Kconfig"
+# source "$BACKPORT_DIR/net/bluetooth/rfcomm/Kconfig"
 
-source "$BACKPORT_DIR/net/bluetooth/bnep/Kconfig"
+# source "$BACKPORT_DIR/net/bluetooth/bnep/Kconfig"
 
-source "$BACKPORT_DIR/net/bluetooth/cmtp/Kconfig"
+# source "$BACKPORT_DIR/net/bluetooth/cmtp/Kconfig"
 
-source "$BACKPORT_DIR/net/bluetooth/hidp/Kconfig"
+# source "$BACKPORT_DIR/net/bluetooth/hidp/Kconfig"
 
 config BACKPORT_BT_LE
 	bool "Bluetooth Low Energy (LE) features"
@@ -107,4 +107,4 @@ config BACKPORT_BT_DEBUGFS
 	  Provide extensive information about internal Bluetooth states
 	  in debugfs.
 
-source "$BACKPORT_DIR/drivers/bluetooth/Kconfig"
+# source "$BACKPORT_DIR/drivers/bluetooth/Kconfig"

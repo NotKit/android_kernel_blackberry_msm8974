@@ -239,16 +239,6 @@ extern struct device_node *of_get_next_child(const struct device_node *node,
 extern struct device_node *of_get_next_available_child(
 	const struct device_node *node, struct device_node *prev);
 
-<<<<<<< HEAD
-#define for_each_child_of_node(parent, child) \
-	for (child = of_get_next_child(parent, NULL); child != NULL; \
-	     child = of_get_next_child(parent, child))
-
-#define for_each_available_child_of_node(parent, child) \
-	for (child = of_get_next_available_child(parent, NULL); child != NULL; \
-	     child = of_get_next_available_child(parent, child))
-
-=======
 extern struct device_node *of_get_compatible_child(const struct device_node *parent,
 					const char *compatible);
 extern struct device_node *of_get_child_by_name(const struct device_node *node,
@@ -256,18 +246,14 @@ extern struct device_node *of_get_child_by_name(const struct device_node *node,
 
 /* cache lookup */
 extern struct device_node *of_find_next_cache_node(const struct device_node *);
->>>>>>> android-3.18
 extern struct device_node *of_find_node_with_property(
 	struct device_node *from, const char *prop_name);
 
 extern struct property *of_find_property(const struct device_node *np,
 					 const char *name,
 					 int *lenp);
-<<<<<<< HEAD
-=======
 extern int of_property_count_elems_of_size(const struct device_node *np,
 				const char *propname, int elem_size);
->>>>>>> android-3.18
 extern int of_property_read_u32_index(const struct device_node *np,
 				       const char *propname,
 				       u32 index, u32 *out_value);
@@ -474,15 +460,12 @@ static inline struct device_node *of_find_compatible_node(
 	return NULL;
 }
 
-<<<<<<< HEAD
-=======
 static inline int of_property_count_elems_of_size(const struct device_node *np,
 			const char *propname, int elem_size)
 {
 	return -ENOSYS;
 }
 
->>>>>>> android-3.18
 static inline int of_property_read_u32_index(const struct device_node *np,
 			const char *propname, u32 index, u32 *out_value)
 {
@@ -515,8 +498,6 @@ static inline int of_property_read_u64_array(const struct device_node *np,
 	return -ENOSYS;
 }
 
-<<<<<<< HEAD
-=======
 static inline int of_property_read_string(struct device_node *np,
 					  const char *propname,
 					  const char **out_string)
@@ -524,7 +505,6 @@ static inline int of_property_read_string(struct device_node *np,
 	return -ENOSYS;
 }
 
->>>>>>> android-3.18
 static inline int of_property_read_string_helper(struct device_node *np,
 						 const char *propname,
 						 const char **out_strs, size_t sz, int index)

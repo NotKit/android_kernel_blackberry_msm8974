@@ -538,16 +538,6 @@ int con_set_unimap(struct vc_data *vc, ushort ct, struct unipair __user *list)
 	console_lock();
 
 	/* Save original vc_unipagdir_loc in case we allocate a new one */
-<<<<<<< HEAD
-	p = (struct uni_pagedir *)*vc->vc_uni_pagedir_loc;
-
-	if (!p)
-		return -EINVAL;
-
-	if (p->readonly) return -EIO;
-	
-	if (!ct) return 0;
-=======
 	p = *vc->vc_uni_pagedir_loc;
 
 	if (!p) {
@@ -555,7 +545,6 @@ int con_set_unimap(struct vc_data *vc, ushort ct, struct unipair __user *list)
 
 		goto out_unlock;
 	}
->>>>>>> android-3.18
 	
 	if (p->refcount > 1) {
 		int j, k;

@@ -1361,17 +1361,10 @@ int i915_gem_gtt_prepare_object(struct drm_i915_gem_object *obj)
 	if (obj->has_dma_mapping)
 		return 0;
 
-<<<<<<< HEAD
-	/* ppgtt PDEs reside in the global gtt pagetable, which has 512*1024
-	 * entries. For aliasing ppgtt support we just steal them at the end for
-	 * now. */
-	first_pd_entry_in_global_pt = dev_priv->mm.gtt->gtt_total_entries - I915_PPGTT_PD_ENTRIES;
-=======
 	if (!dma_map_sg(&obj->base.dev->pdev->dev,
 			obj->pages->sgl, obj->pages->nents,
 			PCI_DMA_BIDIRECTIONAL))
 		return -ENOSPC;
->>>>>>> android-3.18
 
 	return 0;
 }

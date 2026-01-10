@@ -643,61 +643,6 @@ struct xhci_ring *xhci_stream_id_to_ring(
 	return ep->stream_info->stream_rings[stream_id];
 }
 
-<<<<<<< HEAD
-#ifdef CONFIG_USB_XHCI_HCD_DEBUGGING
-static int xhci_test_radix_tree(struct xhci_hcd *xhci,
-		unsigned int num_streams,
-		struct xhci_stream_info *stream_info)
-{
-	u32 cur_stream;
-	struct xhci_ring *cur_ring;
-	u64 addr;
-
-	for (cur_stream = 1; cur_stream < num_streams; cur_stream++) {
-		struct xhci_ring *mapped_ring;
-		int trb_size = sizeof(union xhci_trb);
-
-		cur_ring = stream_info->stream_rings[cur_stream];
-		for (addr = cur_ring->first_seg->dma;
-				addr < cur_ring->first_seg->dma + SEGMENT_SIZE;
-				addr += trb_size) {
-			mapped_ring = dma_to_stream_ring(stream_info, addr);
-			if (cur_ring != mapped_ring) {
-				xhci_warn(xhci, "WARN: DMA address 0x%08llx "
-						"didn't map to stream ID %u; "
-						"mapped to ring %pK\n",
-						(unsigned long long) addr,
-						cur_stream,
-						mapped_ring);
-				return -EINVAL;
-			}
-		}
-		/* One TRB after the end of the ring segment shouldn't return a
-		 * pointer to the current ring (although it may be a part of a
-		 * different ring).
-		 */
-		mapped_ring = dma_to_stream_ring(stream_info, addr);
-		if (mapped_ring != cur_ring) {
-			/* One TRB before should also fail */
-			addr = cur_ring->first_seg->dma - trb_size;
-			mapped_ring = dma_to_stream_ring(stream_info, addr);
-		}
-		if (mapped_ring == cur_ring) {
-			xhci_warn(xhci, "WARN: Bad DMA address 0x%08llx "
-					"mapped to valid stream ID %u; "
-					"mapped ring = %pK\n",
-					(unsigned long long) addr,
-					cur_stream,
-					mapped_ring);
-			return -EINVAL;
-		}
-	}
-	return 0;
-}
-#endif	/* CONFIG_USB_XHCI_HCD_DEBUGGING */
-
-=======
->>>>>>> android-3.18
 /*
  * Change an endpoint's internal structure so it supports stream IDs.  The
  * number of requested streams includes stream 0, which cannot be used by device
@@ -1901,20 +1846,11 @@ void xhci_free_command(struct xhci_hcd *xhci,
 
 void xhci_mem_cleanup(struct xhci_hcd *xhci)
 {
-<<<<<<< HEAD
-	struct pci_dev	*pdev = to_pci_dev(xhci_to_hcd(xhci)->self.controller);
-	struct dev_info	*dev_info, *next;
-	struct xhci_cd  *cur_cd, *next_cd;
-	unsigned long	flags;
-	int size;
-	int i, j, num_ports;
-=======
 	struct device	*dev = xhci_to_hcd(xhci)->self.controller;
 	int size;
 	int i, j, num_ports;
 
 	cancel_delayed_work_sync(&xhci->cmd_timer);
->>>>>>> android-3.18
 
 	/* Free the Event Ring Segment Table and the actual Event Ring */
 	size = sizeof(struct xhci_erst_entry)*(xhci->erst.num_entries);
@@ -1928,18 +1864,6 @@ void xhci_mem_cleanup(struct xhci_hcd *xhci)
 	xhci->event_ring = NULL;
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init, "Freed event ring");
 
-<<<<<<< HEAD
-	xhci->cmd_ring_reserved_trbs = 0;
-	if (xhci->cmd_ring)
-		xhci_ring_free(xhci, xhci->cmd_ring);
-	xhci->cmd_ring = NULL;
-	xhci_dbg(xhci, "Freed command ring\n");
-	list_for_each_entry_safe(cur_cd, next_cd,
-			&xhci->cancel_cmd_list, cancel_cmd_list) {
-		list_del(&cur_cd->cancel_cmd_list);
-		kfree(cur_cd);
-	}
-=======
 	if (xhci->lpm_command)
 		xhci_free_command(xhci, xhci->lpm_command);
 	xhci->lpm_command = NULL;
@@ -1948,7 +1872,6 @@ void xhci_mem_cleanup(struct xhci_hcd *xhci)
 	xhci->cmd_ring = NULL;
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init, "Freed command ring");
 	xhci_cleanup_command_queue(xhci);
->>>>>>> android-3.18
 
 	num_ports = HCS_MAX_PORTS(xhci->hcs_params1);
 	for (i = 0; i < num_ports && xhci->rh_bw; i++) {
@@ -2003,23 +1926,8 @@ void xhci_mem_cleanup(struct xhci_hcd *xhci)
 		}
 	}
 
-<<<<<<< HEAD
-	if (!xhci->rh_bw)
-		goto no_bw;
-
-	for (i = 0; i < num_ports; i++) {
-		struct xhci_tt_bw_info *tt, *n;
-		list_for_each_entry_safe(tt, n, &xhci->rh_bw[i].tts, tt_list) {
-			list_del(&tt->tt_list);
-			kfree(tt);
-		}
-	}
-
-no_bw:
-=======
 no_bw:
 	xhci->cmd_ring_reserved_trbs = 0;
->>>>>>> android-3.18
 	xhci->num_usb2_ports = 0;
 	xhci->num_usb3_ports = 0;
 	xhci->num_active_eps = 0;
@@ -2241,14 +2149,9 @@ static void xhci_add_in_port(struct xhci_hcd *xhci, unsigned int num_ports,
 	temp = readl(addr + 2);
 	port_offset = XHCI_EXT_PORT_OFF(temp);
 	port_count = XHCI_EXT_PORT_COUNT(temp);
-<<<<<<< HEAD
-	xhci_dbg(xhci, "Ext Cap %pK, port offset = %u, "
-			"count = %u, revision = 0x%x\n",
-=======
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"Ext Cap %p, port offset = %u, "
 			"count = %u, revision = 0x%x",
->>>>>>> android-3.18
 			addr, port_offset, port_count, major_revision);
 	/* Port count includes the current port offset */
 	if (port_offset == 0 || (port_offset + port_count - 1) > num_ports)
@@ -2436,14 +2339,9 @@ static int xhci_setup_port_arrays(struct xhci_hcd *xhci, gfp_t flags)
 			xhci->usb2_ports[port_index] =
 				&xhci->op_regs->port_status_base +
 				NUM_PORT_REGS*i;
-<<<<<<< HEAD
-			xhci_dbg(xhci, "USB 2.0 port at index %u, "
-					"addr = %pK\n", i,
-=======
 			xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 					"USB 2.0 port at index %u, "
 					"addr = %p", i,
->>>>>>> android-3.18
 					xhci->usb2_ports[port_index]);
 			port_index++;
 			if (port_index == xhci->num_usb2_ports)
@@ -2462,14 +2360,9 @@ static int xhci_setup_port_arrays(struct xhci_hcd *xhci, gfp_t flags)
 				xhci->usb3_ports[port_index] =
 					&xhci->op_regs->port_status_base +
 					NUM_PORT_REGS*i;
-<<<<<<< HEAD
-				xhci_dbg(xhci, "USB 3.0 port at index %u, "
-						"addr = %pK\n", i,
-=======
 				xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 						"USB 3.0 port at index %u, "
 						"addr = %p", i,
->>>>>>> android-3.18
 						xhci->usb3_ports[port_index]);
 				port_index++;
 				if (port_index == xhci->num_usb3_ports)
@@ -2489,13 +2382,6 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	u32 page_size, temp;
 	int i;
 
-<<<<<<< HEAD
-	INIT_LIST_HEAD(&xhci->lpm_failed_devs);
-	INIT_LIST_HEAD(&xhci->cancel_cmd_list);
-
-	page_size = xhci_readl(xhci, &xhci->op_regs->page_size);
-	xhci_dbg(xhci, "Supported page size register = 0x%x\n", page_size);
-=======
 	INIT_LIST_HEAD(&xhci->cmd_list);
 
 	/* init command timeout work */
@@ -2505,7 +2391,6 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	page_size = readl(&xhci->op_regs->page_size);
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"Supported page size register = 0x%x", page_size);
->>>>>>> android-3.18
 	for (i = 0; i < 16; i++) {
 		if ((0x1 & page_size) != 0)
 			break;
@@ -2545,12 +2430,8 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 		goto fail;
 	memset(xhci->dcbaa, 0, sizeof *(xhci->dcbaa));
 	xhci->dcbaa->dma = dma;
-<<<<<<< HEAD
-	xhci_dbg(xhci, "// Device context base array address = 0x%llx (DMA), %pK (virt)\n",
-=======
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"// Device context base array address = 0x%llx (DMA), %p (virt)",
->>>>>>> android-3.18
 			(unsigned long long)xhci->dcbaa->dma, xhci->dcbaa);
 	xhci_write_64(xhci, dma, &xhci->op_regs->dcbaa_ptr);
 
@@ -2590,14 +2471,9 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	xhci->cmd_ring = xhci_ring_alloc(xhci, 1, 1, TYPE_COMMAND, flags);
 	if (!xhci->cmd_ring)
 		goto fail;
-<<<<<<< HEAD
-	xhci_dbg(xhci, "Allocated command ring at %pK\n", xhci->cmd_ring);
-	xhci_dbg(xhci, "First segment DMA is 0x%llx\n",
-=======
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"Allocated command ring at %p", xhci->cmd_ring);
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init, "First segment DMA is 0x%llx",
->>>>>>> android-3.18
 			(unsigned long long)xhci->cmd_ring->first_seg->dma);
 
 	/* Set the address in the Command Ring Control register */
@@ -2655,12 +2531,8 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	memset(xhci->erst.entries, 0, sizeof(struct xhci_erst_entry)*ERST_NUM_SEGS);
 	xhci->erst.num_entries = ERST_NUM_SEGS;
 	xhci->erst.erst_dma_addr = dma;
-<<<<<<< HEAD
-	xhci_dbg(xhci, "Set ERST to 0; private num segs = %i, virt addr = %pK, dma addr = 0x%llx\n",
-=======
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"Set ERST to 0; private num segs = %i, virt addr = %p, dma addr = 0x%llx",
->>>>>>> android-3.18
 			xhci->erst.num_entries,
 			xhci->erst.entries,
 			(unsigned long long)xhci->erst.erst_dma_addr);

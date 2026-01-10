@@ -99,11 +99,6 @@ struct v4l2_subscribed_event_ops {
   * @flags:	Copy of v4l2_event_subscription->flags.
   * @fh:	Filehandle that subscribed to this event.
   * @node:	List node that hooks into the object's event list (if there is one).
-<<<<<<< HEAD
-  * @replace:	Optional callback that can replace event 'old' with event 'new'.
-  * @merge:	Optional callback that can merge event 'old' into event 'new'.
-=======
->>>>>>> android-3.18
   * @ops:	v4l2_subscribed_event_ops
   * @elems:	The number of elements in the events array.
   * @first:	The index of the events containing the oldest available event.
@@ -117,13 +112,6 @@ struct v4l2_subscribed_event {
 	u32			flags;
 	struct v4l2_fh		*fh;
 	struct list_head	node;
-<<<<<<< HEAD
-	void			(*replace)(struct v4l2_event *old,
-					   const struct v4l2_event *new);
-	void			(*merge)(const struct v4l2_event *old,
-					 struct v4l2_event *new);
-=======
->>>>>>> android-3.18
 	const struct v4l2_subscribed_event_ops *ops;
 	unsigned		elems;
 	unsigned		first;
@@ -142,13 +130,10 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
 int v4l2_event_unsubscribe(struct v4l2_fh *fh,
 			   const struct v4l2_event_subscription *sub);
 void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
-<<<<<<< HEAD
-=======
 int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
 				  struct v4l2_event_subscription *sub);
 int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
 				const struct v4l2_event_subscription *sub);
 int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
 		struct v4l2_fh *fh, struct v4l2_event_subscription *sub);
->>>>>>> android-3.18
 #endif /* V4L2_EVENT_H */

@@ -620,13 +620,10 @@ show_fault_oops(struct pt_regs *regs, unsigned long error_code,
 
 		if (pte && pte_present(*pte) && !pte_exec(*pte))
 			printk(nx_warning, from_kuid(&init_user_ns, current_uid()));
-<<<<<<< HEAD
-=======
 		if (pte && pte_present(*pte) && pte_exec(*pte) &&
 				(pgd_flags(*pgd) & _PAGE_USER) &&
 				(__read_cr4() & X86_CR4_SMEP))
 			printk(smep_warning, from_kuid(&init_user_ns, current_uid()));
->>>>>>> android-3.18
 	}
 
 	printk(KERN_ALERT "BUG: unable to handle kernel ");

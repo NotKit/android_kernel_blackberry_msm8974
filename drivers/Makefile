@@ -81,10 +81,10 @@ obj-$(CONFIG_ISDN)		+= isdn/
 obj-$(CONFIG_EDAC)		+= edac/
 obj-$(CONFIG_RTC_LIB)		+= rtc/
 obj-y				+= i2c/
-obj-y				+= ppp/
+# obj-y				+= ppp/
 obj-$(CONFIG_W1)		+= w1/
 
-obj-y				+= pwrseq/
+# obj-y				+= pwrseq/
 obj-y				+= gpio/
 obj-$(CONFIG_PCI)		+= pci/
 obj-$(CONFIG_PARISC_CORE)	+= parisc/

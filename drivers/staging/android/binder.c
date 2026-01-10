@@ -15,8 +15,6 @@
  *
  */
 
-<<<<<<< HEAD
-=======
 /*
  * Locking overview
  *
@@ -51,7 +49,6 @@
  * ...
  */
 
->>>>>>> android-3.18
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <asm/cacheflush.h>
@@ -70,16 +67,6 @@
 #include <linux/sched.h>
 #include <linux/seq_file.h>
 #include <linux/uaccess.h>
-<<<<<<< HEAD
-#include <linux/vmalloc.h>
-#include <linux/slab.h>
-#include <linux/security.h>
-
-#include "binder.h"
-#include "binder_trace.h"
-
-static DEFINE_MUTEX(binder_main_lock);
-=======
 #include <linux/pid_namespace.h>
 #include <linux/security.h>
 #include <linux/spinlock.h>
@@ -89,7 +76,6 @@ static DEFINE_MUTEX(binder_main_lock);
 #include "binder_trace.h"
 
 static HLIST_HEAD(binder_deferred_list);
->>>>>>> android-3.18
 static DEFINE_MUTEX(binder_deferred_lock);
 
 static HLIST_HEAD(binder_devices);
@@ -101,11 +87,7 @@ static DEFINE_SPINLOCK(binder_dead_nodes_lock);
 
 static struct dentry *binder_debugfs_dir_entry_root;
 static struct dentry *binder_debugfs_dir_entry_proc;
-<<<<<<< HEAD
-static int binder_last_id;
-=======
 static atomic_t binder_last_id;
->>>>>>> android-3.18
 static struct workqueue_struct *binder_deferred_workqueue;
 
 #define BINDER_DEBUG_ENTRY(name) \
@@ -152,15 +134,8 @@ enum {
 	BINDER_DEBUG_TRANSACTION_COMPLETE   = 1U << 10,
 	BINDER_DEBUG_FREE_BUFFER            = 1U << 11,
 	BINDER_DEBUG_INTERNAL_REFS          = 1U << 12,
-<<<<<<< HEAD
-	BINDER_DEBUG_BUFFER_ALLOC           = 1U << 13,
-	BINDER_DEBUG_PRIORITY_CAP           = 1U << 14,
-	BINDER_DEBUG_BUFFER_ALLOC_ASYNC     = 1U << 15,
-	BINDER_DEBUG_TOP_ERRORS		    = 1U << 16,
-=======
 	BINDER_DEBUG_PRIORITY_CAP           = 1U << 13,
 	BINDER_DEBUG_SPINLOCKS              = 1U << 14,
->>>>>>> android-3.18
 };
 static uint32_t binder_debug_mask;
 module_param_named(debug_mask, binder_debug_mask, uint, S_IWUSR | S_IRUGO);
@@ -227,17 +202,10 @@ enum binder_stat_types {
 };
 
 struct binder_stats {
-<<<<<<< HEAD
-	int br[_IOC_NR(BR_FAILED_REPLY) + 1];
-	int bc[_IOC_NR(BC_REPLY_SG) + 1];
-	int obj_created[BINDER_STAT_COUNT];
-	int obj_deleted[BINDER_STAT_COUNT];
-=======
 	atomic_t br[_IOC_NR(BR_FAILED_REPLY) + 1];
 	atomic_t bc[_IOC_NR(BC_REPLY_SG) + 1];
 	atomic_t obj_created[BINDER_STAT_COUNT];
 	atomic_t obj_deleted[BINDER_STAT_COUNT];
->>>>>>> android-3.18
 };
 
 static struct binder_stats binder_stats;
@@ -264,12 +232,9 @@ struct binder_transaction_log_entry {
 	int to_node;
 	int data_size;
 	int offsets_size;
-<<<<<<< HEAD
-=======
 	int return_error_line;
 	uint32_t return_error;
 	uint32_t return_error_param;
->>>>>>> android-3.18
 	const char *context_name;
 };
 struct binder_transaction_log {
@@ -302,13 +267,9 @@ static struct binder_transaction_log_entry *binder_transaction_log_add(
 
 struct binder_context {
 	struct binder_node *binder_context_mgr_node;
-<<<<<<< HEAD
-	uid_t binder_context_mgr_uid;
-=======
 	struct mutex context_mgr_node_lock;
 
 	kuid_t binder_context_mgr_uid;
->>>>>>> android-3.18
 	const char *name;
 };
 
@@ -318,8 +279,6 @@ struct binder_device {
 	struct binder_context context;
 };
 
-<<<<<<< HEAD
-=======
 /**
  * struct binder_work - work enqueued on a worklist
  * @entry:             node enqueued on list
@@ -327,7 +286,6 @@ struct binder_device {
  *
  * There are separate work lists for proc, thread, and node (async).
  */
->>>>>>> android-3.18
 struct binder_work {
 	struct list_head entry;
 
@@ -423,18 +381,6 @@ struct binder_node {
 	int internal_strong_refs;
 	int local_weak_refs;
 	int local_strong_refs;
-<<<<<<< HEAD
-	binder_uintptr_t ptr;
-	binder_uintptr_t cookie;
-	unsigned has_strong_ref:1;
-	unsigned pending_strong_ref:1;
-	unsigned has_weak_ref:1;
-	unsigned pending_weak_ref:1;
-	unsigned has_async_transaction:1;
-	unsigned accept_fds:1;
-	unsigned txn_security_ctx:1;
-	unsigned min_priority:8;
-=======
 	int tmp_refs;
 	binder_uintptr_t ptr;
 	binder_uintptr_t cookie;
@@ -459,7 +405,6 @@ struct binder_node {
 		u8 min_priority;
 	};
 	bool has_async_transaction;
->>>>>>> android-3.18
 	struct list_head async_todo;
 };
 
@@ -471,8 +416,6 @@ struct binder_ref_death {
 	 */
 	struct binder_work work;
 	binder_uintptr_t cookie;
-<<<<<<< HEAD
-=======
 };
 
 /**
@@ -492,7 +435,6 @@ struct binder_ref_data {
 	uint32_t desc;
 	int strong;
 	int weak;
->>>>>>> android-3.18
 };
 
 /**
@@ -526,27 +468,6 @@ struct binder_ref {
 	struct binder_ref_death *death;
 };
 
-<<<<<<< HEAD
-struct binder_buffer {
-	struct list_head entry; /* free and allocated entries by address */
-	struct rb_node rb_node; /* free entry by size or allocated entry */
-				/* by address */
-	unsigned free:1;
-	unsigned allow_user_free:1;
-	unsigned async_transaction:1;
-	unsigned debug_id:29;
-
-	struct binder_transaction *transaction;
-
-	struct binder_node *target_node;
-	size_t data_size;
-	size_t offsets_size;
-	size_t extra_buffers_size;
-	uint8_t data[0];
-};
-
-=======
->>>>>>> android-3.18
 enum binder_deferred_state {
 	BINDER_DEFERRED_PUT_FILES    = 0x01,
 	BINDER_DEFERRED_FLUSH        = 0x02,
@@ -649,14 +570,10 @@ struct binder_proc {
 	int tmp_ref;
 	struct binder_priority default_priority;
 	struct dentry *debugfs_entry;
-<<<<<<< HEAD
-	struct binder_context *context;
-=======
 	struct binder_alloc alloc;
 	struct binder_context *context;
 	spinlock_t inner_lock;
 	spinlock_t outer_lock;
->>>>>>> android-3.18
 };
 
 enum {
@@ -738,12 +655,6 @@ struct binder_transaction {
 	struct binder_buffer *buffer;
 	unsigned int	code;
 	unsigned int	flags;
-<<<<<<< HEAD
-	long	priority;
-	long	saved_priority;
-	uid_t	sender_euid;
-	binder_uintptr_t security_ctx;
-=======
 	struct binder_priority	priority;
 	struct binder_priority	saved_priority;
 	bool    set_priority_called;
@@ -756,7 +667,6 @@ struct binder_transaction {
 	 * during thread teardown
 	 */
 	spinlock_t lock;
->>>>>>> android-3.18
 };
 
 /**
@@ -775,13 +685,6 @@ _binder_proc_lock(struct binder_proc *proc, int line)
 	spin_lock(&proc->outer_lock);
 }
 
-<<<<<<< HEAD
-int task_get_unused_fd_flags(struct binder_proc *proc, int flags)
-{
-	struct files_struct *files = proc->files;
-	unsigned long rlim_cur;
-	unsigned long irqs;
-=======
 /**
  * binder_proc_unlock() - Release spinlock for given binder_proc
  * @proc:         struct binder_proc to acquire
@@ -796,7 +699,6 @@ _binder_proc_unlock(struct binder_proc *proc, int line)
 		     "%s: line=%d\n", __func__, line);
 	spin_unlock(&proc->outer_lock);
 }
->>>>>>> android-3.18
 
 /**
  * binder_inner_proc_lock() - Acquire inner lock for given binder_proc
@@ -813,15 +715,6 @@ _binder_inner_proc_lock(struct binder_proc *proc, int line)
 	spin_lock(&proc->inner_lock);
 }
 
-<<<<<<< HEAD
-	if (!lock_task_sighand(proc->tsk, &irqs))
-		return -EMFILE;
-
-	rlim_cur = task_rlimit(proc->tsk, RLIMIT_NOFILE);
-	unlock_task_sighand(proc->tsk, &irqs);
-
-	return __alloc_fd(files, 0, rlim_cur, flags);
-=======
 /**
  * binder_inner_proc_unlock() - Release inner lock for given binder_proc
  * @proc:         struct binder_proc to acquire
@@ -907,7 +800,6 @@ _binder_node_inner_unlock(struct binder_node *node, int line)
 static bool binder_worklist_empty_ilocked(struct list_head *list)
 {
 	return list_empty(list);
->>>>>>> android-3.18
 }
 
 /**
@@ -920,10 +812,6 @@ static bool binder_worklist_empty_ilocked(struct list_head *list)
 static bool binder_worklist_empty(struct binder_proc *proc,
 				  struct list_head *list)
 {
-<<<<<<< HEAD
-	if (proc->files)
-		__fd_install(proc->files, fd, file);
-=======
 	bool ret;
 
 	binder_inner_proc_lock(proc);
@@ -1098,7 +986,6 @@ static void task_fd_install(
 	if (proc->files)
 		__fd_install(proc->files, fd, file);
 	mutex_unlock(&proc->files_lock);
->>>>>>> android-3.18
 }
 
 /*
@@ -1108,17 +995,11 @@ static long task_close_fd(struct binder_proc *proc, unsigned int fd)
 {
 	int retval;
 
-<<<<<<< HEAD
-	if (proc->files == NULL)
-		return -ESRCH;
-
-=======
 	mutex_lock(&proc->files_lock);
 	if (proc->files == NULL) {
 		retval = -ESRCH;
 		goto err;
 	}
->>>>>>> android-3.18
 	retval = __close_fd(proc->files, fd);
 	/* can't restart close syscall because file table entry was cleared */
 	if (unlikely(retval == -ERESTARTSYS ||
@@ -1131,19 +1012,6 @@ err:
 	return retval;
 }
 
-<<<<<<< HEAD
-static inline void binder_lock(const char *tag)
-{
-	trace_binder_lock(tag);
-	mutex_lock(&binder_main_lock);
-	trace_binder_locked(tag);
-}
-
-static inline void binder_unlock(const char *tag)
-{
-	trace_binder_unlock(tag);
-	mutex_unlock(&binder_main_lock);
-=======
 static bool binder_has_work_ilocked(struct binder_thread *thread,
 				    bool do_proc_work)
 {
@@ -1151,26 +1019,10 @@ static bool binder_has_work_ilocked(struct binder_thread *thread,
 		thread->looper_need_return ||
 		(do_proc_work &&
 		 !binder_worklist_empty_ilocked(&thread->proc->todo));
->>>>>>> android-3.18
 }
 
 static bool binder_has_work(struct binder_thread *thread, bool do_proc_work)
 {
-<<<<<<< HEAD
-	long min_nice;
-	if (can_nice(current, nice)) {
-		set_user_nice(current, nice);
-		return;
-	}
-	min_nice = 20 - current->signal->rlim[RLIMIT_NICE].rlim_cur;
-	binder_debug(BINDER_DEBUG_PRIORITY_CAP,
-		     "%d: nice value %ld not allowed use %ld instead\n",
-		      current->pid, nice, min_nice);
-	set_user_nice(current, min_nice);
-	if (min_nice < 20)
-		return;
-	binder_user_error("%d RLIMIT_NICE not set\n", current->pid);
-=======
 	bool has_work;
 
 	binder_inner_proc_lock(thread->proc);
@@ -1178,7 +1030,6 @@ static bool binder_has_work(struct binder_thread *thread, bool do_proc_work)
 	binder_inner_proc_unlock(thread->proc);
 
 	return has_work;
->>>>>>> android-3.18
 }
 
 static bool binder_available_for_proc_work_ilocked(struct binder_thread *thread)
@@ -1229,14 +1080,8 @@ binder_select_thread_ilocked(struct binder_proc *proc)
 					  struct binder_thread,
 					  waiting_thread_node);
 
-<<<<<<< HEAD
-	binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-		     "%d: add free buffer, size %zd, at %pK\n",
-		      proc->pid, new_buffer_size, new_buffer);
-=======
 	if (thread)
 		list_del_init(&thread->waiting_thread_node);
->>>>>>> android-3.18
 
 	return thread;
 }
@@ -1304,34 +1149,9 @@ static bool is_fair_policy(int policy)
 	return policy == SCHED_NORMAL || policy == SCHED_BATCH;
 }
 
-<<<<<<< HEAD
-static struct binder_buffer *binder_buffer_lookup(struct binder_proc *proc,
-						  uintptr_t user_ptr)
-{
-	struct rb_node *n = proc->allocated_buffers.rb_node;
-	struct binder_buffer *buffer;
-	struct binder_buffer *kern_ptr;
-
-	kern_ptr = (struct binder_buffer *)(user_ptr - proc->user_buffer_offset
-		- offsetof(struct binder_buffer, data));
-
-	while (n) {
-		buffer = rb_entry(n, struct binder_buffer, rb_node);
-		BUG_ON(buffer->free);
-
-		if (kern_ptr < buffer)
-			n = n->rb_left;
-		else if (kern_ptr > buffer)
-			n = n->rb_right;
-		else
-			return buffer;
-	}
-	return NULL;
-=======
 static bool binder_supported_policy(int policy)
 {
 	return is_fair_policy(policy) || is_rt_policy(policy);
->>>>>>> android-3.18
 }
 
 static int to_userspace_prio(int policy, int kernel_priority)
@@ -1342,11 +1162,6 @@ static int to_userspace_prio(int policy, int kernel_priority)
 		return MAX_USER_RT_PRIO - 1 - kernel_priority;
 }
 
-<<<<<<< HEAD
-	binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-		     "%d: %s pages %pK-%pK\n", proc->pid,
-		     allocate ? "allocate" : "free", start, end);
-=======
 static int to_kernel_prio(int policy, int user_priority)
 {
 	if (is_fair_policy(policy))
@@ -1354,7 +1169,6 @@ static int to_kernel_prio(int policy, int user_priority)
 	else
 		return MAX_USER_RT_PRIO - 1 - user_priority;
 }
->>>>>>> android-3.18
 
 static void binder_do_set_priority(struct task_struct *task,
 				   struct binder_priority desired,
@@ -1364,145 +1178,13 @@ static void binder_do_set_priority(struct task_struct *task,
 	bool has_cap_nice;
 	unsigned int policy = desired.sched_policy;
 
-<<<<<<< HEAD
-	trace_binder_update_page_range(proc, allocate, start, end);
-
-	if (vma)
-		mm = NULL;
-	else
-		mm = get_task_mm(proc->tsk);
-
-	if (mm) {
-		down_write(&mm->mmap_sem);
-		if (!mmget_still_valid(mm)) {
-			if (allocate == 0)
-				goto free_range;
-			goto err_no_vma;
-		}
-		vma = proc->vma;
-		if (vma && mm != proc->vma_vm_mm) {
-			pr_err("%d: vma mm and task mm mismatch\n",
-				proc->pid);
-			vma = NULL;
-		}
-	}
-=======
 	if (task->policy == policy && task->normal_prio == desired.prio)
 		return;
 
 	has_cap_nice = has_capability_noaudit(task, CAP_SYS_NICE);
->>>>>>> android-3.18
 
 	priority = to_userspace_prio(policy, desired.prio);
 
-<<<<<<< HEAD
-	if (vma == NULL) {
-		pr_err("%d: binder_alloc_buf failed to map pages in userspace, no vma\n",
-			proc->pid);
-		goto err_no_vma;
-	}
-
-	for (page_addr = start; page_addr < end; page_addr += PAGE_SIZE) {
-		int ret;
-		struct page **page_array_ptr;
-		page = &proc->pages[(page_addr - proc->buffer) / PAGE_SIZE];
-
-		BUG_ON(*page);
-		*page = alloc_page(GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO);
-		if (*page == NULL) {
-			pr_err("%d: binder_alloc_buf failed for page at %pK\n",
-				proc->pid, page_addr);
-			goto err_alloc_page_failed;
-		}
-		tmp_area.addr = page_addr;
-		tmp_area.size = PAGE_SIZE + PAGE_SIZE /* guard page? */;
-		page_array_ptr = page;
-		ret = map_vm_area(&tmp_area, PAGE_KERNEL, &page_array_ptr);
-		if (ret) {
-			pr_err("%d: binder_alloc_buf failed to map page at %pK in kernel\n",
-			       proc->pid, page_addr);
-			goto err_map_kernel_failed;
-		}
-		user_page_addr =
-			(uintptr_t)page_addr + proc->user_buffer_offset;
-		ret = vm_insert_page(vma, user_page_addr, page[0]);
-		if (ret) {
-			pr_err("%d: binder_alloc_buf failed to map page at %lx in userspace\n",
-			       proc->pid, user_page_addr);
-			goto err_vm_insert_page_failed;
-		}
-		/* vm_insert_page does not seem to increment the refcount */
-	}
-	if (mm) {
-		up_write(&mm->mmap_sem);
-		mmput(mm);
-	}
-	return 0;
-
-free_range:
-	for (page_addr = end - PAGE_SIZE; page_addr >= start;
-	     page_addr -= PAGE_SIZE) {
-		page = &proc->pages[(page_addr - proc->buffer) / PAGE_SIZE];
-		if (vma)
-			zap_page_range(vma, (uintptr_t)page_addr +
-				proc->user_buffer_offset, PAGE_SIZE, NULL);
-err_vm_insert_page_failed:
-		unmap_kernel_range((unsigned long)page_addr, PAGE_SIZE);
-err_map_kernel_failed:
-		__free_page(*page);
-		*page = NULL;
-err_alloc_page_failed:
-		;
-	}
-err_no_vma:
-	if (mm) {
-		up_write(&mm->mmap_sem);
-		mmput(mm);
-	}
-	return -ENOMEM;
-}
-
-static struct binder_buffer *binder_alloc_buf(struct binder_proc *proc,
-					      size_t data_size,
-					      size_t offsets_size,
-					      size_t extra_buffers_size,
-					      int is_async)
-{
-	struct rb_node *n = proc->free_buffers.rb_node;
-	struct binder_buffer *buffer;
-	size_t buffer_size;
-	struct rb_node *best_fit = NULL;
-	void *has_page_addr;
-	void *end_page_addr;
-	size_t size, data_offsets_size;
-
-	if (proc->vma == NULL) {
-		pr_err("%d: binder_alloc_buf, no vma\n",
-		       proc->pid);
-		return NULL;
-	}
-
-	data_offsets_size = ALIGN(data_size, sizeof(void *)) +
-		ALIGN(offsets_size, sizeof(void *));
-
-	if (data_offsets_size < data_size || data_offsets_size < offsets_size) {
-		binder_user_error("%d: got transaction with invalid size %zd-%zd\n",
-				proc->pid, data_size, offsets_size);
-		return NULL;
-	}
-	size = data_offsets_size + ALIGN(extra_buffers_size, sizeof(void *));
-	if (size < data_offsets_size || size < extra_buffers_size) {
-		binder_user_error("%d: got transaction with invalid extra_buffers_size %zd\n",
-				  proc->pid, extra_buffers_size);
-		return NULL;
-	}
-	if (is_async &&
-	    proc->free_async_space < size + sizeof(struct binder_buffer)) {
-		binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-			     "%d: binder_alloc_buf size %zd failed, no async space left\n",
-			      proc->pid, size);
-		return NULL;
-=======
 	if (verify && is_rt_policy(policy) && !has_cap_nice) {
 		long max_rtprio = task_rlimit(task, RLIMIT_RTPRIO);
 
@@ -1524,7 +1206,6 @@ static struct binder_buffer *binder_alloc_buf(struct binder_proc *proc,
 		} else if (priority < min_nice) {
 			priority = min_nice;
 		}
->>>>>>> android-3.18
 	}
 
 	if (policy != desired.sched_policy ||
@@ -1534,31 +1215,6 @@ static struct binder_buffer *binder_alloc_buf(struct binder_proc *proc,
 			      task->pid, desired.prio,
 			      to_kernel_prio(policy, priority));
 
-<<<<<<< HEAD
-		if (size < buffer_size) {
-			best_fit = n;
-			n = n->rb_left;
-		} else if (size > buffer_size)
-			n = n->rb_right;
-		else {
-			best_fit = n;
-			break;
-		}
-	}
-	if (best_fit == NULL) {
-		pr_err("%d: binder_alloc_buf size %zd failed, no address space\n",
-			proc->pid, size);
-		return NULL;
-	}
-	if (n == NULL) {
-		buffer = rb_entry(best_fit, struct binder_buffer, rb_node);
-		buffer_size = binder_buffer_size(proc, buffer);
-	}
-
-	binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-		     "%d: binder_alloc_buf size %zd got buffer %pK size %zd\n",
-		      proc->pid, size, buffer, buffer_size);
-=======
 	trace_binder_set_priority(task->tgid, task->pid, task->normal_prio,
 				  to_kernel_prio(policy, priority),
 				  desired.prio);
@@ -1566,37 +1222,12 @@ static struct binder_buffer *binder_alloc_buf(struct binder_proc *proc,
 	/* Set the actual priority */
 	if (task->policy != policy || is_rt_policy(policy)) {
 		struct sched_param params;
->>>>>>> android-3.18
 
 		params.sched_priority = is_rt_policy(policy) ? priority : 0;
 
-<<<<<<< HEAD
-	rb_erase(best_fit, &proc->free_buffers);
-	buffer->free = 0;
-	binder_insert_allocated_buffer(proc, buffer);
-	if (buffer_size != size) {
-		struct binder_buffer *new_buffer = (void *)buffer->data + size;
-		list_add(&new_buffer->entry, &buffer->entry);
-		new_buffer->free = 1;
-		binder_insert_free_buffer(proc, new_buffer);
-	}
-	binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-		     "%d: binder_alloc_buf size %zd got %pK\n",
-		      proc->pid, size, buffer);
-	buffer->data_size = data_size;
-	buffer->offsets_size = offsets_size;
-	buffer->extra_buffers_size = extra_buffers_size;
-	buffer->async_transaction = is_async;
-	if (is_async) {
-		proc->free_async_space -= size + sizeof(struct binder_buffer);
-		binder_debug(BINDER_DEBUG_BUFFER_ALLOC_ASYNC,
-			     "%d: binder_alloc_buf size %zd async free %zd\n",
-			      proc->pid, size, proc->free_async_space);
-=======
 		sched_setscheduler_nocheck(task,
 					   policy | SCHED_RESET_ON_FORK,
 					   &params);
->>>>>>> android-3.18
 	}
 	if (is_fair_policy(policy))
 		set_user_nice(task, priority);
@@ -1611,50 +1242,7 @@ static void binder_set_priority(struct task_struct *task,
 static void binder_restore_priority(struct task_struct *task,
 				    struct binder_priority desired)
 {
-<<<<<<< HEAD
-	struct binder_buffer *prev, *next = NULL;
-	int free_page_end = 1;
-	int free_page_start = 1;
-
-	BUG_ON(proc->buffers.next == &buffer->entry);
-	prev = list_entry(buffer->entry.prev, struct binder_buffer, entry);
-	BUG_ON(!prev->free);
-	if (buffer_end_page(prev) == buffer_start_page(buffer)) {
-		free_page_start = 0;
-		if (buffer_end_page(prev) == buffer_end_page(buffer))
-			free_page_end = 0;
-		binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-			     "%d: merge free, buffer %pK share page with %pK\n",
-			      proc->pid, buffer, prev);
-	}
-
-	if (!list_is_last(&buffer->entry, &proc->buffers)) {
-		next = list_entry(buffer->entry.next,
-				  struct binder_buffer, entry);
-		if (buffer_start_page(next) == buffer_end_page(buffer)) {
-			free_page_end = 0;
-			if (buffer_start_page(next) ==
-			    buffer_start_page(buffer))
-				free_page_start = 0;
-			binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-				     "%d: merge free, buffer %pK share page with %pK\n",
-				      proc->pid, buffer, prev);
-		}
-	}
-	list_del(&buffer->entry);
-	if (free_page_start || free_page_end) {
-		binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-			     "%d: merge free, buffer %pK do not share page%s%s with %pK or %pK\n",
-			     proc->pid, buffer, free_page_start ? "" : " end",
-			     free_page_end ? "" : " start", prev, next);
-		binder_update_page_range(proc, 0, free_page_start ?
-			buffer_start_page(buffer) : buffer_end_page(buffer),
-			(free_page_end ? buffer_end_page(buffer) :
-			buffer_start_page(buffer)) + PAGE_SIZE, NULL);
-	}
-=======
 	binder_do_set_priority(task, desired, /* verify = */ false);
->>>>>>> android-3.18
 }
 
 static void binder_transaction_priority(struct task_struct *task,
@@ -1662,21 +1250,7 @@ static void binder_transaction_priority(struct task_struct *task,
 					struct binder_priority node_prio,
 					bool inherit_rt)
 {
-<<<<<<< HEAD
-	size_t size, buffer_size;
-
-	buffer_size = binder_buffer_size(proc, buffer);
-
-	size = ALIGN(buffer->data_size, sizeof(void *)) +
-		ALIGN(buffer->offsets_size, sizeof(void *)) +
-		ALIGN(buffer->extra_buffers_size, sizeof(void *));
-
-	binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-		     "%d: binder_free_buf %pK size %zd buffer_size %zd\n",
-		      proc->pid, buffer, size, buffer_size);
-=======
 	struct binder_priority desired_prio = t->priority;
->>>>>>> android-3.18
 
 	if (t->set_priority_called)
 		return;
@@ -1685,15 +1259,9 @@ static void binder_transaction_priority(struct task_struct *task,
 	t->saved_priority.sched_policy = task->policy;
 	t->saved_priority.prio = task->normal_prio;
 
-<<<<<<< HEAD
-		binder_debug(BINDER_DEBUG_BUFFER_ALLOC_ASYNC,
-			     "%d: binder_free_buf size %zd async free %zd\n",
-			      proc->pid, size, proc->free_async_space);
-=======
 	if (!inherit_rt && is_rt_policy(desired_prio.sched_policy)) {
 		desired_prio.prio = NICE_TO_PRIO(0);
 		desired_prio.sched_policy = SCHED_NORMAL;
->>>>>>> android-3.18
 	}
 
 	if (node_prio.prio < t->priority.prio ||
@@ -1712,13 +1280,8 @@ static void binder_transaction_priority(struct task_struct *task,
 	binder_set_priority(task, desired_prio);
 }
 
-<<<<<<< HEAD
-static struct binder_node *binder_get_node(struct binder_proc *proc,
-					   binder_uintptr_t ptr)
-=======
 static struct binder_node *binder_get_node_ilocked(struct binder_proc *proc,
 						   binder_uintptr_t ptr)
->>>>>>> android-3.18
 {
 	struct rb_node *n = proc->nodes.rb_node;
 	struct binder_node *node;
@@ -1745,10 +1308,6 @@ static struct binder_node *binder_get_node_ilocked(struct binder_proc *proc,
 	return NULL;
 }
 
-<<<<<<< HEAD
-static struct binder_node *binder_new_node(struct binder_proc *proc,
-					   struct flat_binder_object *fp)
-=======
 static struct binder_node *binder_get_node(struct binder_proc *proc,
 					   binder_uintptr_t ptr)
 {
@@ -1764,7 +1323,6 @@ static struct binder_node *binder_init_node_ilocked(
 						struct binder_proc *proc,
 						struct binder_node *new_node,
 						struct flat_binder_object *fp)
->>>>>>> android-3.18
 {
 	struct rb_node **p = &proc->nodes.rb_node;
 	struct rb_node *parent = NULL;
@@ -1809,9 +1367,6 @@ static struct binder_node *binder_init_node_ilocked(
 	node->ptr = ptr;
 	node->cookie = cookie;
 	node->work.type = BINDER_WORK_NODE;
-<<<<<<< HEAD
-	node->txn_security_ctx = 0; /*!!(flags & FLAT_BINDER_FLAG_TXN_SECURITY_CTX);*/
-=======
 	priority = flags & FLAT_BINDER_FLAG_PRIORITY_MASK;
 	node->sched_policy = (flags & FLAT_BINDER_FLAG_SCHED_POLICY_MASK) >>
 		FLAT_BINDER_FLAG_SCHED_POLICY_SHIFT;
@@ -1820,17 +1375,13 @@ static struct binder_node *binder_init_node_ilocked(
 	node->inherit_rt = !!(flags & FLAT_BINDER_FLAG_INHERIT_RT);
 	node->txn_security_ctx = !!(flags & FLAT_BINDER_FLAG_TXN_SECURITY_CTX);
 	spin_lock_init(&node->lock);
->>>>>>> android-3.18
 	INIT_LIST_HEAD(&node->work.entry);
 	INIT_LIST_HEAD(&node->async_todo);
 	binder_debug(BINDER_DEBUG_INTERNAL_REFS,
 		     "%d:%d node %d u%016llx c%016llx created\n",
 		     proc->pid, current->pid, node->debug_id,
 		     (u64)node->ptr, (u64)node->cookie);
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	return node;
 }
 
@@ -2072,13 +1623,8 @@ static void binder_put_node(struct binder_node *node)
 	binder_dec_node_tmpref(node);
 }
 
-<<<<<<< HEAD
-static struct binder_ref *binder_get_ref(struct binder_proc *proc,
-					 uint32_t desc, bool need_strong_ref)
-=======
 static struct binder_ref *binder_get_ref_olocked(struct binder_proc *proc,
 						 u32 desc, bool need_strong_ref)
->>>>>>> android-3.18
 {
 	struct rb_node *n = proc->refs_by_desc.rb_node;
 	struct binder_ref *ref;
@@ -2086,19 +1632,11 @@ static struct binder_ref *binder_get_ref_olocked(struct binder_proc *proc,
 	while (n) {
 		ref = rb_entry(n, struct binder_ref, rb_node_desc);
 
-<<<<<<< HEAD
-		if (desc < ref->desc) {
-			n = n->rb_left;
-		} else if (desc > ref->desc) {
-			n = n->rb_right;
-		} else if (need_strong_ref && !ref->strong) {
-=======
 		if (desc < ref->data.desc) {
 			n = n->rb_left;
 		} else if (desc > ref->data.desc) {
 			n = n->rb_right;
 		} else if (need_strong_ref && !ref->data.strong) {
->>>>>>> android-3.18
 			binder_user_error("tried to use weak ref as strong ref\n");
 			return NULL;
 		} else {
@@ -2134,13 +1672,8 @@ static struct binder_ref *binder_get_ref_for_node_olocked(
 	struct binder_context *context = proc->context;
 	struct rb_node **p = &proc->refs_by_node.rb_node;
 	struct rb_node *parent = NULL;
-<<<<<<< HEAD
-	struct binder_ref *ref, *new_ref;
-	struct binder_context *context = proc->context;
-=======
 	struct binder_ref *ref;
 	struct rb_node *n;
->>>>>>> android-3.18
 
 	while (*p) {
 		parent = *p;
@@ -2163,11 +1696,7 @@ static struct binder_ref *binder_get_ref_for_node_olocked(
 	rb_link_node(&new_ref->rb_node_node, parent, p);
 	rb_insert_color(&new_ref->rb_node_node, &proc->refs_by_node);
 
-<<<<<<< HEAD
-	new_ref->desc = (node == context->binder_context_mgr_node) ? 0 : 1;
-=======
 	new_ref->data.desc = (node == context->binder_context_mgr_node) ? 0 : 1;
->>>>>>> android-3.18
 	for (n = rb_first(&proc->refs_by_desc); n != NULL; n = rb_next(n)) {
 		ref = rb_entry(n, struct binder_ref, rb_node_desc);
 		if (ref->data.desc > new_ref->data.desc)
@@ -2190,17 +1719,6 @@ static struct binder_ref *binder_get_ref_for_node_olocked(
 	rb_link_node(&new_ref->rb_node_desc, parent, p);
 	rb_insert_color(&new_ref->rb_node_desc, &proc->refs_by_desc);
 
-<<<<<<< HEAD
-		binder_debug(BINDER_DEBUG_INTERNAL_REFS,
-			     "%d new ref %d desc %d for node %d\n",
-			      proc->pid, new_ref->debug_id, new_ref->desc,
-			      node->debug_id);
-	} else {
-		binder_debug(BINDER_DEBUG_INTERNAL_REFS,
-			     "%d new ref %d desc %d for dead node\n",
-			      proc->pid, new_ref->debug_id, new_ref->desc);
-	}
-=======
 	binder_node_lock(node);
 	hlist_add_head(&new_ref->node_entry, &node->refs);
 
@@ -2209,7 +1727,6 @@ static struct binder_ref *binder_get_ref_for_node_olocked(
 		      proc->pid, new_ref->data.debug_id, new_ref->data.desc,
 		      node->debug_id);
 	binder_node_unlock(node);
->>>>>>> android-3.18
 	return new_ref;
 }
 
@@ -2219,11 +1736,7 @@ static void binder_cleanup_ref_olocked(struct binder_ref *ref)
 
 	binder_debug(BINDER_DEBUG_INTERNAL_REFS,
 		     "%d delete ref %d desc %d for node %d\n",
-<<<<<<< HEAD
-		      ref->proc->pid, ref->debug_id, ref->desc,
-=======
 		      ref->proc->pid, ref->data.debug_id, ref->data.desc,
->>>>>>> android-3.18
 		      ref->node->debug_id);
 
 	rb_erase(&ref->rb_node_desc, &ref->proc->refs_by_desc);
@@ -2251,15 +1764,9 @@ static void binder_cleanup_ref_olocked(struct binder_ref *ref)
 	if (ref->death) {
 		binder_debug(BINDER_DEBUG_DEAD_BINDER,
 			     "%d delete ref %d desc %d has death notification\n",
-<<<<<<< HEAD
-			      ref->proc->pid, ref->debug_id, ref->desc);
-		list_del(&ref->death->work.entry);
-		kfree(ref->death);
-=======
 			      ref->proc->pid, ref->data.debug_id,
 			      ref->data.desc);
 		binder_dequeue_work(ref->proc, &ref->death->work);
->>>>>>> android-3.18
 		binder_stats_deleted(BINDER_STAT_DEATH);
 	}
 	binder_stats_deleted(BINDER_STAT_REF);
@@ -2298,10 +1805,6 @@ static int binder_inc_ref_olocked(struct binder_ref *ref, int strong,
 	return 0;
 }
 
-<<<<<<< HEAD
-
-static int binder_dec_ref(struct binder_ref **ptr_to_ref, int strong)
-=======
 /**
  * binder_dec_ref() - dec the ref for given handle
  * @ref:	ref to be decremented
@@ -2312,66 +1815,34 @@ static int binder_dec_ref(struct binder_ref **ptr_to_ref, int strong)
  * Return: true if ref is cleaned up and ready to be freed
  */
 static bool binder_dec_ref_olocked(struct binder_ref *ref, int strong)
->>>>>>> android-3.18
 {
 	struct binder_ref *ref = *ptr_to_ref;
 	if (strong) {
-<<<<<<< HEAD
-		if (ref->strong == 0) {
-			binder_user_error("%d invalid dec strong, ref %d desc %d s %d w %d\n",
-					  ref->proc->pid, ref->debug_id,
-					  ref->desc, ref->strong, ref->weak);
-			return -EINVAL;
-		}
-		ref->strong--;
-		if (ref->strong == 0) {
-			int ret;
-			ret = binder_dec_node(ref->node, strong, 1);
-			if (ret)
-				return ret;
-=======
 		if (ref->data.strong == 0) {
 			binder_user_error("%d invalid dec strong, ref %d desc %d s %d w %d\n",
 					  ref->proc->pid, ref->data.debug_id,
 					  ref->data.desc, ref->data.strong,
 					  ref->data.weak);
 			return false;
->>>>>>> android-3.18
 		}
 		ref->data.strong--;
 		if (ref->data.strong == 0)
 			binder_dec_node(ref->node, strong, 1);
 	} else {
-<<<<<<< HEAD
-		if (ref->weak == 0) {
-			binder_user_error("%d invalid dec weak, ref %d desc %d s %d w %d\n",
-					  ref->proc->pid, ref->debug_id,
-					  ref->desc, ref->strong, ref->weak);
-			return -EINVAL;
-=======
 		if (ref->data.weak == 0) {
 			binder_user_error("%d invalid dec weak, ref %d desc %d s %d w %d\n",
 					  ref->proc->pid, ref->data.debug_id,
 					  ref->data.desc, ref->data.strong,
 					  ref->data.weak);
 			return false;
->>>>>>> android-3.18
 		}
 		ref->data.weak--;
 	}
-<<<<<<< HEAD
-	if (ref->strong == 0 && ref->weak == 0) {
-		binder_delete_ref(ref);
-		*ptr_to_ref = NULL;
-	}
-	return 0;
-=======
 	if (ref->data.strong == 0 && ref->data.weak == 0) {
 		binder_cleanup_ref_olocked(ref);
 		return true;
 	}
 	return false;
->>>>>>> android-3.18
 }
 
 /**
@@ -2423,53 +1894,6 @@ err_no_ref:
  */
 static void binder_free_ref(struct binder_ref *ref)
 {
-<<<<<<< HEAD
-	struct binder_thread *target_thread;
-	BUG_ON(t->flags & TF_ONE_WAY);
-	while (1) {
-		target_thread = t->from;
-		if (target_thread) {
-			if (target_thread->return_error != BR_OK &&
-			   target_thread->return_error2 == BR_OK) {
-				target_thread->return_error2 =
-					target_thread->return_error;
-				target_thread->return_error = BR_OK;
-			}
-			if (target_thread->return_error == BR_OK) {
-				binder_debug(BINDER_DEBUG_FAILED_TRANSACTION,
-					     "send failed reply for transaction %d to %d:%d\n",
-					      t->debug_id, target_thread->proc->pid,
-					      target_thread->pid);
-
-				binder_pop_transaction(target_thread, t);
-				target_thread->return_error = error_code;
-				wake_up_interruptible(&target_thread->wait);
-			} else {
-				pr_err("reply failed, target thread, %d:%d, has error code %d already\n",
-					target_thread->proc->pid,
-					target_thread->pid,
-					target_thread->return_error);
-			}
-			return;
-		} else {
-			struct binder_transaction *next = t->from_parent;
-
-			binder_debug(BINDER_DEBUG_FAILED_TRANSACTION,
-				     "send failed reply for transaction %d, target dead\n",
-				     t->debug_id);
-
-			binder_pop_transaction(target_thread, t);
-			if (next == NULL) {
-				binder_debug(BINDER_DEBUG_DEAD_BINDER,
-					     "reply failed, no target thread at root\n");
-				return;
-			}
-			t = next;
-			binder_debug(BINDER_DEBUG_DEAD_BINDER,
-				     "reply failed, no target thread -- retry %d\n",
-				      t->debug_id);
-		}
-=======
 	if (ref->node)
 		binder_free_node(ref->node);
 	kfree(ref->death);
@@ -2502,7 +1926,6 @@ static int binder_update_ref_for_handle(struct binder_proc *proc,
 	if (!ref) {
 		ret = -EINVAL;
 		goto err_no_ref;
->>>>>>> android-3.18
 	}
 	if (increment)
 		ret = binder_inc_ref_olocked(ref, strong, NULL);
@@ -2523,188 +1946,6 @@ err_no_ref:
 }
 
 /**
-<<<<<<< HEAD
- * struct binder_proc_ext - binder process bookkeeping
- * @proc:            element for binder_procs list
- * @cred                  struct cred associated with the `struct file`
- *                        in binder_open()
- *                        (invariant after initialized)
- *
- * Extended binder_proc -- needed to add the "cred" field without
- * changing the KMI for binder_proc.
- */
-struct binder_proc_ext {
-	struct binder_proc proc;
-	const struct cred *cred;
-};
-
-static inline const struct cred *binder_get_cred(struct binder_proc *proc)
-{
-	struct binder_proc_ext *eproc;
-
-	eproc = container_of(proc, struct binder_proc_ext, proc);
-	return eproc->cred;
-}
-
-/**
- * binder_validate_object() - checks for a valid metadata object in a buffer.
- * @buffer:	binder_buffer that we're parsing.
- * @offset:	offset in the buffer at which to validate an object.
- *
- * Return:	If there's a valid metadata object at @offset in @buffer, the
- *		size of that object. Otherwise, it returns zero.
- */
-static size_t binder_validate_object(struct binder_buffer *buffer, u64 offset)
-{
-	/* Check if we can read a header first */
-	struct binder_object_header *hdr;
-	size_t object_size = 0;
-
-	if (offset > buffer->data_size - sizeof(*hdr) ||
-	    buffer->data_size < sizeof(*hdr) ||
-	    !IS_ALIGNED(offset, sizeof(u32)))
-		return 0;
-
-	/* Ok, now see if we can read a complete object. */
-	hdr = (struct binder_object_header *)(buffer->data + offset);
-	switch (hdr->type) {
-	case BINDER_TYPE_BINDER:
-	case BINDER_TYPE_WEAK_BINDER:
-	case BINDER_TYPE_HANDLE:
-	case BINDER_TYPE_WEAK_HANDLE:
-		object_size = sizeof(struct flat_binder_object);
-		break;
-	case BINDER_TYPE_FD:
-		object_size = sizeof(struct binder_fd_object);
-		break;
-	case BINDER_TYPE_PTR:
-		object_size = sizeof(struct binder_buffer_object);
-		break;
-	case BINDER_TYPE_FDA:
-		object_size = sizeof(struct binder_fd_array_object);
-		break;
-	default:
-		return 0;
-	}
-	if (offset <= buffer->data_size - object_size &&
-	    buffer->data_size >= object_size)
-		return object_size;
-	else
-		return 0;
-}
-
-/**
- * binder_validate_ptr() - validates binder_buffer_object in a binder_buffer.
- * @b:		binder_buffer containing the object
- * @index:	index in offset array at which the binder_buffer_object is
- *		located
- * @start:	points to the start of the offset array
- * @num_valid:	the number of valid offsets in the offset array
- *
- * Return:	If @index is within the valid range of the offset array
- *		described by @start and @num_valid, and if there's a valid
- *		binder_buffer_object at the offset found in index @index
- *		of the offset array, that object is returned. Otherwise,
- *		%NULL is returned.
- *		Note that the offset found in index @index itself is not
- *		verified; this function assumes that @num_valid elements
- *		from @start were previously verified to have valid offsets.
- */
-static struct binder_buffer_object *binder_validate_ptr(struct binder_buffer *b,
-							binder_size_t index,
-							binder_size_t *start,
-							binder_size_t num_valid)
-{
-	struct binder_buffer_object *buffer_obj;
-	binder_size_t *offp;
-
-	if (index >= num_valid)
-		return NULL;
-
-	offp = start + index;
-	buffer_obj = (struct binder_buffer_object *)(b->data + *offp);
-	if (buffer_obj->hdr.type != BINDER_TYPE_PTR)
-		return NULL;
-
-	return buffer_obj;
-}
-
-/**
- * binder_validate_fixup() - validates pointer/fd fixups happen in order.
- * @b:			transaction buffer
- * @objects_start	start of objects buffer
- * @buffer:		binder_buffer_object in which to fix up
- * @offset:		start offset in @buffer to fix up
- * @last_obj:		last binder_buffer_object that we fixed up in
- * @last_min_offset:	minimum fixup offset in @last_obj
- *
- * Return:		%true if a fixup in buffer @buffer at offset @offset is
- *			allowed.
- *
- * For safety reasons, we only allow fixups inside a buffer to happen
- * at increasing offsets; additionally, we only allow fixup on the last
- * buffer object that was verified, or one of its parents.
- *
- * Example of what is allowed:
- *
- * A
- *   B (parent = A, offset = 0)
- *   C (parent = A, offset = 16)
- *     D (parent = C, offset = 0)
- *   E (parent = A, offset = 32) // min_offset is 16 (C.parent_offset)
- *
- * Examples of what is not allowed:
- *
- * Decreasing offsets within the same parent:
- * A
- *   C (parent = A, offset = 16)
- *   B (parent = A, offset = 0) // decreasing offset within A
- *
- * Referring to a parent that wasn't the last object or any of its parents:
- * A
- *   B (parent = A, offset = 0)
- *   C (parent = A, offset = 0)
- *   C (parent = A, offset = 16)
- *     D (parent = B, offset = 0) // B is not A or any of A's parents
- */
-static bool binder_validate_fixup(struct binder_buffer *b,
-				  binder_size_t *objects_start,
-				  struct binder_buffer_object *buffer,
-				  binder_size_t fixup_offset,
-				  struct binder_buffer_object *last_obj,
-				  binder_size_t last_min_offset)
-{
-	if (!last_obj) {
-		/* Nothing to fix up in */
-		return false;
-	}
-
-	while (last_obj != buffer) {
-		/*
-		 * Safe to retrieve the parent of last_obj, since it
-		 * was already previously verified by the driver.
-		 */
-		if ((last_obj->flags & BINDER_BUFFER_FLAG_HAS_PARENT) == 0)
-			return false;
-		last_min_offset = last_obj->parent_offset + sizeof(uintptr_t);
-		last_obj = (struct binder_buffer_object *)
-			(b->data + *(objects_start + last_obj->parent));
-	}
-	return (fixup_offset >= last_min_offset);
-}
-
-static void binder_transaction_buffer_release(struct binder_proc *proc,
-					      struct binder_buffer *buffer,
-					      binder_size_t *failed_at)
-{
-	binder_size_t *offp, *off_start, *off_end;
-	int debug_id = buffer->debug_id;
-
-	binder_debug(BINDER_DEBUG_TRANSACTION,
-		     "%d buffer release %d, size %zd-%zd, failed at %pK\n",
-		     proc->pid, buffer->debug_id,
-		     buffer->data_size, buffer->offsets_size, failed_at);
-=======
  * binder_dec_ref_for_handle() - dec the ref for given handle
  * @proc:	proc containing the ref
  * @desc:	the handle associated with the ref
@@ -2721,7 +1962,6 @@ static int binder_dec_ref_for_handle(struct binder_proc *proc,
 	return binder_update_ref_for_handle(proc, desc, false, strong, rdata);
 }
 
->>>>>>> android-3.18
 
 /**
  * binder_inc_ref_for_node() - increment the ref for given proc/node
@@ -2746,13 +1986,6 @@ static int binder_inc_ref_for_node(struct binder_proc *proc,
 	struct binder_ref *new_ref = NULL;
 	int ret = 0;
 
-<<<<<<< HEAD
-	off_start = (binder_size_t *)(buffer->data +
-				      ALIGN(buffer->data_size, sizeof(void *)));
-	if (failed_at)
-		off_end = failed_at;
-	else
-=======
 	binder_proc_lock(proc);
 	ref = binder_get_ref_for_node_olocked(proc, node, NULL);
 	if (!ref) {
@@ -3148,7 +2381,6 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 	if (failed_at)
 		off_end = failed_at;
 	else
->>>>>>> android-3.18
 		off_end = (void *)off_start + buffer->offsets_size;
 	for (offp = off_start; offp < off_end; offp++) {
 		struct binder_object_header *hdr;
@@ -3178,30 +2410,11 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 				     node->debug_id, (u64)node->ptr);
 			binder_dec_node(node, hdr->type == BINDER_TYPE_BINDER,
 					0);
-<<<<<<< HEAD
-=======
 			binder_put_node(node);
->>>>>>> android-3.18
 		} break;
 		case BINDER_TYPE_HANDLE:
 		case BINDER_TYPE_WEAK_HANDLE: {
 			struct flat_binder_object *fp;
-<<<<<<< HEAD
-			struct binder_ref *ref;
-
-			fp = to_flat_binder_object(hdr);
-			ref = binder_get_ref(proc, fp->handle,
-					     hdr->type == BINDER_TYPE_HANDLE);
-			if (ref == NULL) {
-				pr_err("transaction release %d bad handle %d\n",
-				 debug_id, fp->handle);
-				break;
-			}
-			binder_debug(BINDER_DEBUG_TRANSACTION,
-				     "        ref %d desc %d (node %d)\n",
-				     ref->debug_id, ref->desc, ref->node->debug_id);
-			binder_dec_ref(&ref, hdr->type == BINDER_TYPE_HANDLE);
-=======
 			struct binder_ref_data rdata;
 			int ret;
 
@@ -3217,7 +2430,6 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 			binder_debug(BINDER_DEBUG_TRANSACTION,
 				     "        ref %d desc %d\n",
 				     rdata.debug_id, rdata.desc);
->>>>>>> android-3.18
 		} break;
 
 		case BINDER_TYPE_FD: {
@@ -3256,12 +2468,8 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 			 * back to kernel address space to access it
 			 */
 			parent_buffer = parent->buffer -
-<<<<<<< HEAD
-				proc->user_buffer_offset;
-=======
 				binder_alloc_get_user_buffer_offset(
 						&proc->alloc);
->>>>>>> android-3.18
 
 			fd_buf_size = sizeof(u32) * fda->num_fds;
 			if (fda->num_fds >= SIZE_MAX / sizeof(u32)) {
@@ -3276,12 +2484,7 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 				       debug_id, (u64)fda->num_fds);
 				continue;
 			}
-<<<<<<< HEAD
-			fd_array = (u32 *)(uintptr_t)
-				(parent_buffer + fda->parent_offset);
-=======
 			fd_array = (u32 *)(parent_buffer + (uintptr_t)fda->parent_offset);
->>>>>>> android-3.18
 			for (fd_index = 0; fd_index < fda->num_fds; fd_index++)
 				task_close_fd(proc, fd_array[fd_index]);
 		} break;
@@ -3298,45 +2501,22 @@ static int binder_translate_binder(struct flat_binder_object *fp,
 				   struct binder_thread *thread)
 {
 	struct binder_node *node;
-<<<<<<< HEAD
-	struct binder_ref *ref;
-	struct binder_proc *proc = thread->proc;
-	struct binder_proc *target_proc = t->to_proc;
-=======
 	struct binder_proc *proc = thread->proc;
 	struct binder_proc *target_proc = t->to_proc;
 	struct binder_ref_data rdata;
 	int ret = 0;
->>>>>>> android-3.18
 
 	node = binder_get_node(proc, fp->binder);
 	if (!node) {
 		node = binder_new_node(proc, fp);
 		if (!node)
 			return -ENOMEM;
-<<<<<<< HEAD
-
-		node->min_priority = fp->flags & FLAT_BINDER_FLAG_PRIORITY_MASK;
-		node->accept_fds = !!(fp->flags & FLAT_BINDER_FLAG_ACCEPTS_FDS);
-=======
->>>>>>> android-3.18
 	}
 	if (fp->cookie != node->cookie) {
 		binder_user_error("%d:%d sending u%016llx node %d, cookie mismatch %016llx != %016llx\n",
 				  proc->pid, thread->pid, (u64)fp->binder,
 				  node->debug_id, (u64)fp->cookie,
 				  (u64)node->cookie);
-<<<<<<< HEAD
-		return -EINVAL;
-	}
-	if (security_binder_transfer_binder(binder_get_cred(proc),
-					    binder_get_cred(target_proc)))
-		return -EPERM;
-
-	ref = binder_get_ref_for_node(target_proc, node);
-	if (!ref)
-		return -EINVAL;
-=======
 		ret = -EINVAL;
 		goto done;
 	}
@@ -3350,26 +2530,12 @@ static int binder_translate_binder(struct flat_binder_object *fp,
 			&thread->todo, &rdata);
 	if (ret)
 		goto done;
->>>>>>> android-3.18
 
 	if (fp->hdr.type == BINDER_TYPE_BINDER)
 		fp->hdr.type = BINDER_TYPE_HANDLE;
 	else
 		fp->hdr.type = BINDER_TYPE_WEAK_HANDLE;
 	fp->binder = 0;
-<<<<<<< HEAD
-	fp->handle = ref->desc;
-	fp->cookie = 0;
-	binder_inc_ref(ref, fp->hdr.type == BINDER_TYPE_HANDLE, &thread->todo);
-
-	trace_binder_transaction_node_to_ref(t, node, ref);
-	binder_debug(BINDER_DEBUG_TRANSACTION,
-		     "        node %d u%016llx -> ref %d desc %d\n",
-		     node->debug_id, (u64)node->ptr,
-		     ref->debug_id, ref->desc);
-
-	return 0;
-=======
 	fp->handle = rdata.desc;
 	fp->cookie = 0;
 
@@ -3381,22 +2547,12 @@ static int binder_translate_binder(struct flat_binder_object *fp,
 done:
 	binder_put_node(node);
 	return ret;
->>>>>>> android-3.18
 }
 
 static int binder_translate_handle(struct flat_binder_object *fp,
 				   struct binder_transaction *t,
 				   struct binder_thread *thread)
 {
-<<<<<<< HEAD
-	struct binder_ref *ref;
-	struct binder_proc *proc = thread->proc;
-	struct binder_proc *target_proc = t->to_proc;
-
-	ref = binder_get_ref(proc, fp->handle,
-			     fp->hdr.type == BINDER_TYPE_HANDLE);
-	if (!ref) {
-=======
 	struct binder_proc *proc = thread->proc;
 	struct binder_proc *target_proc = t->to_proc;
 	struct binder_node *node;
@@ -3406,18 +2562,10 @@ static int binder_translate_handle(struct flat_binder_object *fp,
 	node = binder_get_node_from_ref(proc, fp->handle,
 			fp->hdr.type == BINDER_TYPE_HANDLE, &src_rdata);
 	if (!node) {
->>>>>>> android-3.18
 		binder_user_error("%d:%d got transaction with invalid handle, %d\n",
 				  proc->pid, thread->pid, fp->handle);
 		return -EINVAL;
 	}
-<<<<<<< HEAD
-	if (security_binder_transfer_binder(binder_get_cred(proc),
-					    binder_get_cred(target_proc)))
-		return -EPERM;
-
-	if (ref->node->proc == target_proc) {
-=======
 	if (security_binder_transfer_binder(proc->tsk, target_proc->tsk)) {
 		ret = -EPERM;
 		goto done;
@@ -3425,41 +2573,10 @@ static int binder_translate_handle(struct flat_binder_object *fp,
 
 	binder_node_lock(node);
 	if (node->proc == target_proc) {
->>>>>>> android-3.18
 		if (fp->hdr.type == BINDER_TYPE_HANDLE)
 			fp->hdr.type = BINDER_TYPE_BINDER;
 		else
 			fp->hdr.type = BINDER_TYPE_WEAK_BINDER;
-<<<<<<< HEAD
-		fp->binder = ref->node->ptr;
-		fp->cookie = ref->node->cookie;
-		binder_inc_node(ref->node, fp->hdr.type == BINDER_TYPE_BINDER,
-				0, NULL);
-		trace_binder_transaction_ref_to_node(t, ref);
-		binder_debug(BINDER_DEBUG_TRANSACTION,
-			     "        ref %d desc %d -> node %d u%016llx\n",
-			     ref->debug_id, ref->desc, ref->node->debug_id,
-			     (u64)ref->node->ptr);
-	} else {
-		struct binder_ref *new_ref;
-
-		new_ref = binder_get_ref_for_node(target_proc, ref->node);
-		if (!new_ref)
-			return -EINVAL;
-
-		fp->binder = 0;
-		fp->handle = new_ref->desc;
-		fp->cookie = 0;
-		binder_inc_ref(new_ref, fp->hdr.type == BINDER_TYPE_HANDLE,
-			       NULL);
-		trace_binder_transaction_ref_to_ref(t, ref, new_ref);
-		binder_debug(BINDER_DEBUG_TRANSACTION,
-			     "        ref %d desc %d -> ref %d desc %d (node %d)\n",
-			     ref->debug_id, ref->desc, new_ref->debug_id,
-			     new_ref->desc, ref->node->debug_id);
-	}
-	return 0;
-=======
 		fp->binder = node->ptr;
 		fp->cookie = node->cookie;
 		if (node->proc)
@@ -3499,7 +2616,6 @@ static int binder_translate_handle(struct flat_binder_object *fp,
 done:
 	binder_put_node(node);
 	return ret;
->>>>>>> android-3.18
 }
 
 static int binder_translate_fd(int fd,
@@ -3534,12 +2650,7 @@ static int binder_translate_fd(int fd,
 		ret = -EBADF;
 		goto err_fget;
 	}
-<<<<<<< HEAD
-	ret = security_binder_transfer_file(binder_get_cred(proc),
-					    binder_get_cred(target_proc), file);
-=======
 	ret = security_binder_transfer_file(proc->tsk, target_proc->tsk, file);
->>>>>>> android-3.18
 	if (ret < 0) {
 		ret = -EPERM;
 		goto err_security;
@@ -3595,14 +2706,9 @@ static int binder_translate_fd_array(struct binder_fd_array_object *fda,
 	 * Since the parent was already fixed up, convert it
 	 * back to the kernel address space to access it
 	 */
-<<<<<<< HEAD
-	parent_buffer = parent->buffer - target_proc->user_buffer_offset;
-	fd_array = (u32 *)(uintptr_t)(parent_buffer + fda->parent_offset);
-=======
 	parent_buffer = parent->buffer -
 		binder_alloc_get_user_buffer_offset(&target_proc->alloc);
 	fd_array = (u32 *)(parent_buffer + (uintptr_t)fda->parent_offset);
->>>>>>> android-3.18
 	if (!IS_ALIGNED((unsigned long)fd_array, sizeof(u32))) {
 		binder_user_error("%d:%d parent offset not aligned correctly.\n",
 				  proc->pid, thread->pid);
@@ -3668,21 +2774,14 @@ static int binder_fixup_parent(struct binder_transaction *t,
 				  proc->pid, thread->pid);
 		return -EINVAL;
 	}
-<<<<<<< HEAD
-	parent_buffer = (u8 *)(uintptr_t)(parent->buffer -
-			       target_proc->user_buffer_offset);
-=======
 	parent_buffer = (u8 *)((uintptr_t)parent->buffer -
 			binder_alloc_get_user_buffer_offset(
 				&target_proc->alloc));
->>>>>>> android-3.18
 	*(binder_uintptr_t *)(parent_buffer + bp->parent_offset) = bp->buffer;
 
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
 /**
  * binder_proc_transaction() - sends a transaction to a process and wakes it up
  * @t:		transaction to send
@@ -3795,7 +2894,6 @@ static struct binder_node *binder_get_node_refs_for_txn(
 	return target_node;
 }
 
->>>>>>> android-3.18
 static void binder_transaction(struct binder_proc *proc,
 			       struct binder_thread *thread,
 			       struct binder_transaction_data *tr, int reply,
@@ -3807,21 +2905,11 @@ static void binder_transaction(struct binder_proc *proc,
 	binder_size_t *offp, *off_end, *off_start;
 	binder_size_t off_min;
 	u8 *sg_bufp, *sg_buf_end;
-<<<<<<< HEAD
-	struct binder_proc *target_proc;
-=======
 	struct binder_proc *target_proc = NULL;
->>>>>>> android-3.18
 	struct binder_thread *target_thread = NULL;
 	struct binder_node *target_node = NULL;
 	struct binder_transaction *in_reply_to = NULL;
 	struct binder_transaction_log_entry *e;
-<<<<<<< HEAD
-	uint32_t return_error;
-	struct binder_buffer_object *last_fixup_obj = NULL;
-	binder_size_t last_fixup_min_off = 0;
-	struct binder_context *context = proc->context;
-=======
 	uint32_t return_error = 0;
 	uint32_t return_error_param = 0;
 	uint32_t return_error_line = 0;
@@ -3829,7 +2917,6 @@ static void binder_transaction(struct binder_proc *proc,
 	binder_size_t last_fixup_min_off = 0;
 	struct binder_context *context = proc->context;
 	int t_debug_id = atomic_inc_return(&binder_last_id);
->>>>>>> android-3.18
 	char *secctx = NULL;
 	u32 secctx_sz = 0;
 
@@ -3847,10 +2934,7 @@ static void binder_transaction(struct binder_proc *proc,
 		binder_inner_proc_lock(proc);
 		in_reply_to = thread->transaction_stack;
 		if (in_reply_to == NULL) {
-<<<<<<< HEAD
-=======
 			binder_inner_proc_unlock(proc);
->>>>>>> android-3.18
 			binder_user_error("%d:%d got reply transaction with no transaction stack\n",
 					  proc->pid, thread->pid);
 			return_error = BR_FAILED_REPLY;
@@ -3859,10 +2943,7 @@ static void binder_transaction(struct binder_proc *proc,
 			goto err_empty_call_stack;
 		}
 		if (in_reply_to->to_thread != thread) {
-<<<<<<< HEAD
-=======
 			spin_lock(&in_reply_to->lock);
->>>>>>> android-3.18
 			binder_user_error("%d:%d got reply transaction with bad transaction stack, transaction %d has target %d:%d\n",
 				proc->pid, thread->pid, in_reply_to->debug_id,
 				in_reply_to->to_proc ?
@@ -3905,12 +2986,6 @@ static void binder_transaction(struct binder_proc *proc,
 	} else {
 		if (tr->target.handle) {
 			struct binder_ref *ref;
-<<<<<<< HEAD
-			ref = binder_get_ref(proc, tr->target.handle, true);
-			if (ref == NULL) {
-				binder_user_error("%d:%d got transaction to invalid handle\n",
-					proc->pid, thread->pid);
-=======
 
 			/*
 			 * There must already be a strong ref
@@ -3929,15 +3004,10 @@ static void binder_transaction(struct binder_proc *proc,
 			} else {
 				binder_user_error("%d:%d got transaction to invalid handle\n",
 						  proc->pid, thread->pid);
->>>>>>> android-3.18
 				return_error = BR_FAILED_REPLY;
 			}
 			binder_proc_unlock(proc);
 		} else {
-<<<<<<< HEAD
-			target_node = context->binder_context_mgr_node;
-			if (target_node == NULL) {
-=======
 			mutex_lock(&context->context_mgr_node_lock);
 			target_node = context->binder_context_mgr_node;
 			if (target_node)
@@ -3945,7 +3015,6 @@ static void binder_transaction(struct binder_proc *proc,
 						target_node, &target_proc,
 						&return_error);
 			else
->>>>>>> android-3.18
 				return_error = BR_DEAD_REPLY;
 			mutex_unlock(&context->context_mgr_node_lock);
 			if (target_node && target_proc == proc) {
@@ -3965,13 +3034,6 @@ static void binder_transaction(struct binder_proc *proc,
 			return_error_line = __LINE__;
 			goto err_dead_binder;
 		}
-<<<<<<< HEAD
-		if (security_binder_transaction(binder_get_cred(proc),
-					binder_get_cred(target_proc)) < 0) {
-			return_error = BR_FAILED_REPLY;
-			goto err_invalid_target_handle;
-		}
-=======
 		e->to_node = target_node->debug_id;
 		if (security_binder_transaction(proc->tsk,
 						target_proc->tsk) < 0) {
@@ -3981,16 +3043,12 @@ static void binder_transaction(struct binder_proc *proc,
 			goto err_invalid_target_handle;
 		}
 		binder_inner_proc_lock(proc);
->>>>>>> android-3.18
 		if (!(tr->flags & TF_ONE_WAY) && thread->transaction_stack) {
 			struct binder_transaction *tmp;
 
 			tmp = thread->transaction_stack;
 			if (tmp->to_thread != thread) {
-<<<<<<< HEAD
-=======
 				spin_lock(&tmp->lock);
->>>>>>> android-3.18
 				binder_user_error("%d:%d got new transaction with bad transaction stack, transaction %d has target %d:%d\n",
 					proc->pid, thread->pid, tmp->debug_id,
 					tmp->to_proc ? tmp->to_proc->pid : 0,
@@ -4074,9 +3132,6 @@ static void binder_transaction(struct binder_proc *proc,
 	t->to_thread = target_thread;
 	t->code = tr->code;
 	t->flags = tr->flags;
-<<<<<<< HEAD
-	t->priority = task_nice(current);
-=======
 	if (!(t->flags & TF_ONE_WAY) &&
 	    binder_supported_policy(current->policy)) {
 		/* Inherit supported policies for synchronous transactions */
@@ -4086,25 +3141,17 @@ static void binder_transaction(struct binder_proc *proc,
 		/* Otherwise, fall back to the default priority */
 		t->priority = target_proc->default_priority;
 	}
->>>>>>> android-3.18
 
 	if (target_node && target_node->txn_security_ctx) {
 		u32 secid;
 		size_t added_size;
 
-<<<<<<< HEAD
-		security_cred_getsecid(binder_get_cred(proc), &secid);
-		ret = security_secid_to_secctx(secid, &secctx, &secctx_sz);
-		if (ret) {
-			return_error = BR_FAILED_REPLY;
-=======
 		security_task_getsecid(proc->tsk, &secid);
 		ret = security_secid_to_secctx(secid, &secctx, &secctx_sz);
 		if (ret) {
 			return_error = BR_FAILED_REPLY;
 			return_error_param = ret;
 			return_error_line = __LINE__;
->>>>>>> android-3.18
 			goto err_get_secctx_failed;
 		}
 		added_size = ALIGN(secctx_sz, sizeof(u64));
@@ -4112,24 +3159,14 @@ static void binder_transaction(struct binder_proc *proc,
 		if (extra_buffers_size < added_size) {
 			/* integer overflow of extra_buffers_size */
 			return_error = BR_FAILED_REPLY;
-<<<<<<< HEAD
-=======
 			return_error_param = EINVAL;
 			return_error_line = __LINE__;
->>>>>>> android-3.18
 			goto err_bad_extra_size;
 		}
 	}
 
 	trace_binder_transaction(reply, t, target_node);
 
-<<<<<<< HEAD
-	t->buffer = binder_alloc_buf(target_proc, tr->data_size,
-		tr->offsets_size, extra_buffers_size,
-		!reply && (t->flags & TF_ONE_WAY));
-	if (t->buffer == NULL) {
-		return_error = BR_FAILED_REPLY;
-=======
 	t->buffer = binder_alloc_new_buf(&target_proc->alloc, tr->data_size,
 		tr->offsets_size, extra_buffers_size,
 		!reply && (t->flags & TF_ONE_WAY));
@@ -4142,7 +3179,6 @@ static void binder_transaction(struct binder_proc *proc,
 			BR_DEAD_REPLY : BR_FAILED_REPLY;
 		return_error_line = __LINE__;
 		t->buffer = NULL;
->>>>>>> android-3.18
 		goto err_binder_alloc_buf_failed;
 	}
 	if (secctx) {
@@ -4152,14 +3188,8 @@ static void binder_transaction(struct binder_proc *proc,
 				    ALIGN(secctx_sz, sizeof(u64));
 		char *kptr = t->buffer->data + buf_offset;
 
-<<<<<<< HEAD
-		t->security_ctx = (binder_uintptr_t)(
-				(uintptr_t)kptr +
-				target_proc->user_buffer_offset);
-=======
 		t->security_ctx = (uintptr_t)kptr +
 		    binder_alloc_get_user_buffer_offset(&target_proc->alloc);
->>>>>>> android-3.18
 		memcpy(kptr, secctx, secctx_sz);
 		security_release_secctx(secctx, secctx_sz);
 		secctx = NULL;
@@ -4168,12 +3198,6 @@ static void binder_transaction(struct binder_proc *proc,
 	t->buffer->transaction = t;
 	t->buffer->target_node = target_node;
 	trace_binder_transaction_alloc_buf(t->buffer);
-<<<<<<< HEAD
-	if (target_node)
-		binder_inc_node(target_node, 1, 0, NULL);
-
-=======
->>>>>>> android-3.18
 	off_start = (binder_size_t *)(t->buffer->data +
 				      ALIGN(tr->data_size, sizeof(void *)));
 	offp = off_start;
@@ -4199,23 +3223,11 @@ static void binder_transaction(struct binder_proc *proc,
 	if (!IS_ALIGNED(tr->offsets_size, sizeof(binder_size_t))) {
 		binder_user_error("%d:%d got transaction with invalid offsets size, %lld\n",
 				proc->pid, thread->pid, (u64)tr->offsets_size);
-<<<<<<< HEAD
-		return_error = BR_FAILED_REPLY;
-		goto err_bad_offset;
-	}
-	if (!IS_ALIGNED(extra_buffers_size, sizeof(u64))) {
-		binder_user_error("%d:%d got transaction with unaligned buffers size, %lld\n",
-				  proc->pid, thread->pid,
-				  (u64)extra_buffers_size);
-=======
->>>>>>> android-3.18
 		return_error = BR_FAILED_REPLY;
 		return_error_param = -EINVAL;
 		return_error_line = __LINE__;
 		goto err_bad_offset;
 	}
-<<<<<<< HEAD
-=======
 	if (!IS_ALIGNED(extra_buffers_size, sizeof(u64))) {
 		binder_user_error("%d:%d got transaction with unaligned buffers size, %lld\n",
 				  proc->pid, thread->pid,
@@ -4225,7 +3237,6 @@ static void binder_transaction(struct binder_proc *proc,
 		return_error_line = __LINE__;
 		goto err_bad_offset;
 	}
->>>>>>> android-3.18
 	off_end = (void *)off_start + tr->offsets_size;
 	sg_bufp = (u8 *)(PTR_ALIGN(off_end, sizeof(void *)));
 	sg_buf_end = sg_bufp + extra_buffers_size -
@@ -4257,11 +3268,8 @@ static void binder_transaction(struct binder_proc *proc,
 			ret = binder_translate_binder(fp, t, thread);
 			if (ret < 0) {
 				return_error = BR_FAILED_REPLY;
-<<<<<<< HEAD
-=======
 				return_error_param = ret;
 				return_error_line = __LINE__;
->>>>>>> android-3.18
 				goto err_translate_failed;
 			}
 		} break;
@@ -4273,11 +3281,8 @@ static void binder_transaction(struct binder_proc *proc,
 			ret = binder_translate_handle(fp, t, thread);
 			if (ret < 0) {
 				return_error = BR_FAILED_REPLY;
-<<<<<<< HEAD
-=======
 				return_error_param = ret;
 				return_error_line = __LINE__;
->>>>>>> android-3.18
 				goto err_translate_failed;
 			}
 		} break;
@@ -4289,11 +3294,8 @@ static void binder_transaction(struct binder_proc *proc,
 
 			if (target_fd < 0) {
 				return_error = BR_FAILED_REPLY;
-<<<<<<< HEAD
-=======
 				return_error_param = target_fd;
 				return_error_line = __LINE__;
->>>>>>> android-3.18
 				goto err_translate_failed;
 			}
 			fp->pad_binder = 0;
@@ -4309,62 +3311,6 @@ static void binder_transaction(struct binder_proc *proc,
 			if (!parent) {
 				binder_user_error("%d:%d got transaction with invalid parent offset or type\n",
 						  proc->pid, thread->pid);
-<<<<<<< HEAD
-				return_error = BR_FAILED_REPLY;
-				goto err_bad_parent;
-			}
-			if (!binder_validate_fixup(t->buffer, off_start,
-						   parent, fda->parent_offset,
-						   last_fixup_obj,
-						   last_fixup_min_off)) {
-				binder_user_error("%d:%d got transaction with out-of-order buffer fixup\n",
-						  proc->pid, thread->pid);
-				return_error = BR_FAILED_REPLY;
-				goto err_bad_parent;
-			}
-			ret = binder_translate_fd_array(fda, parent, t, thread,
-							in_reply_to);
-			if (ret < 0) {
-				return_error = BR_FAILED_REPLY;
-				goto err_translate_failed;
-			}
-			last_fixup_obj = parent;
-			last_fixup_min_off =
-				fda->parent_offset + sizeof(u32) * fda->num_fds;
-		} break;
-		case BINDER_TYPE_PTR: {
-			struct binder_buffer_object *bp =
-				to_binder_buffer_object(hdr);
-			size_t buf_left = sg_buf_end - sg_bufp;
-
-			if (bp->length > buf_left) {
-				binder_user_error("%d:%d got transaction with too large buffer\n",
-						  proc->pid, thread->pid);
-				return_error = BR_FAILED_REPLY;
-				goto err_bad_offset;
-			}
-			if (copy_from_user(sg_bufp,
-					   (const void __user *)(uintptr_t)
-					   bp->buffer, bp->length)) {
-				binder_user_error("%d:%d got transaction with invalid offsets ptr\n",
-						  proc->pid, thread->pid);
-				return_error = BR_FAILED_REPLY;
-				goto err_copy_data_failed;
-			}
-			/* Fixup buffer pointer to target proc address space */
-			bp->buffer = (uintptr_t)sg_bufp +
-				target_proc->user_buffer_offset;
-			sg_bufp += ALIGN(bp->length, sizeof(u64));
-
-			ret = binder_fixup_parent(t, thread, bp, off_start,
-						  offp - off_start,
-						  last_fixup_obj,
-						  last_fixup_min_off);
-			if (ret < 0) {
-				return_error = BR_FAILED_REPLY;
-				goto err_translate_failed;
-			}
-=======
 				return_error = BR_FAILED_REPLY;
 				return_error_param = -EINVAL;
 				return_error_line = __LINE__;
@@ -4432,7 +3378,6 @@ static void binder_transaction(struct binder_proc *proc,
 				return_error_line = __LINE__;
 				goto err_translate_failed;
 			}
->>>>>>> android-3.18
 			last_fixup_obj = bp;
 			last_fixup_min_off = 0;
 		} break;
@@ -4490,24 +3435,6 @@ static void binder_transaction(struct binder_proc *proc,
 		if (!binder_proc_transaction(t, target_proc, NULL))
 			goto err_dead_proc_or_thread;
 	}
-<<<<<<< HEAD
-	t->work.type = BINDER_WORK_TRANSACTION;
-	list_add_tail(&t->work.entry, target_list);
-	tcomplete->type = BINDER_WORK_TRANSACTION_COMPLETE;
-	list_add_tail(&tcomplete->entry, &thread->todo);
-	if (target_wait) {
-		if (reply || !(t->flags & TF_ONE_WAY)) {
-			preempt_disable();
-			wake_up_interruptible_sync(target_wait);
-			sched_preempt_enable_no_resched();
-		}
-		else {
-			wake_up_interruptible(target_wait);
-		}
-	}
-	return;
-
-=======
 	if (target_thread)
 		binder_thread_dec_tmpref(target_thread);
 	binder_proc_dec_tmpref(target_proc);
@@ -4525,7 +3452,6 @@ err_dead_proc_or_thread:
 	return_error = BR_DEAD_REPLY;
 	return_error_line = __LINE__;
 	binder_dequeue_work(proc, tcomplete);
->>>>>>> android-3.18
 err_translate_failed:
 err_bad_object_type:
 err_bad_offset:
@@ -4563,16 +3489,10 @@ err_invalid_target_handle:
 	}
 
 	binder_debug(BINDER_DEBUG_FAILED_TRANSACTION,
-<<<<<<< HEAD
-		     "%d:%d transaction failed %d, size %lld-%lld\n",
-		     proc->pid, thread->pid, return_error,
-		     (u64)tr->data_size, (u64)tr->offsets_size);
-=======
 		     "%d:%d transaction failed %d/%d, size %lld-%lld line %d\n",
 		     proc->pid, thread->pid, return_error, return_error_param,
 		     (u64)tr->data_size, (u64)tr->offsets_size,
 		     return_error_line);
->>>>>>> android-3.18
 
 	{
 		struct binder_transaction_log_entry *fe;
@@ -4641,25 +3561,6 @@ static int binder_thread_write(struct binder_proc *proc,
 				return -EFAULT;
 
 			ptr += sizeof(uint32_t);
-<<<<<<< HEAD
-			if (target == 0 && context->binder_context_mgr_node &&
-			    (cmd == BC_INCREFS || cmd == BC_ACQUIRE)) {
-				ref = binder_get_ref_for_node(proc,
-					context->binder_context_mgr_node);
-				if (ref->desc != target) {
-					binder_user_error("%d:%d tried to acquire reference to desc 0, got %d instead\n",
-						proc->pid, thread->pid,
-						ref->desc);
-				}
-			} else
-				ref = binder_get_ref(proc, target,
-						     cmd == BC_ACQUIRE ||
-						     cmd == BC_RELEASE);
-			if (ref == NULL) {
-				binder_user_error("%d:%d refcount change on invalid ref %d\n",
-					proc->pid, thread->pid, target);
-				break;
-=======
 			ret = -1;
 			if (increment && !target) {
 				struct binder_node *ctx_mgr_node;
@@ -4679,7 +3580,6 @@ static int binder_thread_write(struct binder_proc *proc,
 				binder_user_error("%d:%d tried to acquire reference to desc %d, got %d instead\n",
 					proc->pid, thread->pid,
 					target, rdata.desc);
->>>>>>> android-3.18
 			}
 			switch (cmd) {
 			case BC_INCREFS:
@@ -4690,46 +3590,25 @@ static int binder_thread_write(struct binder_proc *proc,
 				break;
 			case BC_RELEASE:
 				debug_string = "Release";
-<<<<<<< HEAD
-				binder_dec_ref(&ref, 1);
-=======
->>>>>>> android-3.18
 				break;
 			case BC_DECREFS:
 			default:
 				debug_string = "DecRefs";
-<<<<<<< HEAD
-				binder_dec_ref(&ref, 0);
-=======
 				break;
 			}
 			if (ret) {
 				binder_user_error("%d:%d %s %d refcount change on invalid ref %d ret %d\n",
 					proc->pid, thread->pid, debug_string,
 					strong, target, ret);
->>>>>>> android-3.18
 				break;
 			}
 		  if (ref == NULL) {
 			binder_debug(BINDER_DEBUG_USER_REFS,
-<<<<<<< HEAD
-			  "binder: %d:%d %s ref deleted",
-			  proc->pid, thread->pid, debug_string);
-		  } else {
-			binder_debug(BINDER_DEBUG_USER_REFS,
-			  "binder: %d:%d %s ref %d desc %d s %d w %d for node %d\n",
-			  proc->pid, thread->pid, debug_string,
-			  ref->debug_id, ref->desc, ref->strong,
-			  ref->weak, ref->node->debug_id);
-		  }
-		  break;
-=======
 				     "%d:%d %s ref %d desc %d s %d w %d\n",
 				     proc->pid, thread->pid, debug_string,
 				     rdata.debug_id, rdata.desc, rdata.strong,
 				     rdata.weak);
 			break;
->>>>>>> android-3.18
 		}
 		case BC_INCREFS_DONE:
 		case BC_ACQUIRE_DONE: {
@@ -4761,10 +3640,7 @@ static int binder_thread_write(struct binder_proc *proc,
 					"BC_INCREFS_DONE" : "BC_ACQUIRE_DONE",
 					(u64)node_ptr, node->debug_id,
 					(u64)cookie, (u64)node->cookie);
-<<<<<<< HEAD
-=======
 				binder_put_node(node);
->>>>>>> android-3.18
 				break;
 			}
 			binder_node_inner_lock(node);
@@ -4793,11 +3669,7 @@ static int binder_thread_write(struct binder_proc *proc,
 					cmd == BC_ACQUIRE_DONE, 0);
 			WARN_ON(free_node);
 			binder_debug(BINDER_DEBUG_USER_REFS,
-<<<<<<< HEAD
-				     "%d:%d %s node %d ls %d lw %d\n",
-=======
 				     "%d:%d %s node %d ls %d lw %d tr %d\n",
->>>>>>> android-3.18
 				     proc->pid, thread->pid,
 				     cmd == BC_INCREFS_DONE ? "BC_INCREFS_DONE" : "BC_ACQUIRE_DONE",
 				     node->debug_id, node->local_strong_refs,
@@ -4821,17 +3693,6 @@ static int binder_thread_write(struct binder_proc *proc,
 				return -EFAULT;
 			ptr += sizeof(binder_uintptr_t);
 
-<<<<<<< HEAD
-			buffer = binder_buffer_lookup(proc, data_ptr);
-			if (buffer == NULL) {
-				binder_user_error("%d:%d BC_FREE_BUFFER u%016llx no match\n",
-					proc->pid, thread->pid, (u64)data_ptr);
-				break;
-			}
-			if (!buffer->allow_user_free) {
-				binder_user_error("%d:%d BC_FREE_BUFFER u%016llx matched unreturned buffer\n",
-					proc->pid, thread->pid, (u64)data_ptr);
-=======
 			buffer = binder_alloc_prepare_to_free(&proc->alloc,
 							      data_ptr);
 			if (IS_ERR_OR_NULL(buffer)) {
@@ -4846,17 +3707,12 @@ static int binder_thread_write(struct binder_proc *proc,
 						proc->pid, thread->pid,
 						(u64)data_ptr);
 				}
->>>>>>> android-3.18
 				break;
 			}
 			binder_debug(BINDER_DEBUG_FREE_BUFFER,
 				     "%d:%d BC_FREE_BUFFER u%016llx found buffer %d for %s transaction\n",
-<<<<<<< HEAD
-				     proc->pid, thread->pid, (u64)data_ptr, buffer->debug_id,
-=======
 				     proc->pid, thread->pid, (u64)data_ptr,
 				     buffer->debug_id,
->>>>>>> android-3.18
 				     buffer->transaction ? "active" : "finished");
 
 			binder_inner_proc_lock(proc);
@@ -4964,9 +3820,6 @@ static int binder_thread_write(struct binder_proc *proc,
 			if (get_user(cookie, (binder_uintptr_t __user *)ptr))
 				return -EFAULT;
 			ptr += sizeof(binder_uintptr_t);
-<<<<<<< HEAD
-			ref = binder_get_ref(proc, target, false);
-=======
 			if (cmd == BC_REQUEST_DEATH_NOTIFICATION) {
 				/*
 				 * Allocate memory for death notification
@@ -4989,7 +3842,6 @@ static int binder_thread_write(struct binder_proc *proc,
 			}
 			binder_proc_lock(proc);
 			ref = binder_get_ref_olocked(proc, target, false);
->>>>>>> android-3.18
 			if (ref == NULL) {
 				binder_user_error("%d:%d %s invalid ref %d\n",
 					proc->pid, thread->pid,
@@ -5008,34 +3860,18 @@ static int binder_thread_write(struct binder_proc *proc,
 				     cmd == BC_REQUEST_DEATH_NOTIFICATION ?
 				     "BC_REQUEST_DEATH_NOTIFICATION" :
 				     "BC_CLEAR_DEATH_NOTIFICATION",
-<<<<<<< HEAD
-				     (u64)cookie, ref->debug_id, ref->desc,
-				     ref->strong, ref->weak, ref->node->debug_id);
-=======
 				     (u64)cookie, ref->data.debug_id,
 				     ref->data.desc, ref->data.strong,
 				     ref->data.weak, ref->node->debug_id);
->>>>>>> android-3.18
 
 			binder_node_lock(ref->node);
 			if (cmd == BC_REQUEST_DEATH_NOTIFICATION) {
 				if (ref->death) {
 					binder_user_error("%d:%d BC_REQUEST_DEATH_NOTIFICATION death notification already set\n",
 						proc->pid, thread->pid);
-<<<<<<< HEAD
-					break;
-				}
-				death = kzalloc(sizeof(*death), GFP_KERNEL);
-				if (death == NULL) {
-					thread->return_error = BR_ERROR;
-					binder_debug(BINDER_DEBUG_FAILED_TRANSACTION,
-						     "%d:%d BC_REQUEST_DEATH_NOTIFICATION failed\n",
-						     proc->pid, thread->pid);
-=======
 					binder_node_unlock(ref->node);
 					binder_proc_unlock(proc);
 					kfree(death);
->>>>>>> android-3.18
 					break;
 				}
 				binder_stats_created(BINDER_STAT_DEATH);
@@ -5063,14 +3899,10 @@ static int binder_thread_write(struct binder_proc *proc,
 				if (death->cookie != cookie) {
 					binder_user_error("%d:%d BC_CLEAR_DEATH_NOTIFICATION death notification cookie mismatch %016llx != %016llx\n",
 						proc->pid, thread->pid,
-<<<<<<< HEAD
-						(u64)death->cookie, (u64)cookie);
-=======
 						(u64)death->cookie,
 						(u64)cookie);
 					binder_node_unlock(ref->node);
 					binder_proc_unlock(proc);
->>>>>>> android-3.18
 					break;
 				}
 				ref->death = NULL;
@@ -5103,18 +3935,11 @@ static int binder_thread_write(struct binder_proc *proc,
 			struct binder_work *w;
 			binder_uintptr_t cookie;
 			struct binder_ref_death *death = NULL;
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 			if (get_user(cookie, (binder_uintptr_t __user *)ptr))
 				return -EFAULT;
 
 			ptr += sizeof(cookie);
-<<<<<<< HEAD
-			list_for_each_entry(w, &proc->delivered_death, entry) {
-				struct binder_ref_death *tmp_death = container_of(w, struct binder_ref_death, work);
-=======
 			binder_inner_proc_lock(proc);
 			list_for_each_entry(w, &proc->delivered_death,
 					    entry) {
@@ -5123,20 +3948,12 @@ static int binder_thread_write(struct binder_proc *proc,
 						     struct binder_ref_death,
 						     work);
 
->>>>>>> android-3.18
 				if (tmp_death->cookie == cookie) {
 					death = tmp_death;
 					break;
 				}
 			}
 			binder_debug(BINDER_DEBUG_DEAD_BINDER,
-<<<<<<< HEAD
-				     "%d:%d BC_DEAD_BINDER_DONE %016llx found %pK\n",
-				     proc->pid, thread->pid, (u64)cookie, death);
-			if (death == NULL) {
-				binder_user_error("%d:%d BC_DEAD_BINDER_DONE %016llx not found\n",
-					proc->pid, thread->pid, (u64)cookie);
-=======
 				     "%d:%d BC_DEAD_BINDER_DONE %016llx found %p\n",
 				     proc->pid, thread->pid, (u64)cookie,
 				     death);
@@ -5144,7 +3961,6 @@ static int binder_thread_write(struct binder_proc *proc,
 				binder_user_error("%d:%d BC_DEAD_BINDER_DONE %016llx not found\n",
 					proc->pid, thread->pid, (u64)cookie);
 				binder_inner_proc_unlock(proc);
->>>>>>> android-3.18
 				break;
 			}
 			binder_dequeue_work_ilocked(&death->work);
@@ -5268,39 +4084,6 @@ static int binder_thread_read(struct binder_proc *proc,
 	}
 
 retry:
-<<<<<<< HEAD
-	wait_for_proc_work = thread->transaction_stack == NULL &&
-				list_empty(&thread->todo);
-
-	if (thread->return_error != BR_OK && ptr < end) {
-		if (thread->return_error2 != BR_OK) {
-			if (put_user(thread->return_error2, (uint32_t __user *)ptr))
-				return -EFAULT;
-			ptr += sizeof(uint32_t);
-			binder_stat_br(proc, thread, thread->return_error2);
-			if (ptr == end)
-				goto done;
-			thread->return_error2 = BR_OK;
-		}
-		if (put_user(thread->return_error, (uint32_t __user *)ptr))
-			return -EFAULT;
-		ptr += sizeof(uint32_t);
-		binder_stat_br(proc, thread, thread->return_error);
-		thread->return_error = BR_OK;
-		goto done;
-	}
-
-
-	thread->looper |= BINDER_LOOPER_STATE_WAITING;
-	if (wait_for_proc_work)
-		proc->ready_threads++;
-
-	binder_unlock(__func__);
-
-	trace_binder_wait_for_work(wait_for_proc_work,
-				   !!thread->transaction_stack,
-				   !list_empty(&thread->todo));
-=======
 	binder_inner_proc_lock(proc);
 	wait_for_proc_work = binder_available_for_proc_work_ilocked(thread);
 	binder_inner_proc_unlock(proc);
@@ -5310,7 +4093,6 @@ retry:
 	trace_binder_wait_for_work(wait_for_proc_work,
 				   !!thread->transaction_stack,
 				   !binder_worklist_empty(proc, &thread->todo));
->>>>>>> android-3.18
 	if (wait_for_proc_work) {
 		if (!(thread->looper & (BINDER_LOOPER_STATE_REGISTERED |
 					BINDER_LOOPER_STATE_ENTERED))) {
@@ -5319,26 +4101,6 @@ retry:
 			wait_event_interruptible(binder_user_error_wait,
 						 binder_stop_on_user_error < 2);
 		}
-<<<<<<< HEAD
-		binder_set_nice(proc->default_priority);
-		if (non_block) {
-			if (!binder_has_proc_work(proc, thread))
-				ret = -EAGAIN;
-		} else
-			ret = wait_event_freezable_exclusive(proc->wait, binder_has_proc_work(proc, thread));
-	} else {
-		if (non_block) {
-			if (!binder_has_thread_work(thread))
-				ret = -EAGAIN;
-		} else
-			ret = wait_event_freezable(thread->wait, binder_has_thread_work(thread));
-	}
-
-	binder_lock(__func__);
-
-	if (wait_for_proc_work)
-		proc->ready_threads--;
-=======
 		binder_restore_priority(current, proc->default_priority);
 	}
 
@@ -5349,7 +4111,6 @@ retry:
 		ret = binder_wait_for_work(thread, wait_for_proc_work);
 	}
 
->>>>>>> android-3.18
 	thread->looper &= ~BINDER_LOOPER_STATE_WAITING;
 
 	if (ret)
@@ -5359,16 +4120,6 @@ retry:
 		uint32_t cmd;
 		struct binder_transaction_data_secctx tr;
 		struct binder_transaction_data *trd = &tr.transaction_data;
-<<<<<<< HEAD
-		struct binder_work *w;
-		struct binder_transaction *t = NULL;
-		size_t trsize = sizeof(*trd);
-
-		if (!list_empty(&thread->todo))
-			w = list_first_entry(&thread->todo, struct binder_work, entry);
-		else if (!list_empty(&proc->todo) && wait_for_proc_work)
-			w = list_first_entry(&proc->todo, struct binder_work, entry);
-=======
 		struct binder_work *w = NULL;
 		struct list_head *list = NULL;
 		struct binder_transaction *t = NULL;
@@ -5381,7 +4132,6 @@ retry:
 		else if (!binder_worklist_empty_ilocked(&proc->todo) &&
 			   wait_for_proc_work)
 			list = &proc->todo;
->>>>>>> android-3.18
 		else {
 			binder_inner_proc_unlock(proc);
 
@@ -5464,45 +4214,6 @@ retry:
 				node->has_strong_ref = 0;
 			if (!weak && has_weak_ref)
 				node->has_weak_ref = 0;
-<<<<<<< HEAD
-			}
-			if (cmd != BR_NOOP) {
-				if (put_user(cmd, (uint32_t __user *)ptr))
-					return -EFAULT;
-				ptr += sizeof(uint32_t);
-				if (put_user(node->ptr,
-					     (binder_uintptr_t __user *)ptr))
-					return -EFAULT;
-				ptr += sizeof(binder_uintptr_t);
-				if (put_user(node->cookie,
-					     (binder_uintptr_t __user *)ptr))
-					return -EFAULT;
-				ptr += sizeof(binder_uintptr_t);
-
-				binder_stat_br(proc, thread, cmd);
-				binder_debug(BINDER_DEBUG_USER_REFS,
-					     "%d:%d %s %d u%016llx c%016llx\n",
-					     proc->pid, thread->pid, cmd_name,
-					     node->debug_id,
-					     (u64)node->ptr, (u64)node->cookie);
-			} else {
-				list_del_init(&w->entry);
-				if (!weak && !strong) {
-					binder_debug(BINDER_DEBUG_INTERNAL_REFS,
-						     "%d:%d node %d u%016llx c%016llx deleted\n",
-						     proc->pid, thread->pid, node->debug_id,
-						     (u64)node->ptr, (u64)node->cookie);
-					rb_erase(&node->rb_node, &proc->nodes);
-					kfree(node);
-					binder_stats_deleted(BINDER_STAT_NODE);
-				} else {
-					binder_debug(BINDER_DEBUG_INTERNAL_REFS,
-						     "%d:%d node %d u%016llx c%016llx state unchanged\n",
-						     proc->pid, thread->pid, node->debug_id,
-						     (u64)node->ptr, (u64)node->cookie);
-				}
-			}
-=======
 			if (!weak && !strong) {
 				binder_debug(BINDER_DEBUG_INTERNAL_REFS,
 					     "%d:%d node %d u%016llx c%016llx deleted\n",
@@ -5556,7 +4267,6 @@ retry:
 					     (u64)node_cookie);
 			if (ret)
 				return ret;
->>>>>>> android-3.18
 		} break;
 		case BINDER_WORK_DEAD_BINDER:
 		case BINDER_WORK_DEAD_BINDER_AND_CLEAR:
@@ -5570,31 +4280,15 @@ retry:
 				cmd = BR_CLEAR_DEATH_NOTIFICATION_DONE;
 			else
 				cmd = BR_DEAD_BINDER;
-<<<<<<< HEAD
-			if (put_user(cmd, (uint32_t __user *)ptr))
-				return -EFAULT;
-			ptr += sizeof(uint32_t);
-			if (put_user(death->cookie,
-				     (binder_uintptr_t __user *)ptr))
-				return -EFAULT;
-			ptr += sizeof(binder_uintptr_t);
-			binder_stat_br(proc, thread, cmd);
-=======
 			cookie = death->cookie;
 
->>>>>>> android-3.18
 			binder_debug(BINDER_DEBUG_DEATH_NOTIFICATION,
 				     "%d:%d %s %016llx\n",
 				      proc->pid, thread->pid,
 				      cmd == BR_DEAD_BINDER ?
 				      "BR_DEAD_BINDER" :
 				      "BR_CLEAR_DEATH_NOTIFICATION_DONE",
-<<<<<<< HEAD
-				      (u64)death->cookie);
-
-=======
 				      (u64)cookie);
->>>>>>> android-3.18
 			if (w->type == BINDER_WORK_CLEAR_DEATH_NOTIFICATION) {
 				binder_inner_proc_unlock(proc);
 				kfree(death);
@@ -5623,18 +4317,6 @@ retry:
 		BUG_ON(t->buffer == NULL);
 		if (t->buffer->target_node) {
 			struct binder_node *target_node = t->buffer->target_node;
-<<<<<<< HEAD
-
-			trd->target.ptr = target_node->ptr;
-			trd->cookie =  target_node->cookie;
-			t->saved_priority = task_nice(current);
-			if (t->priority < target_node->min_priority &&
-			    !(t->flags & TF_ONE_WAY))
-				binder_set_nice(t->priority);
-			else if (!(t->flags & TF_ONE_WAY) ||
-				 t->saved_priority > target_node->min_priority)
-				binder_set_nice(target_node->min_priority);
-=======
 			struct binder_priority node_prio;
 
 			trd->target.ptr = target_node->ptr;
@@ -5643,7 +4325,6 @@ retry:
 			node_prio.prio = target_node->min_priority;
 			binder_transaction_priority(current, t, node_prio,
 						    target_node->inherit_rt);
->>>>>>> android-3.18
 			cmd = BR_TRANSACTION;
 		} else {
 			trd->target.ptr = 0;
@@ -5652,19 +4333,6 @@ retry:
 		}
 		trd->code = t->code;
 		trd->flags = t->flags;
-<<<<<<< HEAD
-		trd->sender_euid = t->sender_euid;
-
-		if (t->from) {
-			struct task_struct *sender = t->from->proc->tsk;
-
-			trd->sender_pid = task_tgid_nr_ns(sender,
-							current->nsproxy->pid_ns);
-
-			if (binder_global_pid_lookups && trd->sender_pid == 0)
-				trd->sender_pid = task_tgid_nr(sender);
-
-=======
 		trd->sender_euid = from_kuid(current_user_ns(), t->sender_euid);
 
 		t_from = binder_get_txn_from(t);
@@ -5674,35 +4342,19 @@ retry:
 			trd->sender_pid =
 				task_tgid_nr_ns(sender,
 						task_active_pid_ns(current));
->>>>>>> android-3.18
 		} else {
 			trd->sender_pid = 0;
 		}
 
 		trd->data_size = t->buffer->data_size;
 		trd->offsets_size = t->buffer->offsets_size;
-<<<<<<< HEAD
-		trd->data.ptr.buffer = (binder_uintptr_t)(
-					(uintptr_t)t->buffer->data +
-					proc->user_buffer_offset);
-=======
 		trd->data.ptr.buffer = (binder_uintptr_t)
 			((uintptr_t)t->buffer->data +
 			binder_alloc_get_user_buffer_offset(&proc->alloc));
->>>>>>> android-3.18
 		trd->data.ptr.offsets = trd->data.ptr.buffer +
 					ALIGN(t->buffer->data_size,
 					    sizeof(void *));
 
-<<<<<<< HEAD
-		if (t->security_ctx) {
-			cmd = BR_TRANSACTION_SEC_CTX;
-			tr.secctx = t->security_ctx;
-			trsize = sizeof(tr);
-		}
-
-		if (put_user(cmd, (uint32_t __user *)ptr))
-=======
 		tr.secctx = t->security_ctx;
 		if (t->security_ctx) {
 			cmd = BR_TRANSACTION_SEC_CTX;
@@ -5715,14 +4367,9 @@ retry:
 			binder_cleanup_transaction(t, "put_user failed",
 						   BR_FAILED_REPLY);
 
->>>>>>> android-3.18
 			return -EFAULT;
 		}
 		ptr += sizeof(uint32_t);
-<<<<<<< HEAD
-		if (copy_to_user(ptr, &tr, trsize))
-			return -EFAULT;
-=======
 		if (copy_to_user(ptr, &tr, trsize)) {
 			if (t_from)
 				binder_thread_dec_tmpref(t_from);
@@ -5732,7 +4379,6 @@ retry:
 
 			return -EFAULT;
 		}
->>>>>>> android-3.18
 		ptr += trsize;
 
 		trace_binder_transaction_received(t);
@@ -5741,17 +4387,10 @@ retry:
 			     "%d:%d %s %d %d:%d, cmd %d size %zd-%zd ptr %016llx-%016llx\n",
 			     proc->pid, thread->pid,
 			     (cmd == BR_TRANSACTION) ? "BR_TRANSACTION" :
-<<<<<<< HEAD
-					(cmd == BR_TRANSACTION_SEC_CTX) ?
-					"BR_TRANSACTION_SEC_CTX" : "BR_REPLY",
-			     t->debug_id, t->from ? t->from->proc->pid : 0,
-			     t->from ? t->from->pid : 0, cmd,
-=======
 				(cmd == BR_TRANSACTION_SEC_CTX) ?
 				     "BR_TRANSACTION_SEC_CTX" : "BR_REPLY",
 			     t->debug_id, t_from ? t_from->proc->pid : 0,
 			     t_from ? t_from->pid : 0, cmd,
->>>>>>> android-3.18
 			     t->buffer->data_size, t->buffer->offsets_size,
 			     (u64)trd->data.ptr.buffer,
 			     (u64)trd->data.ptr.offsets);
@@ -5760,10 +4399,7 @@ retry:
 			binder_thread_dec_tmpref(t_from);
 		t->buffer->allow_user_free = 1;
 		if (cmd != BR_REPLY && !(t->flags & TF_ONE_WAY)) {
-<<<<<<< HEAD
-=======
 			binder_inner_proc_lock(thread->proc);
->>>>>>> android-3.18
 			t->to_parent = thread->transaction_stack;
 			t->to_thread = thread;
 			thread->transaction_stack = t;
@@ -5792,12 +4428,8 @@ done:
 		if (put_user(BR_SPAWN_LOOPER, (uint32_t __user *)buffer))
 			return -EFAULT;
 		binder_stat_br(proc, thread, BR_SPAWN_LOOPER);
-<<<<<<< HEAD
-	}
-=======
 	} else
 		binder_inner_proc_unlock(proc);
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -5816,19 +4448,6 @@ static void binder_release_work(struct binder_proc *proc,
 			struct binder_transaction *t;
 
 			t = container_of(w, struct binder_transaction, work);
-<<<<<<< HEAD
-			if (t->buffer->target_node &&
-			    !(t->flags & TF_ONE_WAY)) {
-				binder_send_failed_reply(t, BR_DEAD_REPLY);
-			} else {
-				binder_debug(BINDER_DEBUG_DEAD_TRANSACTION,
-					"undelivered transaction %d\n",
-					t->debug_id);
-				t->buffer->transaction = NULL;
-				kfree(t);
-				binder_stats_deleted(BINDER_STAT_TRANSACTION);
-			}
-=======
 
 			binder_cleanup_transaction(t, "process died.",
 						   BR_DEAD_REPLY);
@@ -5840,7 +4459,6 @@ static void binder_release_work(struct binder_proc *proc,
 			binder_debug(BINDER_DEBUG_DEAD_TRANSACTION,
 				"undelivered TRANSACTION_ERROR: %u\n",
 				e->cmd);
->>>>>>> android-3.18
 		} break;
 		case BINDER_WORK_TRANSACTION_COMPLETE: {
 			binder_debug(BINDER_DEBUG_DEAD_TRANSACTION,
@@ -6185,16 +4803,6 @@ static int binder_ioctl_get_node_info_for_ref(struct binder_proc *proc,
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
-	binder_lock(__func__);
-
-	thread = binder_get_thread(proc);
-
-	wait_for_proc_work = thread->transaction_stack == NULL &&
-		list_empty(&thread->todo) && thread->return_error == BR_OK;
-
-	binder_unlock(__func__);
-=======
 	/* This ioctl may only be used by the context manager */
 	mutex_lock(&context->context_mgr_node_lock);
 	if (!context->binder_context_mgr_node ||
@@ -6207,7 +4815,6 @@ static int binder_ioctl_get_node_info_for_ref(struct binder_proc *proc,
 	node = binder_get_node_from_ref(proc, handle, true, NULL);
 	if (!node)
 		return -EINVAL;
->>>>>>> android-3.18
 
 	info->strong_count = node->local_strong_refs +
 		node->internal_strong_refs;
@@ -6294,14 +4901,10 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	unsigned int size = _IOC_SIZE(cmd);
 	void __user *ubuf = (void __user *)arg;
 
-<<<<<<< HEAD
-	/*pr_info("binder_ioctl: %d:%d %x %lx\n", proc->pid, current->pid, cmd, arg);*/
-=======
 	/*pr_info("binder_ioctl: %d:%d %x %lx\n",
 			proc->pid, current->pid, cmd, arg);*/
 
 	binder_selftest_alloc(&proc->alloc);
->>>>>>> android-3.18
 
 	trace_binder_ioctl(cmd, arg);
 
@@ -6309,10 +4912,6 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	if (ret)
 		goto err_unlocked;
 
-<<<<<<< HEAD
-	binder_lock(__func__);
-=======
->>>>>>> android-3.18
 	thread = binder_get_thread(proc);
 	if (thread == NULL) {
 		ret = -ENOMEM;
@@ -6324,47 +4923,6 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		ret = binder_ioctl_write_read(filp, cmd, arg, thread);
 		if (ret)
 			goto err;
-<<<<<<< HEAD
-		}
-		if (copy_from_user(&bwr, ubuf, sizeof(bwr))) {
-			ret = -EFAULT;
-			goto err;
-		}
-		binder_debug(BINDER_DEBUG_READ_WRITE,
-			     "%d:%d write %lld at %016llx, read %lld at %016llx\n",
-			     proc->pid, thread->pid,
-			     (u64)bwr.write_size, (u64)bwr.write_buffer,
-			     (u64)bwr.read_size, (u64)bwr.read_buffer);
-
-		if (bwr.write_size > 0) {
-			ret = binder_thread_write(proc, thread, bwr.write_buffer, bwr.write_size, &bwr.write_consumed);
-			trace_binder_write_done(ret);
-			if (ret < 0) {
-				bwr.read_consumed = 0;
-				if (copy_to_user(ubuf, &bwr, sizeof(bwr)))
-					ret = -EFAULT;
-				goto err;
-			}
-		}
-		if (bwr.read_size > 0) {
-			ret = binder_thread_read(proc, thread, bwr.read_buffer, bwr.read_size, &bwr.read_consumed, filp->f_flags & O_NONBLOCK);
-			trace_binder_read_done(ret);
-			if (!list_empty(&proc->todo))
-				wake_up_interruptible(&proc->wait);
-			if (ret < 0) {
-				if (copy_to_user(ubuf, &bwr, sizeof(bwr)))
-					ret = -EFAULT;
-				goto err;
-			}
-		}
-		binder_debug(BINDER_DEBUG_READ_WRITE,
-			     "%d:%d wrote %lld of %lld, read return %lld of %lld\n",
-			     proc->pid, thread->pid,
-			     (u64)bwr.write_consumed, (u64)bwr.write_size,
-			     (u64)bwr.read_consumed, (u64)bwr.read_size);
-		if (copy_to_user(ubuf, &bwr, sizeof(bwr))) {
-			ret = -EFAULT;
-=======
 		break;
 	case BINDER_SET_MAX_THREADS: {
 		int max_threads;
@@ -6372,7 +4930,6 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		if (copy_from_user(&max_threads, ubuf,
 				   sizeof(max_threads))) {
 			ret = -EINVAL;
->>>>>>> android-3.18
 			goto err;
 		}
 		binder_inner_proc_lock(proc);
@@ -6391,28 +4948,11 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		if (ret)
 			goto err;
 		break;
-<<<<<<< HEAD
-	case BINDER_SET_CONTEXT_MGR_EXT: {
-		struct flat_binder_object fbo;
-
-		if (copy_from_user(&fbo, ubuf, sizeof(fbo))) {
-			ret = -EINVAL;
-			goto err;
-		}
-		ret = binder_ioctl_set_ctx_mgr(filp, &fbo);
-		if (ret)
-			goto err;
-		break;
-	}
-	case BINDER_SET_CONTEXT_MGR:
-		ret = binder_ioctl_set_ctx_mgr(filp, NULL);
-=======
 	}
 	case BINDER_SET_CONTEXT_MGR:
 		ret = binder_ioctl_set_ctx_mgr(filp, NULL);
 		if (ret)
 			goto err;
->>>>>>> android-3.18
 		break;
 	case BINDER_THREAD_EXIT:
 		binder_debug(BINDER_DEBUG_THREADS, "%d:%d exit\n",
@@ -6478,12 +5018,7 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	ret = 0;
 err:
 	if (thread)
-<<<<<<< HEAD
-		thread->looper &= ~BINDER_LOOPER_STATE_NEED_RETURN;
-	binder_unlock(__func__);
-=======
 		thread->looper_need_return = false;
->>>>>>> android-3.18
 	wait_event_interruptible(binder_user_error_wait, binder_stop_on_user_error < 2);
 	if (ret && ret != -ERESTARTSYS)
 		pr_info("%d:%d ioctl %x %lx returned %d\n", proc->pid, current->pid, cmd, arg, ret);
@@ -6554,63 +5089,6 @@ static int binder_mmap(struct file *filp, struct vm_area_struct *vma)
 		goto err_bad_arg;
 	}
 	vma->vm_flags = (vma->vm_flags | VM_DONTCOPY) & ~VM_MAYWRITE;
-<<<<<<< HEAD
-
-	mutex_lock(&binder_mmap_lock);
-	if (proc->buffer) {
-		ret = -EBUSY;
-		failure_string = "already mapped";
-		goto err_already_mapped;
-	}
-
-	area = get_vm_area(vma->vm_end - vma->vm_start, VM_IOREMAP);
-	if (area == NULL) {
-		ret = -ENOMEM;
-		failure_string = "get_vm_area";
-		goto err_get_vm_area_failed;
-	}
-	proc->buffer = area->addr;
-	proc->user_buffer_offset = vma->vm_start - (uintptr_t)proc->buffer;
-	mutex_unlock(&binder_mmap_lock);
-
-#ifdef CONFIG_CPU_CACHE_VIPT
-	if (cache_is_vipt_aliasing()) {
-		while (CACHE_COLOUR((vma->vm_start ^ (uint32_t)proc->buffer))) {
-			pr_info("binder_mmap: %d %lx-%lx maps %pK bad alignment\n", proc->pid, vma->vm_start, vma->vm_end, proc->buffer);
-			vma->vm_start += PAGE_SIZE;
-		}
-	}
-#endif
-	proc->pages = kzalloc(sizeof(proc->pages[0]) * ((vma->vm_end - vma->vm_start) / PAGE_SIZE), GFP_KERNEL);
-	if (proc->pages == NULL) {
-		ret = -ENOMEM;
-		failure_string = "alloc page array";
-		goto err_alloc_pages_failed;
-	}
-	proc->buffer_size = vma->vm_end - vma->vm_start;
-
-	vma->vm_ops = &binder_vm_ops;
-	vma->vm_private_data = proc;
-
-	if (binder_update_page_range(proc, 1, proc->buffer, proc->buffer + PAGE_SIZE, vma)) {
-		ret = -ENOMEM;
-		failure_string = "alloc small buf";
-		goto err_alloc_small_buf_failed;
-	}
-	buffer = proc->buffer;
-	INIT_LIST_HEAD(&proc->buffers);
-	list_add(&buffer->entry, &proc->buffers);
-	buffer->free = 1;
-	binder_insert_free_buffer(proc, buffer);
-	proc->free_async_space = proc->buffer_size / 2;
-	barrier();
-	proc->files = get_files_struct(current);
-	proc->vma = vma;
-	proc->vma_vm_mm = vma->vm_mm;
-
-	/*pr_info("binder_mmap: %d %lx-%lx maps %pK\n",
-		 proc->pid, vma->vm_start, vma->vm_end, proc->buffer);*/
-=======
 	vma->vm_ops = &binder_vm_ops;
 	vma->vm_private_data = proc;
 
@@ -6620,7 +5098,6 @@ static int binder_mmap(struct file *filp, struct vm_area_struct *vma)
 	mutex_lock(&proc->files_lock);
 	proc->files = get_files_struct(current);
 	mutex_unlock(&proc->files_lock);
->>>>>>> android-3.18
 	return 0;
 
 err_bad_arg:
@@ -6632,10 +5109,6 @@ err_bad_arg:
 static int binder_open(struct inode *nodp, struct file *filp)
 {
 	struct binder_proc *proc;
-<<<<<<< HEAD
-	struct binder_proc_ext *eproc;
-=======
->>>>>>> android-3.18
 	struct binder_device *binder_dev;
 
 	binder_debug(BINDER_DEBUG_OPEN_CLOSE, "binder_open: %d:%d\n",
@@ -6645,19 +5118,6 @@ static int binder_open(struct inode *nodp, struct file *filp)
 	proc = &eproc->proc;
 	if (proc == NULL)
 		return -ENOMEM;
-<<<<<<< HEAD
-	get_task_struct(current->group_leader);
-	proc->tsk = current->group_leader;
-	eproc->cred = get_cred(filp->f_cred);
-	INIT_LIST_HEAD(&proc->todo);
-	init_waitqueue_head(&proc->wait);
-	proc->default_priority = task_nice(current);
-	binder_dev = container_of(filp->private_data, struct binder_device,
-				  miscdev);
-	proc->context = &binder_dev->context;
-
-	binder_lock(__func__);
-=======
 	spin_lock_init(&proc->inner_lock);
 	spin_lock_init(&proc->outer_lock);
 	get_task_struct(current->group_leader);
@@ -6676,7 +5136,6 @@ static int binder_open(struct inode *nodp, struct file *filp)
 				  miscdev);
 	proc->context = &binder_dev->context;
 	binder_alloc_init(&proc->alloc);
->>>>>>> android-3.18
 
 	binder_stats_created(BINDER_STAT_PROC);
 	proc->pid = current->group_leader->pid;
@@ -6684,13 +5143,9 @@ static int binder_open(struct inode *nodp, struct file *filp)
 	INIT_LIST_HEAD(&proc->waiting_threads);
 	filp->private_data = proc;
 
-<<<<<<< HEAD
-	binder_unlock(__func__);
-=======
 	mutex_lock(&binder_procs_lock);
 	hlist_add_head(&proc->proc_node, &binder_procs);
 	mutex_unlock(&binder_procs_lock);
->>>>>>> android-3.18
 
 	if (binder_debugfs_dir_entry_proc) {
 		char strbuf[11];
@@ -6820,30 +5275,17 @@ static int binder_node_release(struct binder_node *node, int refs)
 
 static void binder_deferred_release(struct binder_proc *proc)
 {
-<<<<<<< HEAD
-	struct hlist_node *pos;
-	struct binder_transaction *t;
-	struct binder_context *context = proc->context;
-	struct rb_node *n;
-	int threads, nodes, incoming_refs, outgoing_refs, buffers,
-		active_transactions, page_count;
-=======
 	struct binder_context *context = proc->context;
 	struct rb_node *n;
 	int threads, nodes, incoming_refs, outgoing_refs, active_transactions;
->>>>>>> android-3.18
 
 	BUG_ON(proc->files);
 
 	mutex_lock(&binder_procs_lock);
 	hlist_del(&proc->proc_node);
-<<<<<<< HEAD
-
-=======
 	mutex_unlock(&binder_procs_lock);
 
 	mutex_lock(&context->context_mgr_node_lock);
->>>>>>> android-3.18
 	if (context->binder_context_mgr_node &&
 	    context->binder_context_mgr_node->proc == proc) {
 		binder_debug(BINDER_DEBUG_DEAD_BINDER,
@@ -6866,10 +5308,7 @@ static void binder_deferred_release(struct binder_proc *proc)
 		struct binder_thread *thread;
 
 		thread = rb_entry(n, struct binder_thread, rb_node);
-<<<<<<< HEAD
-=======
 		binder_inner_proc_unlock(proc);
->>>>>>> android-3.18
 		threads++;
 		active_transactions += binder_thread_release(proc, thread);
 		binder_inner_proc_lock(proc);
@@ -6889,102 +5328,16 @@ static void binder_deferred_release(struct binder_proc *proc)
 		 */
 		binder_inc_node_tmpref_ilocked(node);
 		rb_erase(&node->rb_node, &proc->nodes);
-<<<<<<< HEAD
-		list_del_init(&node->work.entry);
-		binder_release_work(&node->async_todo);
-		if (hlist_empty(&node->refs)) {
-			kfree(node);
-			binder_stats_deleted(BINDER_STAT_NODE);
-		} else {
-			struct binder_ref *ref;
-			int death = 0;
-
-			node->proc = NULL;
-			node->local_strong_refs = 0;
-			node->local_weak_refs = 0;
-			hlist_add_head(&node->dead_node, &binder_dead_nodes);
-
-			hlist_for_each_entry(ref, pos, &node->refs, node_entry) {
-				incoming_refs++;
-				if (ref->death) {
-					death++;
-					if (list_empty(&ref->death->work.entry)) {
-						ref->death->work.type = BINDER_WORK_DEAD_BINDER;
-						list_add_tail(&ref->death->work.entry, &ref->proc->todo);
-						wake_up_interruptible(&ref->proc->wait);
-					} else
-						BUG();
-				}
-			}
-			binder_debug(BINDER_DEBUG_DEAD_BINDER,
-				     "node %d now dead, refs %d, death %d\n",
-				      node->debug_id, incoming_refs, death);
-		}
-	}
-=======
 		binder_inner_proc_unlock(proc);
 		incoming_refs = binder_node_release(node, incoming_refs);
 		binder_inner_proc_lock(proc);
 	}
 	binder_inner_proc_unlock(proc);
->>>>>>> android-3.18
 
 	outgoing_refs = 0;
 	binder_proc_lock(proc);
 	while ((n = rb_first(&proc->refs_by_desc))) {
 		struct binder_ref *ref;
-<<<<<<< HEAD
-
-		ref = rb_entry(n, struct binder_ref, rb_node_desc);
-		outgoing_refs++;
-		binder_delete_ref(ref);
-	}
-
-	binder_release_work(&proc->todo);
-	binder_release_work(&proc->delivered_death);
-
-	buffers = 0;
-	while ((n = rb_first(&proc->allocated_buffers))) {
-		struct binder_buffer *buffer;
-
-		buffer = rb_entry(n, struct binder_buffer, rb_node);
-
-		t = buffer->transaction;
-		if (t) {
-			t->buffer = NULL;
-			buffer->transaction = NULL;
-			pr_err("release proc %d, transaction %d, not freed\n",
-			       proc->pid, t->debug_id);
-			/*BUG();*/
-		}
-
-		binder_free_buf(proc, buffer);
-		buffers++;
-	}
-
-	binder_stats_deleted(BINDER_STAT_PROC);
-
-	page_count = 0;
-	if (proc->pages) {
-		int i;
-
-		for (i = 0; i < proc->buffer_size / PAGE_SIZE; i++) {
-			void *page_addr;
-
-			if (!proc->pages[i])
-				continue;
-
-			page_addr = proc->buffer + i * PAGE_SIZE;
-			binder_debug(BINDER_DEBUG_BUFFER_ALLOC,
-				     "%s: %d: page %d at %pK not freed\n",
-				     __func__, proc->pid, i, page_addr);
-			unmap_kernel_range((unsigned long)page_addr, PAGE_SIZE);
-			__free_page(proc->pages[i]);
-			page_count++;
-		}
-		kfree(proc->pages);
-		vfree(proc->buffer);
-=======
 
 		ref = rb_entry(n, struct binder_ref, rb_node_desc);
 		outgoing_refs++;
@@ -6992,7 +5345,6 @@ static void binder_deferred_release(struct binder_proc *proc)
 		binder_proc_unlock(proc);
 		binder_free_ref(ref);
 		binder_proc_lock(proc);
->>>>>>> android-3.18
 	}
 	binder_proc_unlock(proc);
 
@@ -7000,15 +5352,9 @@ static void binder_deferred_release(struct binder_proc *proc)
 	binder_release_work(proc, &proc->delivered_death);
 
 	binder_debug(BINDER_DEBUG_OPEN_CLOSE,
-<<<<<<< HEAD
-		     "%s: %d threads %d, nodes %d (ref %d), refs %d, active transactions %d, buffers %d, pages %d\n",
-		     __func__, proc->pid, threads, nodes, incoming_refs,
-		     outgoing_refs, active_transactions, buffers, page_count);
-=======
 		     "%s: %d threads %d, nodes %d (ref %d), refs %d, active transactions %d\n",
 		     __func__, proc->pid, threads, nodes, incoming_refs,
 		     outgoing_refs, active_transactions);
->>>>>>> android-3.18
 
 	binder_proc_dec_tmpref(proc);
 }
@@ -7021,10 +5367,6 @@ static void binder_deferred_func(struct work_struct *work)
 	int defer;
 
 	do {
-<<<<<<< HEAD
-		binder_lock(__func__);
-=======
->>>>>>> android-3.18
 		mutex_lock(&binder_deferred_lock);
 		if (!hlist_empty(&binder_deferred_list)) {
 			proc = hlist_entry(binder_deferred_list.first,
@@ -7053,10 +5395,6 @@ static void binder_deferred_func(struct work_struct *work)
 		if (defer & BINDER_DEFERRED_RELEASE)
 			binder_deferred_release(proc); /* frees proc */
 
-<<<<<<< HEAD
-		binder_unlock(__func__);
-=======
->>>>>>> android-3.18
 		if (files)
 			put_files_struct(files);
 	} while (proc);
@@ -7087,11 +5425,7 @@ static void print_binder_transaction_ilocked(struct seq_file *m,
 	spin_lock(&t->lock);
 	to_proc = t->to_proc;
 	seq_printf(m,
-<<<<<<< HEAD
-		   "%s %d: %pK from %d:%d to %d:%d code %x flags %x pri %ld r%d",
-=======
 		   "%s %d: %p from %d:%d to %d:%d code %x flags %x pri %d:%d r%d",
->>>>>>> android-3.18
 		   prefix, t->debug_id, t,
 		   t->from ? t->from->proc->pid : 0,
 		   t->from ? t->from->pid : 0,
@@ -7114,25 +5448,9 @@ static void print_binder_transaction_ilocked(struct seq_file *m,
 		seq_puts(m, " buffer free\n");
 		return;
 	}
-<<<<<<< HEAD
-	if (t->buffer->target_node)
-		seq_printf(m, " node %d",
-			   t->buffer->target_node->debug_id);
-	seq_printf(m, " size %zd:%zd data %pK\n",
-		   t->buffer->data_size, t->buffer->offsets_size,
-		   t->buffer->data);
-}
-
-static void print_binder_buffer(struct seq_file *m, const char *prefix,
-				struct binder_buffer *buffer)
-{
-	seq_printf(m, "%s %d: %pK size %zd:%zd %s\n",
-		   prefix, buffer->debug_id, buffer->data,
-=======
 	if (buffer->target_node)
 		seq_printf(m, " node %d", buffer->target_node->debug_id);
 	seq_printf(m, " size %zd:%zd data %p\n",
->>>>>>> android-3.18
 		   buffer->data_size, buffer->offsets_size,
 		   buffer->data);
 }
@@ -7232,14 +5550,9 @@ static void print_binder_node_nilocked(struct seq_file *m,
 	hlist_for_each_entry(ref, &node->refs, node_entry)
 		count++;
 
-<<<<<<< HEAD
-	seq_printf(m, "  node %d: u%016llx c%016llx hs %d hw %d ls %d lw %d is %d iw %d",
-		   node->debug_id, (u64)node->ptr, (u64)node->cookie,
-=======
 	seq_printf(m, "  node %d: u%016llx c%016llx pri %d:%d hs %d hw %d ls %d lw %d is %d iw %d tr %d",
 		   node->debug_id, (u64)node->ptr, (u64)node->cookie,
 		   node->sched_policy, node->min_priority,
->>>>>>> android-3.18
 		   node->has_strong_ref, node->has_weak_ref,
 		   node->local_strong_refs, node->local_weak_refs,
 		   node->internal_strong_refs, count, node->tmp_refs);
@@ -7259,11 +5572,6 @@ static void print_binder_node_nilocked(struct seq_file *m,
 static void print_binder_ref_olocked(struct seq_file *m,
 				     struct binder_ref *ref)
 {
-<<<<<<< HEAD
-	seq_printf(m, "  ref %d: desc %d %snode %d s %d w %d d %pK\n",
-		   ref->debug_id, ref->desc, ref->node->proc ? "" : "dead ",
-		   ref->node->debug_id, ref->strong, ref->weak, ref->death);
-=======
 	binder_node_lock(ref->node);
 	seq_printf(m, "  ref %d: desc %d %snode %d s %d w %d d %pK\n",
 		   ref->data.debug_id, ref->data.desc,
@@ -7271,7 +5579,6 @@ static void print_binder_ref_olocked(struct seq_file *m,
 		   ref->node->debug_id, ref->data.strong,
 		   ref->data.weak, ref->death);
 	binder_node_unlock(ref->node);
->>>>>>> android-3.18
 }
 
 static void print_binder_proc(struct seq_file *m,
@@ -7503,14 +5810,7 @@ static int binder_state_show(struct seq_file *m, void *unused)
 {
 	struct binder_proc *proc;
 	struct binder_node *node;
-<<<<<<< HEAD
-	int do_lock = !binder_debug_no_lock;
-
-	if (do_lock)
-		binder_lock(__func__);
-=======
 	struct binder_node *last_node = NULL;
->>>>>>> android-3.18
 
 	seq_puts(m, "binder state:\n");
 
@@ -7540,27 +5840,14 @@ static int binder_state_show(struct seq_file *m, void *unused)
 	mutex_lock(&binder_procs_lock);
 	hlist_for_each_entry(proc, &binder_procs, proc_node)
 		print_binder_proc(m, proc, 1);
-<<<<<<< HEAD
-	if (do_lock)
-		binder_unlock(__func__);
-=======
 	mutex_unlock(&binder_procs_lock);
 
->>>>>>> android-3.18
 	return 0;
 }
 
 static int binder_stats_show(struct seq_file *m, void *unused)
 {
 	struct binder_proc *proc;
-<<<<<<< HEAD
-	struct hlist_node *pos;
-	int do_lock = !binder_debug_no_lock;
-
-	if (do_lock)
-		binder_lock(__func__);
-=======
->>>>>>> android-3.18
 
 	seq_puts(m, "binder stats:\n");
 
@@ -7569,39 +5856,21 @@ static int binder_stats_show(struct seq_file *m, void *unused)
 	mutex_lock(&binder_procs_lock);
 	hlist_for_each_entry(proc, &binder_procs, proc_node)
 		print_binder_proc_stats(m, proc);
-<<<<<<< HEAD
-	if (do_lock)
-		binder_unlock(__func__);
-=======
 	mutex_unlock(&binder_procs_lock);
 
->>>>>>> android-3.18
 	return 0;
 }
 
 static int binder_transactions_show(struct seq_file *m, void *unused)
 {
 	struct binder_proc *proc;
-<<<<<<< HEAD
-	struct hlist_node *pos;
-	int do_lock = !binder_debug_no_lock;
-
-	if (do_lock)
-		binder_lock(__func__);
-=======
->>>>>>> android-3.18
 
 	seq_puts(m, "binder transactions:\n");
 	mutex_lock(&binder_procs_lock);
 	hlist_for_each_entry(proc, &binder_procs, proc_node)
 		print_binder_proc(m, proc, 0);
-<<<<<<< HEAD
-	if (do_lock)
-		binder_unlock(__func__);
-=======
 	mutex_unlock(&binder_procs_lock);
 
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -7609,22 +5878,6 @@ static int binder_proc_show(struct seq_file *m, void *unused)
 {
 	struct binder_proc *itr;
 	int pid = (unsigned long)m->private;
-<<<<<<< HEAD
-	struct hlist_node *pos;
-	int do_lock = !binder_debug_no_lock;
-
-	if (do_lock)
-		binder_lock(__func__);
-
-	hlist_for_each_entry(itr, pos, &binder_procs, proc_node) {
-		if (itr->pid == pid) {
-			seq_puts(m, "binder proc state:\n");
-			print_binder_proc(m, itr, 1);
-		}
-	}
-	if (do_lock)
-		binder_unlock(__func__);
-=======
 
 	mutex_lock(&binder_procs_lock);
 	hlist_for_each_entry(itr, &binder_procs, proc_node) {
@@ -7635,7 +5888,6 @@ static int binder_proc_show(struct seq_file *m, void *unused)
 	}
 	mutex_unlock(&binder_procs_lock);
 
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -7649,13 +5901,6 @@ static void print_binder_transaction_log_entry(struct seq_file *m,
 	 */
 	smp_rmb();
 	seq_printf(m,
-<<<<<<< HEAD
-		   "%d: %s from %d:%d to %d:%d context %s node %d handle %d size %d:%d\n",
-		   e->debug_id, (e->call_type == 2) ? "reply" :
-		   ((e->call_type == 1) ? "async" : "call "), e->from_proc,
-		   e->from_thread, e->to_proc, e->to_thread, e->context_name,
-		   e->to_node, e->target_handle, e->data_size, e->offsets_size);
-=======
 		   "%d: %s from %d:%d to %d:%d context %s node %d handle %d size %d:%d ret %d/%d l=%d",
 		   e->debug_id, (e->call_type == 2) ? "reply" :
 		   ((e->call_type == 1) ? "async" : "call "), e->from_proc,
@@ -7670,7 +5915,6 @@ static void print_binder_transaction_log_entry(struct seq_file *m,
 	smp_rmb();
 	seq_printf(m, debug_id && debug_id == READ_ONCE(e->debug_id_done) ?
 			"\n" : " (incomplete)\n");
->>>>>>> android-3.18
 }
 
 static int binder_transaction_log_show(struct seq_file *m, void *unused)
@@ -7723,14 +5967,9 @@ static int __init init_binder_device(const char *name)
 	binder_device->miscdev.minor = MISC_DYNAMIC_MINOR;
 	binder_device->miscdev.name = name;
 
-<<<<<<< HEAD
-	binder_device->context.binder_context_mgr_uid = -1;
-	binder_device->context.name = name;
-=======
 	binder_device->context.binder_context_mgr_uid = INVALID_UID;
 	binder_device->context.name = name;
 	mutex_init(&binder_device->context.context_mgr_node_lock);
->>>>>>> android-3.18
 
 	ret = misc_register(&binder_device->miscdev);
 	if (ret < 0) {
@@ -7748,11 +5987,7 @@ static int __init binder_init(void)
 	int ret;
 	char *device_name, *device_names;
 	struct binder_device *device;
-<<<<<<< HEAD
-	struct hlist_node *node, *tmp;
-=======
 	struct hlist_node *tmp;
->>>>>>> android-3.18
 
 	binder_alloc_shrinker_init();
 
@@ -7815,11 +6050,7 @@ static int __init binder_init(void)
 	return ret;
 
 err_init_binder_device_failed:
-<<<<<<< HEAD
-	hlist_for_each_entry_safe(device, node, tmp, &binder_devices, hlist) {
-=======
 	hlist_for_each_entry_safe(device, tmp, &binder_devices, hlist) {
->>>>>>> android-3.18
 		misc_deregister(&device->miscdev);
 		hlist_del(&device->hlist);
 		kfree(device);

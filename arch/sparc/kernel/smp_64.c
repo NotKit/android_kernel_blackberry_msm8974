@@ -1260,11 +1260,7 @@ void smp_fill_in_sib_core_maps(void)
 	}
 }
 
-<<<<<<< HEAD
-int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
-=======
 int __cpu_up(unsigned int cpu, struct task_struct *tidle)
->>>>>>> android-3.18
 {
 	int ret = smp_boot_one_cpu(cpu, tidle);
 

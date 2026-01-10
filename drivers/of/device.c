@@ -161,11 +161,7 @@ void of_device_uevent(struct device *dev, struct kobj_uevent_env *env)
 	add_uevent_var(env, "OF_COMPATIBLE_N=%d", seen);
 
 	seen = 0;
-<<<<<<< HEAD
-	mutex_lock(&of_aliases_mutex);
-=======
 	mutex_lock(&of_mutex);
->>>>>>> android-3.18
 	list_for_each_entry(app, &aliases_lookup, link) {
 		if (dev->of_node == app->np) {
 			add_uevent_var(env, "OF_ALIAS_%d=%s", seen,
@@ -173,15 +169,7 @@ void of_device_uevent(struct device *dev, struct kobj_uevent_env *env)
 			seen++;
 		}
 	}
-<<<<<<< HEAD
-
-	if (seen)
-		add_uevent_var(env, "OF_ALIAS_N=%d", seen);
-
-	mutex_unlock(&of_aliases_mutex);
-=======
 	mutex_unlock(&of_mutex);
->>>>>>> android-3.18
 }
 
 int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)

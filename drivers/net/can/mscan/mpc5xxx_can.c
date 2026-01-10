@@ -233,54 +233,11 @@ static u32 mpc512x_can_get_clock(struct platform_device *ofdev,
 		clk_set_rate(clk_can, freq_calc);
 		freq_calc = clk_get_rate(clk_can);
 		*mscan_clksrc = MSCAN_CLKSRC_BUS;
-<<<<<<< HEAD
-
-		pval = of_get_property(ofdev->dev.of_node,
-				       "fsl,mscan-clock-divider", &plen);
-		if (pval && plen == sizeof(*pval))
-			clockdiv = *pval;
-		if (!clockdiv)
-			clockdiv = 1;
-
-		if (!clock_name || !strcmp(clock_name, "sys")) {
-			sys_clk = clk_get(&ofdev->dev, "sys_clk");
-			if (IS_ERR(sys_clk)) {
-				dev_err(&ofdev->dev, "couldn't get sys_clk\n");
-				goto exit_unmap;
-			}
-			/* Get and round up/down sys clock rate */
-			sys_freq = 1000000 *
-				((clk_get_rate(sys_clk) + 499999) / 1000000);
-
-			if (!clock_name) {
-				/* A multiple of 16 MHz would be optimal */
-				if ((sys_freq % 16000000) == 0) {
-					clocksrc = 0;
-					clockdiv = sys_freq / 16000000;
-					freq = sys_freq / clockdiv;
-				}
-			} else {
-				clocksrc = 0;
-				freq = sys_freq / clockdiv;
-			}
-		}
-
-		if (clocksrc < 0) {
-			ref_clk = clk_get(&ofdev->dev, "ref_clk");
-			if (IS_ERR(ref_clk)) {
-				dev_err(&ofdev->dev, "couldn't get ref_clk\n");
-				goto exit_unmap;
-			}
-			clocksrc = 1;
-			freq = clk_get_rate(ref_clk) / clockdiv;
-		}
-=======
 		dev_dbg(&ofdev->dev, "clk from MCLK, clksrc[%d] freq[%lu]\n",
 			*mscan_clksrc, freq_calc);
 		break;
 	default:
 		goto err_invalid;
->>>>>>> android-3.18
 	}
 
 	/* the above clk_can item is used for the bitrate, access to

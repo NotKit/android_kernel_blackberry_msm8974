@@ -87,10 +87,6 @@ GTAGS
 *~
 \#*#
 
-<<<<<<< HEAD
-# Generated source files
-smd_rpc_sym.c
-=======
 #
 # Leavings from module signing
 #
@@ -104,4 +100,3 @@ all.config
 
 # fetched Android config fragments
 android/configs/android-*.cfg
->>>>>>> android-3.18

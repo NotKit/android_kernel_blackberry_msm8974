@@ -487,23 +487,16 @@ static int intel_crt_ddc_get_modes(struct drm_connector *connector,
 				struct i2c_adapter *adapter)
 {
 	struct edid *edid;
-<<<<<<< HEAD
-=======
 	int ret;
->>>>>>> android-3.18
 
 	edid = intel_crt_get_edid(connector, adapter);
 	if (!edid)
 		return 0;
 
-<<<<<<< HEAD
-	return intel_connector_update_modes(connector, edid);
-=======
 	ret = intel_connector_update_modes(connector, edid);
 	kfree(edid);
 
 	return ret;
->>>>>>> android-3.18
 }
 
 static bool intel_crt_detect_ddc(struct drm_connector *connector)
@@ -522,11 +515,6 @@ static bool intel_crt_detect_ddc(struct drm_connector *connector)
 	if (edid) {
 		bool is_digital = edid->input & DRM_EDID_INPUT_DIGITAL;
 
-<<<<<<< HEAD
-		edid = intel_crt_get_edid(connector,
-			&dev_priv->gmbus[dev_priv->crt_ddc_pin].adapter);
-=======
->>>>>>> android-3.18
 		/*
 		 * This may be a DVI-I connector with a shared DDC
 		 * link between analog and digital outputs, so we
@@ -757,21 +745,12 @@ static int intel_crt_get_modes(struct drm_connector *connector)
 	power_domain = intel_display_port_power_domain(intel_encoder);
 	intel_display_power_get(dev_priv, power_domain);
 
-<<<<<<< HEAD
-	ret = intel_crt_ddc_get_modes(connector,
-				 &dev_priv->gmbus[dev_priv->crt_ddc_pin].adapter);
-=======
 	i2c = intel_gmbus_get_adapter(dev_priv, dev_priv->vbt.crt_ddc_pin);
 	ret = intel_crt_ddc_get_modes(connector, i2c);
->>>>>>> android-3.18
 	if (ret || !IS_G4X(dev))
 		goto out;
 
 	/* Try to probe digital port for output in DVI-I -> VGA mode. */
-<<<<<<< HEAD
-	return intel_crt_ddc_get_modes(connector,
-				   &dev_priv->gmbus[GMBUS_PORT_DPB].adapter);
-=======
 	i2c = intel_gmbus_get_adapter(dev_priv, GMBUS_PORT_DPB);
 	ret = intel_crt_ddc_get_modes(connector, i2c);
 
@@ -779,7 +758,6 @@ out:
 	intel_display_power_put(dev_priv, power_domain);
 
 	return ret;
->>>>>>> android-3.18
 }
 
 static int intel_crt_set_property(struct drm_connector *connector,

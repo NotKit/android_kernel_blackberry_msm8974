@@ -30,9 +30,6 @@
 #define BLIST_RETRY_HWERROR	0x400000 /* retry HARDWARE_ERROR */
 #define BLIST_MAX_512		0x800000 /* maximum 512 sector cdb length */
 #define BLIST_ATTACH_PQ3	0x1000000 /* Scan: Attach to PQ3 devices */
-<<<<<<< HEAD
-#define BLIST_MAX_1024		0x40000000 /* maximum 1024 sector cdb length */
-=======
 #define BLIST_NO_DIF		0x2000000 /* Disable T10 PI (DIF) */
 #define BLIST_SKIP_VPD_PAGES	0x4000000 /* Ignore SBC-3 VPD pages */
 #define BLIST_SCSI3LUN		0x8000000 /* Scan more than 256 LUNs
@@ -41,5 +38,4 @@
 #define BLIST_NO_RSOC		0x20000000 /* don't try to issue RSOC */
 #define BLIST_MAX_1024		0x40000000 /* maximum 1024 sector cdb length */
 
->>>>>>> android-3.18
 #endif

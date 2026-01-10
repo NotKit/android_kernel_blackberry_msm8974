@@ -325,94 +325,10 @@ static void __init pnv_ioda_parse_m64_window(struct pnv_phb *phb)
 		return;
 	}
 
-<<<<<<< HEAD
-	/* Anything not referenced in the device-tree gets PE#0 */
-	pe = pdn ? pdn->pe_number : 0;
-
-	/* Calculate the device min/max */
-	io_res.start = m32_res.start = (resource_size_t)-1;
-	io_res.end = m32_res.end = 0;
-	io_res.flags = IORESOURCE_IO;
-	m32_res.flags = IORESOURCE_MEM;
-
-	for (i = 0; i <= PCI_ROM_RESOURCE; i++) {
-		struct resource *r = NULL;
-		if (dev->resource[i].flags & IORESOURCE_IO)
-			r = &io_res;
-		if (dev->resource[i].flags & IORESOURCE_MEM)
-			r = &m32_res;
-		if (!r)
-			continue;
-		if (dev->resource[i].start < r->start)
-			r->start = dev->resource[i].start;
-		if (dev->resource[i].end > r->end)
-			r->end = dev->resource[i].end;
-	}
-
-	/* Setup IO segments */
-	if (io_res.start < io_res.end) {
-		pcibios_resource_to_bus(dev->bus, &region, &io_res);
-		pos = region.start;
-		i = pos / phb->ioda.io_segsize;
-		while(i < phb->ioda.total_pe && pos <= region.end) {
-			if (phb->ioda.io_segmap[i]) {
-				pr_err("%s: Trying to use IO seg #%d which is"
-				       " already used by PE# %d\n",
-				       pci_name(dev), i,
-				       phb->ioda.io_segmap[i]);
-				/* XXX DO SOMETHING TO DISABLE DEVICE ? */
-				break;
-			}
-			phb->ioda.io_segmap[i] = pe;
-			rc = opal_pci_map_pe_mmio_window(phb->opal_id, pe,
-							 OPAL_IO_WINDOW_TYPE,
-							 0, i);
-			if (rc != OPAL_SUCCESS) {
-				pr_err("%s: OPAL error %d setting up mapping"
-				       " for IO seg# %d\n",
-				       pci_name(dev), rc, i);
-				/* XXX DO SOMETHING TO DISABLE DEVICE ? */
-				break;
-			}
-			pos += phb->ioda.io_segsize;
-			i++;
-		};
-	}
-
-	/* Setup M32 segments */
-	if (m32_res.start < m32_res.end) {
-		pcibios_resource_to_bus(dev->bus, &region, &m32_res);
-		pos = region.start;
-		i = pos / phb->ioda.m32_segsize;
-		while(i < phb->ioda.total_pe && pos <= region.end) {
-			if (phb->ioda.m32_segmap[i]) {
-				pr_err("%s: Trying to use M32 seg #%d which is"
-				       " already used by PE# %d\n",
-				       pci_name(dev), i,
-				       phb->ioda.m32_segmap[i]);
-				/* XXX DO SOMETHING TO DISABLE DEVICE ? */
-				break;
-			}
-			phb->ioda.m32_segmap[i] = pe;
-			rc = opal_pci_map_pe_mmio_window(phb->opal_id, pe,
-							 OPAL_M32_WINDOW_TYPE,
-							 0, i);
-			if (rc != OPAL_SUCCESS) {
-				pr_err("%s: OPAL error %d setting up mapping"
-				       " for M32 seg# %d\n",
-				       pci_name(dev), rc, i);
-				/* XXX DO SOMETHING TO DISABLE DEVICE ? */
-				break;
-			}
-			pos += phb->ioda.m32_segsize;
-			i++;
-		}
-=======
 	/* FIXME: Support M64 for P7IOC */
 	if (phb->type != PNV_PHB_IODA2) {
 		pr_info("  Not support M64 window\n");
 		return;
->>>>>>> android-3.18
 	}
 
 	res = &hose->mem_resources[1];

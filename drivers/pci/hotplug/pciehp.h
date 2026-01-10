@@ -43,10 +43,6 @@
 extern bool pciehp_poll_mode;
 extern int pciehp_poll_time;
 extern bool pciehp_debug;
-<<<<<<< HEAD
-extern bool pciehp_force;
-=======
->>>>>>> android-3.18
 
 #define dbg(format, arg...)						\
 do {									\
@@ -80,10 +76,7 @@ struct slot {
 	struct hotplug_slot *hotplug_slot;
 	struct delayed_work work;	/* work for button event */
 	struct mutex lock;
-<<<<<<< HEAD
-=======
 	struct mutex hotplug_lock;
->>>>>>> android-3.18
 	struct workqueue_struct *wq;
 };
 

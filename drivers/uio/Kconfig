@@ -122,14 +122,6 @@ config UIO_PRUSS
 	  To compile this driver as a module, choose M here: the module
 	  will be called uio_pruss.
 
-<<<<<<< HEAD
-config UIO_MSM_SHAREDMEM
-	bool "MSM shared memory driver"
-	default n
-	help
-	  Provides the clients with their respective alloted shared memory
-	  addresses which are used as transport buffer.
-=======
 config UIO_MF624
 	tristate "Humusoft MF624 DAQ PCI card driver"
 	depends on PCI
@@ -142,6 +134,5 @@ config UIO_MF624
 	    git clone git://rtime.felk.cvut.cz/mf6xx.git
 
 	  If you compile this as a module, it will be called uio_mf624.
->>>>>>> android-3.18
 
 endif

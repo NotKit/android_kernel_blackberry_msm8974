@@ -142,12 +142,9 @@ enum {
 #define IFLA_PROMISCUITY IFLA_PROMISCUITY
 	IFLA_NUM_TX_QUEUES,
 	IFLA_NUM_RX_QUEUES,
-<<<<<<< HEAD
-=======
 	IFLA_CARRIER,
 	IFLA_PHYS_PORT_ID,
 	IFLA_CARRIER_CHANGES,
->>>>>>> android-3.18
 	__IFLA_MAX
 };
 
@@ -206,18 +203,13 @@ enum {
 	IFLA_INET6_MCAST,	/* MC things. What of them?	*/
 	IFLA_INET6_CACHEINFO,	/* time values and max reasm size */
 	IFLA_INET6_ICMP6STATS,	/* statistics (icmpv6)		*/
-<<<<<<< HEAD
-=======
 	IFLA_INET6_TOKEN,	/* device token			*/
 	IFLA_INET6_ADDR_GEN_MODE, /* implicit address generator mode */
->>>>>>> android-3.18
 	__IFLA_INET6_MAX
 };
 
 #define IFLA_INET6_MAX	(__IFLA_INET6_MAX - 1)
 
-<<<<<<< HEAD
-=======
 enum in6_addr_gen_mode {
 	IN6_ADDR_GEN_MODE_EUI64,
 	IN6_ADDR_GEN_MODE_NONE,
@@ -255,7 +247,6 @@ enum {
 };
 #define IFLA_BRPORT_MAX (__IFLA_BRPORT_MAX - 1)
 
->>>>>>> android-3.18
 struct ifla_cacheinfo {
 	__u32	max_reasm_len;
 	__u32	tstamp;		/* ipv6InterfaceTable updated timestamp */
@@ -268,11 +259,8 @@ enum {
 	IFLA_INFO_KIND,
 	IFLA_INFO_DATA,
 	IFLA_INFO_XSTATS,
-<<<<<<< HEAD
-=======
 	IFLA_INFO_SLAVE_KIND,
 	IFLA_INFO_SLAVE_DATA,
->>>>>>> android-3.18
 	__IFLA_INFO_MAX,
 };
 
@@ -286,10 +274,7 @@ enum {
 	IFLA_VLAN_FLAGS,
 	IFLA_VLAN_EGRESS_QOS,
 	IFLA_VLAN_INGRESS_QOS,
-<<<<<<< HEAD
-=======
 	IFLA_VLAN_PROTOCOL,
->>>>>>> android-3.18
 	__IFLA_VLAN_MAX,
 };
 
@@ -318,13 +303,10 @@ enum {
 	IFLA_MACVLAN_UNSPEC,
 	IFLA_MACVLAN_MODE,
 	IFLA_MACVLAN_FLAGS,
-<<<<<<< HEAD
-=======
 	IFLA_MACVLAN_MACADDR_MODE,
 	IFLA_MACVLAN_MACADDR,
 	IFLA_MACVLAN_MACADDR_DATA,
 	IFLA_MACVLAN_MACADDR_COUNT,
->>>>>>> android-3.18
 	__IFLA_MACVLAN_MAX,
 };
 
@@ -335,8 +317,6 @@ enum macvlan_mode {
 	MACVLAN_MODE_VEPA    = 2, /* talk to other ports through ext bridge */
 	MACVLAN_MODE_BRIDGE  = 4, /* talk to bridge ports directly */
 	MACVLAN_MODE_PASSTHRU = 8,/* take over the underlying device */
-<<<<<<< HEAD
-=======
 	MACVLAN_MODE_SOURCE  = 16,/* use source MAC address list to assign */
 };
 
@@ -345,7 +325,6 @@ enum macvlan_macaddr_mode {
 	MACVLAN_MACADDR_DEL,
 	MACVLAN_MACADDR_FLUSH,
 	MACVLAN_MACADDR_SET,
->>>>>>> android-3.18
 };
 
 #define MACVLAN_FLAG_NOPROMISC	1
@@ -354,11 +333,7 @@ enum macvlan_macaddr_mode {
 enum {
 	IFLA_VXLAN_UNSPEC,
 	IFLA_VXLAN_ID,
-<<<<<<< HEAD
-	IFLA_VXLAN_GROUP,
-=======
 	IFLA_VXLAN_GROUP,	/* group or remote address */
->>>>>>> android-3.18
 	IFLA_VXLAN_LINK,
 	IFLA_VXLAN_LOCAL,
 	IFLA_VXLAN_TTL,
@@ -366,9 +341,6 @@ enum {
 	IFLA_VXLAN_LEARNING,
 	IFLA_VXLAN_AGEING,
 	IFLA_VXLAN_LIMIT,
-<<<<<<< HEAD
-	IFLA_VXLAN_PORT_RANGE,
-=======
 	IFLA_VXLAN_PORT_RANGE,	/* source port */
 	IFLA_VXLAN_PROXY,
 	IFLA_VXLAN_RSC,
@@ -380,7 +352,6 @@ enum {
 	IFLA_VXLAN_UDP_CSUM,
 	IFLA_VXLAN_UDP_ZERO_CSUM6_TX,
 	IFLA_VXLAN_UDP_ZERO_CSUM6_RX,
->>>>>>> android-3.18
 	__IFLA_VXLAN_MAX
 };
 #define IFLA_VXLAN_MAX	(__IFLA_VXLAN_MAX - 1)
@@ -390,8 +361,6 @@ struct ifla_vxlan_port_range {
 	__be16	high;
 };
 
-<<<<<<< HEAD
-=======
 /* Bonding section */
 
 enum {
@@ -449,7 +418,6 @@ enum {
 
 #define IFLA_BOND_SLAVE_MAX	(__IFLA_BOND_SLAVE_MAX - 1)
 
->>>>>>> android-3.18
 /* SR-IOV virtual function management section */
 
 enum {
@@ -464,10 +432,6 @@ enum {
 	IFLA_VF_UNSPEC,
 	IFLA_VF_MAC,		/* Hardware queue specific attributes */
 	IFLA_VF_VLAN,
-<<<<<<< HEAD
-	IFLA_VF_TX_RATE,	/* TX Bandwidth Allocation */
-	IFLA_VF_SPOOFCHK,	/* Spoof Checking on/off switch */
-=======
 	IFLA_VF_TX_RATE,	/* Max TX Bandwidth Allocation */
 	IFLA_VF_SPOOFCHK,	/* Spoof Checking on/off switch */
 	IFLA_VF_LINK_STATE,	/* link state enable/disable/auto switch */
@@ -475,7 +439,6 @@ enum {
 	IFLA_VF_RSS_QUERY_EN,	/* RSS Redirection Table and Hash Key query
 				 * on/off switch
 				 */
->>>>>>> android-3.18
 	__IFLA_VF_MAX,
 };
 
@@ -497,22 +460,17 @@ struct ifla_vf_tx_rate {
 	__u32 rate; /* Max TX bandwidth in Mbps, 0 disables throttling */
 };
 
-<<<<<<< HEAD
-=======
 struct ifla_vf_rate {
 	__u32 vf;
 	__u32 min_tx_rate; /* Min Bandwidth in Mbps */
 	__u32 max_tx_rate; /* Max Bandwidth in Mbps */
 };
 
->>>>>>> android-3.18
 struct ifla_vf_spoofchk {
 	__u32 vf;
 	__u32 setting;
 };
 
-<<<<<<< HEAD
-=======
 enum {
 	IFLA_VF_LINK_STATE_AUTO,	/* link state of the uplink */
 	IFLA_VF_LINK_STATE_ENABLE,	/* link always up */
@@ -530,7 +488,6 @@ struct ifla_vf_rss_query_en {
 	__u32 setting;
 };
 
->>>>>>> android-3.18
 /* VF ports management section
  *
  *	Nested layout of set/get msg is:
@@ -621,8 +578,6 @@ enum {
 
 #define IFLA_IPOIB_MAX (__IFLA_IPOIB_MAX - 1)
 
-<<<<<<< HEAD
-=======
 
 /* HSR section */
 
@@ -638,5 +593,4 @@ enum {
 
 #define IFLA_HSR_MAX (__IFLA_HSR_MAX - 1)
 
->>>>>>> android-3.18
 #endif /* _UAPI_LINUX_IF_LINK_H */

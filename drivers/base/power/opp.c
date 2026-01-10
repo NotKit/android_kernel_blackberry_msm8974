@@ -19,11 +19,7 @@
 #include <linux/list.h>
 #include <linux/rculist.h>
 #include <linux/rcupdate.h>
-<<<<<<< HEAD
-#include <linux/opp.h>
-=======
 #include <linux/pm_opp.h>
->>>>>>> android-3.18
 #include <linux/of.h>
 #include <linux/export.h>
 
@@ -165,11 +161,7 @@ unsigned long dev_pm_opp_get_voltage(struct dev_pm_opp *opp)
 
 	return v;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_get_voltage);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_get_voltage);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_get_freq() - Gets the frequency corresponding to an available opp
@@ -199,11 +191,7 @@ unsigned long dev_pm_opp_get_freq(struct dev_pm_opp *opp)
 
 	return f;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_get_freq);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_get_freq);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_get_opp_count() - Get number of opps available in the opp list
@@ -236,11 +224,7 @@ int dev_pm_opp_get_opp_count(struct device *dev)
 
 	return count;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_get_opp_count);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_get_opp_count);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_find_freq_exact() - search for an exact frequency
@@ -273,11 +257,7 @@ struct dev_pm_opp *dev_pm_opp_find_freq_exact(struct device *dev,
 					      bool available)
 {
 	struct device_opp *dev_opp;
-<<<<<<< HEAD
-	struct opp *temp_opp, *opp = ERR_PTR(-ERANGE);
-=======
 	struct dev_pm_opp *temp_opp, *opp = ERR_PTR(-ERANGE);
->>>>>>> android-3.18
 
 	dev_opp = find_device_opp(dev);
 	if (IS_ERR(dev_opp)) {
@@ -296,11 +276,7 @@ struct dev_pm_opp *dev_pm_opp_find_freq_exact(struct device *dev,
 
 	return opp;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_find_freq_exact);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_find_freq_exact);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_find_freq_ceil() - Search for an rounded ceil freq
@@ -327,11 +303,7 @@ struct dev_pm_opp *dev_pm_opp_find_freq_ceil(struct device *dev,
 					     unsigned long *freq)
 {
 	struct device_opp *dev_opp;
-<<<<<<< HEAD
-	struct opp *temp_opp, *opp = ERR_PTR(-ERANGE);
-=======
 	struct dev_pm_opp *temp_opp, *opp = ERR_PTR(-ERANGE);
->>>>>>> android-3.18
 
 	if (!dev || !freq) {
 		dev_err(dev, "%s: Invalid argument freq=%p\n", __func__, freq);
@@ -352,11 +324,7 @@ struct dev_pm_opp *dev_pm_opp_find_freq_ceil(struct device *dev,
 
 	return opp;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_find_freq_ceil);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_find_freq_ceil);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_find_freq_floor() - Search for a rounded floor freq
@@ -383,11 +351,7 @@ struct dev_pm_opp *dev_pm_opp_find_freq_floor(struct device *dev,
 					      unsigned long *freq)
 {
 	struct device_opp *dev_opp;
-<<<<<<< HEAD
-	struct opp *temp_opp, *opp = ERR_PTR(-ERANGE);
-=======
 	struct dev_pm_opp *temp_opp, *opp = ERR_PTR(-ERANGE);
->>>>>>> android-3.18
 
 	if (!dev || !freq) {
 		dev_err(dev, "%s: Invalid argument freq=%p\n", __func__, freq);
@@ -412,11 +376,7 @@ struct dev_pm_opp *dev_pm_opp_find_freq_floor(struct device *dev,
 
 	return opp;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_find_freq_floor);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_find_freq_floor);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_add()  - Add an OPP table from a table definitions
@@ -634,11 +594,7 @@ int dev_pm_opp_enable(struct device *dev, unsigned long freq)
 {
 	return opp_set_availability(dev, freq, true);
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_enable);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_enable);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_disable() - Disable a specific OPP
@@ -660,11 +616,7 @@ int dev_pm_opp_disable(struct device *dev, unsigned long freq)
 {
 	return opp_set_availability(dev, freq, false);
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL(opp_disable);
-=======
 EXPORT_SYMBOL_GPL(dev_pm_opp_disable);
->>>>>>> android-3.18
 
 /**
  * dev_pm_opp_get_notifier() - find notifier_head of the device with opp
@@ -722,53 +674,5 @@ int of_init_opp_table(struct device *dev)
 
 	return 0;
 }
-<<<<<<< HEAD
-
-#ifdef CONFIG_OF
-/**
- * of_init_opp_table() - Initialize opp table from device tree
- * @dev:	device pointer used to lookup device OPPs.
- *
- * Register the initial OPP table with the OPP library for given device.
- */
-int of_init_opp_table(struct device *dev)
-{
-	const struct property *prop;
-	const __be32 *val;
-	int nr;
-
-	prop = of_find_property(dev->of_node, "operating-points", NULL);
-	if (!prop)
-		return -ENODEV;
-	if (!prop->value)
-		return -ENODATA;
-
-	/*
-	 * Each OPP is a set of tuples consisting of frequency and
-	 * voltage like <freq-kHz vol-uV>.
-	 */
-	nr = prop->length / sizeof(u32);
-	if (nr % 2) {
-		dev_err(dev, "%s: Invalid OPP list\n", __func__);
-		return -EINVAL;
-	}
-
-	val = prop->value;
-	while (nr) {
-		unsigned long freq = be32_to_cpup(val++) * 1000;
-		unsigned long volt = be32_to_cpup(val++);
-
-		if (opp_add(dev, freq, volt)) {
-			dev_warn(dev, "%s: Failed to add OPP %ld\n",
-				 __func__, freq);
-			continue;
-		}
-		nr -= 2;
-	}
-
-	return 0;
-}
-=======
 EXPORT_SYMBOL_GPL(of_init_opp_table);
->>>>>>> android-3.18
 #endif

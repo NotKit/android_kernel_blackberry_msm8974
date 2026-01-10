@@ -344,14 +344,8 @@ static int matrix_keypad_init_gpio(struct platform_device *pdev,
 		}
 	} else {
 		for (i = 0; i < pdata->num_row_gpios; i++) {
-<<<<<<< HEAD
-			err = request_threaded_irq(
-					gpio_to_irq(pdata->row_gpios[i]),
-					NULL,
-=======
 			err = request_any_context_irq(
 					gpio_to_irq(pdata->row_gpios[i]),
->>>>>>> android-3.18
 					matrix_keypad_interrupt,
 					IRQF_DISABLED | IRQF_ONESHOT |
 					IRQF_TRIGGER_RISING |
@@ -558,24 +552,7 @@ static int matrix_keypad_remove(struct platform_device *pdev)
 
 	device_init_wakeup(&pdev->dev, 0);
 
-<<<<<<< HEAD
-	if (pdata->clustered_irq > 0) {
-		free_irq(pdata->clustered_irq, keypad);
-	} else {
-		for (i = 0; i < pdata->num_row_gpios; i++)
-			free_irq(gpio_to_irq(pdata->row_gpios[i]), keypad);
-	}
-
-	for (i = 0; i < pdata->num_row_gpios; i++)
-		gpio_free(pdata->row_gpios[i]);
-
-	for (i = 0; i < pdata->num_col_gpios; i++)
-		gpio_free(pdata->col_gpios[i]);
-
-	mutex_destroy(&keypad->lock);
-=======
 	matrix_keypad_free_gpio(keypad);
->>>>>>> android-3.18
 	input_unregister_device(keypad->input_dev);
 	kfree(keypad);
 

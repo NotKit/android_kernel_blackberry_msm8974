@@ -22,12 +22,7 @@
 #define SO_PRIORITY	12
 #define SO_LINGER	13
 #define SO_BSDCOMPAT	14
-<<<<<<< HEAD
-/* To add :#define SO_REUSEPORT 15 */
-
-=======
 #define SO_REUSEPORT	15
->>>>>>> android-3.18
 #ifndef SO_PASSCRED /* powerpc only differs in these */
 #define SO_PASSCRED	16
 #define SO_PEERCRED	17
@@ -47,10 +42,7 @@
 /* Socket filtering */
 #define SO_ATTACH_FILTER	26
 #define SO_DETACH_FILTER	27
-<<<<<<< HEAD
-=======
 #define SO_GET_FILTER		SO_ATTACH_FILTER
->>>>>>> android-3.18
 
 #define SO_PEERNAME		28
 #define SO_TIMESTAMP		29
@@ -80,9 +72,6 @@
 /* Instruct lower device to use last 4-bytes of skb data as FCS */
 #define SO_NOFCS		43
 
-<<<<<<< HEAD
-#define SO_MAX_PACING_RATE	44
-=======
 #define SO_LOCK_FILTER		44
 
 #define SO_SELECT_ERR_QUEUE	45
@@ -92,6 +81,5 @@
 #define SO_MAX_PACING_RATE	47
 
 #define SO_BPF_EXTENSIONS	48
->>>>>>> android-3.18
 
 #endif /* __ASM_GENERIC_SOCKET_H */

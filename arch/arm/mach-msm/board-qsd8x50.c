@@ -1528,7 +1528,6 @@ static void config_camera_off_gpios(void)
 {
 	int vreg_en = 0;
 
-<<<<<<< HEAD
 	if (machine_is_qsd8x50_ffa()) {
 		config_gpio_table(camera_off_gpio_ffa_table,
 		ARRAY_SIZE(camera_off_gpio_ffa_table));
@@ -1576,19 +1575,6 @@ static struct msm_camera_sensor_flash_src msm_flash_src = {
 	._fsrc.pmic_src.led_src_2 = 0,
 	._fsrc.pmic_src.pmic_set_current = pmic_set_flash_led_current,
 };
-=======
-#include <mach/irqs.h>
-#include <mach/sirc.h>
-#include <mach/vreg.h>
-#include <mach/clk.h>
-#include <linux/platform_data/mmc-msm_sdcc.h>
-
-#include "devices.h"
-#include "common.h"
-
-static const resource_size_t qsd8x50_surf_smc91x_base __initconst = 0x70000300;
-static const unsigned        qsd8x50_surf_smc91x_gpio __initconst = 156;
->>>>>>> android-3.18
 
 #ifdef CONFIG_MT9D112
 static struct msm_camera_sensor_flash_data flash_mt9d112 = {
@@ -1746,7 +1732,6 @@ static struct platform_device msm_batt_device = {
 	.dev.platform_data  = &msm_psy_batt_data,
 };
 
-<<<<<<< HEAD
 static int hsusb_rpc_connect(int connect)
 {
 	if (connect)
@@ -1783,60 +1768,14 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 	.phy_can_powercollapse	 = 1,
 	.ldo_init		 = msm_hsusb_ldo_init,
 	.ldo_enable		 = msm_hsusb_ldo_enable,
-=======
-static int hsusb_link_clk_reset(struct clk *link_clk, bool assert)
-{
-	int ret;
-
-	if (assert) {
-		ret = clk_reset(link_clk, CLK_RESET_ASSERT);
-		if (ret)
-			pr_err("usb hs_clk assert failed\n");
-	} else {
-		ret = clk_reset(link_clk, CLK_RESET_DEASSERT);
-		if (ret)
-			pr_err("usb hs_clk deassert failed\n");
-	}
-	return ret;
-}
-
-static int hsusb_phy_clk_reset(struct clk *phy_clk)
-{
-	int ret;
-
-	ret = clk_reset(phy_clk, CLK_RESET_ASSERT);
-	if (ret) {
-		pr_err("usb phy clk assert failed\n");
-		return ret;
-	}
-	usleep_range(10000, 12000);
-	ret = clk_reset(phy_clk, CLK_RESET_DEASSERT);
-	if (ret)
-		pr_err("usb phy clk deassert failed\n");
-	return ret;
-}
-
-static struct msm_otg_platform_data msm_otg_pdata = {
-	.phy_init_seq		= hsusb_phy_init_seq,
-	.mode                   = USB_DR_MODE_PERIPHERAL,
-	.otg_control		= OTG_PHY_CONTROL,
-	.link_clk_reset		= hsusb_link_clk_reset,
-	.phy_clk_reset		= hsusb_phy_clk_reset,
->>>>>>> android-3.18
 };
 
 static struct msm_hsusb_gadget_platform_data msm_gadget_pdata;
 
 static struct platform_device *devices[] __initdata = {
-<<<<<<< HEAD
 	&msm_fb_device,
 	&mddi_toshiba_device,
 	&smc91x_device,
-=======
-	&msm_clock_8x50,
-	&msm_device_gpio_8x50,
-	&msm_device_uart3,
->>>>>>> android-3.18
 	&msm_device_smd,
 	&msm_device_dmov,
 	&android_pmem_kernel_ebi1_device,
@@ -2296,7 +2235,6 @@ static void __init qsd8x50_init_mmc(void)
 
 static void __init qsd8x50_cfg_smc91x(void)
 {
-<<<<<<< HEAD
 	int rc = 0;
 
 	if (machine_is_qsd8x50_surf()) {
@@ -2319,9 +2257,6 @@ static void __init qsd8x50_cfg_smc91x(void)
 		}
 	} else
 		printk(KERN_ERR "%s: invalid machine type\n", __func__);
-=======
-	msm_map_qsd8x50_io();
->>>>>>> android-3.18
 }
 
 static struct msm_pm_platform_data msm_pm_data[MSM_PM_SLEEP_MODE_NR] = {

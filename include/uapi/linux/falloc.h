@@ -5,8 +5,6 @@
 #define FALLOC_FL_PUNCH_HOLE	0x02 /* de-allocates range */
 #define FALLOC_FL_NO_HIDE_STALE	0x04 /* reserved codepoint */
 
-<<<<<<< HEAD
-=======
 /*
  * FALLOC_FL_COLLAPSE_RANGE is used to remove a range of a file
  * without leaving a hole in the file. The contents of the file beyond
@@ -42,6 +40,5 @@
  * size to remain the same.
  */
 #define FALLOC_FL_ZERO_RANGE		0x10
->>>>>>> android-3.18
 
 #endif /* _UAPI_FALLOC_H_ */

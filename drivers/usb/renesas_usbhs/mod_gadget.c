@@ -722,15 +722,7 @@ static int __usbhsg_ep_set_halt_wedge(struct usb_ep *ep, int halt, int wedge)
 	struct usbhs_priv *priv = usbhsg_gpriv_to_priv(gpriv);
 	struct device *dev = usbhsg_gpriv_to_dev(gpriv);
 	unsigned long flags;
-<<<<<<< HEAD
-
-	if (!pipe)
-		return -EINVAL;
-
-	usbhsg_pipe_disable(uep);
-=======
 	int ret = 0;
->>>>>>> android-3.18
 
 	dev_dbg(dev, "set halt %d (pipe %d)\n",
 		halt, usbhs_pipe_number(pipe));

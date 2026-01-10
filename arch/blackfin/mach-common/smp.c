@@ -246,11 +246,7 @@ void smp_send_stop(void)
 	return;
 }
 
-<<<<<<< HEAD
-int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *tidle)
-=======
 int __cpu_up(unsigned int cpu, struct task_struct *idle)
->>>>>>> android-3.18
 {
 	int ret;
 

@@ -412,8 +412,6 @@ static struct platform_device lcdc_device = {
 	.dev	= {
 		.platform_data	= &lcdc_info,
 		.coherent_dma_mask = DMA_BIT_MASK(32),
-<<<<<<< HEAD
-=======
 	},
 };
 
@@ -428,7 +426,6 @@ static struct platform_device gpio_backlight_device = {
 	.name = "gpio-backlight",
 	.dev = {
 		.platform_data = &gpio_backlight_data,
->>>>>>> android-3.18
 	},
 };
 
@@ -505,8 +502,6 @@ static struct platform_device hdmi_lcdc_device = {
 	.dev	= {
 		.platform_data	= &hdmi_lcdc_info,
 		.coherent_dma_mask = DMA_BIT_MASK(32),
-<<<<<<< HEAD
-=======
 	},
 };
 
@@ -521,7 +516,6 @@ static struct asoc_simple_card_info fsi2_hdmi_info = {
 	},
 	.codec_dai = {
 		.name	= "sh_mobile_hdmi-hifi",
->>>>>>> android-3.18
 	},
 };
 

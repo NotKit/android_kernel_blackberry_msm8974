@@ -283,17 +283,6 @@ static void macvlan_process_broadcast(struct work_struct *w)
 
 		rcu_read_lock();
 
-<<<<<<< HEAD
-	port = macvlan_port_get_rcu(skb->dev);
-	if (is_multicast_ether_addr(eth->h_dest)) {
-		skb = ip_check_defrag(skb, IP_DEFRAG_MACVLAN);
-		if (!skb)
-			return RX_HANDLER_CONSUMED;
-		*pskb = skb;
-		eth = eth_hdr(skb);
-		src = macvlan_hash_lookup(port, eth->h_source);
-=======
->>>>>>> android-3.18
 		if (!src)
 			/* frame comes from an external address */
 			macvlan_broadcast(skb, port, NULL,
@@ -498,11 +487,7 @@ static int macvlan_queue_xmit(struct sk_buff *skb, struct net_device *dev)
 	const struct macvlan_dev *dest;
 
 	if (vlan->mode == MACVLAN_MODE_BRIDGE) {
-<<<<<<< HEAD
-		const struct ethhdr *eth = (void *)skb->data;
-=======
 		const struct ethhdr *eth = skb_eth_hdr(skb);
->>>>>>> android-3.18
 
 		/* send to other bridge ports directly */
 		if (is_multicast_ether_addr(eth->h_dest)) {
@@ -813,11 +798,7 @@ static int macvlan_init(struct net_device *dev)
 	dev->state		= (dev->state & ~MACVLAN_STATE_MASK) |
 				  (lowerdev->state & MACVLAN_STATE_MASK);
 	dev->features 		= lowerdev->features & MACVLAN_FEATURES;
-<<<<<<< HEAD
-	dev->features		|= NETIF_F_LLTX;
-=======
 	dev->features		|= ALWAYS_ON_FEATURES;
->>>>>>> android-3.18
 	dev->vlan_features	= lowerdev->vlan_features & MACVLAN_FEATURES;
 	dev->gso_max_size	= lowerdev->gso_max_size;
 	dev->iflink		= lowerdev->ifindex;
@@ -1071,12 +1052,8 @@ void macvlan_common_setup(struct net_device *dev)
 {
 	ether_setup(dev);
 
-<<<<<<< HEAD
-	dev->priv_flags	       &= ~(IFF_XMIT_DST_RELEASE | IFF_TX_SKB_SHARING);
-=======
 	dev->priv_flags	       &= ~IFF_TX_SKB_SHARING;
 	netif_keep_dst(dev);
->>>>>>> android-3.18
 	dev->priv_flags	       |= IFF_UNICAST_FLT;
 	dev->netdev_ops		= &macvlan_netdev_ops;
 	dev->destructor		= free_netdev;
@@ -1341,14 +1318,11 @@ int macvlan_common_newlink(struct net *src_net, struct net_device *dev,
 	if (err < 0)
 		goto destroy_port;
 
-<<<<<<< HEAD
-=======
 	dev->priv_flags |= IFF_MACVLAN;
 	err = netdev_upper_dev_link(lowerdev, dev);
 	if (err)
 		goto unregister_netdev;
 
->>>>>>> android-3.18
 	list_add_tail_rcu(&vlan->list, &port->vlans);
 	netif_stacked_transfer_operstate(lowerdev, dev);
 
@@ -1375,11 +1349,8 @@ void macvlan_dellink(struct net_device *dev, struct list_head *head)
 {
 	struct macvlan_dev *vlan = netdev_priv(dev);
 
-<<<<<<< HEAD
-=======
 	if (vlan->mode == MACVLAN_MODE_SOURCE)
 		macvlan_flush_sources(vlan->port, vlan);
->>>>>>> android-3.18
 	list_del_rcu(&vlan->list);
 	unregister_netdevice_queue(dev, head);
 	netdev_upper_dev_unlink(vlan->lowerdev, dev);

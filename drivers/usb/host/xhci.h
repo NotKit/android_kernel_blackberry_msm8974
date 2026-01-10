@@ -286,13 +286,9 @@ struct xhci_op_regs {
 #define XDEV_U1		(0x1 << 5)
 #define XDEV_U2		(0x2 << 5)
 #define XDEV_U3		(0x3 << 5)
-<<<<<<< HEAD
-#define XDEV_INACTIVE	(0x6 << 5)
-=======
 #define XDEV_RECOVERY	(0x8 << 5)
 #define XDEV_POLLING	(0x7 << 5)
 #define XDEV_COMP_MODE  (0xa << 5)
->>>>>>> android-3.18
 #define XDEV_RESUME	(0xf << 5)
 /* true: port has power (see HCC_PPC) */
 #define PORT_POWER	(1 << 9)
@@ -356,13 +352,10 @@ struct xhci_op_regs {
 #define PORT_PLC	(1 << 22)
 /* port configure error change - port failed to configure its link partner */
 #define PORT_CEC	(1 << 23)
-<<<<<<< HEAD
-=======
 #define PORT_CHANGE_MASK	(PORT_CSC | PORT_PEC | PORT_WRC | PORT_OCC | \
 				 PORT_RC | PORT_PLC | PORT_CEC)
 
 
->>>>>>> android-3.18
 /* Cold Attach Status - xHC can set this bit to report device attached during
  * Sx state. Warm port reset should be perfomed to clear this bit and move port
  * to connected state.
@@ -1314,10 +1307,6 @@ struct xhci_td {
 
 /* command descriptor */
 struct xhci_cd {
-<<<<<<< HEAD
-	struct list_head	cancel_cmd_list;
-=======
->>>>>>> android-3.18
 	struct xhci_command	*command;
 	union xhci_trb		*cmd_trb;
 };
@@ -1439,12 +1428,9 @@ struct xhci_bus_state {
 	unsigned long		resume_done[USB_MAXCHILDREN];
 	/* which ports have started to resume */
 	unsigned long		resuming_ports;
-<<<<<<< HEAD
-=======
 	/* Which ports are waiting on RExit to U0 transition. */
 	unsigned long		rexit_ports;
 	struct completion	rexit_done[USB_MAXCHILDREN];
->>>>>>> android-3.18
 };
 
 
@@ -1507,11 +1493,7 @@ struct xhci_hcd {
 #define CMD_RING_STATE_RUNNING         (1 << 0)
 #define CMD_RING_STATE_ABORTED         (1 << 1)
 #define CMD_RING_STATE_STOPPED         (1 << 2)
-<<<<<<< HEAD
-	struct list_head        cancel_cmd_list;
-=======
 	struct list_head        cmd_list;
->>>>>>> android-3.18
 	unsigned int		cmd_ring_reserved_trbs;
 	struct delayed_work	cmd_timer;
 	struct completion	cmd_ring_stop_completion;
@@ -1581,52 +1563,21 @@ struct xhci_hcd {
 #define XHCI_RESET_ON_RESUME	(1 << 7)
 #define	XHCI_SW_BW_CHECKING	(1 << 8)
 #define XHCI_AMD_0x96_HOST	(1 << 9)
-<<<<<<< HEAD
-/*
- * In Synopsis DWC3 controller, PORTSC register access involves multiple clock
- * domains. When the software does a PORTSC write, handshakes are needed
- * across these clock domains. This results in long access times, especially
- * for USB 2.0 ports. In order to solve this issue, when the PORTSC write
- * operations happen on the system bus, the command is latched and system bus
- * is released immediately. However, the real PORTSC write access will take
- * some time internally to complete. If the software quickly does a read to the
- * PORTSC, some fields (port status change related fields like OCC, etc.) may
- * not have correct value due to the current way of handling these bits.
- *
- * The workaround is to give some delay (5 mac2_clk -> UTMI clock = 60 MHz ->
- * (16.66 ns x 5 = 84ns) ~100ns after writing to the PORTSC register.
- */
-#define XHCI_PORTSC_DELAY	(1 << 10)
-/*
- * In Synopsis DWC3 controller, XHCI RESET takes some time complete. If PIPE
- * RESET is not complete by the time USBCMD.RUN bit is set then HC fails to
- * carry out SS transfers.
- *
- * The workaround is to give worst case pipe delay ~350us after resetting HC
- */
-#define XHCI_RESET_DELAY	(1 << 11)
-#define XHCI_TRUST_TX_LENGTH	(1 << 12)
-=======
 #define XHCI_TRUST_TX_LENGTH	(1 << 10)
 #define XHCI_LPM_SUPPORT	(1 << 11)
 #define XHCI_INTEL_HOST		(1 << 12)
->>>>>>> android-3.18
 #define XHCI_SPURIOUS_REBOOT	(1 << 13)
 #define XHCI_COMP_MODE_QUIRK	(1 << 14)
 #define XHCI_AVOID_BEI		(1 << 15)
 #define XHCI_PLAT		(1 << 16)
 #define XHCI_SLOW_SUSPEND	(1 << 17)
 #define XHCI_SPURIOUS_WAKEUP	(1 << 18)
-<<<<<<< HEAD
-#define XHCI_PME_STUCK_QUIRK	(1 << 20)
-=======
 /* For controllers with a broken beyond repair streams implementation */
 #define XHCI_BROKEN_STREAMS	(1 << 19)
 #define XHCI_PME_STUCK_QUIRK	(1 << 20)
 #define XHCI_SSIC_PORT_UNUSED	(1 << 22)
 #define XHCI_NO_64BIT_SUPPORT	(1 << 23)
 #define XHCI_MISSING_CAS	(1 << 24)
->>>>>>> android-3.18
 	unsigned int		num_active_eps;
 	unsigned int		limit_active_eps;
 	/* There are two roothubs to keep track of bus suspend info for */
@@ -1643,12 +1594,9 @@ struct xhci_hcd {
 	unsigned		sw_lpm_support:1;
 	/* support xHCI 1.0 spec USB2 hardware LPM */
 	unsigned		hw_lpm_support:1;
-<<<<<<< HEAD
-=======
 	/* cached usb2 extened protocol capabilites */
 	u32                     *ext_caps;
 	unsigned int            num_ext_caps;
->>>>>>> android-3.18
 	/* Compliance Mode Recovery Data */
 	struct timer_list	comp_mode_recovery_timer;
 	u32			port_status_u0;
@@ -1801,40 +1749,9 @@ void xhci_urb_free_priv(struct xhci_hcd *xhci, struct urb_priv *urb_priv);
 void xhci_free_command(struct xhci_hcd *xhci,
 		struct xhci_command *command);
 
-<<<<<<< HEAD
-#ifdef CONFIG_PCI
-/* xHCI PCI glue */
-int xhci_register_pci(void);
-void xhci_unregister_pci(void);
-#else
-static inline int xhci_register_pci(void) { return 0; }
-static inline void xhci_unregister_pci(void) {}
-#endif
-
-struct xhci_plat_data {
-	unsigned vendor;
-	unsigned revision;
-};
-
-#if defined(CONFIG_USB_XHCI_PLATFORM) \
-	|| defined(CONFIG_USB_XHCI_PLATFORM_MODULE)
-int xhci_register_plat(void);
-void xhci_unregister_plat(void);
-#else
-static inline int xhci_register_plat(void)
-{ return 0; }
-static inline void xhci_unregister_plat(void)
-{  }
-#endif
-
-/* xHCI host controller glue */
-typedef void (*xhci_get_quirks_t)(struct device *, struct xhci_hcd *);
-int handshake(struct xhci_hcd *xhci, void __iomem *ptr,
-=======
 /* xHCI host controller glue */
 typedef void (*xhci_get_quirks_t)(struct device *, struct xhci_hcd *);
 int xhci_handshake(struct xhci_hcd *xhci, void __iomem *ptr,
->>>>>>> android-3.18
 		u32 mask, u32 done, int usec);
 void xhci_quiesce(struct xhci_hcd *xhci);
 int xhci_halt(struct xhci_hcd *xhci);
@@ -1932,19 +1849,11 @@ void xhci_queue_config_ep_quirk(struct xhci_hcd *xhci,
 		unsigned int slot_id, unsigned int ep_index,
 		struct xhci_dequeue_state *deq_state);
 void xhci_stop_endpoint_command_watchdog(unsigned long arg);
-<<<<<<< HEAD
-int xhci_cancel_cmd(struct xhci_hcd *xhci, struct xhci_command *command,
-		union xhci_trb *cmd_trb);
-void xhci_ring_ep_doorbell(struct xhci_hcd *xhci, unsigned int slot_id,
-		unsigned int ep_index, unsigned int stream_id);
-union xhci_trb *xhci_find_next_enqueue(struct xhci_ring *ring);
-=======
 void xhci_handle_command_timeout(struct work_struct *work);
 
 void xhci_ring_ep_doorbell(struct xhci_hcd *xhci, unsigned int slot_id,
 		unsigned int ep_index, unsigned int stream_id);
 void xhci_cleanup_command_queue(struct xhci_hcd *xhci);
->>>>>>> android-3.18
 
 /* xHCI roothub code */
 void xhci_set_link_state(struct xhci_hcd *xhci, __le32 __iomem **port_array,

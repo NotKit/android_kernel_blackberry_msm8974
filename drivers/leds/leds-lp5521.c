@@ -177,35 +177,6 @@ static void lp5521_run_engine(struct lp55xx_chip *chip, bool start)
 	u8 mode;
 	u8 exec;
 
-<<<<<<< HEAD
-	/* move current engine to direct mode and remember the state */
-	ret = lp5521_set_engine_mode(eng, LP5521_CMD_DIRECT);
-	if (ret)
-		return ret;
-
-	/* Mode change requires min 500 us delay. 1 - 2 ms  with margin */
-	usleep_range(1000, 2000);
-	ret = lp5521_read(client, LP5521_REG_OP_MODE, &mode);
-	if (ret)
-		return ret;
-
-	/* For loading, all the engines to load mode */
-	lp5521_write(client, LP5521_REG_OP_MODE, LP5521_CMD_DIRECT);
-	/* Mode change requires min 500 us delay. 1 - 2 ms  with margin */
-	usleep_range(1000, 2000);
-	lp5521_write(client, LP5521_REG_OP_MODE, LP5521_CMD_LOAD);
-	/* Mode change requires min 500 us delay. 1 - 2 ms  with margin */
-	usleep_range(1000, 2000);
-
-	addr = LP5521_PROG_MEM_BASE + eng->prog_page * LP5521_PROG_MEM_SIZE;
-	i2c_smbus_write_i2c_block_data(client,
-				addr,
-				LP5521_PROG_MEM_SIZE,
-				pattern);
-
-	return lp5521_write(client, LP5521_REG_OP_MODE, mode);
-}
-=======
 	/* stop engine */
 	if (!start) {
 		lp5521_stop_engine(chip);
@@ -213,7 +184,6 @@ static void lp5521_run_engine(struct lp55xx_chip *chip, bool start)
 		lp5521_wait_opmode_done();
 		return;
 	}
->>>>>>> android-3.18
 
 	/*
 	 * To run the engine,
@@ -576,31 +546,9 @@ static int lp5521_probe(struct i2c_client *client,
 
 	i2c_set_clientdata(client, led);
 
-<<<<<<< HEAD
-	/*
-	 * Make sure that the chip is reset by reading back the r channel
-	 * current reg. This is dummy read is required on some platforms -
-	 * otherwise further access to the R G B channels in the
-	 * LP5521_REG_ENABLE register will not have any effect - strange!
-	 */
-	ret = lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
-	if (ret || buf != LP5521_REG_R_CURR_DEFAULT) {
-		dev_err(&client->dev, "error in resetting chip\n");
-		goto fail2;
-	}
-	usleep_range(10000, 20000);
-
-	ret = lp5521_detect(client);
-
-	if (ret) {
-		dev_err(&client->dev, "Chip not found\n");
-		goto fail2;
-	}
-=======
 	ret = lp55xx_init_device(chip);
 	if (ret)
 		goto err_init;
->>>>>>> android-3.18
 
 	dev_info(&client->dev, "%s programmable led chip found\n", id->name);
 

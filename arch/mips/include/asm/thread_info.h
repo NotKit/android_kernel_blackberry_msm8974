@@ -90,23 +90,6 @@ static inline struct thread_info *current_thread_info(void)
 
 #define STACK_WARN	(THREAD_SIZE / 8)
 
-<<<<<<< HEAD
-#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-
-#ifdef CONFIG_DEBUG_STACK_USAGE
-#define alloc_thread_info_node(tsk, node) \
-		kzalloc_node(THREAD_SIZE, GFP_KERNEL, node)
-#else
-#define alloc_thread_info_node(tsk, node) \
-		kmalloc_node(THREAD_SIZE, GFP_KERNEL, node)
-#endif
-
-#define free_thread_info(info) kfree(info)
-
-#define PREEMPT_ACTIVE		0x10000000
-
-=======
->>>>>>> android-3.18
 /*
  * thread information flags
  * - these are process state flags that various assembly files may need to

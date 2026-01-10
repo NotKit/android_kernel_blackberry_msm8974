@@ -633,14 +633,9 @@ bool radeon_card_posted(struct radeon_device *rdev)
 {
 	uint32_t reg;
 
-<<<<<<< HEAD
-	if (efi_enabled(EFI_BOOT) &&
-	    rdev->pdev->subsystem_vendor == PCI_VENDOR_ID_APPLE)
-=======
 	/* for pass through, always force asic_init for CI */
 	if (rdev->family >= CHIP_BONAIRE &&
 	    radeon_device_is_virtual())
->>>>>>> android-3.18
 		return false;
 
 	/* required for EFI mode on macbook2,1 which uses an r5xx asic */

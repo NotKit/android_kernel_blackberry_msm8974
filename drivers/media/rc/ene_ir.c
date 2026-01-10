@@ -1033,11 +1033,8 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
 	spin_lock_init(&dev->hw_lock);
 
 	dev->hw_io = pnp_port_start(pnp_dev, 0);
-<<<<<<< HEAD
-=======
 	dev->irq = pnp_irq(pnp_dev, 0);
 
->>>>>>> android-3.18
 
 	pnp_set_drvdata(pnp_dev, dev);
 	dev->pnp_dev = pnp_dev;

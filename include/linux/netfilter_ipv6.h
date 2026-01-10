@@ -8,9 +8,6 @@
 #define __LINUX_IP6_NETFILTER_H
 
 #include <uapi/linux/netfilter_ipv6.h>
-<<<<<<< HEAD
-
-=======
 
 
 #ifdef CONFIG_NETFILTER
@@ -35,7 +32,6 @@ static inline const struct nf_ipv6_ops *nf_get_ipv6_ops(void)
 {
 	return rcu_dereference(nf_ipv6_ops);
 }
->>>>>>> android-3.18
 
 #else /* CONFIG_NETFILTER */
 static inline int ipv6_netfilter_init(void) { return 0; }

@@ -61,29 +61,6 @@ void arch_cpu_idle(void)
 #endif
 }
 
-<<<<<<< HEAD
-void (*idle)(void) = default_idle;
-
-/*
- * The idle thread. There's no useful work to be
- * done, so just try to conserve power and have a
- * low exit latency (ie sit in a loop waiting for
- * somebody to say that they'd like to reschedule)
- */
-void cpu_idle(void)
-{
-	/* endless idle loop with no priority at all */
-	while (1) {
-		rcu_idle_enter();
-		while (!need_resched())
-			idle();
-		rcu_idle_exit();
-		schedule_preempt_disabled();
-	}
-}
-
-=======
->>>>>>> android-3.18
 void machine_restart(char * __unused)
 {
 	if (mach_reset)

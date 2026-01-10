@@ -122,14 +122,11 @@ static const struct usb_device_id id_table[] = {
 	{USB_DEVICE(0x1410, 0xa021)},	/* Novatel Gobi 3000 Composite */
 	{USB_DEVICE(0x413c, 0x8193)},	/* Dell Gobi 3000 QDL */
 	{USB_DEVICE(0x413c, 0x8194)},	/* Dell Gobi 3000 Composite */
-<<<<<<< HEAD
-=======
 	{USB_DEVICE(0x413c, 0x81a6)},	/* Dell DW5570 QDL (MC8805) */
 	{USB_DEVICE(0x1199, 0x68a4)},	/* Sierra Wireless QDL */
 	{USB_DEVICE(0x1199, 0x68a5)},	/* Sierra Wireless Modem */
 	{USB_DEVICE(0x1199, 0x68a8)},	/* Sierra Wireless QDL */
 	{USB_DEVICE(0x1199, 0x68a9)},	/* Sierra Wireless Modem */
->>>>>>> android-3.18
 	{USB_DEVICE(0x1199, 0x9010)},	/* Sierra Wireless Gobi 3000 QDL */
 	{USB_DEVICE(0x1199, 0x9012)},	/* Sierra Wireless Gobi 3000 QDL */
 	{USB_DEVICE(0x1199, 0x9013)},	/* Sierra Wireless Gobi 3000 Modem device (MC8355) */
@@ -137,13 +134,6 @@ static const struct usb_device_id id_table[] = {
 	{USB_DEVICE(0x1199, 0x9015)},	/* Sierra Wireless Gobi 3000 Modem device */
 	{USB_DEVICE(0x1199, 0x9018)},	/* Sierra Wireless Gobi 3000 QDL */
 	{USB_DEVICE(0x1199, 0x9019)},	/* Sierra Wireless Gobi 3000 Modem device */
-<<<<<<< HEAD
-	{USB_DEVICE(0x12D1, 0x14F0)},	/* Sony Gobi 3000 QDL */
-	{USB_DEVICE(0x12D1, 0x14F1)},	/* Sony Gobi 3000 Composite */
-	{USB_DEVICE(0x05c6, 0x9048)},	/* MDM9x15 device */
-	{USB_DEVICE(0x05c6, 0x904C)},	/* MDM9x15 device */
-	{USB_DEVICE(0x0AF0, 0x8120)},	/* Option GTM681W */
-=======
 	{USB_DEVICE(0x1199, 0x901b)},	/* Sierra Wireless MC7770 */
 	{USB_DEVICE(0x12D1, 0x14F0)},	/* Sony Gobi 3000 QDL */
 	{USB_DEVICE(0x12D1, 0x14F1)},	/* Sony Gobi 3000 Composite */
@@ -191,26 +181,10 @@ static const struct usb_device_id id_table[] = {
 	/* Huawei devices */
 	{DEVICE_HWI(0x03f0, 0x581d)},	/* HP lt4112 LTE/HSPA+ Gobi 4G Modem (Huawei me906e) */
 
->>>>>>> android-3.18
 	{ }				/* Terminating entry */
 };
 MODULE_DEVICE_TABLE(usb, id_table);
 
-<<<<<<< HEAD
-#define EFS_SYNC_IFC_NUM	2
-
-static struct usb_driver qcdriver = {
-	.name			= "qcserial",
-	.probe			= usb_serial_probe,
-	.disconnect		= usb_serial_disconnect,
-	.id_table		= id_table,
-	.suspend		= usb_serial_suspend,
-	.resume			= usb_serial_resume,
-	.supports_autosuspend	= true,
-};
-
-=======
->>>>>>> android-3.18
 static int qcprobe(struct usb_serial *serial, const struct usb_device_id *id)
 {
 	struct usb_host_interface *intf = serial->interface->cur_altsetting;
@@ -378,18 +352,6 @@ static int qcprobe(struct usb_serial *serial, const struct usb_device_id *id)
 				intf->desc.bInterfaceProtocol);
 		}
 		break;
-<<<<<<< HEAD
-
-	case 9:
-		if (ifnum != EFS_SYNC_IFC_NUM) {
-			kfree(data);
-			break;
-		}
-
-		retval = 0;
-		break;
-=======
->>>>>>> android-3.18
 	default:
 		dev_err(dev, "unsupported device layout type: %lu\n",
 			id->driver_info);
@@ -447,14 +409,7 @@ static struct usb_serial_driver qcdevice = {
 	.write		     = usb_wwan_write,
 	.write_room	     = usb_wwan_write_room,
 	.chars_in_buffer     = usb_wwan_chars_in_buffer,
-<<<<<<< HEAD
-	.throttle            = usb_wwan_throttle,
-	.unthrottle          = usb_wwan_unthrottle,
-	.attach		     = usb_wwan_startup,
-	.disconnect	     = usb_wwan_disconnect,
-=======
 	.attach              = qc_attach,
->>>>>>> android-3.18
 	.release	     = qc_release,
 	.port_probe          = usb_wwan_port_probe,
 	.port_remove	     = usb_wwan_port_remove,

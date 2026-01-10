@@ -103,8 +103,6 @@ static bool radeon_read_bios(struct radeon_device *rdev)
 	return true;
 }
 
-<<<<<<< HEAD
-=======
 static bool radeon_read_platform_bios(struct radeon_device *rdev)
 {
 	uint8_t __iomem *bios;
@@ -128,7 +126,6 @@ static bool radeon_read_platform_bios(struct radeon_device *rdev)
 	return true;
 }
 
->>>>>>> android-3.18
 #ifdef CONFIG_ACPI
 /* ATRM is used to get the BIOS on the discrete cards in
  * dual-gpu systems.
@@ -186,18 +183,6 @@ static bool radeon_atrm_get_bios(struct radeon_device *rdev)
 	acpi_handle dhandle, atrm_handle;
 	acpi_status status;
 	bool found = false;
-<<<<<<< HEAD
-
-	/* ATRM is for the discrete card only */
-	if (rdev->flags & RADEON_IS_IGP)
-		return false;
-
-	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, pdev)) != NULL) {
-		dhandle = DEVICE_ACPI_HANDLE(&pdev->dev);
-		if (!dhandle)
-			continue;
-
-=======
 
 	/* ATRM is for the discrete card only */
 	if (rdev->flags & RADEON_IS_IGP)
@@ -208,7 +193,6 @@ static bool radeon_atrm_get_bios(struct radeon_device *rdev)
 		if (!dhandle)
 			continue;
 
->>>>>>> android-3.18
 		status = acpi_get_handle(dhandle, "ATRM", &atrm_handle);
 		if (!ACPI_FAILURE(status)) {
 			found = true;
@@ -216,8 +200,6 @@ static bool radeon_atrm_get_bios(struct radeon_device *rdev)
 		}
 	}
 
-<<<<<<< HEAD
-=======
 	if (!found) {
 		while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_OTHER << 8, pdev)) != NULL) {
 			dhandle = ACPI_HANDLE(&pdev->dev);
@@ -232,7 +214,6 @@ static bool radeon_atrm_get_bios(struct radeon_device *rdev)
 		}
 	}
 
->>>>>>> android-3.18
 	if (!found)
 		return false;
 
@@ -649,11 +630,7 @@ static bool radeon_acpi_vfct_bios(struct radeon_device *rdev)
 	    vhdr->DeviceID != rdev->pdev->device) {
 		DRM_INFO("ACPI VFCT table is not for this card\n");
 		goto out_unmap;
-<<<<<<< HEAD
-	};
-=======
 	}
->>>>>>> android-3.18
 
 	if (vfct->VBIOSImageOffset + sizeof(VFCT_IMAGE_HEADER) + vhdr->ImageLength > tbl_size) {
 		DRM_ERROR("ACPI VFCT image truncated\n");

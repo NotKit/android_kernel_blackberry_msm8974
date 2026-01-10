@@ -456,15 +456,9 @@ dstnr;	stb	r6,0(r4)
 	blr
 
 .Lsrc_error:
-<<<<<<< HEAD
-	ld	r14,STK_REG(r14)(r1)
-	ld	r15,STK_REG(r15)(r1)
-	ld	r16,STK_REG(r16)(r1)
-=======
 	ld	r14,STK_REG(R14)(r1)
 	ld	r15,STK_REG(R15)(r1)
 	ld	r16,STK_REG(R16)(r1)
->>>>>>> android-3.18
 	addi	r1,r1,STACKFRAMESIZE
 .Lsrc_error_nr:
 	cmpdi	0,r7,0
@@ -474,15 +468,9 @@ dstnr;	stb	r6,0(r4)
 	blr
 
 .Ldest_error:
-<<<<<<< HEAD
-	ld	r14,STK_REG(r14)(r1)
-	ld	r15,STK_REG(r15)(r1)
-	ld	r16,STK_REG(r16)(r1)
-=======
 	ld	r14,STK_REG(R14)(r1)
 	ld	r15,STK_REG(R15)(r1)
 	ld	r16,STK_REG(R16)(r1)
->>>>>>> android-3.18
 	addi	r1,r1,STACKFRAMESIZE
 .Ldest_error_nr:
 	cmpdi	0,r8,0

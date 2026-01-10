@@ -37,8 +37,6 @@ struct ip_tunnel_parm {
 	struct iphdr		iph;
 };
 
-<<<<<<< HEAD
-=======
 enum {
 	IFLA_IPTUN_UNSPEC,
 	IFLA_IPTUN_LINK,
@@ -72,7 +70,6 @@ enum tunnel_encap_types {
 #define TUNNEL_ENCAP_FLAG_CSUM		(1<<0)
 #define TUNNEL_ENCAP_FLAG_CSUM6		(1<<1)
 
->>>>>>> android-3.18
 /* SIT-mode i_flags */
 #define	SIT_ISATAP	0x0001
 
@@ -110,24 +107,17 @@ enum {
 	IFLA_GRE_ENCAP_LIMIT,
 	IFLA_GRE_FLOWINFO,
 	IFLA_GRE_FLAGS,
-<<<<<<< HEAD
-=======
 	IFLA_GRE_ENCAP_TYPE,
 	IFLA_GRE_ENCAP_FLAGS,
 	IFLA_GRE_ENCAP_SPORT,
 	IFLA_GRE_ENCAP_DPORT,
->>>>>>> android-3.18
 	__IFLA_GRE_MAX,
 };
 
 #define IFLA_GRE_MAX	(__IFLA_GRE_MAX - 1)
 
 /* VTI-mode i_flags */
-<<<<<<< HEAD
-#define VTI_ISVTI 0x0001
-=======
 #define VTI_ISVTI ((__force __be16)0x0001)
->>>>>>> android-3.18
 
 enum {
 	IFLA_VTI_UNSPEC,

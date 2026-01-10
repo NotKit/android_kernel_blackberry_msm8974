@@ -773,13 +773,8 @@ static void edge_bulk_out_cmd_callback(struct urb *urb)
 	int status = urb->status;
 
 	atomic_dec(&CmdUrbs);
-<<<<<<< HEAD
-	dbg("%s - FREE URB %pK (outstanding %d)", __func__,
-					urb, atomic_read(&CmdUrbs));
-=======
 	dev_dbg(&urb->dev->dev, "%s - FREE URB %p (outstanding %d)\n",
 		__func__, urb, atomic_read(&CmdUrbs));
->>>>>>> android-3.18
 
 
 	/* clean up the transfer buffer */
@@ -1618,40 +1613,6 @@ static int edge_ioctl(struct tty_struct *tty,
 	case TIOCGSERIAL:
 		dev_dbg(&port->dev, "%s TIOCGSERIAL\n", __func__);
 		return get_serial_info(edge_port, (struct serial_struct __user *) arg);
-<<<<<<< HEAD
-
-	case TIOCMIWAIT:
-		dbg("%s (%d) TIOCMIWAIT", __func__,  port->number);
-		cprev = edge_port->icount;
-		while (1) {
-			prepare_to_wait(&port->delta_msr_wait,
-						&wait, TASK_INTERRUPTIBLE);
-			schedule();
-			finish_wait(&port->delta_msr_wait, &wait);
-			/* see if a signal did it */
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			cnow = edge_port->icount;
-			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
-			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts)
-				return -EIO; /* no change => error */
-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-			    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
-				return 0;
-			}
-			cprev = cnow;
-		}
-		/* NOTREACHED */
-		break;
-
-=======
->>>>>>> android-3.18
 	}
 	return -ENOIOCTLCMD;
 }
@@ -2014,11 +1975,7 @@ static void handle_new_msr(struct edgeport_port *edge_port, __u8 newMsr)
 			icount->dcd++;
 		if (newMsr & EDGEPORT_MSR_DELTA_RI)
 			icount->rng++;
-<<<<<<< HEAD
-		wake_up_interruptible(&edge_port->port->delta_msr_wait);
-=======
 		wake_up_interruptible(&edge_port->port->port.delta_msr_wait);
->>>>>>> android-3.18
 	}
 
 	/* Save the new modem status */
@@ -2254,13 +2211,8 @@ static int write_cmd_usb(struct edgeport_port *edge_port,
 		return -ENOMEM;
 
 	atomic_inc(&CmdUrbs);
-<<<<<<< HEAD
-	dbg("%s - ALLOCATE URB %pK (outstanding %d)",
-				__func__, urb, atomic_read(&CmdUrbs));
-=======
 	dev_dbg(dev, "%s - ALLOCATE URB %p (outstanding %d)\n",
 		__func__, urb, atomic_read(&CmdUrbs));
->>>>>>> android-3.18
 
 	usb_fill_bulk_urb(urb, edge_serial->serial->dev,
 			usb_sndbulkpipe(edge_serial->serial->dev,

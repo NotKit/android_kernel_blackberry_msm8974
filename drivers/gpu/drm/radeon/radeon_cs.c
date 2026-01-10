@@ -346,26 +346,6 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 		if (p->chunks[i].chunk_id == RADEON_CHUNK_ID_CONST_IB)
 			continue;
 
-<<<<<<< HEAD
-	/* these are KMS only */
-	if (p->rdev) {
-		if ((p->cs_flags & RADEON_CS_USE_VM) &&
-		    !p->rdev->vm_manager.enabled) {
-			DRM_ERROR("VM not active on asic!\n");
-			return -EINVAL;
-		}
-
-		/* we only support VM on SI+ */
-		if ((p->rdev->family >= CHIP_TAHITI) &&
-		    ((p->cs_flags & RADEON_CS_USE_VM) == 0)) {
-			DRM_ERROR("VM required on SI+!\n");
-			return -EINVAL;
-		}
-
-		if (radeon_cs_get_ring(p, ring, priority))
-			return -EINVAL;
-	}
-=======
 		if (p->chunks[i].chunk_id == RADEON_CHUNK_ID_IB) {
 			if (!p->rdev || !(p->rdev->flags & RADEON_IS_AGP))
 				continue;
@@ -395,7 +375,6 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 			DRM_ERROR("VM not active on asic!\n");
 			return -EINVAL;
 		}
->>>>>>> android-3.18
 
 		if (radeon_cs_get_ring(p, ring, priority))
 			return -EINVAL;

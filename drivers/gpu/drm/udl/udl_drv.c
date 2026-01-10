@@ -11,40 +11,7 @@
 #include <drm/drm_crtc_helper.h>
 #include "udl_drv.h"
 
-<<<<<<< HEAD
-static struct drm_driver driver;
-
-/*
- * There are many DisplayLink-based graphics products, all with unique PIDs.
- * So we match on DisplayLink's VID + Vendor-Defined Interface Class (0xff)
- * We also require a match on SubClass (0x00) and Protocol (0x00),
- * which is compatible with all known USB 2.0 era graphics chips and firmware,
- * but allows DisplayLink to increment those for any future incompatible chips
- */
-static struct usb_device_id id_table[] = {
-	{.idVendor = 0x17e9, .bInterfaceClass = 0xff,
-	 .bInterfaceSubClass = 0x00,
-	 .bInterfaceProtocol = 0x00,
-	 .match_flags = USB_DEVICE_ID_MATCH_VENDOR |
-			USB_DEVICE_ID_MATCH_INT_CLASS |
-			USB_DEVICE_ID_MATCH_INT_SUBCLASS |
-			USB_DEVICE_ID_MATCH_INT_PROTOCOL,},
-	{},
-};
-MODULE_DEVICE_TABLE(usb, id_table);
-
-MODULE_LICENSE("GPL");
-
-static int udl_usb_probe(struct usb_interface *interface,
-			 const struct usb_device_id *id)
-{
-	return drm_get_usb_dev(interface, id, &driver);
-}
-
-static void udl_usb_disconnect(struct usb_interface *interface)
-=======
 static int udl_driver_set_busid(struct drm_device *d, struct drm_master *m)
->>>>>>> android-3.18
 {
 	return 0;
 }

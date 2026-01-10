@@ -1018,13 +1018,8 @@ clear_vcr:
 	ARM_DBG_WRITE(c0, c7, 0, 0);
 	isb();
 
-<<<<<<< HEAD
-reset_regs:
-	if (halting_mode_enabled())
-=======
 	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
 		pr_warn_once("CPU %d failed to disable vector catch\n", cpu);
->>>>>>> android-3.18
 		return;
 	}
 
@@ -1042,9 +1037,6 @@ reset_regs:
 		write_wb_reg(ARM_BASE_WCR + i, 0UL);
 		write_wb_reg(ARM_BASE_WVR + i, 0UL);
 	}
-<<<<<<< HEAD
-	enable_monitor_mode();
-=======
 
 	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
 		pr_warn_once("CPU %d failed to clear debug register pairs\n", cpu);
@@ -1058,7 +1050,6 @@ reset_regs:
 out_mdbgen:
 	if (enable_monitor_mode())
 		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
->>>>>>> android-3.18
 }
 
 static int dbg_reset_notify(struct notifier_block *self,
@@ -1171,10 +1162,7 @@ static int __init arch_hw_breakpoint_init(void)
 
 	cpu_notifier_register_done();
 
-<<<<<<< HEAD
-=======
 	pm_init();
->>>>>>> android-3.18
 	return 0;
 }
 arch_initcall(arch_hw_breakpoint_init);

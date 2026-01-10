@@ -1245,91 +1245,11 @@ static void rtl92c_dm_init_dynamic_bb_powersaving(struct ieee80211_hw *hw)
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	struct ps_t *dm_pstable = &rtlpriv->dm_pstable;
 
-<<<<<<< HEAD
-	if (is_hal_stop(rtlhal)) {
-		RT_TRACE(rtlpriv, COMP_RATE, DBG_LOUD,
-			 "<---- driver is going to unload\n");
-		return;
-	}
-
-	if (!rtlpriv->dm.useramask) {
-		RT_TRACE(rtlpriv, COMP_RATE, DBG_LOUD,
-			 "<---- driver does not control rate adaptive mask\n");
-		return;
-	}
-
-	if (mac->link_state == MAC80211_LINKED &&
-	    mac->opmode == NL80211_IFTYPE_STATION) {
-		switch (p_ra->pre_ratr_state) {
-		case DM_RATR_STA_HIGH:
-			high_rssithresh_for_ra = 50;
-			low_rssithresh_for_ra = 20;
-			break;
-		case DM_RATR_STA_MIDDLE:
-			high_rssithresh_for_ra = 55;
-			low_rssithresh_for_ra = 20;
-			break;
-		case DM_RATR_STA_LOW:
-			high_rssithresh_for_ra = 50;
-			low_rssithresh_for_ra = 25;
-			break;
-		default:
-			high_rssithresh_for_ra = 50;
-			low_rssithresh_for_ra = 20;
-			break;
-		}
-
-		if (rtlpriv->dm.undecorated_smoothed_pwdb >
-		    (long)high_rssithresh_for_ra)
-			p_ra->ratr_state = DM_RATR_STA_HIGH;
-		else if (rtlpriv->dm.undecorated_smoothed_pwdb >
-			 (long)low_rssithresh_for_ra)
-			p_ra->ratr_state = DM_RATR_STA_MIDDLE;
-		else
-			p_ra->ratr_state = DM_RATR_STA_LOW;
-
-		if (p_ra->pre_ratr_state != p_ra->ratr_state) {
-			RT_TRACE(rtlpriv, COMP_RATE, DBG_LOUD, "RSSI = %ld\n",
-				 rtlpriv->dm.undecorated_smoothed_pwdb);
-			RT_TRACE(rtlpriv, COMP_RATE, DBG_LOUD,
-				 "RSSI_LEVEL = %d\n", p_ra->ratr_state);
-			RT_TRACE(rtlpriv, COMP_RATE, DBG_LOUD,
-				 "PreState = %d, CurState = %d\n",
-				 p_ra->pre_ratr_state, p_ra->ratr_state);
-
-			/* Only the PCI card uses sta in the update rate table
-			 * callback routine */
-			if (rtlhal->interface == INTF_PCI) {
-				rcu_read_lock();
-				sta = ieee80211_find_sta(mac->vif, mac->bssid);
-				if (!sta)
-					goto out_unlock;
-			}
-			rtlpriv->cfg->ops->update_rate_tbl(hw, sta,
-					p_ra->ratr_state);
-
-			p_ra->pre_ratr_state = p_ra->ratr_state;
-		out_unlock:
-			if (rtlhal->interface == INTF_PCI)
-				rcu_read_unlock();
-		}
-	}
-}
-
-static void rtl92c_dm_init_dynamic_bb_powersaving(struct ieee80211_hw *hw)
-{
-	dm_pstable.pre_ccastate = CCA_MAX;
-	dm_pstable.cur_ccasate = CCA_MAX;
-	dm_pstable.pre_rfstate = RF_MAX;
-	dm_pstable.cur_rfstate = RF_MAX;
-	dm_pstable.rssi_val_min = 0;
-=======
 	dm_pstable->pre_ccastate = CCA_MAX;
 	dm_pstable->cur_ccasate = CCA_MAX;
 	dm_pstable->pre_rfstate = RF_MAX;
 	dm_pstable->cur_rfstate = RF_MAX;
 	dm_pstable->rssi_val_min = 0;
->>>>>>> android-3.18
 }
 
 void rtl92c_dm_rf_saving(struct ieee80211_hw *hw, u8 bforce_in_normal)

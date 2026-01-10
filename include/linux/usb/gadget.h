@@ -533,21 +533,8 @@ struct usb_gadget_ops {
  *	only supports HNP on a different root port.
  * @b_hnp_enable: OTG device feature flag, indicating that the A-Host
  *	enabled HNP support.
-<<<<<<< HEAD
- * @host_request: A flag set by user when wishes to take up host role.
- * @otg_srp_reqd: OTG test mode feature to initiate SRP after the end of
- * current session.
- * @name: Identifies the controller hardware type.  Used in diagnostics
- *	and sometimes configuration.
- * @dev: Driver model state for this abstract device.
- * @usb_core_id: Identifies the usb core controlled by this usb_gadget.
- *		 Used in case of more then one core operates concurrently.
- * @streaming_enabled: Enable streaming mode with usb core.
- * @xfer_isr_count: UI (transfer complete) interrupts count
-=======
  * @quirk_ep_out_aligned_size: epout requires buffer size to be aligned to
  *	MaxPacketSize.
->>>>>>> android-3.18
  *
  * Gadgets have a mostly-portable "gadget driver" implementing device
  * functions, handling all usb configurations and interfaces.  Gadget
@@ -587,18 +574,7 @@ struct usb_gadget {
 	unsigned			b_hnp_enable:1;
 	unsigned			a_hnp_support:1;
 	unsigned			a_alt_hnp_support:1;
-<<<<<<< HEAD
-	unsigned			host_request:1;
-	unsigned			otg_srp_reqd:1;
-	const char			*name;
-	struct device			dev;
-	u8				usb_core_id;
-	bool				l1_supported;
-	bool				streaming_enabled;
-	u32				xfer_isr_count;
-=======
 	unsigned			quirk_ep_out_aligned_size:1;
->>>>>>> android-3.18
 };
 #define work_to_gadget(w)	(container_of((w), struct usb_gadget, work))
 

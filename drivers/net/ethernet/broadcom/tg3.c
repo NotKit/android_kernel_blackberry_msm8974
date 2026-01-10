@@ -336,8 +336,6 @@ static const struct pci_device_id tg3_pci_tbl[] = {
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_5719)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_5720)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_57762)},
-<<<<<<< HEAD
-=======
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_57766)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_5762)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_5725)},
@@ -347,7 +345,6 @@ static const struct pci_device_id tg3_pci_tbl[] = {
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_57787)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_57782)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, TG3PCI_DEVICE_TIGON3_57786)},
->>>>>>> android-3.18
 	{PCI_DEVICE(PCI_VENDOR_ID_SYSKONNECT, PCI_DEVICE_ID_SYSKONNECT_9DXX)},
 	{PCI_DEVICE(PCI_VENDOR_ID_SYSKONNECT, PCI_DEVICE_ID_SYSKONNECT_9MXX)},
 	{PCI_DEVICE(PCI_VENDOR_ID_ALTIMA, PCI_DEVICE_ID_ALTIMA_AC1000)},
@@ -1325,18 +1322,6 @@ static int tg3_phy_toggle_auxctl_smdsp(struct tg3 *tp, bool enable)
 
 	if (err)
 		return err;
-<<<<<<< HEAD
-	if (enable)
-
-		val |= MII_TG3_AUXCTL_ACTL_SMDSP_ENA;
-	else
-		val &= ~MII_TG3_AUXCTL_ACTL_SMDSP_ENA;
-
-	err = tg3_phy_auxctl_write((tp), MII_TG3_AUXCTL_SHDWSEL_AUXCTL,
-				   val | MII_TG3_AUXCTL_ACTL_TX_6DB);
-
-	return err;
-=======
 
 	if (enable)
 		val |= MII_TG3_AUXCTL_ACTL_SMDSP_ENA;
@@ -1353,7 +1338,6 @@ static int tg3_phy_shdw_write(struct tg3 *tp, int reg, u32 val)
 {
 	return tg3_writephy(tp, MII_TG3_MISC_SHDW,
 			    reg | val | MII_TG3_MISC_SHDW_WREN);
->>>>>>> android-3.18
 }
 
 static int tg3_bmcr_reset(struct tg3 *tp)
@@ -1830,16 +1814,12 @@ static int tg3_poll_fw(struct tg3 *tp)
 	if (tg3_flag(tp, NO_FWARE_REPORTED))
 		return 0;
 
-<<<<<<< HEAD
-	if (GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5906) {
-=======
 	if (tg3_flag(tp, IS_SSB_CORE)) {
 		/* We don't use firmware. */
 		return 0;
 	}
 
 	if (tg3_asic_rev(tp) == ASIC_REV_5906) {
->>>>>>> android-3.18
 		/* Wait up to 20ms for init done. */
 		for (i = 0; i < 200; i++) {
 			if (tr32(VCPU_STATUS) & VCPU_STATUS_INIT_DONE)
@@ -2360,8 +2340,6 @@ static void tg3_phy_apply_otp(struct tg3 *tp)
 	tg3_phydsp_write(tp, MII_TG3_DSP_EXP97, phy);
 
 	tg3_phy_toggle_auxctl_smdsp(tp, false);
-<<<<<<< HEAD
-=======
 }
 
 static void tg3_eee_pull_config(struct tg3 *tp, struct ethtool_eee *eee)
@@ -2402,7 +2380,6 @@ static void tg3_eee_pull_config(struct tg3 *tp, struct ethtool_eee *eee)
 
 	/* Pull lpi timer value */
 	dest->tx_lpi_timer = tr32(TG3_CPMU_EEE_DBTMR1) & 0xffff;
->>>>>>> android-3.18
 }
 
 static void tg3_phy_eee_adjust(struct tg3 *tp, bool current_link_up)
@@ -2434,11 +2411,7 @@ static void tg3_phy_eee_adjust(struct tg3 *tp, bool current_link_up)
 	}
 
 	if (!tp->setlpicnt) {
-<<<<<<< HEAD
-		if (current_link_up == 1 &&
-=======
 		if (current_link_up &&
->>>>>>> android-3.18
 		   !tg3_phy_toggle_auxctl_smdsp(tp, true)) {
 			tg3_phydsp_write(tp, MII_TG3_DSP_TAP26, 0x0000);
 			tg3_phy_toggle_auxctl_smdsp(tp, false);
@@ -3046,11 +3019,7 @@ static int tg3_5700_link_polarity(struct tg3 *tp, u32 speed)
 
 static bool tg3_phy_power_bug(struct tg3 *tp)
 {
-<<<<<<< HEAD
-	switch (GET_ASIC_REV(tp->pci_chip_rev_id)) {
-=======
 	switch (tg3_asic_rev(tp)) {
->>>>>>> android-3.18
 	case ASIC_REV_5700:
 	case ASIC_REV_5704:
 		return true;
@@ -3073,8 +3042,6 @@ static bool tg3_phy_power_bug(struct tg3 *tp)
 	return false;
 }
 
-<<<<<<< HEAD
-=======
 static bool tg3_phy_led_bug(struct tg3 *tp)
 {
 	switch (tg3_asic_rev(tp)) {
@@ -3089,7 +3056,6 @@ static bool tg3_phy_led_bug(struct tg3 *tp)
 	return false;
 }
 
->>>>>>> android-3.18
 static void tg3_power_down_phy(struct tg3 *tp, bool do_low_power)
 {
 	u32 val;
@@ -4481,11 +4447,7 @@ static void tg3_phy_copper_begin(struct tg3 *tp)
 		tp->link_config.active_speed = tp->link_config.speed;
 		tp->link_config.active_duplex = tp->link_config.duplex;
 
-<<<<<<< HEAD
-		if (GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5714) {
-=======
 		if (tg3_asic_rev(tp) == ASIC_REV_5714) {
->>>>>>> android-3.18
 			/* With autoneg disabled, 5715 only links up when the
 			 * advertisement register has the configured speed
 			 * enabled.
@@ -9865,11 +9827,7 @@ static void tg3_rss_write_indir_tbl(struct tg3 *tp)
 
 static inline u32 tg3_lso_rd_dma_workaround_bit(struct tg3 *tp)
 {
-<<<<<<< HEAD
-	if (GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5719)
-=======
 	if (tg3_asic_rev(tp) == ASIC_REV_5719)
->>>>>>> android-3.18
 		return TG3_LSO_RD_DMA_TX_LENGTH_WA_5719;
 	else
 		return TG3_LSO_RD_DMA_TX_LENGTH_WA_5720;
@@ -10336,10 +10294,6 @@ static int tg3_reset_hw(struct tg3 *tp, bool reset_phy)
 	    tg3_asic_rev(tp) == ASIC_REV_5785 ||
 	    tg3_asic_rev(tp) == ASIC_REV_57780 ||
 	    tg3_flag(tp, 57765_PLUS)) {
-<<<<<<< HEAD
-		val = tr32(TG3_RDMA_RSRVCTRL_REG);
-		if (tp->pci_chip_rev_id == CHIPREV_ID_5719_A0) {
-=======
 		u32 tgtreg;
 
 		if (tg3_asic_rev(tp) == ASIC_REV_5762)
@@ -10350,7 +10304,6 @@ static int tg3_reset_hw(struct tg3 *tp, bool reset_phy)
 		val = tr32(tgtreg);
 		if (tg3_chip_rev_id(tp) == CHIPREV_ID_5719_A0 ||
 		    tg3_asic_rev(tp) == ASIC_REV_5762) {
->>>>>>> android-3.18
 			val &= ~(TG3_RDMA_RSRVCTRL_TXMRGN_MASK |
 				 TG3_RDMA_RSRVCTRL_FIFO_LWM_MASK |
 				 TG3_RDMA_RSRVCTRL_FIFO_HWM_MASK);
@@ -10547,13 +10500,8 @@ static int tg3_reset_hw(struct tg3 *tp, bool reset_phy)
 	tw32_f(RDMAC_MODE, rdmac_mode);
 	udelay(40);
 
-<<<<<<< HEAD
-	if (GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5719 ||
-	    GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5720) {
-=======
 	if (tg3_asic_rev(tp) == ASIC_REV_5719 ||
 	    tg3_asic_rev(tp) == ASIC_REV_5720) {
->>>>>>> android-3.18
 		for (i = 0; i < TG3_NUM_RDMA_CHANNELS; i++) {
 			if (tr32(TG3_RDMA_LENGTH + (i << 2)) > TG3_MAX_MTU(tp))
 				break;
@@ -14226,16 +14174,10 @@ static struct rtnl_link_stats64 *tg3_get_stats64(struct net_device *dev,
 	struct tg3 *tp = netdev_priv(dev);
 
 	spin_lock_bh(&tp->lock);
-<<<<<<< HEAD
-	if (!tp->hw_stats) {
-		spin_unlock_bh(&tp->lock);
-		return &tp->net_stats_prev;
-=======
 	if (!tp->hw_stats || !tg3_flag(tp, INIT_COMPLETE)) {
 		*stats = tp->net_stats_prev;
 		spin_unlock_bh(&tp->lock);
 		return stats;
->>>>>>> android-3.18
 	}
 
 	tg3_get_nstats(tp, stats);
@@ -16439,10 +16381,6 @@ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
 		}
 	}
 
-<<<<<<< HEAD
-	if (tg3_flag(tp, 5755_PLUS) ||
-	    GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5906)
-=======
 	tp->txq_max = 1;
 	tp->rxq_max = 1;
 	if (tp->irq_max > 1) {
@@ -16456,7 +16394,6 @@ static int tg3_get_invariants(struct tg3 *tp, const struct pci_device_id *ent)
 
 	if (tg3_flag(tp, 5755_PLUS) ||
 	    tg3_asic_rev(tp) == ASIC_REV_5906)
->>>>>>> android-3.18
 		tg3_flag_set(tp, SHORT_DMA_BUG);
 
 	if (tg3_asic_rev(tp) == ASIC_REV_5719)
@@ -17709,10 +17646,7 @@ static int tg3_init_one(struct pci_dev *pdev,
 	tp->rx_mode = TG3_DEF_RX_MODE;
 	tp->tx_mode = TG3_DEF_TX_MODE;
 	tp->irq_sync = 1;
-<<<<<<< HEAD
-=======
 	tp->pcierr_recovery = false;
->>>>>>> android-3.18
 
 	if (tg3_debug > 0)
 		tp->msg_enable = tg3_debug;

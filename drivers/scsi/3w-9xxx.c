@@ -1367,12 +1367,8 @@ static irqreturn_t twa_interrupt(int irq, void *dev_instance)
 				}
 
 				/* Now complete the io */
-<<<<<<< HEAD
-				scsi_dma_unmap(cmd);
-=======
 				if (twa_command_mapped(cmd))
 					scsi_dma_unmap(cmd);
->>>>>>> android-3.18
 				cmd->scsi_done(cmd);
 				tw_dev->state[request_id] = TW_S_COMPLETED;
 				twa_free_request_id(tw_dev, request_id);
@@ -1615,12 +1611,8 @@ static int twa_reset_device_extension(TW_Device_Extension *tw_dev)
 				struct scsi_cmnd *cmd = tw_dev->srb[i];
 
 				cmd->result = (DID_RESET << 16);
-<<<<<<< HEAD
-				scsi_dma_unmap(cmd);
-=======
 				if (twa_command_mapped(cmd))
 					scsi_dma_unmap(cmd);
->>>>>>> android-3.18
 				cmd->scsi_done(cmd);
 			}
 		}
@@ -1803,22 +1795,14 @@ static int twa_scsi_queue_lck(struct scsi_cmnd *SCpnt, void (*done)(struct scsi_
 	retval = twa_scsiop_execute_scsi(tw_dev, request_id, NULL, 0, NULL);
 	switch (retval) {
 	case SCSI_MLQUEUE_HOST_BUSY:
-<<<<<<< HEAD
-		scsi_dma_unmap(SCpnt);
-=======
 		if (twa_command_mapped(SCpnt))
 			scsi_dma_unmap(SCpnt);
->>>>>>> android-3.18
 		twa_free_request_id(tw_dev, request_id);
 		break;
 	case 1:
 		SCpnt->result = (DID_ERROR << 16);
-<<<<<<< HEAD
-		scsi_dma_unmap(SCpnt);
-=======
 		if (twa_command_mapped(SCpnt))
 			scsi_dma_unmap(SCpnt);
->>>>>>> android-3.18
 		done(SCpnt);
 		tw_dev->state[request_id] = TW_S_COMPLETED;
 		twa_free_request_id(tw_dev, request_id);

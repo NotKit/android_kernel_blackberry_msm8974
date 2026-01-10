@@ -399,7 +399,7 @@ config VIDEO_SAA717X
 	  To compile this driver as a module, choose M here: the
 	  module will be called saa717x.
 
-source "drivers/media/video/cx25840/Kconfig"
+# source "drivers/media/video/cx25840/Kconfig"
 
 comment "MPEG video encoders"
 
@@ -548,7 +548,7 @@ config VIDEO_NOON010PC30
 	---help---
 	  This driver supports NOON010PC30 CIF camera from Siliconfile
 
-source "drivers/media/video/m5mols/Kconfig"
+# source "drivers/media/video/m5mols/Kconfig"
 
 config VIDEO_S5K6AA
 	tristate "Samsung S5K6AAFX sensor support"
@@ -645,31 +645,31 @@ menuconfig V4L_USB_DRIVERS
 
 if V4L_USB_DRIVERS
 
-source "drivers/media/video/uvc/Kconfig"
+# source "drivers/media/video/uvc/Kconfig"
 
-source "drivers/media/video/gspca/Kconfig"
+# source "drivers/media/video/gspca/Kconfig"
 
-source "drivers/media/video/pvrusb2/Kconfig"
+# source "drivers/media/video/pvrusb2/Kconfig"
 
-source "drivers/media/video/hdpvr/Kconfig"
+# source "drivers/media/video/hdpvr/Kconfig"
 
-source "drivers/media/video/em28xx/Kconfig"
+# source "drivers/media/video/em28xx/Kconfig"
 
-source "drivers/media/video/tlg2300/Kconfig"
+# source "drivers/media/video/tlg2300/Kconfig"
 
-source "drivers/media/video/cx231xx/Kconfig"
+# source "drivers/media/video/cx231xx/Kconfig"
 
-source "drivers/media/video/tm6000/Kconfig"
+# source "drivers/media/video/tm6000/Kconfig"
 
-source "drivers/media/video/usbvision/Kconfig"
+# source "drivers/media/video/usbvision/Kconfig"
 
-source "drivers/media/video/et61x251/Kconfig"
+# source "drivers/media/video/et61x251/Kconfig"
 
-source "drivers/media/video/sn9c102/Kconfig"
+# source "drivers/media/video/sn9c102/Kconfig"
 
-source "drivers/media/video/pwc/Kconfig"
+# source "drivers/media/video/pwc/Kconfig"
 
-source "drivers/media/video/cpia2/Kconfig"
+# source "drivers/media/video/cpia2/Kconfig"
 
 config USB_ZR364XX
 	tristate "USB ZR364XX Camera support"
@@ -722,17 +722,17 @@ menuconfig V4L_PCI_DRIVERS
 
 if V4L_PCI_DRIVERS
 
-source "drivers/media/video/au0828/Kconfig"
+# source "drivers/media/video/au0828/Kconfig"
 
-source "drivers/media/video/bt8xx/Kconfig"
+# source "drivers/media/video/bt8xx/Kconfig"
 
-source "drivers/media/video/cx18/Kconfig"
+# source "drivers/media/video/cx18/Kconfig"
 
-source "drivers/media/video/cx23885/Kconfig"
+# source "drivers/media/video/cx23885/Kconfig"
 
-source "drivers/media/video/cx25821/Kconfig"
+# source "drivers/media/video/cx25821/Kconfig"
 
-source "drivers/media/video/cx88/Kconfig"
+# source "drivers/media/video/cx88/Kconfig"
 
 config VIDEO_HEXIUM_GEMINI
 	tristate "Hexium Gemini frame grabber"
@@ -757,7 +757,7 @@ config VIDEO_HEXIUM_ORION
 	  To compile this driver as a module, choose M here: the
 	  module will be called hexium_orion.
 
-source "drivers/media/video/ivtv/Kconfig"
+# source "drivers/media/video/ivtv/Kconfig"
 
 config VIDEO_MEYE
 	tristate "Sony Vaio Picturebook Motion Eye Video For Linux"
@@ -789,11 +789,11 @@ config VIDEO_MXB
 	  To compile this driver as a module, choose M here: the
 	  module will be called mxb.
 
-source "drivers/media/video/saa7134/Kconfig"
+# source "drivers/media/video/saa7134/Kconfig"
 
-source "drivers/media/video/saa7164/Kconfig"
+# source "drivers/media/video/saa7164/Kconfig"
 
-source "drivers/media/video/zoran/Kconfig"
+# source "drivers/media/video/zoran/Kconfig"
 
 endif # V4L_PCI_DRIVERS
 
@@ -864,7 +864,7 @@ menuconfig V4L_PLATFORM_DRIVERS
 
 if V4L_PLATFORM_DRIVERS
 
-source "drivers/media/video/marvell-ccic/Kconfig"
+# source "drivers/media/video/marvell-ccic/Kconfig"
 
 config VIDEO_VIA_CAMERA
 	tristate "VIAFB camera controller support"
@@ -880,11 +880,11 @@ config VIDEO_VIA_CAMERA
 # Platform multimedia device configuration
 #
 
-source "drivers/media/video/davinci/Kconfig"
+# source "drivers/media/video/davinci/Kconfig"
 
-source "drivers/media/video/omap/Kconfig"
+# source "drivers/media/video/omap/Kconfig"
 
-source "drivers/media/video/blackfin/Kconfig"
+# source "drivers/media/video/blackfin/Kconfig"
 
 config VIDEO_SH_VOU
 	tristate "SuperH VOU video output driver"
@@ -1159,7 +1159,7 @@ config VIDEO_S5P_MIPI_CSIS
 	  To compile this driver as a module, choose M here: the
 	  module will be called s5p-csis.
 
-source "drivers/media/video/s5p-tv/Kconfig"
+# source "drivers/media/video/s5p-tv/Kconfig"
 
 
 

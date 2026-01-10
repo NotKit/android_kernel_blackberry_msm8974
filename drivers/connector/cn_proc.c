@@ -30,10 +30,7 @@
 #include <linux/gfp.h>
 #include <linux/ptrace.h>
 #include <linux/atomic.h>
-<<<<<<< HEAD
-=======
 #include <linux/pid_namespace.h>
->>>>>>> android-3.18
 
 #include <linux/cn_proc.h>
 
@@ -72,28 +69,16 @@ void proc_fork_connector(struct task_struct *task)
 	struct cn_msg *msg;
 	struct proc_event *ev;
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 	struct task_struct *parent;
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
 		return;
 
 	msg = buffer_to_cn_msg(buffer);
-<<<<<<< HEAD
-	ev = (struct proc_event*)msg->data;
-	memset(&ev->event_data, 0, sizeof(ev->event_data));
-	get_seq(&msg->seq, &ev->cpu);
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev = (struct proc_event *)msg->data;
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	get_seq(&msg->seq, &ev->cpu);
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 	ev->what = PROC_EVENT_FORK;
 	rcu_read_lock();
 	parent = rcu_dereference(task->real_parent);
@@ -115,28 +100,16 @@ void proc_exec_connector(struct task_struct *task)
 {
 	struct cn_msg *msg;
 	struct proc_event *ev;
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
 		return;
 
 	msg = buffer_to_cn_msg(buffer);
-<<<<<<< HEAD
-	ev = (struct proc_event*)msg->data;
-	memset(&ev->event_data, 0, sizeof(ev->event_data));
-	get_seq(&msg->seq, &ev->cpu);
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev = (struct proc_event *)msg->data;
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	get_seq(&msg->seq, &ev->cpu);
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 	ev->what = PROC_EVENT_EXEC;
 	ev->event_data.exec.process_pid = task->pid;
 	ev->event_data.exec.process_tgid = task->tgid;
@@ -145,11 +118,7 @@ void proc_exec_connector(struct task_struct *task)
 	msg->ack = 0; /* not used */
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
-<<<<<<< HEAD
-	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-=======
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
->>>>>>> android-3.18
 }
 
 void proc_id_connector(struct task_struct *task, int which_id)
@@ -157,21 +126,13 @@ void proc_id_connector(struct task_struct *task, int which_id)
 	struct cn_msg *msg;
 	struct proc_event *ev;
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 	const struct cred *cred;
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
 		return;
 
 	msg = buffer_to_cn_msg(buffer);
-<<<<<<< HEAD
-	ev = (struct proc_event*)msg->data;
-=======
 	ev = (struct proc_event *)msg->data;
->>>>>>> android-3.18
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	ev->what = which_id;
 	ev->event_data.id.process_pid = task->pid;
@@ -190,32 +151,19 @@ void proc_id_connector(struct task_struct *task, int which_id)
 	}
 	rcu_read_unlock();
 	get_seq(&msg->seq, &ev->cpu);
-<<<<<<< HEAD
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 
 	memcpy(&msg->id, &cn_proc_event_id, sizeof(msg->id));
 	msg->ack = 0; /* not used */
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
-<<<<<<< HEAD
-	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-=======
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
->>>>>>> android-3.18
 }
 
 void proc_sid_connector(struct task_struct *task)
 {
 	struct cn_msg *msg;
 	struct proc_event *ev;
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
@@ -225,12 +173,7 @@ void proc_sid_connector(struct task_struct *task)
 	ev = (struct proc_event *)msg->data;
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	get_seq(&msg->seq, &ev->cpu);
-<<<<<<< HEAD
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 	ev->what = PROC_EVENT_SID;
 	ev->event_data.sid.process_pid = task->pid;
 	ev->event_data.sid.process_tgid = task->tgid;
@@ -239,21 +182,13 @@ void proc_sid_connector(struct task_struct *task)
 	msg->ack = 0; /* not used */
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
-<<<<<<< HEAD
-	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-=======
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
->>>>>>> android-3.18
 }
 
 void proc_ptrace_connector(struct task_struct *task, int ptrace_id)
 {
 	struct cn_msg *msg;
 	struct proc_event *ev;
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
@@ -263,12 +198,7 @@ void proc_ptrace_connector(struct task_struct *task, int ptrace_id)
 	ev = (struct proc_event *)msg->data;
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	get_seq(&msg->seq, &ev->cpu);
-<<<<<<< HEAD
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 	ev->what = PROC_EVENT_PTRACE;
 	ev->event_data.ptrace.process_pid  = task->pid;
 	ev->event_data.ptrace.process_tgid = task->tgid;
@@ -285,21 +215,13 @@ void proc_ptrace_connector(struct task_struct *task, int ptrace_id)
 	msg->ack = 0; /* not used */
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
-<<<<<<< HEAD
-	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-=======
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
->>>>>>> android-3.18
 }
 
 void proc_comm_connector(struct task_struct *task)
 {
 	struct cn_msg *msg;
 	struct proc_event *ev;
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
@@ -309,12 +231,7 @@ void proc_comm_connector(struct task_struct *task)
 	ev = (struct proc_event *)msg->data;
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	get_seq(&msg->seq, &ev->cpu);
-<<<<<<< HEAD
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 	ev->what = PROC_EVENT_COMM;
 	ev->event_data.comm.process_pid  = task->pid;
 	ev->event_data.comm.process_tgid = task->tgid;
@@ -324,9 +241,6 @@ void proc_comm_connector(struct task_struct *task)
 	msg->ack = 0; /* not used */
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
-<<<<<<< HEAD
-	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-=======
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
 }
 
@@ -353,7 +267,6 @@ void proc_coredump_connector(struct task_struct *task)
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
->>>>>>> android-3.18
 }
 
 void proc_exit_connector(struct task_struct *task)
@@ -361,27 +274,15 @@ void proc_exit_connector(struct task_struct *task)
 	struct cn_msg *msg;
 	struct proc_event *ev;
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
 		return;
 
 	msg = buffer_to_cn_msg(buffer);
-<<<<<<< HEAD
-	ev = (struct proc_event*)msg->data;
-	memset(&ev->event_data, 0, sizeof(ev->event_data));
-	get_seq(&msg->seq, &ev->cpu);
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev = (struct proc_event *)msg->data;
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	get_seq(&msg->seq, &ev->cpu);
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 	ev->what = PROC_EVENT_EXIT;
 	ev->event_data.exit.process_pid = task->pid;
 	ev->event_data.exit.process_tgid = task->tgid;
@@ -392,11 +293,7 @@ void proc_exit_connector(struct task_struct *task)
 	msg->ack = 0; /* not used */
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
-<<<<<<< HEAD
-	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-=======
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
->>>>>>> android-3.18
 }
 
 /*
@@ -412,27 +309,15 @@ static void cn_proc_ack(int err, int rcvd_seq, int rcvd_ack)
 	struct cn_msg *msg;
 	struct proc_event *ev;
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
-<<<<<<< HEAD
-	struct timespec ts;
-=======
->>>>>>> android-3.18
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
 		return;
 
 	msg = buffer_to_cn_msg(buffer);
-<<<<<<< HEAD
-	ev = (struct proc_event*)msg->data;
-	memset(&ev->event_data, 0, sizeof(ev->event_data));
-	msg->seq = rcvd_seq;
-	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-	ev->timestamp_ns = timespec_to_ns(&ts);
-=======
 	ev = (struct proc_event *)msg->data;
 	memset(&ev->event_data, 0, sizeof(ev->event_data));
 	msg->seq = rcvd_seq;
 	ev->timestamp_ns = ktime_get_ns();
->>>>>>> android-3.18
 	ev->cpu = -1;
 	ev->what = PROC_EVENT_NONE;
 	ev->event_data.ack.err = err;
@@ -440,11 +325,7 @@ static void cn_proc_ack(int err, int rcvd_seq, int rcvd_ack)
 	msg->ack = rcvd_ack + 1;
 	msg->len = sizeof(*ev);
 	msg->flags = 0; /* not used */
-<<<<<<< HEAD
-	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-=======
 	cn_netlink_send(msg, 0, CN_IDX_PROC, GFP_KERNEL);
->>>>>>> android-3.18
 }
 
 /**
@@ -460,10 +341,6 @@ static void cn_proc_mcast_ctl(struct cn_msg *msg,
 	if (msg->len != sizeof(*mc_op))
 		return;
 
-<<<<<<< HEAD
-	/* Can only change if privileged. */
-	if (!capable(CAP_NET_ADMIN)) {
-=======
 	/* 
 	 * Events are reported with respect to the initial pid
 	 * and user namespaces so ignore requestors from
@@ -475,16 +352,11 @@ static void cn_proc_mcast_ctl(struct cn_msg *msg,
 
 	/* Can only change if privileged. */
 	if (!__netlink_ns_capable(nsp, &init_user_ns, CAP_NET_ADMIN)) {
->>>>>>> android-3.18
 		err = EPERM;
 		goto out;
 	}
 
-<<<<<<< HEAD
-	mc_op = (enum proc_cn_mcast_op*)msg->data;
-=======
 	mc_op = (enum proc_cn_mcast_op *)msg->data;
->>>>>>> android-3.18
 	switch (*mc_op) {
 	case PROC_CN_MCAST_LISTEN:
 		atomic_inc(&proc_event_num_listeners);

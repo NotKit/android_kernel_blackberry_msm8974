@@ -27,21 +27,6 @@
 
 int hwreg_present(volatile void *regp)
 {
-<<<<<<< HEAD
-    int	ret = 0;
-    unsigned long flags;
-    long	save_sp, save_vbr;
-    long	tmp_vectors[3];
-
-    local_irq_save(flags);
-    __asm__ __volatile__
-	(	"movec	%/vbr,%2\n\t"
-		"movel	#Lberr1,%4@(8)\n\t"
-                "movec	%4,%/vbr\n\t"
-		"movel	%/sp,%1\n\t"
-		"moveq	#0,%0\n\t"
-		"tstb	%3@\n\t"
-=======
 	int ret = 0;
 	unsigned long flags;
 	long save_sp, save_vbr;
@@ -55,7 +40,6 @@ int hwreg_present(volatile void *regp)
 		"movel %/sp,%1\n\t"
 		"moveq #0,%0\n\t"
 		"tstb %3@\n\t"
->>>>>>> android-3.18
 		"nop\n\t"
 		"moveq #1,%0\n"
 	"Lberr1:\n\t"
@@ -63,13 +47,8 @@ int hwreg_present(volatile void *regp)
 		"movec %2,%/vbr"
 		: "=&d" (ret), "=&r" (save_sp), "=&r" (save_vbr)
 		: "a" (regp), "a" (tmp_vectors)
-<<<<<<< HEAD
-                );
-    local_irq_restore(flags);
-=======
 	);
 	local_irq_restore(flags);
->>>>>>> android-3.18
 
 	return ret;
 }
@@ -81,25 +60,6 @@ EXPORT_SYMBOL(hwreg_present);
 
 int hwreg_write(volatile void *regp, unsigned short val)
 {
-<<<<<<< HEAD
-	int		ret;
-	unsigned long flags;
-	long	save_sp, save_vbr;
-	long	tmp_vectors[3];
-
-	local_irq_save(flags);
-	__asm__ __volatile__
-	(	"movec	%/vbr,%2\n\t"
-		"movel	#Lberr2,%4@(8)\n\t"
-		"movec	%4,%/vbr\n\t"
-		"movel	%/sp,%1\n\t"
-		"moveq	#0,%0\n\t"
-		"movew	%5,%3@\n\t"
-		"nop	\n\t"	/* If this nop isn't present, 'ret' may already be
-				 * loaded with 1 at the time the bus error
-				 * happens! */
-		"moveq	#1,%0\n"
-=======
 	int ret;
 	unsigned long flags;
 	long save_sp, save_vbr;
@@ -119,7 +79,6 @@ int hwreg_write(volatile void *regp, unsigned short val)
 		 * with 1 at the time the bus error happens!
 		 */
 		"moveq #1,%0\n"
->>>>>>> android-3.18
 	"Lberr2:\n\t"
 		"movel %1,%/sp\n\t"
 		"movec %2,%/vbr"

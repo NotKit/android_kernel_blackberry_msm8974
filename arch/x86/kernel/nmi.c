@@ -500,18 +500,6 @@ nmi_restart:
 		debug_stack_set_zero();
 		this_cpu_write(update_debug_stack, 1);
 	}
-<<<<<<< HEAD
-}
-
-static inline void nmi_nesting_postprocess(void)
-{
-	if (unlikely(this_cpu_read(update_debug_stack))) {
-		debug_stack_reset();
-		this_cpu_write(update_debug_stack, 0);
-	}
-}
-=======
->>>>>>> android-3.18
 #endif
 
 	nmi_enter();

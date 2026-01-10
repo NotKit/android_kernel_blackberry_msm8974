@@ -299,11 +299,7 @@ static int handle_remove(const char *nodename, struct device *dev)
 {
 	struct path parent;
 	struct dentry *dentry;
-<<<<<<< HEAD
-	int deleted = 1;
-=======
 	int deleted = 0;
->>>>>>> android-3.18
 	int err;
 
 	dentry = kern_path_locked(nodename, &parent);
@@ -312,38 +308,23 @@ static int handle_remove(const char *nodename, struct device *dev)
 
 	if (dentry->d_inode) {
 		struct kstat stat;
-<<<<<<< HEAD
-		err = vfs_getattr(parent.mnt, dentry, &stat);
-=======
 		struct path p = {.mnt = parent.mnt, .dentry = dentry};
 		err = vfs_getattr(&p, &stat);
->>>>>>> android-3.18
 		if (!err && dev_mynode(dev, dentry->d_inode, &stat)) {
 			struct iattr newattrs;
 			/*
 			 * before unlinking this node, reset permissions
 			 * of possible references like hardlinks
 			 */
-<<<<<<< HEAD
-			newattrs.ia_uid = 0;
-			newattrs.ia_gid = 0;
-=======
 			newattrs.ia_uid = GLOBAL_ROOT_UID;
 			newattrs.ia_gid = GLOBAL_ROOT_GID;
->>>>>>> android-3.18
 			newattrs.ia_mode = stat.mode & ~0777;
 			newattrs.ia_valid =
 				ATTR_UID|ATTR_GID|ATTR_MODE;
 			mutex_lock(&dentry->d_inode->i_mutex);
-<<<<<<< HEAD
-			notify_change(dentry, &newattrs);
-			mutex_unlock(&dentry->d_inode->i_mutex);
-			err = vfs_unlink(parent.dentry->d_inode, dentry);
-=======
 			notify_change(dentry, &newattrs, NULL);
 			mutex_unlock(&dentry->d_inode->i_mutex);
 			err = vfs_unlink(parent.dentry->d_inode, dentry, NULL);
->>>>>>> android-3.18
 			if (!err || err == -ENOENT)
 				deleted = 1;
 		}

@@ -232,25 +232,17 @@ static void cpt_write_infoframe(struct drm_encoder *encoder,
 		I915_WRITE(TVIDEO_DIP_DATA(intel_crtc->pipe), *data);
 		data++;
 	}
-<<<<<<< HEAD
-=======
 	/* Write every possible data byte to force correct ECC calculation. */
 	for (; i < VIDEO_DIP_DATA_SIZE; i += 4)
 		I915_WRITE(TVIDEO_DIP_DATA(intel_crtc->pipe), 0);
->>>>>>> android-3.18
 	mmiowb();
 
 	val |= g4x_infoframe_enable(type);
 	val &= ~VIDEO_DIP_FREQ_MASK;
 	val |= VIDEO_DIP_FREQ_VSYNC;
 
-<<<<<<< HEAD
-	I915_WRITE(VIDEO_DIP_CTL, VIDEO_DIP_ENABLE | val | port | flags);
-	POSTING_READ(VIDEO_DIP_CTL);
-=======
 	I915_WRITE(reg, val);
 	POSTING_READ(reg);
->>>>>>> android-3.18
 }
 
 static void vlv_write_infoframe(struct drm_encoder *encoder,
@@ -278,23 +270,16 @@ static void vlv_write_infoframe(struct drm_encoder *encoder,
 		I915_WRITE(VLV_TVIDEO_DIP_DATA(intel_crtc->pipe), *data);
 		data++;
 	}
-<<<<<<< HEAD
-=======
 	/* Write every possible data byte to force correct ECC calculation. */
 	for (; i < VIDEO_DIP_DATA_SIZE; i += 4)
 		I915_WRITE(VLV_TVIDEO_DIP_DATA(intel_crtc->pipe), 0);
->>>>>>> android-3.18
 	mmiowb();
 
 	val |= g4x_infoframe_enable(type);
 	val &= ~VIDEO_DIP_FREQ_MASK;
 	val |= VIDEO_DIP_FREQ_VSYNC;
 
-<<<<<<< HEAD
-	I915_WRITE(reg, VIDEO_DIP_ENABLE | val | flags);
-=======
 	I915_WRITE(reg, val);
->>>>>>> android-3.18
 	POSTING_READ(reg);
 }
 
@@ -776,11 +761,7 @@ static void intel_enable_hdmi(struct intel_encoder *encoder)
 	u32 temp;
 	u32 enable_bits = SDVO_ENABLE;
 
-<<<<<<< HEAD
-	if (intel_hdmi->has_audio || mode != DRM_MODE_DPMS_ON)
-=======
 	if (intel_crtc->config.has_audio)
->>>>>>> android-3.18
 		enable_bits |= SDVO_AUDIO_ENABLE;
 
 	temp = I915_READ(intel_hdmi->hdmi_reg);
@@ -1609,20 +1590,6 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
 		BUG();
 	}
 
-<<<<<<< HEAD
-	intel_hdmi->sdvox_reg = sdvox_reg;
-
-	if (!HAS_PCH_SPLIT(dev)) {
-		intel_hdmi->write_infoframe = i9xx_write_infoframe;
-		I915_WRITE(VIDEO_DIP_CTL, 0);
-		POSTING_READ(VIDEO_DIP_CTL);
-	} else {
-		intel_hdmi->write_infoframe = ironlake_write_infoframe;
-		for_each_pipe(i) {
-			I915_WRITE(TVIDEO_DIP_CTL(i), 0);
-			POSTING_READ(TVIDEO_DIP_CTL(i));
-		}
-=======
 	if (IS_VALLEYVIEW(dev)) {
 		intel_hdmi->write_infoframe = vlv_write_infoframe;
 		intel_hdmi->set_infoframes = vlv_set_infoframes;
@@ -1638,7 +1605,6 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
 	} else {
 		intel_hdmi->write_infoframe = cpt_write_infoframe;
 		intel_hdmi->set_infoframes = cpt_set_infoframes;
->>>>>>> android-3.18
 	}
 
 	if (HAS_DDI(dev))

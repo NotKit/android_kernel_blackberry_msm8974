@@ -10,16 +10,7 @@
 #include <linux/ceph/osdmap.h>
 #include <linux/ceph/messenger.h>
 #include <linux/ceph/auth.h>
-<<<<<<< HEAD
-
-/* 
- * Maximum object name size 
- * (must be at least as big as RBD_MAX_MD_NAME_LEN -- currently 100) 
- */
-#define MAX_OBJ_NAME_SIZE 100
-=======
 #include <linux/ceph/pagelist.h>
->>>>>>> android-3.18
 
 struct ceph_msg;
 struct ceph_snap_context;
@@ -250,14 +241,6 @@ extern void ceph_osdc_handle_reply(struct ceph_osd_client *osdc,
 extern void ceph_osdc_handle_map(struct ceph_osd_client *osdc,
 				 struct ceph_msg *msg);
 
-<<<<<<< HEAD
-extern int ceph_calc_raw_layout(struct ceph_osd_client *osdc,
-			struct ceph_file_layout *layout,
-			u64 snapid,
-			u64 off, u64 *plen, u64 *bno,
-			struct ceph_osd_request *req,
-			struct ceph_osd_req_op *op);
-=======
 extern void osd_req_op_init(struct ceph_osd_request *osd_req,
 					unsigned int which, u16 opcode);
 
@@ -319,7 +302,6 @@ extern void osd_req_op_alloc_hint_init(struct ceph_osd_request *osd_req,
 				       unsigned int which,
 				       u64 expected_object_size,
 				       u64 expected_write_size);
->>>>>>> android-3.18
 
 extern struct ceph_osd_request *ceph_osdc_alloc_request(struct ceph_osd_client *osdc,
 					       struct ceph_snap_context *snapc,

@@ -552,8 +552,6 @@ static const struct dmi_system_id video_vendor_dmi_table[] __initconst = {
 		},
 	},
 	{
-<<<<<<< HEAD
-=======
 		.callback = video_set_backlight_video_vendor,
 		.ident = "Acer Extensa 5235",
 		.matches = {
@@ -586,7 +584,6 @@ static const struct dmi_system_id video_vendor_dmi_table[] __initconst = {
 		},
 	},
 	{
->>>>>>> android-3.18
 		/*
 		 * Note no video_set_backlight_video_vendor, we must use the
 		 * acer interface, as there is no native backlight interface.

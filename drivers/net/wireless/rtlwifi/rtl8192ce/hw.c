@@ -955,10 +955,7 @@ int rtl92ce_hw_init(struct ieee80211_hw *hw)
 	local_save_flags(flags);
 	local_irq_enable();
 
-<<<<<<< HEAD
-=======
 	rtlhal->fw_ready = false;
->>>>>>> android-3.18
 	rtlpriv->intf_ops->disable_aspm(hw);
 	rtstatus = _rtl92ce_init_mac(hw);
 	if (!rtstatus) {
@@ -1082,8 +1079,6 @@ static enum version_8192c _rtl92ce_read_chip_version(struct ieee80211_hw *hw)
 				   ? CHIP_VENDOR_UMC_B_CUT : CHIP_UNKNOWN) |
 				   CHIP_VENDOR_UMC));
 		}
-<<<<<<< HEAD
-=======
 		if (IS_92C_SERIAL(version)) {
 			value32 = rtl_read_dword(rtlpriv, REG_HPON_FSM);
 			version = (enum version_8192c)(version |
@@ -1091,7 +1086,6 @@ static enum version_8192c _rtl92ce_read_chip_version(struct ieee80211_hw *hw)
 				   == CHIP_BONDING_92C_1T2R) ?
 				   RF_TYPE_1T2R : 0));
 		}
->>>>>>> android-3.18
 	}
 
 	switch (version) {

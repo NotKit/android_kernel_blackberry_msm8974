@@ -189,25 +189,6 @@ enum transport_lunflags_table {
 typedef unsigned __bitwise__ sense_reason_t;
 
 enum tcm_sense_reason_table {
-<<<<<<< HEAD
-	TCM_NON_EXISTENT_LUN			= 0x01,
-	TCM_UNSUPPORTED_SCSI_OPCODE		= 0x02,
-	TCM_INCORRECT_AMOUNT_OF_DATA		= 0x03,
-	TCM_UNEXPECTED_UNSOLICITED_DATA		= 0x04,
-	TCM_SERVICE_CRC_ERROR			= 0x05,
-	TCM_SNACK_REJECTED			= 0x06,
-	TCM_SECTOR_COUNT_TOO_MANY		= 0x07,
-	TCM_INVALID_CDB_FIELD			= 0x08,
-	TCM_INVALID_PARAMETER_LIST		= 0x09,
-	TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE	= 0x0a,
-	TCM_UNKNOWN_MODE_PAGE			= 0x0b,
-	TCM_WRITE_PROTECTED			= 0x0c,
-	TCM_CHECK_CONDITION_ABORT_CMD		= 0x0d,
-	TCM_CHECK_CONDITION_UNIT_ATTENTION	= 0x0e,
-	TCM_CHECK_CONDITION_NOT_READY		= 0x0f,
-	TCM_RESERVATION_CONFLICT		= 0x10,
-	TCM_ADDRESS_OUT_OF_RANGE		= 0x11,
-=======
 #define R(x)	(__force sense_reason_t )(x)
 	TCM_NO_SENSE				= R(0x00),
 	TCM_NON_EXISTENT_LUN			= R(0x01),
@@ -238,7 +219,6 @@ enum tcm_sense_reason_table {
 	TCM_TOO_MANY_SEGMENT_DESCS		= R(0x1b),
 	TCM_UNSUPPORTED_SEGMENT_DESC_TYPE_CODE	= R(0x1c),
 #undef R
->>>>>>> android-3.18
 };
 
 enum target_sc_flags_table {
@@ -864,37 +844,6 @@ struct se_hba {
 	struct se_subsystem_api *transport;
 };
 
-<<<<<<< HEAD
-struct se_port_stat_grps {
-	struct config_group stat_group;
-	struct config_group scsi_port_group;
-	struct config_group scsi_tgt_port_group;
-	struct config_group scsi_transport_group;
-};
-
-struct se_lun {
-#define SE_LUN_LINK_MAGIC			0xffff7771
-	u32			lun_link_magic;
-	/* See transport_lun_status_table */
-	enum transport_lun_status_table lun_status;
-	u32			lun_access;
-	u32			lun_flags;
-	u32			unpacked_lun;
-	atomic_t		lun_acl_count;
-	spinlock_t		lun_acl_lock;
-	spinlock_t		lun_cmd_lock;
-	spinlock_t		lun_sep_lock;
-	struct completion	lun_shutdown_comp;
-	struct list_head	lun_cmd_list;
-	struct list_head	lun_acl_list;
-	struct se_device	*lun_se_dev;
-	struct se_port		*lun_sep;
-	struct config_group	lun_group;
-	struct se_port_stat_grps port_stat_grps;
-};
-
-=======
->>>>>>> android-3.18
 struct scsi_port_stats {
        u64     cmd_pdus;
        u64     tx_data_octets;

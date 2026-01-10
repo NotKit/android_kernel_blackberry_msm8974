@@ -1117,61 +1117,6 @@ static void i965_write_entry(dma_addr_t addr,
 	writel(addr | pte_flags, intel_private.gtt + entry);
 }
 
-<<<<<<< HEAD
-static bool gen6_check_flags(unsigned int flags)
-{
-	return true;
-}
-
-static void gen6_write_entry(dma_addr_t addr, unsigned int entry,
-			     unsigned int flags)
-{
-	unsigned int type_mask = flags & ~AGP_USER_CACHED_MEMORY_GFDT;
-	unsigned int gfdt = flags & AGP_USER_CACHED_MEMORY_GFDT;
-	u32 pte_flags;
-
-	if (type_mask == AGP_USER_MEMORY)
-		pte_flags = GEN6_PTE_UNCACHED | I810_PTE_VALID;
-	else if (type_mask == AGP_USER_CACHED_MEMORY_LLC_MLC) {
-		pte_flags = GEN6_PTE_LLC_MLC | I810_PTE_VALID;
-		if (gfdt)
-			pte_flags |= GEN6_PTE_GFDT;
-	} else { /* set 'normal'/'cached' to LLC by default */
-		pte_flags = GEN6_PTE_LLC | I810_PTE_VALID;
-		if (gfdt)
-			pte_flags |= GEN6_PTE_GFDT;
-	}
-
-	/* gen6 has bit11-4 for physical addr bit39-32 */
-	addr |= (addr >> 28) & 0xff0;
-	writel(addr | pte_flags, intel_private.gtt + entry);
-}
-
-static void gen6_cleanup(void)
-{
-}
-
-/* Certain Gen5 chipsets require require idling the GPU before
- * unmapping anything from the GTT when VT-d is enabled.
- */
-static inline int needs_idle_maps(void)
-{
-#ifdef CONFIG_INTEL_IOMMU
-	const unsigned short gpu_devid = intel_private.pcidev->device;
-
-	/* Query intel_iommu to see if we need the workaround. Presumably that
-	 * was loaded first.
-	 */
-	if ((gpu_devid == PCI_DEVICE_ID_INTEL_IRONLAKE_D_IG ||
-	     gpu_devid == PCI_DEVICE_ID_INTEL_IRONLAKE_M_IG) &&
-	     intel_iommu_gfx_mapped)
-		return 1;
-#endif
-	return 0;
-}
-
-=======
->>>>>>> android-3.18
 static int i9xx_setup(void)
 {
 	phys_addr_t reg_addr;

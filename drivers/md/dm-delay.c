@@ -44,11 +44,6 @@ struct dm_delay_info {
 
 static DEFINE_MUTEX(delayed_bios_lock);
 
-<<<<<<< HEAD
-static struct kmem_cache *delayed_cache;
-
-=======
->>>>>>> android-3.18
 static void handle_delayed_timer(unsigned long data)
 {
 	struct delay_c *dc = (struct delay_c *)data;
@@ -213,11 +208,6 @@ out:
 	return 0;
 
 bad_queue:
-<<<<<<< HEAD
-	mempool_destroy(dc->delayed_pool);
-bad_dev_write:
-=======
->>>>>>> android-3.18
 	if (dc->dev_write)
 		dm_put_device(ti, dc->dev_write);
 bad_dev_read:
@@ -231,12 +221,8 @@ static void delay_dtr(struct dm_target *ti)
 {
 	struct delay_c *dc = ti->private;
 
-<<<<<<< HEAD
-	destroy_workqueue(dc->kdelayd_wq);
-=======
 	if (dc->kdelayd_wq)
 		destroy_workqueue(dc->kdelayd_wq);
->>>>>>> android-3.18
 
 	dm_put_device(ti, dc->dev_read);
 
@@ -312,11 +298,7 @@ static int delay_map(struct dm_target *ti, struct bio *bio)
 }
 
 static void delay_status(struct dm_target *ti, status_type_t type,
-<<<<<<< HEAD
-			 char *result, unsigned maxlen)
-=======
 			 unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	struct delay_c *dc = ti->private;
 	int sz = 0;
@@ -370,17 +352,7 @@ static struct target_type delay_target = {
 
 static int __init dm_delay_init(void)
 {
-<<<<<<< HEAD
-	int r = -ENOMEM;
-
-	delayed_cache = KMEM_CACHE(dm_delay_info, 0);
-	if (!delayed_cache) {
-		DMERR("Couldn't create delayed bio cache.");
-		goto bad_memcache;
-	}
-=======
 	int r;
->>>>>>> android-3.18
 
 	r = dm_register_target(&delay_target);
 	if (r < 0) {
@@ -391,21 +363,12 @@ static int __init dm_delay_init(void)
 	return 0;
 
 bad_register:
-<<<<<<< HEAD
-	kmem_cache_destroy(delayed_cache);
-bad_memcache:
-=======
->>>>>>> android-3.18
 	return r;
 }
 
 static void __exit dm_delay_exit(void)
 {
 	dm_unregister_target(&delay_target);
-<<<<<<< HEAD
-	kmem_cache_destroy(delayed_cache);
-=======
->>>>>>> android-3.18
 }
 
 /* Module hooks */

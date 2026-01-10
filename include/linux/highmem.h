@@ -39,15 +39,6 @@ extern unsigned long totalhigh_pages;
 
 void kmap_flush_unused(void);
 
-<<<<<<< HEAD
-#ifdef CONFIG_ARCH_WANT_KMAP_ATOMIC_FLUSH
-void kmap_atomic_flush_unused(void);
-#else
-static inline void kmap_atomic_flush_unused(void) { }
-#endif
-
-=======
->>>>>>> android-3.18
 struct page *kmap_to_page(void *addr);
 
 #else /* CONFIG_HIGHMEM */

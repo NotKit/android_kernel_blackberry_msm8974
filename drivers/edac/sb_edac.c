@@ -794,17 +794,9 @@ static int check_if_ecc_is_active(const u8 bus, enum type type)
 static int get_dimm_config(struct mem_ctl_info *mci)
 {
 	struct sbridge_pvt *pvt = mci->pvt_info;
-<<<<<<< HEAD
-	struct csrow_info *csr;
-	unsigned i, j, banks, ranks, rows, cols, npages;
-	u64 size;
-	int csrow = 0;
-	unsigned long last_page = 0;
-=======
 	struct dimm_info *dimm;
 	unsigned i, j, banks, ranks, rows, cols, npages;
 	u64 size;
->>>>>>> android-3.18
 	u32 reg;
 	enum edac_type mode;
 	enum mem_type mtype;
@@ -849,17 +841,6 @@ static int get_dimm_config(struct mem_ctl_info *mci)
 		pvt->is_close_pg = false;
 	}
 
-<<<<<<< HEAD
-	pci_read_config_dword(pvt->pci_ddrio, RANK_CFG_A, &reg);
-	if (IS_RDIMM_ENABLED(reg)) {
-		/* FIXME: Can also be LRDIMM */
-		debugf0("Memory is registered\n");
-		mtype = MEM_RDDR3;
-	} else {
-		debugf0("Memory is unregistered\n");
-		mtype = MEM_DDR3;
-	}
-=======
 	mtype = pvt->info.get_memory_type(pvt);
 	if (mtype == MEM_RDDR3 || mtype == MEM_RDDR4)
 		edac_dbg(0, "Memory is registered\n");
@@ -867,7 +848,6 @@ static int get_dimm_config(struct mem_ctl_info *mci)
 		edac_dbg(0, "Cannot determine memory type\n");
 	else
 		edac_dbg(0, "Memory is unregistered\n");
->>>>>>> android-3.18
 
 	if (mtype == MEM_DDR4 || mtype == MEM_RDDR4)
 		banks = 16;
@@ -890,35 +870,6 @@ static int get_dimm_config(struct mem_ctl_info *mci)
 				rows = numrow(mtr);
 				cols = numcol(mtr);
 
-<<<<<<< HEAD
-				/* DDR3 has 8 I/O banks */
-				size = ((u64)rows * cols * banks * ranks) >> (20 - 3);
-				npages = MiB_TO_PAGES(size);
-
-				debugf0("mc#%d: channel %d, dimm %d, %Ld Mb (%d pages) bank: %d, rank: %d, row: %#x, col: %#x\n",
-					pvt->sbridge_dev->mc, i, j,
-					size, npages,
-					banks, ranks, rows, cols);
-				csr = &mci->csrows[csrow];
-
-				csr->first_page = last_page;
-				csr->last_page = last_page + npages - 1;
-				csr->page_mask = 0UL;	/* Unused */
-				csr->nr_pages = npages;
-				csr->grain = 32;
-				csr->csrow_idx = csrow;
-				csr->dtype = (banks == 8) ? DEV_X8 : DEV_X4;
-				csr->ce_count = 0;
-				csr->ue_count = 0;
-				csr->mtype = mtype;
-				csr->edac_mode = mode;
-				csr->nr_channels = 1;
-				csr->channels[0].chan_idx = i;
-				csr->channels[0].ce_count = 0;
-				pvt->csrow_map[i][j] = csrow;
-				snprintf(csr->channels[0].label,
-					 sizeof(csr->channels[0].label),
-=======
 				size = ((u64)rows * cols * banks * ranks) >> (20 - 3);
 				npages = MiB_TO_PAGES(size);
 
@@ -943,7 +894,6 @@ static int get_dimm_config(struct mem_ctl_info *mci)
 				dimm->mtype = mtype;
 				dimm->edac_mode = mode;
 				snprintf(dimm->label, sizeof(dimm->label),
->>>>>>> android-3.18
 					 "CPU_SrcID#%u_Channel#%u_DIMM#%u",
 					 pvt->sbridge_dev->source_id, i, j);
 			}
@@ -971,24 +921,15 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 	tmp_mb = (1 + pvt->tolm) >> 20;
 
 	gb = div_u64_rem(tmp_mb, 1024, &mb);
-<<<<<<< HEAD
-	debugf0("TOHM: %u.%03u GB (0x%016Lx)\n",
-		gb, (mb*1000)/1024, (u64)pvt->tohm);
-=======
 	edac_dbg(0, "TOLM: %u.%03u GB (0x%016Lx)\n",
 		gb, (mb*1000)/1024, (u64)pvt->tolm);
->>>>>>> android-3.18
 
 	/* Address range is already 45:25 */
 	pvt->tohm = pvt->info.get_tohm(pvt);
 	tmp_mb = (1 + pvt->tohm) >> 20;
 
 	gb = div_u64_rem(tmp_mb, 1024, &mb);
-<<<<<<< HEAD
-	debugf0("TOHM: %u.%03u GB (0x%016Lx)",
-=======
 	edac_dbg(0, "TOHM: %u.%03u GB (0x%016Lx)\n",
->>>>>>> android-3.18
 		gb, (mb*1000)/1024, (u64)pvt->tohm);
 
 	/*
@@ -1011,16 +952,6 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 			break;
 
 		tmp_mb = (limit + 1) >> 20;
-<<<<<<< HEAD
-		gb = div_u64_rem(tmp_mb, 1000, &mb);
-		debugf0("SAD#%d %s up to %u.%03u GB (0x%016Lx) %s reg=0x%08x\n",
-			n_sads,
-			get_dram_attr(reg),
-			gb, (mb*1000)/1024,
-			((u64)tmp_mb) << 20L,
-			INTERLEAVE_MODE(reg) ? "Interleave: 8:6" : "Interleave: [8:6]XOR[18:16]",
-			reg);
-=======
 		gb = div_u64_rem(tmp_mb, 1024, &mb);
 		edac_dbg(0, "SAD#%d %s up to %u.%03u GB (0x%016Lx) Interleave: %s reg=0x%08x\n",
 			 n_sads,
@@ -1029,7 +960,6 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 			 ((u64)tmp_mb) << 20L,
 			 INTERLEAVE_MODE(reg) ? "8:6" : "[8:6]XOR[18:16]",
 			 reg);
->>>>>>> android-3.18
 		prv = limit;
 
 		pci_read_config_dword(pvt->pci_sad0, pvt->info.interleave_list[n_sads],
@@ -1057,19 +987,6 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 			break;
 		tmp_mb = (limit + 1) >> 20;
 
-<<<<<<< HEAD
-		gb = div_u64_rem(tmp_mb, 1000, &mb);
-		debugf0("TAD#%d: up to %u.%03u GB (0x%016Lx), socket interleave %d, memory interleave %d, TGT: %d, %d, %d, %d, reg=0x%08x\n",
-			n_tads, gb, (mb*1000)/1024,
-			((u64)tmp_mb) << 20L,
-			(u32)TAD_SOCK(reg),
-			(u32)TAD_CH(reg),
-			(u32)TAD_TGT0(reg),
-			(u32)TAD_TGT1(reg),
-			(u32)TAD_TGT2(reg),
-			(u32)TAD_TGT3(reg),
-			reg);
-=======
 		gb = div_u64_rem(tmp_mb, 1024, &mb);
 		edac_dbg(0, "TAD#%d: up to %u.%03u GB (0x%016Lx), socket interleave %d, memory interleave %d, TGT: %d, %d, %d, %d, reg=0x%08x\n",
 			 n_tads, gb, (mb*1000)/1024,
@@ -1081,7 +998,6 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 			 (u32)TAD_TGT2(reg),
 			 (u32)TAD_TGT3(reg),
 			 reg);
->>>>>>> android-3.18
 		prv = limit;
 	}
 
@@ -1097,19 +1013,11 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 					      &reg);
 			tmp_mb = TAD_OFFSET(reg) >> 20;
 			gb = div_u64_rem(tmp_mb, 1024, &mb);
-<<<<<<< HEAD
-			debugf0("TAD CH#%d, offset #%d: %u.%03u GB (0x%016Lx), reg=0x%08x\n",
-				i, j,
-				gb, (mb*1000)/1024,
-				((u64)tmp_mb) << 20L,
-				reg);
-=======
 			edac_dbg(0, "TAD CH#%d, offset #%d: %u.%03u GB (0x%016Lx), reg=0x%08x\n",
 				 i, j,
 				 gb, (mb*1000)/1024,
 				 ((u64)tmp_mb) << 20L,
 				 reg);
->>>>>>> android-3.18
 		}
 	}
 
@@ -1130,21 +1038,12 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 			tmp_mb = pvt->info.rir_limit(reg) >> 20;
 			rir_way = 1 << RIR_WAY(reg);
 			gb = div_u64_rem(tmp_mb, 1024, &mb);
-<<<<<<< HEAD
-			debugf0("CH#%d RIR#%d, limit: %u.%03u GB (0x%016Lx), way: %d, reg=0x%08x\n",
-				i, j,
-				gb, (mb*1000)/1024,
-				((u64)tmp_mb) << 20L,
-				rir_way,
-				reg);
-=======
 			edac_dbg(0, "CH#%d RIR#%d, limit: %u.%03u GB (0x%016Lx), way: %d, reg=0x%08x\n",
 				 i, j,
 				 gb, (mb*1000)/1024,
 				 ((u64)tmp_mb) << 20L,
 				 rir_way,
 				 reg);
->>>>>>> android-3.18
 
 			for (k = 0; k < rir_way; k++) {
 				pci_read_config_dword(pvt->pci_tad[i],
@@ -1153,21 +1052,12 @@ static void get_memory_layout(const struct mem_ctl_info *mci)
 				tmp_mb = RIR_OFFSET(reg) << 6;
 
 				gb = div_u64_rem(tmp_mb, 1024, &mb);
-<<<<<<< HEAD
-				debugf0("CH#%d RIR#%d INTL#%d, offset %u.%03u GB (0x%016Lx), tgt: %d, reg=0x%08x\n",
-					i, j, k,
-					gb, (mb*1000)/1024,
-					((u64)tmp_mb) << 20L,
-					(u32)RIR_RNK_TGT(reg),
-					reg);
-=======
 				edac_dbg(0, "CH#%d RIR#%d INTL#%d, offset %u.%03u GB (0x%016Lx), tgt: %d, reg=0x%08x\n",
 					 i, j, k,
 					 gb, (mb*1000)/1024,
 					 ((u64)tmp_mb) << 20L,
 					 (u32)RIR_RNK_TGT(reg),
 					 reg);
->>>>>>> android-3.18
 			}
 		}
 	}
@@ -1202,13 +1092,8 @@ static int get_memory_error_data(struct mem_ctl_info *mci,
 	u8			ch_way, sck_way, pkg, sad_ha = 0;
 	u32			tad_offset;
 	u32			rir_way;
-<<<<<<< HEAD
-	u32			gb, mb;
-	u64			ch_addr, offset, limit, prv = 0;
-=======
 	u32			mb, gb;
 	u64			ch_addr, offset, limit = 0, prv = 0;
->>>>>>> android-3.18
 
 
 	/*
@@ -1469,15 +1354,6 @@ static int get_memory_error_data(struct mem_ctl_info *mci,
 		if (!IS_RIR_VALID(reg))
 			continue;
 
-<<<<<<< HEAD
-		limit = RIR_LIMIT(reg);
-		gb = div_u64_rem(limit >> 20, 1024, &mb);
-		debugf0("RIR#%d, limit: %u.%03u GB (0x%016Lx), way: %d\n",
-			n_rir,
-			gb, (mb*1000)/1024,
-			limit,
-			1 << RIR_WAY(reg));
-=======
 		limit = pvt->info.rir_limit(reg);
 		gb = div_u64_rem(limit >> 20, 1024, &mb);
 		edac_dbg(0, "RIR#%d, limit: %u.%03u GB (0x%016Lx), way: %d\n",
@@ -1485,7 +1361,6 @@ static int get_memory_error_data(struct mem_ctl_info *mci,
 			 gb, (mb*1000)/1024,
 			 limit,
 			 1 << RIR_WAY(reg));
->>>>>>> android-3.18
 		if  (ch_addr <= limit)
 			break;
 	}
@@ -2245,13 +2120,8 @@ static void sbridge_unregister_mci(struct sbridge_dev *sbridge_dev)
 
 	pvt = mci->pvt_info;
 
-<<<<<<< HEAD
-	debugf0("MC: " __FILE__ ": %s(): mci = %p, dev = %p\n",
-		__func__, mci, &sbridge_dev->pdev[0]->dev);
-=======
 	edac_dbg(0, "MC: mci = %p, dev = %p\n",
 		 mci, &sbridge_dev->pdev[0]->dev);
->>>>>>> android-3.18
 
 	/* Remove MC sysfs nodes */
 	edac_mc_del_mc(mci->pdev);
@@ -2529,16 +2399,10 @@ static int __init sbridge_init(void)
 	opstate_init();
 
 	pci_rc = pci_register_driver(&sbridge_driver);
-<<<<<<< HEAD
-
-	if (pci_rc >= 0) {
-		mce_register_decode_chain(&sbridge_mce_dec);
-=======
 	if (pci_rc >= 0) {
 		mce_register_decode_chain(&sbridge_mce_dec);
 		if (get_edac_report_status() == EDAC_REPORTING_DISABLED)
 			sbridge_printk(KERN_WARNING, "Loading driver, error reporting disabled.\n");
->>>>>>> android-3.18
 		return 0;
 	}
 

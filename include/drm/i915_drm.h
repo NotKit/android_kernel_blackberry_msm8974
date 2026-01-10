@@ -26,10 +26,7 @@
 #ifndef _I915_DRM_H_
 #define _I915_DRM_H_
 
-<<<<<<< HEAD
-=======
 #include <drm/i915_pciids.h>
->>>>>>> android-3.18
 #include <uapi/drm/i915_drm.h>
 
 /* For use by IPS driver */
@@ -38,8 +35,6 @@ extern bool i915_gpu_raise(void);
 extern bool i915_gpu_lower(void);
 extern bool i915_gpu_busy(void);
 extern bool i915_gpu_turbo_disable(void);
-<<<<<<< HEAD
-=======
 
 /*
  * The Bridge device's PCI config space has information about the
@@ -97,5 +92,4 @@ extern bool i915_gpu_turbo_disable(void);
 #define    I845_TSEG_SIZE_512K	(2 << 1)
 #define    I845_TSEG_SIZE_1M	(3 << 1)
 
->>>>>>> android-3.18
 #endif				/* _I915_DRM_H_ */

@@ -384,16 +384,8 @@ static void handle_button_press_event(struct slot *p_slot)
 				  slot_name(p_slot));
 		}
 		/* blink green LED and turn off amber */
-<<<<<<< HEAD
-		if (PWR_LED(ctrl))
-			pciehp_green_led_blink(p_slot);
-		if (ATTN_LED(ctrl))
-			pciehp_set_attention_status(p_slot, 0);
-
-=======
 		pciehp_green_led_blink(p_slot);
 		pciehp_set_attention_status(p_slot, 0);
->>>>>>> android-3.18
 		queue_delayed_work(p_slot->wq, &p_slot->work, 5*HZ);
 		break;
 	case BLINKINGOFF_STATE:
@@ -476,9 +468,6 @@ static void handle_link_event(struct slot *p_slot, u32 event)
 	info->req = event == INT_LINK_UP ? ENABLE_REQ : DISABLE_REQ;
 	INIT_WORK(&info->work, pciehp_power_thread);
 
-<<<<<<< HEAD
-	queue_work(p_slot->wq, &info->work);
-=======
 	switch (p_slot->state) {
 	case BLINKINGON_STATE:
 	case BLINKINGOFF_STATE:
@@ -523,7 +512,6 @@ static void handle_link_event(struct slot *p_slot, u32 event)
 		kfree(info);
 		break;
 	}
->>>>>>> android-3.18
 }
 
 static void interrupt_event_handler(struct work_struct *work)

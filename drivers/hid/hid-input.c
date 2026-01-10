@@ -312,12 +312,9 @@ static const struct hid_device_id hid_battery_quirks[] = {
 			       USB_DEVICE_ID_APPLE_ALU_WIRELESS_2011_ANSI),
 	  HID_BATTERY_QUIRK_PERCENT | HID_BATTERY_QUIRK_FEATURE },
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_APPLE,
-<<<<<<< HEAD
-=======
 			       USB_DEVICE_ID_APPLE_ALU_WIRELESS_2011_ISO),
 	  HID_BATTERY_QUIRK_PERCENT | HID_BATTERY_QUIRK_FEATURE },
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_APPLE,
->>>>>>> android-3.18
 		USB_DEVICE_ID_APPLE_ALU_WIRELESS_ANSI),
 	  HID_BATTERY_QUIRK_PERCENT | HID_BATTERY_QUIRK_FEATURE },
 	{}
@@ -356,22 +353,12 @@ static int hidinput_get_battery_property(struct power_supply *psy,
 			ret = -ENOMEM;
 			break;
 		}
-<<<<<<< HEAD
-		ret = dev->hid_get_raw_report(dev, dev->battery_report_id,
-					      buf, 2,
-					      dev->battery_report_type);
-
-		if (ret != 2) {
-			if (ret >= 0)
-				ret = -EINVAL;
-=======
 		ret = hid_hw_raw_request(dev, dev->battery_report_id, buf, 2,
 					 dev->battery_report_type,
 					 HID_REQ_GET_REPORT);
 
 		if (ret != 2) {
 			ret = -ENODATA;
->>>>>>> android-3.18
 			kfree(buf);
 			break;
 		}
@@ -710,8 +697,6 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 			map_key_clear(BTN_STYLUS2);
 			break;
 
-<<<<<<< HEAD
-=======
 		case 0x5b: /* TransducerSerialNumber */
 			usage->type = EV_MSC;
 			usage->code = MSC_SERIAL;
@@ -719,7 +704,6 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 			max = MSC_MAX;
 			break;
 
->>>>>>> android-3.18
 		default:  goto unknown;
 		}
 		break;
@@ -761,13 +745,10 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		case 0x074: map_key_clear(KEY_BRIGHTNESS_MAX);		break;
 		case 0x075: map_key_clear(KEY_BRIGHTNESS_AUTO);		break;
 
-<<<<<<< HEAD
-=======
 		case 0x079: map_key_clear(KEY_KBDILLUMUP);	break;
 		case 0x07a: map_key_clear(KEY_KBDILLUMDOWN);	break;
 		case 0x07c: map_key_clear(KEY_KBDILLUMTOGGLE);	break;
 
->>>>>>> android-3.18
 		case 0x082: map_key_clear(KEY_VIDEO_NEXT);	break;
 		case 0x083: map_key_clear(KEY_LAST);		break;
 		case 0x084: map_key_clear(KEY_ENTER);		break;
@@ -979,11 +960,6 @@ mapped:
 	if (!bit)
 		return;
 
-<<<<<<< HEAD
-	if (device->driver->input_mapped && device->driver->input_mapped(device,
-				hidinput, field, usage, &bit, &max) < 0)
-		goto ignore;
-=======
 	if (device->driver->input_mapped &&
 	    device->driver->input_mapped(device, hidinput, field, usage,
 					 &bit, &max) < 0) {
@@ -993,7 +969,6 @@ mapped:
 		 */
 		return;
 	}
->>>>>>> android-3.18
 
 	set_bit(usage->type, input->evbit);
 
@@ -1259,11 +1234,7 @@ static void hidinput_led_worker(struct work_struct *work)
 					      led_work);
 	struct hid_field *field;
 	struct hid_report *report;
-<<<<<<< HEAD
-	int len;
-=======
 	int len, ret;
->>>>>>> android-3.18
 	__u8 *buf;
 
 	field = hidinput_get_led_field(hid);
@@ -1285,10 +1256,6 @@ static void hidinput_led_worker(struct work_struct *work)
 
 	report = field->report;
 
-<<<<<<< HEAD
-	len = ((report->size - 1) >> 3) + 1 + (report->id > 0);
-	buf = kmalloc(len, GFP_KERNEL);
-=======
 	/* use custom SET_REPORT request if possible (asynchronous) */
 	if (hid->ll_driver->request)
 		return hid->ll_driver->request(hid, report, HID_REQ_SET_REPORT);
@@ -1296,20 +1263,15 @@ static void hidinput_led_worker(struct work_struct *work)
 	/* fall back to generic raw-output-report */
 	len = ((report->size - 1) >> 3) + 1 + (report->id > 0);
 	buf = hid_alloc_report_buf(report, GFP_KERNEL);
->>>>>>> android-3.18
 	if (!buf)
 		return;
 
 	hid_output_report(report, buf);
 	/* synchronous output report */
-<<<<<<< HEAD
-	hid->hid_output_raw_report(hid, buf, len, HID_OUTPUT_REPORT);
-=======
 	ret = hid_hw_output_report(hid, buf, len);
 	if (ret == -ENOSYS)
 		hid_hw_raw_request(hid, report->id, buf, len, HID_OUTPUT_REPORT,
 				HID_REQ_SET_REPORT);
->>>>>>> android-3.18
 	kfree(buf);
 }
 
@@ -1361,10 +1323,6 @@ static void report_features(struct hid_device *hid)
 	rep_enum = &hid->report_enum[HID_FEATURE_REPORT];
 	list_for_each_entry(rep, &rep_enum->report_list, list)
 		for (i = 0; i < rep->maxfield; i++) {
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 			/* Ignore if report count is out of bounds. */
 			if (rep->field[i]->report_count < 1)
 				continue;
@@ -1378,8 +1336,6 @@ static void report_features(struct hid_device *hid)
 							     rep->field[i]->usage + j);
 			}
 		}
-<<<<<<< HEAD
-=======
 }
 
 static struct hid_input *hidinput_allocate(struct hid_device *hid)
@@ -1473,7 +1429,6 @@ static void hidinput_cleanup_hidinput(struct hid_device *hid,
 	}
 
 	kfree(hidinput);
->>>>>>> android-3.18
 }
 
 /*
@@ -1521,34 +1476,6 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
 				hidinput = hidinput_allocate(hid);
 				if (!hidinput)
 					goto out_unwind;
-<<<<<<< HEAD
-				}
-
-				input_set_drvdata(input_dev, hid);
-
-				if(hid->ll_driver->hidinput_input_event) {
-					input_dev->event =
-						hid->ll_driver->hidinput_input_event;
-				} else if (hid->hid_output_raw_report) {
-					input_dev->event = hidinput_input_event;
-				}
-				input_dev->open = hidinput_open;
-				input_dev->close = hidinput_close;
-				input_dev->setkeycode = hidinput_setkeycode;
-				input_dev->getkeycode = hidinput_getkeycode;
-
-				input_dev->name = hid->name;
-				input_dev->phys = hid->phys;
-				input_dev->uniq = hid->uniq;
-				input_dev->id.bustype = hid->bus;
-				input_dev->id.vendor  = hid->vendor;
-				input_dev->id.product = hid->product;
-				input_dev->id.version = hid->version;
-				input_dev->dev.parent = hid->dev.parent;
-				hidinput->input = input_dev;
-				list_add_tail(&hidinput->list, &hid->inputs);
-=======
->>>>>>> android-3.18
 			}
 
 			for (i = 0; i < report->maxfield; i++)
@@ -1567,13 +1494,8 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
 				 * UGCI) cram a lot of unrelated inputs into the
 				 * same interface. */
 				hidinput->report = report;
-<<<<<<< HEAD
-				if (hid->driver->input_register &&
-						hid->driver->input_register(hid, hidinput))
-=======
 				if (drv->input_configured &&
 				    drv->input_configured(hid, hidinput))
->>>>>>> android-3.18
 					goto out_cleanup;
 				if (input_register_device(hidinput->input))
 					goto out_cleanup;
@@ -1582,12 +1504,6 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
 		}
 	}
 
-<<<<<<< HEAD
-
-	if (hidinput && hid->driver->input_register &&
-			hid->driver->input_register(hid, hidinput))
-		goto out_cleanup;
-=======
 	if (hidinput && (hid->quirks & HID_QUIRK_NO_EMPTY_INPUT) &&
 	    !hidinput_has_been_populated(hidinput)) {
 		/* no need to register an input device not populated */
@@ -1599,7 +1515,6 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
 		hid_err(hid, "No inputs registered, leaving\n");
 		goto out_unwind;
 	}
->>>>>>> android-3.18
 
 	if (hidinput) {
 		if (drv->input_configured &&

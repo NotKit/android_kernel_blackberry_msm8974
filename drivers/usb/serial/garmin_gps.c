@@ -414,13 +414,8 @@ static int gsp_rec_packet(struct garmin_data *garmin_data_p, int count)
 
 	/* sanity check, remove after test ... */
 	if ((__u8 *)&(usbdata[3]) != recpkt) {
-<<<<<<< HEAD
-		dbg("%s - ptr mismatch %pK - %pK",
-			__func__, &(usbdata[4]), recpkt);
-=======
 		dev_dbg(dev, "%s - ptr mismatch %p - %p\n", __func__,
 			&(usbdata[4]), recpkt);
->>>>>>> android-3.18
 		return -EINVPKT;
 	}
 
@@ -957,18 +952,9 @@ static void garmin_close(struct usb_serial_port *port)
 {
 	struct garmin_data *garmin_data_p = usb_get_serial_port_data(port);
 
-<<<<<<< HEAD
-	dbg("%s - port %d - mode=%d state=%d flags=0x%X", __func__,
-		port->number, garmin_data_p->mode,
-		garmin_data_p->state, garmin_data_p->flags);
-
-	if (!serial)
-		return;
-=======
 	dev_dbg(&port->dev, "%s - mode=%d state=%d flags=0x%X\n",
 		__func__, garmin_data_p->mode, garmin_data_p->state,
 		garmin_data_p->flags);
->>>>>>> android-3.18
 
 	garmin_clear(garmin_data_p);
 

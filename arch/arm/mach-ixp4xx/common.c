@@ -28,14 +28,9 @@
 #include <linux/io.h>
 #include <linux/export.h>
 #include <linux/gpio.h>
-<<<<<<< HEAD
-#include <linux/sched_clock.h>
-
-=======
 #include <linux/cpu.h>
 #include <linux/pci.h>
 #include <linux/sched_clock.h>
->>>>>>> android-3.18
 #include <mach/udc.h>
 #include <mach/hardware.h>
 #include <mach/io.h>
@@ -168,20 +163,6 @@ static int ixp4xx_gpio_to_irq(struct gpio_chip *chip, unsigned gpio)
 	}
 	return -EINVAL;
 }
-<<<<<<< HEAD
-
-int irq_to_gpio(unsigned int irq)
-{
-	int gpio = (irq < 32) ? irq2gpio[irq] : -EINVAL;
-
-	if (gpio == -1)
-		return -EINVAL;
-
-	return gpio;
-}
-EXPORT_SYMBOL(irq_to_gpio);
-=======
->>>>>>> android-3.18
 
 static int ixp4xx_set_irq_type(struct irq_data *d, unsigned int type)
 {

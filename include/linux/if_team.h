@@ -10,15 +10,9 @@
 #ifndef _LINUX_IF_TEAM_H_
 #define _LINUX_IF_TEAM_H_
 
-<<<<<<< HEAD
-
-#include <linux/netpoll.h>
-#include <net/sch_generic.h>
-=======
 #include <linux/netpoll.h>
 #include <net/sch_generic.h>
 #include <linux/types.h>
->>>>>>> android-3.18
 #include <uapi/linux/if_team.h>
 
 struct team_pcpu_stats {
@@ -197,9 +191,6 @@ struct team {
 
 	const struct team_mode *mode;
 	struct team_mode_ops ops;
-<<<<<<< HEAD
-	bool port_mtu_change_allowed;
-=======
 	bool user_carrier_enabled;
 	bool queue_override_enabled;
 	struct list_head *qom_lists; /* array of queue override mapping lists */
@@ -216,7 +207,6 @@ struct team {
 		atomic_t count_pending;
 		struct delayed_work dw;
 	} mcast_rejoin;
->>>>>>> android-3.18
 	long mode_priv[TEAM_MODE_PRIV_LONGS];
 };
 
@@ -300,15 +290,10 @@ extern int team_options_register(struct team *team,
 extern void team_options_unregister(struct team *team,
 				    const struct team_option *option,
 				    size_t option_count);
-<<<<<<< HEAD
-extern int team_mode_register(struct team_mode *mode);
-extern int team_mode_unregister(struct team_mode *mode);
-=======
 extern int team_mode_register(const struct team_mode *mode);
 extern void team_mode_unregister(const struct team_mode *mode);
 
 #define TEAM_DEFAULT_NUM_TX_QUEUES 16
 #define TEAM_DEFAULT_NUM_RX_QUEUES 16
->>>>>>> android-3.18
 
 #endif /* _LINUX_IF_TEAM_H_ */

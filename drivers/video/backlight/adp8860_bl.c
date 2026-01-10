@@ -785,11 +785,8 @@ static int adp8860_i2c_suspend(struct device *dev)
 
 static int adp8860_i2c_resume(struct device *dev)
 {
-<<<<<<< HEAD
-=======
 	struct i2c_client *client = to_i2c_client(dev);
 
->>>>>>> android-3.18
 	adp8860_set_bits(client, ADP8860_MDCR, NSTBY | BLEN);
 
 	return 0;

@@ -1173,11 +1173,7 @@ static int snapshot_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	s->exception_start_sequence = 0;
 	s->exception_complete_sequence = 0;
 	INIT_LIST_HEAD(&s->out_of_order_list);
-<<<<<<< HEAD
-	init_rwsem(&s->lock);
-=======
 	mutex_init(&s->lock);
->>>>>>> android-3.18
 	INIT_LIST_HEAD(&s->list);
 	spin_lock_init(&s->pe_lock);
 	s->state_bits = 0;
@@ -1605,19 +1601,11 @@ static void copy_callback(int read_err, unsigned long write_err, void *context)
 	struct dm_snapshot *s = pe->snap;
 
 	pe->copy_error = read_err || write_err;
-<<<<<<< HEAD
 
 	if (pe->exception_sequence == s->exception_complete_sequence) {
 		s->exception_complete_sequence++;
 		complete_exception(pe);
 
-=======
-
-	if (pe->exception_sequence == s->exception_complete_sequence) {
-		s->exception_complete_sequence++;
-		complete_exception(pe);
-
->>>>>>> android-3.18
 		while (!list_empty(&s->out_of_order_list)) {
 			pe = list_entry(s->out_of_order_list.next,
 					struct dm_snap_pending_exception, out_of_order_entry);
@@ -1638,10 +1626,7 @@ static void copy_callback(int read_err, unsigned long write_err, void *context)
 		}
 		list_add(&pe->out_of_order_entry, lh);
 	}
-<<<<<<< HEAD
-=======
 	account_end_copy(s);
->>>>>>> android-3.18
 }
 
 /*
@@ -2069,11 +2054,7 @@ static void snapshot_merge_resume(struct dm_target *ti)
 }
 
 static void snapshot_status(struct dm_target *ti, status_type_t type,
-<<<<<<< HEAD
-			    char *result, unsigned int maxlen)
-=======
 			    unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	unsigned sz = 0;
 	struct dm_snapshot *snap = ti->private;
@@ -2420,13 +2401,8 @@ static void origin_postsuspend(struct dm_target *ti)
 	up_write(&_origins_lock);
 }
 
-<<<<<<< HEAD
-static void origin_status(struct dm_target *ti, status_type_t type, char *result,
-			  unsigned int maxlen)
-=======
 static void origin_status(struct dm_target *ti, status_type_t type,
 			  unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	struct dm_origin *o = ti->private;
 
@@ -2479,11 +2455,7 @@ static struct target_type origin_target = {
 
 static struct target_type snapshot_target = {
 	.name    = "snapshot",
-<<<<<<< HEAD
-	.version = {1, 10, 2},
-=======
 	.version = {1, 13, 0},
->>>>>>> android-3.18
 	.module  = THIS_MODULE,
 	.ctr     = snapshot_ctr,
 	.dtr     = snapshot_dtr,

@@ -202,14 +202,6 @@ int rproc_alloc_vring(struct rproc_vdev *rvdev, int i)
 	/* actual size of vring (in bytes) */
 	size = PAGE_ALIGN(vring_size(rvring->len, rvring->align));
 
-<<<<<<< HEAD
-		if (offset + filesz > len) {
-			dev_err(dev, "truncated fw: need 0x%x avail 0x%zx\n",
-					offset + filesz, len);
-			ret = -EINVAL;
-			break;
-		}
-=======
 	/*
 	 * Allocate non-cacheable memory for the vring. In the future
 	 * this call will also configure the IOMMU for us
@@ -219,7 +211,6 @@ int rproc_alloc_vring(struct rproc_vdev *rvdev, int i)
 		dev_err(dev->parent, "dma_alloc_coherent failed\n");
 		return -EINVAL;
 	}
->>>>>>> android-3.18
 
 	/*
 	 * Assign an rproc-wide unique index for this vring
@@ -811,11 +802,6 @@ static int rproc_fw_boot(struct rproc *rproc, const struct firmware *fw)
 	if (ret)
 		return ret;
 
-<<<<<<< HEAD
-	ehdr = (struct elf32_hdr *)fw->data;
-
-=======
->>>>>>> android-3.18
 	dev_info(dev, "Booting fw image %s, size %zd\n", name, fw->size);
 
 	/*
@@ -832,13 +818,6 @@ static int rproc_fw_boot(struct rproc *rproc, const struct firmware *fw)
 	ret = -EINVAL;
 
 	/* look for the resource table */
-<<<<<<< HEAD
-	table = rproc_find_rsc_table(rproc, fw->data, fw->size, &tablesz);
-	if (!table) {
-		ret = -EINVAL;
-		goto clean_up;
-	}
-=======
 	table = rproc_find_rsc_table(rproc, fw, &tablesz);
 	if (!table) {
 		goto clean_up;
@@ -849,7 +828,6 @@ static int rproc_fw_boot(struct rproc *rproc, const struct firmware *fw)
 		dev_err(dev, "resource checksum failed, fw changed?\n");
 		goto clean_up;
 	}
->>>>>>> android-3.18
 
 	/* handle fw resources which are required to boot rproc */
 	ret = rproc_handle_resources(rproc, tablesz, rproc_loading_handlers);

@@ -656,23 +656,11 @@ static int pci_pm_prepare(struct device *dev)
 	int error = 0;
 
 	/*
-<<<<<<< HEAD
-	 * PCI devices suspended at run time need to be resumed at this
-	 * point, because in general it is necessary to reconfigure them for
-	 * system suspend.  Namely, if the device is supposed to wake up the
-	 * system from the sleep state, we may need to reconfigure it for this
-	 * purpose.  In turn, if the device is not supposed to wake up the
-	 * system from the sleep state, we'll have to prevent it from signaling
-	 * wake-up.
-	 */
-	pm_runtime_resume(dev);
-=======
 	 * Devices having power.ignore_children set may still be necessary for
 	 * suspending their children in the next phase of device suspend.
 	 */
 	if (dev->power.ignore_children)
 		pm_runtime_resume(dev);
->>>>>>> android-3.18
 
 	if (drv && drv->pm && drv->pm->prepare)
 		error = drv->pm->prepare(dev);
@@ -680,16 +668,6 @@ static int pci_pm_prepare(struct device *dev)
 	return error;
 }
 
-<<<<<<< HEAD
-static void pci_pm_complete(struct device *dev)
-{
-	struct device_driver *drv = dev->driver;
-
-	if (drv && drv->pm && drv->pm->complete)
-		drv->pm->complete(dev);
-}
-=======
->>>>>>> android-3.18
 
 #else /* !CONFIG_PM_SLEEP */
 
@@ -712,8 +690,6 @@ static int pci_pm_suspend(struct device *dev)
 		goto Fixup;
 	}
 
-<<<<<<< HEAD
-=======
 	/*
 	 * PCI devices suspended at run time need to be resumed at this point,
 	 * because in general it is necessary to reconfigure them for system
@@ -724,7 +700,6 @@ static int pci_pm_suspend(struct device *dev)
 	 */
 	pm_runtime_resume(dev);
 
->>>>>>> android-3.18
 	pci_dev->state_saved = false;
 	if (pm->suspend) {
 		pci_power_t prev = pci_dev->current_state;
@@ -800,12 +775,9 @@ static int pci_pm_suspend_noirq(struct device *dev)
 	if (pci_dev->class == PCI_CLASS_SERIAL_USB_EHCI)
 		pci_write_config_word(pci_dev, PCI_COMMAND, 0);
 
-<<<<<<< HEAD
-=======
 Fixup:
 	pci_fixup_device(pci_fixup_suspend_late, pci_dev);
 
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -885,8 +857,6 @@ static int pci_pm_freeze(struct device *dev)
 		return 0;
 	}
 
-<<<<<<< HEAD
-=======
 	/*
 	 * This used to be done in pci_pm_prepare() for all devices and some
 	 * drivers may depend on it, so do it here.  Ideally, runtime-suspended
@@ -895,7 +865,6 @@ static int pci_pm_freeze(struct device *dev)
 	 */
 	pm_runtime_resume(dev);
 
->>>>>>> android-3.18
 	pci_dev->state_saved = false;
 	if (pm->freeze) {
 		int error;
@@ -1009,12 +978,9 @@ static int pci_pm_poweroff(struct device *dev)
 		goto Fixup;
 	}
 
-<<<<<<< HEAD
-=======
 	/* The reason to do that is the same as in pci_pm_suspend(). */
 	pm_runtime_resume(dev);
 
->>>>>>> android-3.18
 	pci_dev->state_saved = false;
 	if (pm->poweroff) {
 		int error;
@@ -1066,14 +1032,11 @@ static int pci_pm_poweroff_noirq(struct device *dev)
 	if (pci_dev->class == PCI_CLASS_SERIAL_USB_EHCI)
 		pci_write_config_word(pci_dev, PCI_COMMAND, 0);
 
-<<<<<<< HEAD
-=======
 	pci_fixup_device(pci_fixup_suspend_late, pci_dev);
 
 	if (pcibios_pm_ops.poweroff_noirq)
 		return pcibios_pm_ops.poweroff_noirq(dev);
 
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -1170,10 +1133,7 @@ static int pci_pm_runtime_suspend(struct device *dev)
 		return -ENOSYS;
 
 	pci_dev->state_saved = false;
-<<<<<<< HEAD
-=======
 	pci_dev->no_d3cold = false;
->>>>>>> android-3.18
 	error = pm->runtime_suspend(dev);
 	suspend_report_result(pm->runtime_suspend, error);
 	if (error)

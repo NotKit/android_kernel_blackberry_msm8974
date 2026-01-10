@@ -4,8 +4,6 @@
 #include <linux/ip.h>
 #include <linux/in6.h>
 #include <uapi/linux/if_tunnel.h>
-<<<<<<< HEAD
-=======
 #include <linux/u64_stats_sync.h>
 
 /*
@@ -14,6 +12,5 @@
 
 #define for_each_ip_tunnel_rcu(pos, start) \
 	for (pos = rcu_dereference(start); pos; pos = rcu_dereference(pos->next))
->>>>>>> android-3.18
 
 #endif /* _IF_TUNNEL_H_ */

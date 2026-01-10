@@ -65,10 +65,6 @@
 		/* cannot handle READ_CAPACITY_16 */		\
 	US_FLAG(INITIAL_READ10,	0x00100000)			\
 		/* Initial READ(10) (and others) must be retried */	\
-<<<<<<< HEAD
-	US_FLAG(BROKEN_FUA,	0x01000000)			\
-		/* Cannot handle FUA in WRITE or READ CDBs */	\
-=======
 	US_FLAG(WRITE_CACHE,	0x00200000)			\
 		/* Write Cache status is not available */	\
 	US_FLAG(NEEDS_CAP16,	0x00400000)			\
@@ -85,7 +81,6 @@
 		/* Sets max_sectors to 240 */			\
 	US_FLAG(NO_REPORT_LUNS,	0x10000000)			\
 		/* Cannot handle REPORT_LUNS */			\
->>>>>>> android-3.18
 
 #define US_FLAG(name, value)	US_FL_##name = value ,
 enum { US_DO_ALL_FLAGS };

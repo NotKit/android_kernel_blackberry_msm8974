@@ -722,11 +722,6 @@ static inline u16 be_get_tx_vlan_tag(struct be_adapter *adapter,
 	return vlan_tag;
 }
 
-<<<<<<< HEAD
-static int be_vlan_tag_chk(struct be_adapter *adapter, struct sk_buff *skb)
-{
-	return vlan_tx_tag_present(skb) || adapter->pvid;
-=======
 /* Used only for IP tunnel packets */
 static u16 skb_inner_ip_proto(struct sk_buff *skb)
 {
@@ -738,7 +733,6 @@ static u16 skb_ip_proto(struct sk_buff *skb)
 {
 	return (ip_hdr(skb)->version == 4) ?
 		ip_hdr(skb)->protocol : ipv6_hdr(skb)->nexthdr;
->>>>>>> android-3.18
 }
 
 static void wrb_fill_hdr(struct be_adapter *adapter, struct be_eth_hdr_wrb *hdr,
@@ -869,57 +863,6 @@ dma_err:
 }
 
 static struct sk_buff *be_insert_vlan_in_pkt(struct be_adapter *adapter,
-<<<<<<< HEAD
-					     struct sk_buff *skb)
-{
-	u16 vlan_tag = 0;
-
-	skb = skb_share_check(skb, GFP_ATOMIC);
-	if (unlikely(!skb))
-		return skb;
-
-	if (vlan_tx_tag_present(skb)) {
-		vlan_tag = be_get_tx_vlan_tag(adapter, skb);
-		__vlan_put_tag(skb, vlan_tag);
-		skb->vlan_tci = 0;
-	}
-
-	return skb;
-}
-
-static netdev_tx_t be_xmit(struct sk_buff *skb,
-			struct net_device *netdev)
-{
-	struct be_adapter *adapter = netdev_priv(netdev);
-	struct be_tx_obj *txo = &adapter->tx_obj[skb_get_queue_mapping(skb)];
-	struct be_queue_info *txq = &txo->q;
-	struct iphdr *ip = NULL;
-	u32 wrb_cnt = 0, copied = 0;
-	u32 start = txq->head, eth_hdr_len;
-	bool dummy_wrb, stopped = false;
-
-	eth_hdr_len = ntohs(skb->protocol) == ETH_P_8021Q ?
-		VLAN_ETH_HLEN : ETH_HLEN;
-
-	/* HW has a bug which considers padding bytes as legal
-	 * and modifies the IPv4 hdr's 'tot_len' field
-	 */
-	if (skb->len <= 60 && be_vlan_tag_chk(adapter, skb) &&
-			is_ipv4_pkt(skb)) {
-		ip = (struct iphdr *)ip_hdr(skb);
-		pskb_trim(skb, eth_hdr_len + ntohs(ip->tot_len));
-	}
-
-	/* HW has a bug wherein it will calculate CSUM for VLAN
-	 * pkts even though it is disabled.
-	 * Manually insert VLAN in pkt.
-	 */
-	if (skb->ip_summed != CHECKSUM_PARTIAL &&
-			be_vlan_tag_chk(adapter, skb)) {
-		skb = be_insert_vlan_in_pkt(adapter, skb);
-		if (unlikely(!skb))
-			goto tx_drop;
-=======
 					     struct sk_buff *skb,
 					     bool *skip_hw_vlan)
 {
@@ -1101,7 +1044,6 @@ static netdev_tx_t be_xmit(struct sk_buff *skb, struct net_device *netdev)
 	if (!skb) {
 		tx_stats(txo)->tx_drv_drops++;
 		return NETDEV_TX_OK;
->>>>>>> android-3.18
 	}
 
 	wrb_cnt = wrb_cnt_for_skb(adapter, skb, &dummy_wrb);
@@ -1528,21 +1470,6 @@ static void be_eqd_update(struct be_adapter *adapter)
 	ulong now;
 	u32 pps, delta;
 
-<<<<<<< HEAD
-	do {
-		start = u64_stats_fetch_begin_irq(&stats->sync);
-		pkts = stats->rx_pkts;
-	} while (u64_stats_fetch_retry_irq(&stats->sync, start));
-
-	stats->rx_pps = (unsigned long)(pkts - stats->rx_pkts_prev) / (delta / HZ);
-	stats->rx_pkts_prev = pkts;
-	stats->rx_jiffies = now;
-	eqd = (stats->rx_pps / 110000) << 3;
-	eqd = min(eqd, eqo->max_eqd);
-	eqd = max(eqd, eqo->min_eqd);
-	if (eqd < 10)
-		eqd = 0;
-=======
 	for_all_evt_queues(adapter, eqo, i) {
 		aic = &adapter->aic_obj[eqo->idx];
 		if (!aic->enable) {
@@ -1557,7 +1484,6 @@ static void be_eqd_update(struct be_adapter *adapter)
 			start = u64_stats_fetch_begin_irq(&rxo->stats.sync);
 			rx_pkts = rxo->stats.rx_pkts;
 		} while (u64_stats_fetch_retry_irq(&rxo->stats.sync, start));
->>>>>>> android-3.18
 
 		txo = &adapter->tx_obj[eqo->idx];
 		do {
@@ -3019,10 +2945,7 @@ static int be_open(struct net_device *netdev)
 
 	for_all_evt_queues(adapter, eqo, i) {
 		napi_enable(&eqo->napi);
-<<<<<<< HEAD
-=======
 		be_enable_busy_poll(eqo);
->>>>>>> android-3.18
 		be_eq_notify(adapter, eqo->q.id, true, true, 0);
 	}
 	adapter->flags |= BE_FLAGS_NAPI_ENABLED;

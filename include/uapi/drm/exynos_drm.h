@@ -6,31 +6,10 @@
  *	Joonyoung Shim <jy0922.shim@samsung.com>
  *	Seung-Woo Kim <sw0312.kim@samsung.com>
  *
-<<<<<<< HEAD
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
-=======
  * This program is free software; you can redistribute  it and/or modify it
  * under  the terms of  the GNU General  Public License as published by the
  * Free Software Foundation;  either version 2 of the  License, or (at your
  * option) any later version.
->>>>>>> android-3.18
  */
 
 #ifndef _UAPI_EXYNOS_DRM_H_
@@ -54,41 +33,6 @@ struct drm_exynos_gem_create {
 };
 
 /**
-<<<<<<< HEAD
- * A structure for getting buffer offset.
- *
- * @handle: a pointer to gem object created.
- * @pad: just padding to be 64-bit aligned.
- * @offset: relatived offset value of the memory region allocated.
- *	- this value should be set by user.
- */
-struct drm_exynos_gem_map_off {
-	unsigned int handle;
-	unsigned int pad;
-	uint64_t offset;
-};
-
-/**
- * A structure for mapping buffer.
- *
- * @handle: a handle to gem object created.
- * @pad: just padding to be 64-bit aligned.
- * @size: memory size to be mapped.
- * @mapped: having user virtual address mmaped.
- *	- this variable would be filled by exynos gem module
- *	of kernel side with user virtual address which is allocated
- *	by do_mmap().
- */
-struct drm_exynos_gem_mmap {
-	unsigned int handle;
-	unsigned int pad;
-	uint64_t size;
-	uint64_t mapped;
-};
-
-/**
-=======
->>>>>>> android-3.18
  * A structure to gem information.
  *
  * @handle: a handle to gem object created.
@@ -143,26 +87,16 @@ struct drm_exynos_g2d_cmd {
 	__u32	data;
 };
 
-<<<<<<< HEAD
-=======
 enum drm_exynos_g2d_buf_type {
 	G2D_BUF_USERPTR = 1 << 31,
 };
 
->>>>>>> android-3.18
 enum drm_exynos_g2d_event_type {
 	G2D_EVENT_NOT,
 	G2D_EVENT_NONSTOP,
 	G2D_EVENT_STOP,		/* not yet */
 };
 
-<<<<<<< HEAD
-struct drm_exynos_g2d_set_cmdlist {
-	__u64					cmd;
-	__u64					cmd_gem;
-	__u32					cmd_nr;
-	__u32					cmd_gem_nr;
-=======
 struct drm_exynos_g2d_userptr {
 	unsigned long userptr;
 	unsigned long size;
@@ -173,7 +107,6 @@ struct drm_exynos_g2d_set_cmdlist {
 	__u64					cmd_buf;
 	__u32					cmd_nr;
 	__u32					cmd_buf_nr;
->>>>>>> android-3.18
 
 	/* for g2d event */
 	__u64					event_type;
@@ -184,11 +117,6 @@ struct drm_exynos_g2d_exec {
 	__u64					async;
 };
 
-<<<<<<< HEAD
-#define DRM_EXYNOS_GEM_CREATE		0x00
-#define DRM_EXYNOS_GEM_MAP_OFFSET	0x01
-#define DRM_EXYNOS_GEM_MMAP		0x02
-=======
 enum drm_exynos_ops_id {
 	EXYNOS_DRM_OPS_SRC,
 	EXYNOS_DRM_OPS_DST,
@@ -356,7 +284,6 @@ struct drm_exynos_ipp_cmd_ctrl {
 };
 
 #define DRM_EXYNOS_GEM_CREATE		0x00
->>>>>>> android-3.18
 /* Reserved 0x03 ~ 0x05 for exynos specific gem ioctl */
 #define DRM_EXYNOS_GEM_GET		0x04
 #define DRM_EXYNOS_VIDI_CONNECTION	0x07
@@ -366,17 +293,6 @@ struct drm_exynos_ipp_cmd_ctrl {
 #define DRM_EXYNOS_G2D_SET_CMDLIST	0x21
 #define DRM_EXYNOS_G2D_EXEC		0x22
 
-<<<<<<< HEAD
-#define DRM_IOCTL_EXYNOS_GEM_CREATE		DRM_IOWR(DRM_COMMAND_BASE + \
-		DRM_EXYNOS_GEM_CREATE, struct drm_exynos_gem_create)
-
-#define DRM_IOCTL_EXYNOS_GEM_MAP_OFFSET	DRM_IOWR(DRM_COMMAND_BASE + \
-		DRM_EXYNOS_GEM_MAP_OFFSET, struct drm_exynos_gem_map_off)
-
-#define DRM_IOCTL_EXYNOS_GEM_MMAP	DRM_IOWR(DRM_COMMAND_BASE + \
-		DRM_EXYNOS_GEM_MMAP, struct drm_exynos_gem_mmap)
-
-=======
 /* IPP - Image Post Processing */
 #define DRM_EXYNOS_IPP_GET_PROPERTY	0x30
 #define DRM_EXYNOS_IPP_SET_PROPERTY	0x31
@@ -386,7 +302,6 @@ struct drm_exynos_ipp_cmd_ctrl {
 #define DRM_IOCTL_EXYNOS_GEM_CREATE		DRM_IOWR(DRM_COMMAND_BASE + \
 		DRM_EXYNOS_GEM_CREATE, struct drm_exynos_gem_create)
 
->>>>>>> android-3.18
 #define DRM_IOCTL_EXYNOS_GEM_GET	DRM_IOWR(DRM_COMMAND_BASE + \
 		DRM_EXYNOS_GEM_GET,	struct drm_exynos_gem_info)
 
@@ -400,10 +315,6 @@ struct drm_exynos_ipp_cmd_ctrl {
 #define DRM_IOCTL_EXYNOS_G2D_EXEC		DRM_IOWR(DRM_COMMAND_BASE + \
 		DRM_EXYNOS_G2D_EXEC, struct drm_exynos_g2d_exec)
 
-<<<<<<< HEAD
-/* EXYNOS specific events */
-#define DRM_EXYNOS_G2D_EVENT		0x80000000
-=======
 #define DRM_IOCTL_EXYNOS_IPP_GET_PROPERTY	DRM_IOWR(DRM_COMMAND_BASE + \
 		DRM_EXYNOS_IPP_GET_PROPERTY, struct drm_exynos_ipp_prop_list)
 #define DRM_IOCTL_EXYNOS_IPP_SET_PROPERTY	DRM_IOWR(DRM_COMMAND_BASE + \
@@ -416,7 +327,6 @@ struct drm_exynos_ipp_cmd_ctrl {
 /* EXYNOS specific events */
 #define DRM_EXYNOS_G2D_EVENT		0x80000000
 #define DRM_EXYNOS_IPP_EVENT		0x80000001
->>>>>>> android-3.18
 
 struct drm_exynos_g2d_event {
 	struct drm_event	base;
@@ -427,8 +337,6 @@ struct drm_exynos_g2d_event {
 	__u32			reserved;
 };
 
-<<<<<<< HEAD
-=======
 struct drm_exynos_ipp_event {
 	struct drm_event	base;
 	__u64			user_data;
@@ -439,5 +347,4 @@ struct drm_exynos_ipp_event {
 	__u32			buf_id[EXYNOS_DRM_OPS_MAX];
 };
 
->>>>>>> android-3.18
 #endif /* _UAPI_EXYNOS_DRM_H_ */

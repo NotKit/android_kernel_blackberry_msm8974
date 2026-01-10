@@ -8899,11 +8899,7 @@ static int __must_check __init get_thinkpad_model_data(
 			return -ENOMEM;
 	} else {
 		s = dmi_get_system_info(DMI_BIOS_VENDOR);
-<<<<<<< HEAD
-		if (s && !(strnicmp(s, "Lenovo", 6))) {
-=======
 		if (s && !(strncasecmp(s, "Lenovo", 6))) {
->>>>>>> android-3.18
 			tp->model_str = kstrdup(s, GFP_KERNEL);
 			if (!tp->model_str)
 				return -ENOMEM;

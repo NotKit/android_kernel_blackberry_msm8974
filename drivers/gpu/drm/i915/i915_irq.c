@@ -445,41 +445,6 @@ static void ibx_set_fifo_underrun_reporting(struct drm_device *dev,
 		ibx_disable_display_interrupt(dev_priv, bit);
 }
 
-<<<<<<< HEAD
-static void gen6_queue_rps_work(struct drm_i915_private *dev_priv,
-				u32 pm_iir)
-{
-	unsigned long flags;
-
-	/*
-	 * IIR bits should never already be set because IMR should
-	 * prevent an interrupt from being shown in IIR. The warning
-	 * displays a case where we've unsafely cleared
-	 * dev_priv->pm_iir. Although missing an interrupt of the same
-	 * type is not a problem, it displays a problem in the logic.
-	 *
-	 * The mask bit in IMR is cleared by rps_work.
-	 */
-
-	spin_lock_irqsave(&dev_priv->rps_lock, flags);
-	dev_priv->pm_iir |= pm_iir;
-	I915_WRITE(GEN6_PMIMR, dev_priv->pm_iir);
-	POSTING_READ(GEN6_PMIMR);
-	spin_unlock_irqrestore(&dev_priv->rps_lock, flags);
-
-	queue_work(dev_priv->wq, &dev_priv->rps_work);
-}
-
-static void pch_irq_handler(struct drm_device *dev, u32 pch_iir)
-{
-	drm_i915_private_t *dev_priv = (drm_i915_private_t *) dev->dev_private;
-	int pipe;
-
-	if (pch_iir & SDE_AUDIO_POWER_MASK)
-		DRM_DEBUG_DRIVER("PCH audio power change on port %d\n",
-				 (pch_iir & SDE_AUDIO_POWER_MASK) >>
-				 SDE_AUDIO_POWER_SHIFT);
-=======
 static void cpt_set_fifo_underrun_reporting(struct drm_device *dev,
 					    enum transcoder pch_transcoder,
 					    bool enable, bool old)
@@ -489,7 +454,6 @@ static void cpt_set_fifo_underrun_reporting(struct drm_device *dev,
 	if (enable) {
 		I915_WRITE(SERR_INT,
 			   SERR_INT_TRANS_FIFO_UNDERRUN(pch_transcoder));
->>>>>>> android-3.18
 
 		if (!cpt_can_enable_serr_int(dev))
 			return;
@@ -2803,22 +2767,9 @@ static void i915_report_and_clear_eir(struct drm_device *dev)
 
 	i915_get_extra_instdone(dev, instdone);
 
-<<<<<<< HEAD
-	if (de_iir & DE_PIPEA_VBLANK_IVB)
-		drm_handle_vblank(dev, 0);
-
-	if (de_iir & DE_PIPEB_VBLANK_IVB)
-		drm_handle_vblank(dev, 1);
-
-	if (de_iir & DE_PLANEA_FLIP_DONE_IVB) {
-		intel_prepare_page_flip(dev, 0);
-		intel_finish_page_flip_plane(dev, 0);
-	}
-=======
 	if (IS_G4X(dev)) {
 		if (eir & (GM45_ERROR_MEM_PRIV | GM45_ERROR_CP_PRIV)) {
 			u32 ipeir = I915_READ(IPEIR_I965);
->>>>>>> android-3.18
 
 			pr_err("  IPEIR: 0x%08x\n", I915_READ(IPEIR_I965));
 			pr_err("  IPEHR: 0x%08x\n", I915_READ(IPEHR_I965));
@@ -2838,17 +2789,6 @@ static void i915_report_and_clear_eir(struct drm_device *dev)
 		}
 	}
 
-<<<<<<< HEAD
-	/* check event from PCH */
-	if (de_iir & DE_PCH_EVENT_IVB) {
-		if (pch_iir & SDE_HOTPLUG_MASK_CPT)
-			queue_work(dev_priv->wq, &dev_priv->hotplug_work);
-		pch_irq_handler(dev, pch_iir);
-	}
-
-	if (pm_iir & GEN6_PM_DEFERRED_EVENTS)
-		gen6_queue_rps_work(dev_priv, pm_iir);
-=======
 	if (!IS_GEN2(dev)) {
 		if (eir & I915_ERROR_PAGE_TABLE) {
 			u32 pgtbl_err = I915_READ(PGTBL_ER);
@@ -2873,7 +2813,6 @@ static void i915_report_and_clear_eir(struct drm_device *dev)
 			pr_err("  INSTDONE_%d: 0x%08x\n", i, instdone[i]);
 		if (INTEL_INFO(dev)->gen < 4) {
 			u32 ipeir = I915_READ(IPEIR);
->>>>>>> android-3.18
 
 			pr_err("  IPEIR: 0x%08x\n", I915_READ(IPEIR));
 			pr_err("  IPEHR: 0x%08x\n", I915_READ(IPEHR));
@@ -2989,34 +2928,13 @@ static int ironlake_enable_vblank(struct drm_device *dev, int pipe)
 	uint32_t bit = (INTEL_INFO(dev)->gen >= 7) ? DE_PIPE_VBLANK_IVB(pipe) :
 						     DE_PIPE_VBLANK(pipe);
 
-<<<<<<< HEAD
-	if (de_iir & DE_PIPEA_VBLANK)
-		drm_handle_vblank(dev, 0);
-
-	if (de_iir & DE_PIPEB_VBLANK)
-		drm_handle_vblank(dev, 1);
-
-	if (de_iir & DE_PLANEA_FLIP_DONE) {
-		intel_prepare_page_flip(dev, 0);
-		intel_finish_page_flip_plane(dev, 0);
-	}
-=======
 	if (!i915_pipe_enabled(dev, pipe))
 		return -EINVAL;
->>>>>>> android-3.18
 
 	spin_lock_irqsave(&dev_priv->irq_lock, irqflags);
 	ironlake_enable_display_irq(dev_priv, bit);
 	spin_unlock_irqrestore(&dev_priv->irq_lock, irqflags);
 
-<<<<<<< HEAD
-	/* check event from PCH */
-	if (de_iir & DE_PCH_EVENT) {
-		if (pch_iir & hotplug_mask)
-			queue_work(dev_priv->wq, &dev_priv->hotplug_work);
-		pch_irq_handler(dev, pch_iir);
-	}
-=======
 	return 0;
 }
 
@@ -3027,20 +2945,14 @@ static int valleyview_enable_vblank(struct drm_device *dev, int pipe)
 
 	if (!i915_pipe_enabled(dev, pipe))
 		return -EINVAL;
->>>>>>> android-3.18
 
 	spin_lock_irqsave(&dev_priv->irq_lock, irqflags);
 	i915_enable_pipestat(dev_priv, pipe,
 			     PIPE_START_VBLANK_INTERRUPT_STATUS);
 	spin_unlock_irqrestore(&dev_priv->irq_lock, irqflags);
 
-<<<<<<< HEAD
-	if (IS_GEN6(dev) && pm_iir & GEN6_PM_DEFERRED_EVENTS)
-		gen6_queue_rps_work(dev_priv, pm_iir);
-=======
 	return 0;
 }
->>>>>>> android-3.18
 
 static int gen8_enable_vblank(struct drm_device *dev, int pipe)
 {
@@ -3594,21 +3506,11 @@ static void cherryview_irq_preinstall(struct drm_device *dev)
 	for_each_pipe(dev_priv, pipe)
 		I915_WRITE(PIPESTAT(pipe), 0xffff);
 
-<<<<<<< HEAD
-	if (work == NULL ||
-	    atomic_read(&work->pending) >= INTEL_FLIP_COMPLETE ||
-	    !work->enable_stall_check) {
-		/* Either the pending flip IRQ arrived, or we're too early. Don't check */
-		spin_unlock_irqrestore(&dev->event_lock, flags);
-		return;
-	}
-=======
 	I915_WRITE(VLV_IMR, 0xffffffff);
 	I915_WRITE(VLV_IER, 0x0);
 	I915_WRITE(VLV_IIR, 0xffffffff);
 	POSTING_READ(VLV_IIR);
 }
->>>>>>> android-3.18
 
 static void ibx_hpd_irq_setup(struct drm_device *dev)
 {
@@ -4549,44 +4451,6 @@ static void i915_hpd_irq_setup(struct drm_device *dev)
 	assert_spin_locked(&dev_priv->irq_lock);
 
 	if (I915_HAS_HOTPLUG(dev)) {
-<<<<<<< HEAD
-		u32 hotplug_en = I915_READ(PORT_HOTPLUG_EN);
-
-		/* Note HDMI and DP share bits */
-		if (dev_priv->hotplug_supported_mask & HDMIB_HOTPLUG_INT_STATUS)
-			hotplug_en |= HDMIB_HOTPLUG_INT_EN;
-		if (dev_priv->hotplug_supported_mask & HDMIC_HOTPLUG_INT_STATUS)
-			hotplug_en |= HDMIC_HOTPLUG_INT_EN;
-		if (dev_priv->hotplug_supported_mask & HDMID_HOTPLUG_INT_STATUS)
-			hotplug_en |= HDMID_HOTPLUG_INT_EN;
-		if (IS_G4X(dev)) {
-			if (dev_priv->hotplug_supported_mask & SDVOC_HOTPLUG_INT_STATUS_G4X)
-				hotplug_en |= SDVOC_HOTPLUG_INT_EN;
-			if (dev_priv->hotplug_supported_mask & SDVOB_HOTPLUG_INT_STATUS_G4X)
-				hotplug_en |= SDVOB_HOTPLUG_INT_EN;
-		} else if (IS_GEN4(dev)) {
-			if (dev_priv->hotplug_supported_mask & SDVOC_HOTPLUG_INT_STATUS_I965)
-				hotplug_en |= SDVOC_HOTPLUG_INT_EN;
-			if (dev_priv->hotplug_supported_mask & SDVOB_HOTPLUG_INT_STATUS_I965)
-				hotplug_en |= SDVOB_HOTPLUG_INT_EN;
-		} else {
-			if (dev_priv->hotplug_supported_mask & SDVOC_HOTPLUG_INT_STATUS_I915)
-				hotplug_en |= SDVOC_HOTPLUG_INT_EN;
-			if (dev_priv->hotplug_supported_mask & SDVOB_HOTPLUG_INT_STATUS_I915)
-				hotplug_en |= SDVOB_HOTPLUG_INT_EN;
-		}
-		if (dev_priv->hotplug_supported_mask & CRT_HOTPLUG_INT_STATUS) {
-			hotplug_en |= CRT_HOTPLUG_INT_EN;
-
-			/* Programming the CRT detection parameters tends
-			   to generate a spurious hotplug event about three
-			   seconds later.  So just do it once.
-			*/
-			if (IS_G4X(dev))
-				hotplug_en |= CRT_HOTPLUG_ACTIVATION_PERIOD_64;
-			hotplug_en |= CRT_HOTPLUG_VOLTAGE_COMPARE_50;
-		}
-=======
 		hotplug_en = I915_READ(PORT_HOTPLUG_EN);
 		hotplug_en &= ~HOTPLUG_INT_EN_MASK;
 		/* Note HDMI and DP share hotplug bits */
@@ -4602,7 +4466,6 @@ static void i915_hpd_irq_setup(struct drm_device *dev)
 			hotplug_en |= CRT_HOTPLUG_ACTIVATION_PERIOD_64;
 		hotplug_en &= ~CRT_HOTPLUG_VOLTAGE_COMPARE_MASK;
 		hotplug_en |= CRT_HOTPLUG_VOLTAGE_COMPARE_50;
->>>>>>> android-3.18
 
 		/* Ignore TV since it's buggy */
 		I915_WRITE(PORT_HOTPLUG_EN, hotplug_en);

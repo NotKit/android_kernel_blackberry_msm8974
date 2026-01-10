@@ -577,14 +577,8 @@ static int ibmveth_open(struct net_device *netdev)
 	adapter->rx_queue.queue_len = sizeof(struct ibmveth_rx_q_entry) *
 						rxq_entries;
 	adapter->rx_queue.queue_addr =
-<<<<<<< HEAD
-	    dma_alloc_coherent(dev, adapter->rx_queue.queue_len,
-			       &adapter->rx_queue.queue_dma, GFP_KERNEL);
-
-=======
 		dma_alloc_coherent(dev, adapter->rx_queue.queue_len,
 				   &adapter->rx_queue.queue_dma, GFP_KERNEL);
->>>>>>> android-3.18
 	if (!adapter->rx_queue.queue_addr) {
 		rc = -ENOMEM;
 		goto err_out;
@@ -1401,12 +1395,6 @@ static int ibmveth_probe(struct vio_dev *dev, const struct vio_device_id *id)
 
 	netif_napi_add(netdev, &adapter->napi, ibmveth_poll, 16);
 
-<<<<<<< HEAD
-	adapter->mac_addr = 0;
-	memcpy(&adapter->mac_addr, mac_addr_p, 6);
-
-=======
->>>>>>> android-3.18
 	netdev->irq = dev->irq;
 	netdev->netdev_ops = &ibmveth_netdev_ops;
 	netdev->ethtool_ops = &netdev_ethtool_ops;

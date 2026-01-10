@@ -329,70 +329,6 @@ enum pl330_op_err {
 	PL330_ERR_FAIL,
 };
 
-<<<<<<< HEAD
-/* A request defining Scatter-Gather List ending with NULL xfer. */
-struct pl330_req {
-	enum pl330_reqtype rqtype;
-	/* Index of peripheral for the xfer. */
-	unsigned peri:5;
-	/* Unique token for this xfer, set by the client. */
-	void *token;
-	/* Callback to be called after xfer. */
-	void (*xfer_cb)(void *token, enum pl330_op_err err);
-	/* If NULL, req will be done at last set parameters. */
-	struct pl330_reqcfg *cfg;
-	/* Pointer to first xfer in the request. */
-	struct pl330_xfer *x;
-	/* Hook to attach to DMAC's list of reqs with due callback */
-	struct list_head rqd;
-};
-
-/*
- * To know the status of the channel and DMAC, the client
- * provides a pointer to this structure. The PL330 core
- * fills it with current information.
- */
-struct pl330_chanstatus {
-	/*
-	 * If the DMAC engine halted due to some error,
-	 * the client should remove-add DMAC.
-	 */
-	bool dmac_halted;
-	/*
-	 * If channel is halted due to some error,
-	 * the client should ABORT/FLUSH and START the channel.
-	 */
-	bool faulting;
-	/* Location of last load */
-	u32 src_addr;
-	/* Location of last store */
-	u32 dst_addr;
-	/*
-	 * Pointer to the currently active req, NULL if channel is
-	 * inactive, even though the requests may be present.
-	 */
-	struct pl330_req *top_req;
-	/* Pointer to req waiting second in the queue if any. */
-	struct pl330_req *wait_req;
-};
-
-enum pl330_chan_op {
-	/* Start the channel */
-	PL330_OP_START,
-	/* Abort the active xfer */
-	PL330_OP_ABORT,
-	/* Stop xfer and flush queue */
-	PL330_OP_FLUSH,
-};
-
-struct _xfer_spec {
-	u32 ccr;
-	struct pl330_req *r;
-	struct pl330_xfer *x;
-};
-
-=======
->>>>>>> android-3.18
 enum dmamov_dst {
 	SAR = 0,
 	CCR,
@@ -415,13 +351,7 @@ struct dma_pl330_desc;
 struct _pl330_req {
 	u32 mc_bus;
 	void *mc_cpu;
-<<<<<<< HEAD
-	/* Number of bytes taken to setup MC for the req */
-	u32 mc_len;
-	struct pl330_req *r;
-=======
 	struct dma_pl330_desc *desc;
->>>>>>> android-3.18
 };
 
 /* ToBeDone for tasklet */
@@ -1468,29 +1398,6 @@ static int pl330_submit_req(struct pl330_thread *thrd,
 		goto xfer_exit;
 	}
 
-<<<<<<< HEAD
-
-	/* Use last settings, if not provided */
-	if (r->cfg) {
-		/* Prefer Secure Channel */
-		if (!_manager_ns(thrd))
-			r->cfg->nonsecure = 0;
-		else
-			r->cfg->nonsecure = 1;
-
-		ccr = _prepare_ccr(r->cfg);
-	} else {
-		ccr = readl(regs + CC(thrd->id));
-	}
-
-	/* If this req doesn't have valid xfer settings */
-	if (!_is_valid(ccr)) {
-		ret = -EINVAL;
-		dev_info(thrd->dmac->pinfo->dev, "%s:%d Invalid CCR(%x)!\n",
-			__func__, __LINE__, ccr);
-		goto xfer_exit;
-	}
-=======
 	/* Prefer Secure Channel */
 	if (!_manager_ns(thrd))
 		desc->rqcfg.nonsecure = 0;
@@ -1498,7 +1405,6 @@ static int pl330_submit_req(struct pl330_thread *thrd,
 		desc->rqcfg.nonsecure = 1;
 
 	ccr = _prepare_ccr(&desc->rqcfg);
->>>>>>> android-3.18
 
 	idx = thrd->req[0].desc == NULL ? 0 : 1;
 
@@ -1614,12 +1520,7 @@ static void pl330_dotask(unsigned long data)
 /* Returns 1 if state was updated, 0 otherwise */
 static int pl330_update(struct pl330_dmac *pl330)
 {
-<<<<<<< HEAD
-	struct pl330_req *rqdone, *tmp;
-	struct pl330_dmac *pl330;
-=======
 	struct dma_pl330_desc *descdone;
->>>>>>> android-3.18
 	unsigned long flags;
 	void __iomem *regs;
 	u32 val;
@@ -1683,15 +1584,8 @@ static int pl330_update(struct pl330_dmac *pl330)
 				continue;
 
 			/* Detach the req */
-<<<<<<< HEAD
-			rqdone = thrd->req[active].r;
-			thrd->req[active].r = NULL;
-
-			mark_free(thrd, active);
-=======
 			descdone = thrd->req[active].desc;
 			thrd->req[active].desc = NULL;
->>>>>>> android-3.18
 
 			/* Get going again ASAP */
 			_start(thrd);
@@ -1702,20 +1596,12 @@ static int pl330_update(struct pl330_dmac *pl330)
 	}
 
 	/* Now that we are in no hurry, do the callbacks */
-<<<<<<< HEAD
-	list_for_each_entry_safe(rqdone, tmp, &pl330->req_done, rqd) {
-		list_del(&rqdone->rqd);
-
-		spin_unlock_irqrestore(&pl330->lock, flags);
-		_callback(rqdone, PL330_ERR_NONE);
-=======
 	while (!list_empty(&pl330->req_done)) {
 		descdone = list_first_entry(&pl330->req_done,
 					    struct dma_pl330_desc, rqd);
 		list_del(&descdone->rqd);
 		spin_unlock_irqrestore(&pl330->lock, flags);
 		dma_pl330_rqcb(descdone, PL330_ERR_NONE);
->>>>>>> android-3.18
 		spin_lock_irqsave(&pl330->lock, flags);
 	}
 
@@ -2251,17 +2137,10 @@ static void pl330_free_chan_resources(struct dma_chan *chan)
 
 	tasklet_kill(&pch->task);
 
-<<<<<<< HEAD
-	spin_lock_irqsave(&pch->lock, flags);
-
-	pl330_release_channel(pch->pl330_chid);
-	pch->pl330_chid = NULL;
-=======
 	spin_lock_irqsave(&pl330->lock, flags);
 
 	pl330_release_channel(pch->thread);
 	pch->thread = NULL;
->>>>>>> android-3.18
 
 	if (pch->cyclic)
 		list_splice_tail_init(&pch->work_list, &pch->dmac->desc_pool);
@@ -2785,13 +2664,6 @@ pl330_probe(struct amba_device *adev, const struct amba_id *id)
 	else
 		num_chan = max_t(int, pcfg->num_peri, pcfg->num_chan);
 
-<<<<<<< HEAD
-	pdmac->peripherals = kzalloc(num_chan * sizeof(*pch), GFP_KERNEL);
-	if (!pdmac->peripherals) {
-		ret = -ENOMEM;
-		dev_err(&adev->dev, "unable to allocate pdmac->peripherals\n");
-		goto probe_err5;
-=======
 	pl330->num_peripherals = num_chan;
 
 	pl330->peripherals = kzalloc(num_chan * sizeof(*pch), GFP_KERNEL);
@@ -2799,7 +2671,6 @@ pl330_probe(struct amba_device *adev, const struct amba_id *id)
 		ret = -ENOMEM;
 		dev_err(&adev->dev, "unable to allocate pl330->peripherals\n");
 		goto probe_err2;
->>>>>>> android-3.18
 	}
 
 	for (i = 0; i < num_chan; i++) {

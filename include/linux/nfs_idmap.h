@@ -36,10 +36,7 @@
 #ifndef NFS_IDMAP_H
 #define NFS_IDMAP_H
 
-<<<<<<< HEAD
-=======
 #include <linux/uidgid.h>
->>>>>>> android-3.18
 #include <uapi/linux/nfs_idmap.h>
 
 

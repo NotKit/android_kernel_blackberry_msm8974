@@ -258,11 +258,8 @@ struct eg20t_port {
 	dma_addr_t			rx_buf_dma;
 
 	struct dentry	*debugfs;
-<<<<<<< HEAD
-=======
 #define IRQ_NAME_SIZE 17
 	char				irq_name[IRQ_NAME_SIZE];
->>>>>>> android-3.18
 
 	/* protect the eg20t_port private structure and io access to membase */
 	spinlock_t lock;
@@ -683,20 +680,11 @@ static int dma_push_rx(struct eg20t_port *priv, int size)
 		dev_warn(port->dev, "Rx overrun: dropping %u bytes\n",
 			 size - room);
 	if (!room)
-<<<<<<< HEAD
-		goto out;
-=======
 		return 0;
->>>>>>> android-3.18
 
 	tty_insert_flip_string(tport, sg_virt(&priv->sg_rx), size);
 
 	port->icount.rx += room;
-<<<<<<< HEAD
-out:
-	tty_kref_put(tty);
-=======
->>>>>>> android-3.18
 
 	return room;
 }
@@ -1081,19 +1069,10 @@ static unsigned int dma_handle_tx(struct eg20t_port *priv)
 
 static void pch_uart_err_ir(struct eg20t_port *priv, unsigned int lsr)
 {
-<<<<<<< HEAD
-	u8 fcr = ioread8(priv->membase + UART_FCR);
-=======
->>>>>>> android-3.18
 	struct uart_port *port = &priv->port;
 	struct tty_struct *tty = tty_port_tty_get(&port->state->port);
 	char   *error_msg[5] = {};
 	int    i = 0;
-<<<<<<< HEAD
-
-	/* Reset FIFO */
-	fcr |= UART_FCR_CLEAR_RCVR;
-	iowrite8(fcr, priv->membase + UART_FCR);
 
 	if (lsr & PCH_UART_LSR_ERR)
 		error_msg[i++] = "Error data in FIFO\n";
@@ -1113,27 +1092,6 @@ static void pch_uart_err_ir(struct eg20t_port *priv, unsigned int lsr)
 		error_msg[i++] = "  Overrun Error\n";
 	}
 
-=======
-
-	if (lsr & PCH_UART_LSR_ERR)
-		error_msg[i++] = "Error data in FIFO\n";
-
-	if (lsr & UART_LSR_FE) {
-		port->icount.frame++;
-		error_msg[i++] = "  Framing Error\n";
-	}
-
-	if (lsr & UART_LSR_PE) {
-		port->icount.parity++;
-		error_msg[i++] = "  Parity Error\n";
-	}
-
-	if (lsr & UART_LSR_OE) {
-		port->icount.overrun++;
-		error_msg[i++] = "  Overrun Error\n";
-	}
-
->>>>>>> android-3.18
 	if (tty == NULL) {
 		for (i = 0; error_msg[i] != NULL; i++)
 			dev_err(&priv->pdev->dev, error_msg[i]);
@@ -1307,10 +1265,6 @@ static void pch_uart_stop_rx(struct uart_port *port)
 	priv->start_rx = 0;
 	pch_uart_hal_disable_interrupt(priv, PCH_UART_HAL_RX_INT |
 					     PCH_UART_HAL_RX_ERR_INT);
-<<<<<<< HEAD
-	priv->int_dis_flag = 1;
-=======
->>>>>>> android-3.18
 }
 
 /* Enable the modem status interrupts. */
@@ -1708,12 +1662,8 @@ pch_console_write(struct console *co, const char *s, unsigned int count)
 
 	local_irq_save(flags);
 	if (priv->port.sysrq) {
-<<<<<<< HEAD
-		spin_lock(&priv->lock);
-=======
 		/* call to uart_handle_sysrq_char already took the priv lock */
 		priv_locked = 0;
->>>>>>> android-3.18
 		/* serial8250_handle_port() already took the port lock */
 		port_locked = 0;
 	} else if (oops_in_progress) {

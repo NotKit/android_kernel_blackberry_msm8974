@@ -264,11 +264,6 @@ static void p1022ds_set_monitor_port(enum fsl_diu_monitor_port port)
 		goto exit;
 	}
 
-<<<<<<< HEAD
-	iprop = of_get_property(law_node, "fsl,num-laws", 0);
-	if (!iprop) {
-		pr_err("p1022ds: LAW node is missing fsl,num-laws property\n");
-=======
 	iprop = of_get_property(law_node, "fsl,num-laws", NULL);
 	if (!iprop) {
 		pr_err("p1022ds: LAW node is missing fsl,num-laws property\n");
@@ -325,66 +320,10 @@ static void p1022ds_set_monitor_port(enum fsl_diu_monitor_port port)
 	if (!cs1_addr) {
 		pr_err("p1022ds: could not determine physical address for CS1"
 		       " (BR1=%08x)\n", br1);
->>>>>>> android-3.18
 		goto exit;
 	}
 	num_laws = be32_to_cpup(iprop);
 
-<<<<<<< HEAD
-	/*
-	 * Indirect mode requires both BR0 and BR1 to be set to "GPCM",
-	 * otherwise writes to these addresses won't actually appear on the
-	 * local bus, and so the PIXIS won't see them.
-	 *
-	 * In FCM mode, writes go to the NAND controller, which does not pass
-	 * them to the localbus directly.  So we force BR0 and BR1 into GPCM
-	 * mode, since we don't care about what's behind the localbus any
-	 * more.
-	 */
-	br0 = in_be32(&lbc->bank[0].br);
-	br1 = in_be32(&lbc->bank[1].br);
-	or0 = in_be32(&lbc->bank[0].or);
-	or1 = in_be32(&lbc->bank[1].or);
-
-	/* Make sure CS0 and CS1 are programmed */
-	if (!(br0 & BR_V) || !(br1 & BR_V)) {
-		pr_err("p1022ds: CS0 and/or CS1 is not programmed\n");
-		goto exit;
-	}
-
-	/*
-	 * Use the existing BRx/ORx values if it's already GPCM. Otherwise,
-	 * force the values to simple 32KB GPCM windows with the most
-	 * conservative timing.
-	 */
-	if ((br0 & BR_MSEL) != BR_MS_GPCM) {
-		br0 = (br0 & BR_BA) | BR_V;
-		or0 = 0xFFFF8000 | 0xFF7;
-		out_be32(&lbc->bank[0].br, br0);
-		out_be32(&lbc->bank[0].or, or0);
-	}
-	if ((br1 & BR_MSEL) != BR_MS_GPCM) {
-		br1 = (br1 & BR_BA) | BR_V;
-		or1 = 0xFFFF8000 | 0xFF7;
-		out_be32(&lbc->bank[1].br, br1);
-		out_be32(&lbc->bank[1].or, or1);
-	}
-
-	cs0_addr = lbc_br_to_phys(ecm, num_laws, br0);
-	if (!cs0_addr) {
-		pr_err("p1022ds: could not determine physical address for CS0"
-		       " (BR0=%08x)\n", br0);
-		goto exit;
-	}
-	cs1_addr = lbc_br_to_phys(ecm, num_laws, br1);
-	if (!cs0_addr) {
-		pr_err("p1022ds: could not determine physical address for CS1"
-		       " (BR1=%08x)\n", br1);
-		goto exit;
-	}
-
-=======
->>>>>>> android-3.18
 	lbc_lcs0_ba = ioremap(cs0_addr, 1);
 	if (!lbc_lcs0_ba) {
 		pr_err("p1022ds: could not ioremap CS0 address %llx\n",
@@ -555,29 +494,6 @@ void __init p1022_ds_pic_init(void)
 
 #if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
 
-<<<<<<< HEAD
-/*
- * Disables a node in the device tree.
- *
- * This function is called before kmalloc() is available, so the 'new' object
- * should be allocated in the global area.  The easiest way is to do that is
- * to allocate one static local variable for each call to this function.
- */
-static void __init disable_one_node(struct device_node *np, struct property *new)
-{
-	struct property *old;
-
-	old = of_find_property(np, new->name, NULL);
-	if (old)
-		prom_update_property(np, new, old);
-	else
-		prom_add_property(np, new);
-
-	pr_info("p1022ds: disabling %s node\n", np->full_name);
-}
-
-=======
->>>>>>> android-3.18
 /* TRUE if there is a "video=fslfb" command-line parameter. */
 static bool fslfb;
 
@@ -636,26 +552,6 @@ static void __init p1022_ds_setup_arch(void)
 					.length = sizeof("disabled"),
 				};
 
-<<<<<<< HEAD
-				disable_one_node(np2, &nor_status);
-				of_node_put(np2);
-			}
-
-			of_node_get(np);
-			np2 = of_find_compatible_node(np, NULL,
-						      "fsl,elbc-fcm-nand");
-			if (np2) {
-				static struct property nand_status = {
-					.name = "status",
-					.value = "disabled",
-					.length = sizeof("disabled"),
-				};
-
-				disable_one_node(np2, &nand_status);
-				of_node_put(np2);
-			}
-
-=======
 				/*
 				 * of_update_property() is called before
 				 * kmalloc() is available, so the 'new' object
@@ -686,7 +582,6 @@ static void __init p1022_ds_setup_arch(void)
 				of_node_put(np2);
 			}
 
->>>>>>> android-3.18
 			of_node_put(np);
 		}
 

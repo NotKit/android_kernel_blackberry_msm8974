@@ -316,18 +316,10 @@ static void tun_flow_cleanup(unsigned long data)
 static void tun_flow_update(struct tun_struct *tun, u32 rxhash,
 			    struct tun_file *tfile)
 {
-<<<<<<< HEAD
-	/* Detach from net device */
-	netif_tx_lock_bh(tun->dev);
-	netif_carrier_off(tun->dev);
-	tun->tfile = NULL;
-	netif_tx_unlock_bh(tun->dev);
-=======
 	struct hlist_head *head;
 	struct tun_flow_entry *e;
 	unsigned long delay = tun->ageing_time;
 	u16 queue_index = tfile->queue_index;
->>>>>>> android-3.18
 
 	if (!rxhash)
 		return;
@@ -738,29 +730,7 @@ static const struct ethtool_ops tun_ethtool_ops;
 /* Net device detach from fd. */
 static void tun_net_uninit(struct net_device *dev)
 {
-<<<<<<< HEAD
-	struct tun_struct *tun = netdev_priv(dev);
-	struct tun_file *tfile = tun->tfile;
-
-	/* Inform the methods they need to stop using the dev.
-	 */
-	if (tfile) {
-		wake_up_all(&tun->wq.wait);
-		if (atomic_dec_and_test(&tfile->count))
-			__tun_detach(tun);
-	}
-}
-
-static void tun_free_netdev(struct net_device *dev)
-{
-	struct tun_struct *tun = netdev_priv(dev);
-
-	BUG_ON(!test_bit(SOCK_EXTERNALLY_ALLOCATED, &tun->socket.flags));
-
-	sk_release_kernel(tun->socket.sk);
-=======
 	tun_detach_all(dev);
->>>>>>> android-3.18
 }
 
 /* Net device open. */
@@ -1976,11 +1946,7 @@ static long __tun_chr_ioctl(struct file *file, unsigned int cmd,
 	}
 #endif
 
-<<<<<<< HEAD
-	if (cmd == TUNSETIFF || _IOC_TYPE(cmd) == 0x89) {
-=======
 	if (cmd == TUNSETIFF || cmd == TUNSETQUEUE || _IOC_TYPE(cmd) == 0x89) {
->>>>>>> android-3.18
 		if (copy_from_user(&ifr, argp, ifreq_len))
 			return -EFAULT;
 	} else {

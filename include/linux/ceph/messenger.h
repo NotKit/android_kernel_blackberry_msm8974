@@ -145,15 +145,6 @@ struct ceph_msg {
 	struct ceph_msg_footer footer;	/* footer */
 	struct kvec front;              /* unaligned blobs of message */
 	struct ceph_buffer *middle;
-<<<<<<< HEAD
-	struct page **pages;            /* data payload.  NOT OWNER. */
-	unsigned nr_pages;              /* size of page array */
-	unsigned page_alignment;        /* io offset in first page */
-	struct ceph_pagelist *pagelist; /* instead of pages */
-
-	struct ceph_connection *con;
-	struct list_head list_head;
-=======
 
 	size_t				data_length;
 	struct list_head		data;
@@ -161,7 +152,6 @@ struct ceph_msg {
 
 	struct ceph_connection *con;
 	struct list_head list_head;	/* links for connection lists */
->>>>>>> android-3.18
 
 	struct kref kref;
 	bool more_to_follow;
@@ -201,11 +191,7 @@ struct ceph_connection {
 
 	struct ceph_entity_name peer_name; /* peer name */
 
-<<<<<<< HEAD
-	unsigned peer_features;
-=======
 	u64 peer_features;
->>>>>>> android-3.18
 	u32 connect_seq;      /* identify the most recent connection
 				 attempt for this connection, client */
 	u32 peer_global_seq;  /* peer's global seq for this connection */
@@ -269,13 +255,8 @@ extern void ceph_msgr_flush(void);
 
 extern void ceph_messenger_init(struct ceph_messenger *msgr,
 			struct ceph_entity_addr *myaddr,
-<<<<<<< HEAD
-			u32 supported_features,
-			u32 required_features,
-=======
 			u64 supported_features,
 			u64 required_features,
->>>>>>> android-3.18
 			bool nocrc);
 
 extern void ceph_con_init(struct ceph_connection *con, void *private,
@@ -292,8 +273,6 @@ extern void ceph_msg_revoke(struct ceph_msg *msg);
 extern void ceph_msg_revoke_incoming(struct ceph_msg *msg);
 
 extern void ceph_con_keepalive(struct ceph_connection *con);
-<<<<<<< HEAD
-=======
 
 extern void ceph_msg_data_add_pages(struct ceph_msg *msg, struct page **pages,
 				size_t length, size_t alignment);
@@ -303,7 +282,6 @@ extern void ceph_msg_data_add_pagelist(struct ceph_msg *msg,
 extern void ceph_msg_data_add_bio(struct ceph_msg *msg, struct bio *bio,
 				size_t length);
 #endif /* CONFIG_BLOCK */
->>>>>>> android-3.18
 
 extern struct ceph_msg *ceph_msg_new(int type, int front_len, gfp_t flags,
 				     bool can_fail);

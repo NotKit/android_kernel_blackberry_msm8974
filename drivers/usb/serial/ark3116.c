@@ -61,10 +61,6 @@ static int is_irda(struct usb_serial *serial)
 }
 
 struct ark3116_private {
-<<<<<<< HEAD
-	struct async_icount	icount;
-=======
->>>>>>> android-3.18
 	int			irda;	/* 1 for irda device */
 
 	/* protects hw register updates */
@@ -449,36 +445,6 @@ static int ark3116_ioctl(struct tty_struct *tty,
 		if (copy_from_user(&serstruct, user_arg, sizeof(serstruct)))
 			return -EFAULT;
 		return 0;
-<<<<<<< HEAD
-	case TIOCMIWAIT:
-		for (;;) {
-			struct async_icount prev = priv->icount;
-			interruptible_sleep_on(&port->delta_msr_wait);
-			/* see if a signal did it */
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			if ((prev.rng == priv->icount.rng) &&
-			    (prev.dsr == priv->icount.dsr) &&
-			    (prev.dcd == priv->icount.dcd) &&
-			    (prev.cts == priv->icount.cts))
-				return -EIO;
-			if ((arg & TIOCM_RNG &&
-			     (prev.rng != priv->icount.rng)) ||
-			    (arg & TIOCM_DSR &&
-			     (prev.dsr != priv->icount.dsr)) ||
-			    (arg & TIOCM_CD  &&
-			     (prev.dcd != priv->icount.dcd)) ||
-			    (arg & TIOCM_CTS &&
-			     (prev.cts != priv->icount.cts)))
-				return 0;
-		}
-		break;
-=======
->>>>>>> android-3.18
 	}
 
 	return -ENOIOCTLCMD;
@@ -582,13 +548,8 @@ static void ark3116_update_msr(struct usb_serial_port *port, __u8 msr)
 		if (msr & UART_MSR_DDCD)
 			port->icount.dcd++;
 		if (msr & UART_MSR_TERI)
-<<<<<<< HEAD
-			priv->icount.rng++;
-		wake_up_interruptible(&port->delta_msr_wait);
-=======
 			port->icount.rng++;
 		wake_up_interruptible(&port->port.delta_msr_wait);
->>>>>>> android-3.18
 	}
 }
 

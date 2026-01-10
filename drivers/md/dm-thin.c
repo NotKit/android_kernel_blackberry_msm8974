@@ -16,11 +16,7 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/slab.h>
-<<<<<<< HEAD
-#include <linux/vmalloc.h>
-=======
 #include <linux/rbtree.h>
->>>>>>> android-3.18
 
 #define	DM_MSG_PREFIX	"thin"
 
@@ -28,10 +24,6 @@
  * Tunable constants
  */
 #define ENDIO_HOOK_POOL_SIZE 1024
-<<<<<<< HEAD
-#define DEFERRED_SET_SIZE 64
-=======
->>>>>>> android-3.18
 #define MAPPING_POOL_SIZE 1024
 #define PRISON_CELLS 1024
 #define COMMIT_PERIOD HZ
@@ -115,382 +107,6 @@ DECLARE_DM_KCOPYD_THROTTLE_WITH_MODULE_PARM(snapshot_copy_throttle,
 /*----------------------------------------------------------------*/
 
 /*
-<<<<<<< HEAD
- * Sometimes we can't deal with a bio straight away.  We put them in prison
- * where they can't cause any mischief.  Bios are put in a cell identified
- * by a key, multiple bios can be in the same cell.  When the cell is
- * subsequently unlocked the bios become available.
- */
-struct bio_prison;
-
-struct cell_key {
-	int virtual;
-	dm_thin_id dev;
-	dm_block_t block;
-};
-
-struct cell {
-	struct hlist_node list;
-	struct bio_prison *prison;
-	struct cell_key key;
-	struct bio *holder;
-	struct bio_list bios;
-};
-
-struct bio_prison {
-	spinlock_t lock;
-	mempool_t *cell_pool;
-
-	unsigned nr_buckets;
-	unsigned hash_mask;
-	struct hlist_head *cells;
-};
-
-static uint32_t calc_nr_buckets(unsigned nr_cells)
-{
-	uint32_t n = 128;
-
-	nr_cells /= 4;
-	nr_cells = min(nr_cells, 8192u);
-
-	while (n < nr_cells)
-		n <<= 1;
-
-	return n;
-}
-
-/*
- * @nr_cells should be the number of cells you want in use _concurrently_.
- * Don't confuse it with the number of distinct keys.
- */
-static struct bio_prison *prison_create(unsigned nr_cells)
-{
-	unsigned i;
-	uint32_t nr_buckets = calc_nr_buckets(nr_cells);
-	struct bio_prison *prison = kmalloc(sizeof(*prison), GFP_KERNEL);
-
-	if (!prison)
-		return NULL;
-
-	spin_lock_init(&prison->lock);
-	prison->cell_pool = mempool_create_kmalloc_pool(nr_cells,
-							sizeof(struct cell));
-	if (!prison->cell_pool) {
-		kfree(prison);
-		return NULL;
-	}
-
-	prison->cells = vmalloc(sizeof(*prison->cells) * nr_buckets);
-	if (!prison->cells) {
-		mempool_destroy(prison->cell_pool);
-		kfree(prison);
-		return NULL;
-	}
-
-	prison->nr_buckets = nr_buckets;
-	prison->hash_mask = nr_buckets - 1;
-	for (i = 0; i < nr_buckets; i++)
-		INIT_HLIST_HEAD(prison->cells + i);
-
-	return prison;
-}
-
-static void prison_destroy(struct bio_prison *prison)
-{
-	vfree(prison->cells);
-	mempool_destroy(prison->cell_pool);
-	kfree(prison);
-}
-
-static uint32_t hash_key(struct bio_prison *prison, struct cell_key *key)
-{
-	const unsigned long BIG_PRIME = 4294967291UL;
-	uint64_t hash = key->block * BIG_PRIME;
-
-	return (uint32_t) (hash & prison->hash_mask);
-}
-
-static int keys_equal(struct cell_key *lhs, struct cell_key *rhs)
-{
-	       return (lhs->virtual == rhs->virtual) &&
-		       (lhs->dev == rhs->dev) &&
-		       (lhs->block == rhs->block);
-}
-
-static struct cell *__search_bucket(struct hlist_head *bucket,
-				    struct cell_key *key)
-{
-	struct cell *cell;
-	struct hlist_node *tmp;
-
-	hlist_for_each_entry(cell, tmp, bucket, list)
-		if (keys_equal(&cell->key, key))
-			return cell;
-
-	return NULL;
-}
-
-/*
- * This may block if a new cell needs allocating.  You must ensure that
- * cells will be unlocked even if the calling thread is blocked.
- *
- * Returns 1 if the cell was already held, 0 if @inmate is the new holder.
- */
-static int bio_detain(struct bio_prison *prison, struct cell_key *key,
-		      struct bio *inmate, struct cell **ref)
-{
-	int r = 1;
-	unsigned long flags;
-	uint32_t hash = hash_key(prison, key);
-	struct cell *cell, *cell2;
-
-	BUG_ON(hash > prison->nr_buckets);
-
-	spin_lock_irqsave(&prison->lock, flags);
-
-	cell = __search_bucket(prison->cells + hash, key);
-	if (cell) {
-		bio_list_add(&cell->bios, inmate);
-		goto out;
-	}
-
-	/*
-	 * Allocate a new cell
-	 */
-	spin_unlock_irqrestore(&prison->lock, flags);
-	cell2 = mempool_alloc(prison->cell_pool, GFP_NOIO);
-	spin_lock_irqsave(&prison->lock, flags);
-
-	/*
-	 * We've been unlocked, so we have to double check that
-	 * nobody else has inserted this cell in the meantime.
-	 */
-	cell = __search_bucket(prison->cells + hash, key);
-	if (cell) {
-		mempool_free(cell2, prison->cell_pool);
-		bio_list_add(&cell->bios, inmate);
-		goto out;
-	}
-
-	/*
-	 * Use new cell.
-	 */
-	cell = cell2;
-
-	cell->prison = prison;
-	memcpy(&cell->key, key, sizeof(cell->key));
-	cell->holder = inmate;
-	bio_list_init(&cell->bios);
-	hlist_add_head(&cell->list, prison->cells + hash);
-
-	r = 0;
-
-out:
-	spin_unlock_irqrestore(&prison->lock, flags);
-
-	*ref = cell;
-
-	return r;
-}
-
-/*
- * @inmates must have been initialised prior to this call
- */
-static void __cell_release(struct cell *cell, struct bio_list *inmates)
-{
-	struct bio_prison *prison = cell->prison;
-
-	hlist_del(&cell->list);
-
-	if (inmates) {
-		bio_list_add(inmates, cell->holder);
-		bio_list_merge(inmates, &cell->bios);
-	}
-
-	mempool_free(cell, prison->cell_pool);
-}
-
-static void cell_release(struct cell *cell, struct bio_list *bios)
-{
-	unsigned long flags;
-	struct bio_prison *prison = cell->prison;
-
-	spin_lock_irqsave(&prison->lock, flags);
-	__cell_release(cell, bios);
-	spin_unlock_irqrestore(&prison->lock, flags);
-}
-
-/*
- * There are a couple of places where we put a bio into a cell briefly
- * before taking it out again.  In these situations we know that no other
- * bio may be in the cell.  This function releases the cell, and also does
- * a sanity check.
- */
-static void __cell_release_singleton(struct cell *cell, struct bio *bio)
-{
-	BUG_ON(cell->holder != bio);
-	BUG_ON(!bio_list_empty(&cell->bios));
-
-	__cell_release(cell, NULL);
-}
-
-static void cell_release_singleton(struct cell *cell, struct bio *bio)
-{
-	unsigned long flags;
-	struct bio_prison *prison = cell->prison;
-
-	spin_lock_irqsave(&prison->lock, flags);
-	__cell_release_singleton(cell, bio);
-	spin_unlock_irqrestore(&prison->lock, flags);
-}
-
-/*
- * Sometimes we don't want the holder, just the additional bios.
- */
-static void __cell_release_no_holder(struct cell *cell, struct bio_list *inmates)
-{
-	struct bio_prison *prison = cell->prison;
-
-	hlist_del(&cell->list);
-	bio_list_merge(inmates, &cell->bios);
-
-	mempool_free(cell, prison->cell_pool);
-}
-
-static void cell_release_no_holder(struct cell *cell, struct bio_list *inmates)
-{
-	unsigned long flags;
-	struct bio_prison *prison = cell->prison;
-
-	spin_lock_irqsave(&prison->lock, flags);
-	__cell_release_no_holder(cell, inmates);
-	spin_unlock_irqrestore(&prison->lock, flags);
-}
-
-static void cell_error(struct cell *cell)
-{
-	struct bio_prison *prison = cell->prison;
-	struct bio_list bios;
-	struct bio *bio;
-	unsigned long flags;
-
-	bio_list_init(&bios);
-
-	spin_lock_irqsave(&prison->lock, flags);
-	__cell_release(cell, &bios);
-	spin_unlock_irqrestore(&prison->lock, flags);
-
-	while ((bio = bio_list_pop(&bios)))
-		bio_io_error(bio);
-}
-
-/*----------------------------------------------------------------*/
-
-/*
- * We use the deferred set to keep track of pending reads to shared blocks.
- * We do this to ensure the new mapping caused by a write isn't performed
- * until these prior reads have completed.  Otherwise the insertion of the
- * new mapping could free the old block that the read bios are mapped to.
- */
-
-struct deferred_set;
-struct deferred_entry {
-	struct deferred_set *ds;
-	unsigned count;
-	struct list_head work_items;
-};
-
-struct deferred_set {
-	spinlock_t lock;
-	unsigned current_entry;
-	unsigned sweeper;
-	struct deferred_entry entries[DEFERRED_SET_SIZE];
-};
-
-static void ds_init(struct deferred_set *ds)
-{
-	int i;
-
-	spin_lock_init(&ds->lock);
-	ds->current_entry = 0;
-	ds->sweeper = 0;
-	for (i = 0; i < DEFERRED_SET_SIZE; i++) {
-		ds->entries[i].ds = ds;
-		ds->entries[i].count = 0;
-		INIT_LIST_HEAD(&ds->entries[i].work_items);
-	}
-}
-
-static struct deferred_entry *ds_inc(struct deferred_set *ds)
-{
-	unsigned long flags;
-	struct deferred_entry *entry;
-
-	spin_lock_irqsave(&ds->lock, flags);
-	entry = ds->entries + ds->current_entry;
-	entry->count++;
-	spin_unlock_irqrestore(&ds->lock, flags);
-
-	return entry;
-}
-
-static unsigned ds_next(unsigned index)
-{
-	return (index + 1) % DEFERRED_SET_SIZE;
-}
-
-static void __sweep(struct deferred_set *ds, struct list_head *head)
-{
-	while ((ds->sweeper != ds->current_entry) &&
-	       !ds->entries[ds->sweeper].count) {
-		list_splice_init(&ds->entries[ds->sweeper].work_items, head);
-		ds->sweeper = ds_next(ds->sweeper);
-	}
-
-	if ((ds->sweeper == ds->current_entry) && !ds->entries[ds->sweeper].count)
-		list_splice_init(&ds->entries[ds->sweeper].work_items, head);
-}
-
-static void ds_dec(struct deferred_entry *entry, struct list_head *head)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&entry->ds->lock, flags);
-	BUG_ON(!entry->count);
-	--entry->count;
-	__sweep(entry->ds, head);
-	spin_unlock_irqrestore(&entry->ds->lock, flags);
-}
-
-/*
- * Returns 1 if deferred or 0 if no pending items to delay job.
- */
-static int ds_add_work(struct deferred_set *ds, struct list_head *work)
-{
-	int r = 1;
-	unsigned long flags;
-	unsigned next_entry;
-
-	spin_lock_irqsave(&ds->lock, flags);
-	if ((ds->sweeper == ds->current_entry) &&
-	    !ds->entries[ds->current_entry].count)
-		r = 0;
-	else {
-		list_add(work, &ds->entries[ds->current_entry].work_items);
-		next_entry = ds_next(ds->current_entry);
-		if (!ds->entries[next_entry].count)
-			ds->current_entry = next_entry;
-	}
-	spin_unlock_irqrestore(&ds->lock, flags);
-
-	return r;
-}
-
-/*----------------------------------------------------------------*/
-
-/*
-=======
->>>>>>> android-3.18
  * Key building.
  */
 static void build_data_key(struct dm_thin_device *td,
@@ -1107,11 +723,7 @@ static void process_prepared_mapping(struct dm_thin_new_mapping *m)
 	}
 
 	if (m->err) {
-<<<<<<< HEAD
-		cell_error(m->cell);
-=======
 		cell_error(pool, m->cell);
->>>>>>> android-3.18
 		goto out;
 	}
 
@@ -1122,13 +734,8 @@ static void process_prepared_mapping(struct dm_thin_new_mapping *m)
 	 */
 	r = dm_thin_insert_block(tc->td, m->virt_block, m->data_block);
 	if (r) {
-<<<<<<< HEAD
-		DMERR("dm_thin_insert_block() failed");
-		cell_error(m->cell);
-=======
 		metadata_operation_failed(pool, "dm_thin_insert_block", r);
 		cell_error(pool, m->cell);
->>>>>>> android-3.18
 		goto out;
 	}
 
@@ -1705,15 +1312,6 @@ static void process_discard(struct thin_c *tc, struct bio *bio)
 			 * a block boundary.  So we submit the discard of a
 			 * partial block appropriately.
 			 */
-<<<<<<< HEAD
-			sector_t offset = bio->bi_sector - (block << pool->block_shift);
-			unsigned remaining = (pool->sectors_per_block - offset) << 9;
-			bio->bi_size = min(bio->bi_size, remaining);
-
-			cell_release_singleton(cell, bio);
-			cell_release_singleton(cell2, bio);
-=======
->>>>>>> android-3.18
 			if ((!lookup_result.shared) && pool->pf.discard_passdown)
 				remap_and_issue(tc, bio, lookup_result.block);
 			else
@@ -2068,17 +1666,10 @@ static void process_thin_deferred_bios(struct thin_c *tc)
 		 * prepared mappings to process.
 		 */
 		if (ensure_next_mapping(pool)) {
-<<<<<<< HEAD
-			spin_lock_irqsave(&pool->lock, flags);
-			bio_list_add(&pool->deferred_bios, bio);
-			bio_list_merge(&pool->deferred_bios, &bios);
-			spin_unlock_irqrestore(&pool->lock, flags);
-=======
 			spin_lock_irqsave(&tc->lock, flags);
 			bio_list_add(&tc->deferred_bio_list, bio);
 			bio_list_merge(&tc->deferred_bio_list, &bios);
 			spin_unlock_irqrestore(&tc->lock, flags);
->>>>>>> android-3.18
 			break;
 		}
 
@@ -3107,12 +2698,7 @@ static int pool_ctr(struct dm_target *ti, unsigned argc, char **argv)
 		 * stacking of discard limits (this keeps the pool and
 		 * thin devices' discard limits consistent).
 		 */
-<<<<<<< HEAD
-		ti->discards_supported = 1;
-		ti->discard_zeroes_data_unsupported = 1;
-=======
 		ti->discards_supported = true;
->>>>>>> android-3.18
 	}
 	ti->private = pt;
 
@@ -3559,11 +3145,7 @@ static void emit_flags(struct pool_features *pf, char *result,
  *    <used data sectors>/<total data sectors> <held metadata root>
  */
 static void pool_status(struct dm_target *ti, status_type_t type,
-<<<<<<< HEAD
-			char *result, unsigned maxlen)
-=======
 			unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	int r;
 	unsigned sz = 0;
@@ -3581,17 +3163,6 @@ static void pool_status(struct dm_target *ti, status_type_t type,
 
 	switch (type) {
 	case STATUSTYPE_INFO:
-<<<<<<< HEAD
-		r = dm_pool_get_metadata_transaction_id(pool->pmd, &transaction_id);
-		if (r) {
-			DMERR("dm_pool_get_metadata_transaction_id returned %d", r);
-			goto err;
-		}
-
-		r = dm_pool_get_free_metadata_block_count(pool->pmd, &nr_free_blocks_metadata);
-		if (r) {
-			DMERR("dm_pool_get_free_metadata_block_count returned %d", r);
-=======
 		if (get_pool_mode(pool) == PM_FAIL) {
 			DMEMIT("Fail");
 			break;
@@ -3612,43 +3183,25 @@ static void pool_status(struct dm_target *ti, status_type_t type,
 		if (r) {
 			DMERR("%s: dm_pool_get_free_metadata_block_count returned %d",
 			      dm_device_name(pool->pool_md), r);
->>>>>>> android-3.18
 			goto err;
 		}
 
 		r = dm_pool_get_metadata_dev_size(pool->pmd, &nr_blocks_metadata);
 		if (r) {
-<<<<<<< HEAD
-			DMERR("dm_pool_get_metadata_dev_size returned %d", r);
-=======
 			DMERR("%s: dm_pool_get_metadata_dev_size returned %d",
 			      dm_device_name(pool->pool_md), r);
->>>>>>> android-3.18
 			goto err;
 		}
 
 		r = dm_pool_get_free_block_count(pool->pmd, &nr_free_blocks_data);
 		if (r) {
-<<<<<<< HEAD
-			DMERR("dm_pool_get_free_block_count returned %d", r);
-=======
 			DMERR("%s: dm_pool_get_free_block_count returned %d",
 			      dm_device_name(pool->pool_md), r);
->>>>>>> android-3.18
 			goto err;
 		}
 
 		r = dm_pool_get_data_dev_size(pool->pmd, &nr_blocks_data);
 		if (r) {
-<<<<<<< HEAD
-			DMERR("dm_pool_get_data_dev_size returned %d", r);
-			goto err;
-		}
-
-		r = dm_pool_get_held_metadata_root(pool->pmd, &held_root);
-		if (r) {
-			DMERR("dm_pool_get_metadata_snap returned %d", r);
-=======
 			DMERR("%s: dm_pool_get_data_dev_size returned %d",
 			      dm_device_name(pool->pool_md), r);
 			goto err;
@@ -3658,7 +3211,6 @@ static void pool_status(struct dm_target *ti, status_type_t type,
 		if (r) {
 			DMERR("%s: dm_pool_get_metadata_snap returned %d",
 			      dm_device_name(pool->pool_md), r);
->>>>>>> android-3.18
 			goto err;
 		}
 
@@ -3743,16 +3295,12 @@ static void set_discard_limits(struct pool_c *pt, struct queue_limits *limits)
 	/*
 	 * discard_granularity is just a hint, and not enforced.
 	 */
-<<<<<<< HEAD
-	limits->discard_granularity = pool->sectors_per_block << SECTOR_SHIFT;
-=======
 	if (pt->adjusted_pf.discard_passdown) {
 		data_limits = &bdev_get_queue(pt->data_dev->bdev)->limits;
 		limits->discard_granularity = max(data_limits->discard_granularity,
 						  pool->sectors_per_block << SECTOR_SHIFT);
 	} else
 		limits->discard_granularity = pool->sectors_per_block << SECTOR_SHIFT;
->>>>>>> android-3.18
 }
 
 static void pool_io_hints(struct dm_target *ti, struct queue_limits *limits)
@@ -3796,11 +3344,7 @@ static struct target_type pool_target = {
 	.name = "thin-pool",
 	.features = DM_TARGET_SINGLETON | DM_TARGET_ALWAYS_WRITEABLE |
 		    DM_TARGET_IMMUTABLE,
-<<<<<<< HEAD
-	.version = {1, 1, 1},
-=======
 	.version = {1, 13, 0},
->>>>>>> android-3.18
 	.module = THIS_MODULE,
 	.ctr = pool_ctr,
 	.dtr = pool_dtr,
@@ -3959,16 +3503,10 @@ static int thin_ctr(struct dm_target *ti, unsigned argc, char **argv)
 	/* In case the pool supports discards, pass them on. */
 	ti->discard_zeroes_data_unsupported = true;
 	if (tc->pool->pf.discard_enabled) {
-<<<<<<< HEAD
-		ti->discards_supported = 1;
-		ti->num_discard_requests = 1;
-		ti->discard_zeroes_data_unsupported = 1;
-=======
 		ti->discards_supported = true;
 		ti->num_discard_bios = 1;
 		/* Discard bios must be split on a block boundary */
 		ti->split_discard_bios = true;
->>>>>>> android-3.18
 	}
 
 	dm_put(pool_md);
@@ -4085,11 +3623,7 @@ static int thin_preresume(struct dm_target *ti)
  * <nr mapped sectors> <highest mapped sector>
  */
 static void thin_status(struct dm_target *ti, status_type_t type,
-<<<<<<< HEAD
-			char *result, unsigned maxlen)
-=======
 			unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	int r;
 	ssize_t sz = 0;
@@ -4167,11 +3701,7 @@ static int thin_iterate_devices(struct dm_target *ti,
 
 static struct target_type thin_target = {
 	.name = "thin",
-<<<<<<< HEAD
-	.version = {1, 1, 1},
-=======
 	.version = {1, 13, 0},
->>>>>>> android-3.18
 	.module	= THIS_MODULE,
 	.ctr = thin_ctr,
 	.dtr = thin_dtr,

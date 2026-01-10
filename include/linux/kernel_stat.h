@@ -67,30 +67,8 @@ static inline unsigned int kstat_softirqs_cpu(unsigned int irq, int cpu)
 /*
  * Number of interrupts per specific IRQ source, since bootup
  */
-<<<<<<< HEAD
-#ifndef CONFIG_GENERIC_HARDIRQS
-static inline unsigned int kstat_irqs(unsigned int irq)
-{
-	unsigned int sum = 0;
-	int cpu;
-
-	for_each_possible_cpu(cpu)
-		sum += kstat_irqs_cpu(irq, cpu);
-
-	return sum;
-}
-static inline unsigned int kstat_irqs_usr(unsigned int irq)
-{
-	return kstat_irqs(irq);
-}
-#else
 extern unsigned int kstat_irqs(unsigned int irq);
 extern unsigned int kstat_irqs_usr(unsigned int irq);
-#endif
-=======
-extern unsigned int kstat_irqs(unsigned int irq);
-extern unsigned int kstat_irqs_usr(unsigned int irq);
->>>>>>> android-3.18
 
 /*
  * Number of interrupts per cpu, since bootup

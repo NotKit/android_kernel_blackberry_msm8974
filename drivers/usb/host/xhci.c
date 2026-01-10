@@ -27,10 +27,7 @@
 #include <linux/moduleparam.h>
 #include <linux/slab.h>
 #include <linux/dmi.h>
-<<<<<<< HEAD
-=======
 #include <linux/dma-mapping.h>
->>>>>>> android-3.18
 
 #include "xhci.h"
 #include "xhci-trace.h"
@@ -63,11 +60,7 @@ MODULE_PARM_DESC(quirks, "Bit flags for quirks to be enabled as default");
  * handshake done).  There are two failure modes:  "usec" have passed (major
  * hardware flakeout), or the register reads as all-ones (hardware removed).
  */
-<<<<<<< HEAD
-int handshake(struct xhci_hcd *xhci, void __iomem *ptr,
-=======
 int xhci_handshake(struct xhci_hcd *xhci, void __iomem *ptr,
->>>>>>> android-3.18
 		      u32 mask, u32 done, int usec)
 {
 	u32	result;
@@ -154,12 +147,8 @@ static int xhci_start(struct xhci_hcd *xhci)
 				"waited %u microseconds.\n",
 				XHCI_MAX_HALT_USEC);
 	if (!ret)
-<<<<<<< HEAD
-		xhci->xhc_state &= ~(XHCI_STATE_HALTED | XHCI_STATE_DYING);
-=======
 		/* clear state flags. Including dying, halted or removing */
 		xhci->xhc_state = 0;
->>>>>>> android-3.18
 
 	return ret;
 }
@@ -188,11 +177,7 @@ int xhci_reset(struct xhci_hcd *xhci)
 	command |= CMD_RESET;
 	writel(command, &xhci->op_regs->command);
 
-<<<<<<< HEAD
-	ret = handshake(xhci, &xhci->op_regs->command,
-=======
 	ret = xhci_handshake(xhci, &xhci->op_regs->command,
->>>>>>> android-3.18
 			CMD_RESET, 0, 10 * 1000 * 1000);
 	if (ret)
 		return ret;
@@ -203,11 +188,7 @@ int xhci_reset(struct xhci_hcd *xhci)
 	 * xHCI cannot write to any doorbells or operational registers other
 	 * than status until the "Controller Not Ready" flag is cleared.
 	 */
-<<<<<<< HEAD
-	ret = handshake(xhci, &xhci->op_regs->status,
-=======
 	ret = xhci_handshake(xhci, &xhci->op_regs->status,
->>>>>>> android-3.18
 			STS_CNR, 0, 10 * 1000 * 1000);
 
 	for (i = 0; i < 2; ++i) {
@@ -365,8 +346,6 @@ static void xhci_cleanup_msix(struct xhci_hcd *xhci)
 	return;
 }
 
-<<<<<<< HEAD
-=======
 static void __maybe_unused xhci_msix_sync_irqs(struct xhci_hcd *xhci)
 {
 	int i;
@@ -377,7 +356,6 @@ static void __maybe_unused xhci_msix_sync_irqs(struct xhci_hcd *xhci)
 	}
 }
 
->>>>>>> android-3.18
 static int xhci_try_enable_msi(struct usb_hcd *hcd)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
@@ -416,13 +394,10 @@ static int xhci_try_enable_msi(struct usb_hcd *hcd)
 	}
 
  legacy_irq:
-<<<<<<< HEAD
-=======
 	if (!strlen(hcd->irq_descr))
 		snprintf(hcd->irq_descr, sizeof(hcd->irq_descr), "%s:usb%d",
 			 hcd->driver->description, hcd->self.busnum);
 
->>>>>>> android-3.18
 	/* fall back to legacy interrupt*/
 	ret = request_irq(pdev->irq, &usb_hcd_irq, IRQF_SHARED,
 			hcd->irq_descr, hcd);
@@ -446,13 +421,7 @@ static inline void xhci_cleanup_msix(struct xhci_hcd *xhci)
 {
 }
 
-<<<<<<< HEAD
-#endif /* CONFIG_PCI */
-
-static void compliance_mode_recovery(unsigned long arg)
-=======
 static inline void xhci_msix_sync_irqs(struct xhci_hcd *xhci)
->>>>>>> android-3.18
 {
 	struct xhci_hcd *xhci;
 	struct usb_hcd *hcd;
@@ -768,14 +737,9 @@ int xhci_run(struct usb_hcd *hcd)
 			"// Enable interrupts, cmd = 0x%x.", temp);
 	writel(temp, &xhci->op_regs->command);
 
-<<<<<<< HEAD
-	temp = xhci_readl(xhci, &xhci->ir_set->irq_pending);
-	xhci_dbg(xhci, "// Enabling event ring interrupter %pK by writing 0x%x to irq_pending\n",
-=======
 	temp = readl(&xhci->ir_set->irq_pending);
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"// Enabling event ring interrupter %p by writing 0x%x to irq_pending",
->>>>>>> android-3.18
 			xhci->ir_set, (unsigned int) ER_IRQ_ENABLE(temp));
 	writel(ER_IRQ_ENABLE(temp), &xhci->ir_set->irq_pending);
 	xhci_print_ir_set(xhci, 0);
@@ -895,18 +859,9 @@ void xhci_shutdown(struct usb_hcd *hcd)
 
 	xhci_cleanup_msix(xhci);
 
-<<<<<<< HEAD
-	xhci_dbg(xhci, "xhci_shutdown completed - status = %x\n",
-		    xhci_readl(xhci, &xhci->op_regs->status));
-
-	/* Yet another workaround for spurious wakeups at shutdown with HSW */
-	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
-		pci_set_power_state(to_pci_dev(hcd->self.controller), PCI_D3hot);
-=======
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 			"xhci_shutdown completed - status = %x",
 			readl(&xhci->op_regs->status));
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(xhci_shutdown);
 
@@ -1052,8 +1007,6 @@ static void xhci_disable_port_wake_on_bits(struct xhci_hcd *xhci)
 	spin_unlock_irqrestore(&xhci->lock, flags);
 }
 
-<<<<<<< HEAD
-=======
 static bool xhci_pending_portevent(struct xhci_hcd *xhci)
 {
 	__le32 __iomem		**port_array;
@@ -1089,7 +1042,6 @@ static bool xhci_pending_portevent(struct xhci_hcd *xhci)
 	return false;
 }
 
->>>>>>> android-3.18
 /*
  * Stop HC (not bus-specific)
  *
@@ -1099,12 +1051,6 @@ static bool xhci_pending_portevent(struct xhci_hcd *xhci)
 int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 {
 	int			rc = 0;
-<<<<<<< HEAD
-	unsigned int		delay = XHCI_MAX_HALT_USEC;
-	struct usb_hcd		*hcd = xhci_to_hcd(xhci);
-	u32			command;
-
-=======
 	unsigned int		delay = XHCI_MAX_HALT_USEC * 2;
 	struct usb_hcd		*hcd = xhci_to_hcd(xhci);
 	u32			command;
@@ -1113,7 +1059,6 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 			xhci->shared_hcd->state != HC_STATE_SUSPENDED)
 		return -EINVAL;
 
->>>>>>> android-3.18
 	/* Clear root port wake on bits if wakeup not allowed. */
 	if (!do_wakeup)
 		xhci_disable_port_wake_on_bits(xhci);
@@ -1122,11 +1067,8 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	xhci_dbg(xhci, "%s: stopping port polling.\n", __func__);
 	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 	del_timer_sync(&hcd->rh_timer);
-<<<<<<< HEAD
-=======
 	clear_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
 	del_timer_sync(&xhci->shared_hcd->rh_timer);
->>>>>>> android-3.18
 
 	spin_lock_irq(&xhci->lock);
 	clear_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
@@ -1137,20 +1079,12 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	/* step 2: clear Run/Stop bit */
 	command = readl(&xhci->op_regs->command);
 	command &= ~CMD_RUN;
-<<<<<<< HEAD
-	xhci_writel(xhci, command, &xhci->op_regs->command);
-=======
 	writel(command, &xhci->op_regs->command);
->>>>>>> android-3.18
 
 	/* Some chips from Fresco Logic need an extraordinary delay */
 	delay *= (xhci->quirks & XHCI_SLOW_SUSPEND) ? 10 : 1;
 
-<<<<<<< HEAD
-	if (handshake(xhci, &xhci->op_regs->status,
-=======
 	if (xhci_handshake(xhci, &xhci->op_regs->status,
->>>>>>> android-3.18
 		      STS_HALT, STS_HALT, delay)) {
 		xhci_warn(xhci, "WARN: xHC CMD_RUN timeout\n");
 		spin_unlock_irq(&xhci->lock);
@@ -1164,14 +1098,9 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	/* step 4: set CSS flag */
 	command = readl(&xhci->op_regs->command);
 	command |= CMD_CSS;
-<<<<<<< HEAD
-	xhci_writel(xhci, command, &xhci->op_regs->command);
-	if (handshake(xhci, &xhci->op_regs->status, STS_SAVE, 0, 10 * 1000)) {
-=======
 	writel(command, &xhci->op_regs->command);
 	if (xhci_handshake(xhci, &xhci->op_regs->status,
 				STS_SAVE, 0, 10 * 1000)) {
->>>>>>> android-3.18
 		xhci_warn(xhci, "WARN: xHC save state timeout\n");
 		spin_unlock_irq(&xhci->lock);
 		return -ETIMEDOUT;
@@ -1185,13 +1114,9 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	if ((xhci->quirks & XHCI_COMP_MODE_QUIRK) &&
 			(!(xhci_all_ports_seen_u0(xhci)))) {
 		del_timer_sync(&xhci->comp_mode_recovery_timer);
-<<<<<<< HEAD
-		xhci_dbg(xhci, "Compliance Mode Recovery Timer Deleted!\n");
-=======
 		xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
 				"%s: compliance mode recovery timer deleted",
 				__func__);
->>>>>>> android-3.18
 	}
 
 	/* step 5: remove core well power */
@@ -1215,10 +1140,7 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 	struct usb_hcd		*secondary_hcd;
 	int			retval = 0;
 	bool			comp_timer_running = false;
-<<<<<<< HEAD
-=======
 	bool			pending_portevent = false;
->>>>>>> android-3.18
 
 	/* Wait a bit if either of the roothubs need to settle from the
 	 * transition into bus suspend.
@@ -1256,11 +1178,6 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 		/* step 3: set CRS flag */
 		command = readl(&xhci->op_regs->command);
 		command |= CMD_CRS;
-<<<<<<< HEAD
-		xhci_writel(xhci, command, &xhci->op_regs->command);
-		if (handshake(xhci, &xhci->op_regs->status,
-			      STS_RESTORE, 0, 10 * 1000)) {
-=======
 		writel(command, &xhci->op_regs->command);
 		/*
 		 * Some controllers take up to 55+ ms to complete the controller
@@ -1269,7 +1186,6 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 		 */
 		if (xhci_handshake(xhci, &xhci->op_regs->status,
 			      STS_RESTORE, 0, 100 * 1000)) {
->>>>>>> android-3.18
 			xhci_warn(xhci, "WARN: xHC restore state timeout\n");
 			spin_unlock_irq(&xhci->lock);
 			return -ETIMEDOUT;
@@ -1283,12 +1199,8 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 		if ((xhci->quirks & XHCI_COMP_MODE_QUIRK) &&
 				!(xhci_all_ports_seen_u0(xhci))) {
 			del_timer_sync(&xhci->comp_mode_recovery_timer);
-<<<<<<< HEAD
-			xhci_dbg(xhci, "Compliance Mode Recovery Timer deleted!\n");
-=======
 			xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
 				"Compliance Mode Recovery Timer deleted!");
->>>>>>> android-3.18
 		}
 
 		/* Let the USB core know _both_ roothubs lost power. */
@@ -1359,16 +1271,6 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 
  done:
 	if (retval == 0) {
-<<<<<<< HEAD
-		/* Resume root hubs only when have pending events. */
-		status = readl(&xhci->op_regs->status);
-		if (status & STS_EINT) {
-			usb_hcd_resume_root_hub(hcd);
-			usb_hcd_resume_root_hub(xhci->shared_hcd);
-		}
-	}
-
-=======
 		/*
 		 * Resume roothubs only if there are pending events.
 		 * USB 3 devices resend U3 LFPS wake after a 100ms delay if
@@ -1385,7 +1287,6 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 			usb_hcd_resume_root_hub(hcd);
 		}
 	}
->>>>>>> android-3.18
 	/*
 	 * If system is subject to the Quirk, Compliance Mode Timer needs to
 	 * be re-initialized Always after a system resume. Ports are subject
@@ -1397,11 +1298,8 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 
 	/* Re-enable port polling. */
 	xhci_dbg(xhci, "%s: starting port polling.\n", __func__);
-<<<<<<< HEAD
-=======
 	set_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
 	usb_hcd_poll_rh_status(xhci->shared_hcd);
->>>>>>> android-3.18
 	set_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 	usb_hcd_poll_rh_status(hcd);
 
@@ -1847,21 +1745,6 @@ int xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 		xhci_urb_free_priv(xhci, urb_priv);
 		return ret;
 	}
-<<<<<<< HEAD
-	if ((xhci->xhc_state & XHCI_STATE_DYING) ||
-			(xhci->xhc_state & XHCI_STATE_HALTED)) {
-		xhci_dbg(xhci, "Ep 0x%x: URB %pK to be canceled on "
-				"non-responsive xHCI host.\n",
-				urb->ep->desc.bEndpointAddress, urb);
-		/* Let the stop endpoint command watchdog timer (which set this
-		 * state) finish cleaning up the endpoint TD lists.  We must
-		 * have caught it in the middle of dropping a lock and giving
-		 * back an URB.
-		 */
-		goto done;
-	}
-=======
->>>>>>> android-3.18
 
 	ep_index = xhci_get_endpoint_index(&urb->ep->desc);
 	ep = &xhci->devs[urb->dev->slot_id]->eps[ep_index];
@@ -1874,14 +1757,9 @@ int xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 	urb_priv = urb->hcpriv;
 	i = urb_priv->td_cnt;
 	if (i < urb_priv->length)
-<<<<<<< HEAD
-		xhci_dbg(xhci, "Cancel URB %pK, dev %s, ep 0x%x, "
-				"starting at offset 0x%llx\n",
-=======
 		xhci_dbg_trace(xhci, trace_xhci_dbg_cancel_urb,
 				"Cancel URB %p, dev %s, ep 0x%x, "
 				"starting at offset 0x%llx",
->>>>>>> android-3.18
 				urb, urb->dev->devpath,
 				urb->ep->desc.bEndpointAddress,
 				(unsigned long long) xhci_trb_virt_to_dma(
@@ -1907,14 +1785,8 @@ int xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 		ep->stop_cmd_timer.expires = jiffies +
 			XHCI_STOP_EP_CMD_TIMEOUT * HZ;
 		add_timer(&ep->stop_cmd_timer);
-<<<<<<< HEAD
-		if (hcd->driver->set_autosuspend)
-			hcd->driver->set_autosuspend(hcd, 0);
-		xhci_queue_stop_endpoint(xhci, urb->dev->slot_id, ep_index, 0);
-=======
 		xhci_queue_stop_endpoint(xhci, command, urb->dev->slot_id,
 					 ep_index, 0);
->>>>>>> android-3.18
 		xhci_ring_cmd_db(xhci);
 	}
 done:
@@ -2972,21 +2844,6 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 		return -ENOMEM;
 	}
 
-<<<<<<< HEAD
-	if (command) {
-		cmd_completion = command->completion;
-		cmd_status = &command->status;
-		command->command_trb = xhci_find_next_enqueue(xhci->cmd_ring);
-		list_add_tail(&command->cmd_list, &virt_dev->cmd_list);
-	} else {
-		cmd_completion = &virt_dev->cmd_completion;
-		cmd_status = &virt_dev->cmd_status;
-	}
-	init_completion(cmd_completion);
-
-	cmd_trb = xhci_find_next_enqueue(xhci->cmd_ring);
-=======
->>>>>>> android-3.18
 	if (!ctx_change)
 		ret = xhci_queue_configure_endpoint(xhci, command,
 				command->in_ctx->dma,
@@ -3007,25 +2864,7 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 	spin_unlock_irqrestore(&xhci->lock, flags);
 
 	/* Wait for the configure endpoint command to complete */
-<<<<<<< HEAD
-	timeleft = wait_for_completion_interruptible_timeout(
-			cmd_completion,
-			XHCI_CMD_DEFAULT_TIMEOUT);
-	if (timeleft <= 0) {
-		xhci_warn(xhci, "%s while waiting for %s command\n",
-				timeleft == 0 ? "Timeout" : "Signal",
-				ctx_change == 0 ?
-					"configure endpoint" :
-					"evaluate context");
-		/* cancel the configure endpoint command */
-		ret = xhci_cancel_cmd(xhci, command, cmd_trb);
-		if (ret < 0)
-			return ret;
-		return -ETIME;
-	}
-=======
 	wait_for_completion(command->completion);
->>>>>>> android-3.18
 
 	if (!ctx_change)
 		ret = xhci_configure_endpoint_result(xhci, udev,
@@ -3308,10 +3147,7 @@ void xhci_endpoint_reset(struct usb_hcd *hcd,
 	struct xhci_hcd *xhci;
 
 	xhci = hcd_to_xhci(hcd);
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	/*
 	 * We might need to implement the config ep cmd in xhci 4.8.1 note:
 	 * The Reset Endpoint Command may only be issued to endpoints in the
@@ -3320,10 +3156,7 @@ void xhci_endpoint_reset(struct usb_hcd *hcd,
 	 * may issue a Configure Endpoint Command with the Drop and Add bits set
 	 * for the target endpoint. that is in the Stopped state.
 	 */
-<<<<<<< HEAD
-=======
 
->>>>>>> android-3.18
 	/* For now just print debug to follow the situation */
 	xhci_dbg(xhci, "Endpoint 0x%x ep reset callback called\n",
 		 ep->desc.bEndpointAddress);
@@ -3844,15 +3677,8 @@ int xhci_discover_or_reset_device(struct usb_hcd *hcd, struct usb_device *udev)
 
 	/* Attempt to submit the Reset Device command to the command ring */
 	spin_lock_irqsave(&xhci->lock, flags);
-<<<<<<< HEAD
-	reset_device_cmd->command_trb = xhci_find_next_enqueue(xhci->cmd_ring);
-
-	list_add_tail(&reset_device_cmd->cmd_list, &virt_dev->cmd_list);
-	ret = xhci_queue_reset_device(xhci, slot_id);
-=======
 
 	ret = xhci_queue_reset_device(xhci, reset_device_cmd, slot_id);
->>>>>>> android-3.18
 	if (ret) {
 		xhci_dbg(xhci, "FIXME: allocate a command ring segment\n");
 		spin_unlock_irqrestore(&xhci->lock, flags);
@@ -4060,13 +3886,6 @@ int xhci_alloc_dev(struct usb_hcd *hcd, struct usb_device *udev)
 	struct device *dev = hcd->self.controller;
 	unsigned long flags;
 	int ret;
-<<<<<<< HEAD
-	union xhci_trb *cmd_trb;
-
-	spin_lock_irqsave(&xhci->lock, flags);
-	cmd_trb = xhci_find_next_enqueue(xhci->cmd_ring);
-	ret = xhci_queue_slot_control(xhci, TRB_ENABLE_SLOT, 0);
-=======
 	struct xhci_command *command;
 
 	command = xhci_alloc_command(xhci, false, false, GFP_KERNEL);
@@ -4076,7 +3895,6 @@ int xhci_alloc_dev(struct usb_hcd *hcd, struct usb_device *udev)
 	spin_lock_irqsave(&xhci->lock, flags);
 	command->completion = &xhci->addr_dev;
 	ret = xhci_queue_slot_control(xhci, command, TRB_ENABLE_SLOT, 0);
->>>>>>> android-3.18
 	if (ret) {
 		spin_unlock_irqrestore(&xhci->lock, flags);
 		xhci_dbg(xhci, "FIXME: allocate a command ring segment\n");
@@ -4086,19 +3904,7 @@ int xhci_alloc_dev(struct usb_hcd *hcd, struct usb_device *udev)
 	xhci_ring_cmd_db(xhci);
 	spin_unlock_irqrestore(&xhci->lock, flags);
 
-<<<<<<< HEAD
-	/* XXX: how much time for xHC slot assignment? */
-	timeleft = wait_for_completion_interruptible_timeout(&xhci->addr_dev,
-			XHCI_CMD_DEFAULT_TIMEOUT);
-	if (timeleft <= 0) {
-		xhci_warn(xhci, "%s while waiting for a slot\n",
-				timeleft == 0 ? "Timeout" : "Signal");
-		/* cancel the enable slot request */
-		return xhci_cancel_cmd(xhci, NULL, cmd_trb);
-	}
-=======
 	wait_for_completion(command->completion);
->>>>>>> android-3.18
 
 	if (!xhci->slot_id || command->status != COMP_SUCCESS) {
 		xhci_err(xhci, "Error while assigning device slot ID\n");
@@ -4137,17 +3943,11 @@ int xhci_alloc_dev(struct usb_hcd *hcd, struct usb_device *udev)
 	 * suspend if there is a device attached.
 	 */
 	if (xhci->quirks & XHCI_RESET_ON_RESUME)
-<<<<<<< HEAD
-		pm_runtime_get_noresume(dev);
-#endif
-
-=======
 		pm_runtime_get_noresume(hcd->self.controller);
 #endif
 
 
 	kfree(command);
->>>>>>> android-3.18
 	/* Is this a LS or FS device under a HS hub? */
 	/* Hub or peripherial? */
 	return 1;
@@ -4181,14 +3981,10 @@ static int xhci_setup_device(struct usb_hcd *hcd, struct usb_device *udev,
 	struct xhci_slot_ctx *slot_ctx;
 	struct xhci_input_control_ctx *ctrl_ctx;
 	u64 temp_64;
-<<<<<<< HEAD
-	union xhci_trb *cmd_trb;
-=======
 	struct xhci_command *command;
 
 	if (xhci->xhc_state)	/* dying, removing or halted */
 		return -EINVAL;
->>>>>>> android-3.18
 
 	if (!udev->slot_id) {
 		xhci_dbg_trace(xhci, trace_xhci_dbg_address,
@@ -4252,14 +4048,8 @@ static int xhci_setup_device(struct usb_hcd *hcd, struct usb_device *udev,
 				le32_to_cpu(slot_ctx->dev_info) >> 27);
 
 	spin_lock_irqsave(&xhci->lock, flags);
-<<<<<<< HEAD
-	cmd_trb = xhci_find_next_enqueue(xhci->cmd_ring);
-	ret = xhci_queue_address_device(xhci, virt_dev->in_ctx->dma,
-					udev->slot_id);
-=======
 	ret = xhci_queue_address_device(xhci, command, virt_dev->in_ctx->dma,
 					udev->slot_id, setup);
->>>>>>> android-3.18
 	if (ret) {
 		spin_unlock_irqrestore(&xhci->lock, flags);
 		xhci_dbg_trace(xhci, trace_xhci_dbg_address,
@@ -4271,37 +4061,18 @@ static int xhci_setup_device(struct usb_hcd *hcd, struct usb_device *udev,
 	spin_unlock_irqrestore(&xhci->lock, flags);
 
 	/* ctrl tx can take up to 5 sec; XXX: need more time for xHC? */
-<<<<<<< HEAD
-	timeleft = wait_for_completion_interruptible_timeout(&xhci->addr_dev,
-			XHCI_CMD_DEFAULT_TIMEOUT);
-=======
 	wait_for_completion(command->completion);
 
->>>>>>> android-3.18
 	/* FIXME: From section 4.3.4: "Software shall be responsible for timing
 	 * the SetAddress() "recovery interval" required by USB and aborting the
 	 * command on a timeout.
 	 */
-<<<<<<< HEAD
-	if (timeleft <= 0) {
-		xhci_warn(xhci, "%s while waiting for address device command\n",
-				timeleft == 0 ? "Timeout" : "Signal");
-		/* cancel the address device command */
-		ret = xhci_cancel_cmd(xhci, NULL, cmd_trb);
-		if (ret < 0)
-			return ret;
-		return -ETIME;
-	}
-
-	switch (virt_dev->cmd_status) {
-=======
 	switch (command->status) {
 	case COMP_CMD_ABORT:
 	case COMP_CMD_STOP:
 		xhci_warn(xhci, "Timeout while waiting for setup device command\n");
 		ret = -ETIME;
 		break;
->>>>>>> android-3.18
 	case COMP_CTX_STATE:
 	case COMP_EBADSLT:
 		xhci_err(xhci, "Setup ERROR: setup %s command for slot %d.\n",
@@ -4336,15 +4107,6 @@ static int xhci_setup_device(struct usb_hcd *hcd, struct usb_device *udev,
 		return ret;
 	}
 	temp_64 = xhci_read_64(xhci, &xhci->op_regs->dcbaa_ptr);
-<<<<<<< HEAD
-	xhci_dbg(xhci, "Op regs DCBAA ptr = %#016llx\n", temp_64);
-	xhci_dbg(xhci, "Slot ID %d dcbaa entry @%pK = %#016llx\n",
-		 udev->slot_id,
-		 &xhci->dcbaa->dev_context_ptrs[udev->slot_id],
-		 (unsigned long long)
-		 le64_to_cpu(xhci->dcbaa->dev_context_ptrs[udev->slot_id]));
-	xhci_dbg(xhci, "Output Context DMA address = %#08llx\n",
-=======
 	xhci_dbg_trace(xhci, trace_xhci_dbg_address,
 			"Op regs DCBAA ptr = %#016llx", temp_64);
 	xhci_dbg_trace(xhci, trace_xhci_dbg_address,
@@ -4355,7 +4117,6 @@ static int xhci_setup_device(struct usb_hcd *hcd, struct usb_device *udev,
 		le64_to_cpu(xhci->dcbaa->dev_context_ptrs[udev->slot_id]));
 	xhci_dbg_trace(xhci, trace_xhci_dbg_address,
 			"Output Context DMA address = %#08llx",
->>>>>>> android-3.18
 			(unsigned long long)virt_dev->out_ctx->dma);
 	xhci_dbg(xhci, "Slot ID %d Input Context:\n", udev->slot_id);
 	xhci_dbg_ctx(xhci, virt_dev->in_ctx, 2);
@@ -4666,31 +4427,10 @@ static int xhci_check_usb2_port_capability(struct xhci_hcd *xhci, int port,
 	return 0;
 }
 
-<<<<<<< HEAD
-	/*
-	 * Test USB 2.0 software LPM.
-	 * FIXME: some xHCI 1.0 hosts may implement a new register to set up
-	 * hardware-controlled USB 2.0 LPM. See section 5.4.11 and 4.23.5.1.1.1
-	 * in the June 2011 errata release.
-	 */
-	xhci_dbg(xhci, "test port %d software LPM\n", port_num);
-	/*
-	 * Set L1 Device Slot and HIRD/BESL.
-	 * Check device's USB 2.0 extension descriptor to determine whether
-	 * HIRD or BESL shoule be used. See USB2.0 LPM errata.
-	 */
-	pm_addr = port_array[port_num] + 1;
-	hird = xhci_calculate_hird_besl(xhci, udev);
-	temp = PORT_L1DS(udev->slot_id) | PORT_HIRD(hird);
-	xhci_writel(xhci, temp, pm_addr);
-	if (xhci->quirks & XHCI_PORTSC_DELAY)
-		ndelay(100);
-=======
 int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
 {
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
 	int		portnum = udev->portnum - 1;
->>>>>>> android-3.18
 
 	if (hcd->speed == HCD_USB3 || !xhci->sw_lpm_support ||
 			!udev->lpm_capable)
@@ -4874,19 +4614,8 @@ static unsigned long long xhci_calculate_intel_u2_timeout(
 		struct usb_device *udev,
 		struct usb_endpoint_descriptor *desc)
 {
-<<<<<<< HEAD
-	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
-	__le32 __iomem	**port_array;
-	__le32 __iomem	*pm_addr;
-	u32		temp;
-	unsigned int	port_num;
-	unsigned long	flags;
-	int		hird;
-	bool		delay;
-=======
 	unsigned long long timeout_ns;
 	unsigned long long u2_del_ns;
->>>>>>> android-3.18
 
 	timeout_ns = 10 * 1000 * 1000;
 
@@ -4898,15 +4627,8 @@ static unsigned long long xhci_calculate_intel_u2_timeout(
 	if (u2_del_ns > timeout_ns)
 		timeout_ns = u2_del_ns;
 
-<<<<<<< HEAD
-	if (xhci->quirks & XHCI_PORTSC_DELAY)
-		delay = true;
-
-	spin_lock_irqsave(&xhci->lock, flags);
-=======
 	return timeout_ns;
 }
->>>>>>> android-3.18
 
 /* Returns the hub-encoded U2 timeout value. */
 static u16 xhci_calculate_u2_timeout(struct xhci_hcd *xhci,
@@ -4928,24 +4650,6 @@ static u16 xhci_calculate_u2_timeout(struct xhci_hcd *xhci,
 		}
 	}
 
-<<<<<<< HEAD
-	if (enable) {
-		temp &= ~PORT_HIRD_MASK;
-		temp |= PORT_HIRD(hird) | PORT_RWE;
-		xhci_writel(xhci, temp, pm_addr);
-		if (delay)
-			ndelay(100);
-		temp = xhci_readl(xhci, pm_addr);
-		temp |= PORT_HLE;
-		xhci_writel(xhci, temp, pm_addr);
-		if (delay)
-			ndelay(100);
-	} else {
-		temp &= ~(PORT_HLE | PORT_RWE | PORT_HIRD_MASK);
-		xhci_writel(xhci, temp, pm_addr);
-		if (delay)
-			ndelay(100);
-=======
 	/* The U2 timeout is encoded in 256us intervals */
 	timeout_ns = DIV_ROUND_UP_ULL(timeout_ns, 256 * 1000);
 	/* If the necessary timeout value is bigger than what we can set in the
@@ -4991,7 +4695,6 @@ static int xhci_update_timeout_for_endpoint(struct xhci_hcd *xhci,
 	if (alt_timeout == USB3_LPM_DISABLED) {
 		*timeout = alt_timeout;
 		return -E2BIG;
->>>>>>> android-3.18
 	}
 	if (alt_timeout > *timeout)
 		*timeout = alt_timeout;

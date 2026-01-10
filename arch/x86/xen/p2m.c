@@ -1005,22 +1005,13 @@ int m2p_add_override(unsigned long mfn, struct page *page,
 	 * frontend pages while they are being shared with the backend,
 	 * because mfn_to_pfn (that ends up being called by GUPF) will
 	 * return the backend pfn rather than the frontend pfn. */
-<<<<<<< HEAD
-	ret = __get_user(pfn, &machine_to_phys_mapping[mfn]);
-	if (ret == 0 && get_phys_to_machine(pfn) == mfn)
-=======
 	pfn = mfn_to_pfn_no_overrides(mfn);
 	if (get_phys_to_machine(pfn) == mfn)
->>>>>>> android-3.18
 		set_phys_to_machine(pfn, FOREIGN_FRAME(mfn));
 
 	return 0;
 }
 EXPORT_SYMBOL_GPL(m2p_add_override);
-<<<<<<< HEAD
-int m2p_remove_override(struct page *page,
-		struct gnttab_map_grant_ref *kmap_op)
-=======
 
 int clear_foreign_p2m_mapping(struct gnttab_unmap_grant_ref *unmap_ops,
 			      struct gnttab_map_grant_ref *kmap_ops,
@@ -1069,7 +1060,6 @@ EXPORT_SYMBOL_GPL(clear_foreign_p2m_mapping);
 int m2p_remove_override(struct page *page,
 			struct gnttab_map_grant_ref *kmap_op,
 			unsigned long mfn)
->>>>>>> android-3.18
 {
 	unsigned long flags;
 	unsigned long pfn;
@@ -1093,10 +1083,6 @@ int m2p_remove_override(struct page *page,
 	list_del(&page->lru);
 	spin_unlock_irqrestore(&m2p_override_lock, flags);
 
-<<<<<<< HEAD
-	set_phys_to_machine(pfn, page->index);
-=======
->>>>>>> android-3.18
 	if (kmap_op != NULL) {
 		if (!PageHighMem(page)) {
 			struct multicall_space mcs;
@@ -1132,13 +1118,8 @@ int m2p_remove_override(struct page *page,
 					sizeof(struct gnttab_unmap_and_replace));
 			unmap_op = mcs.args;
 			unmap_op->host_addr = kmap_op->host_addr;
-<<<<<<< HEAD
-			unmap_op->handle = kmap_op->handle;
-			unmap_op->dev_bus_addr = 0;
-=======
 			unmap_op->new_addr = scratch_page_address;
 			unmap_op->handle = kmap_op->handle;
->>>>>>> android-3.18
 
 			MULTI_grant_table_op(mcs.mc,
 					GNTTABOP_unmap_and_replace, unmap_op, 1);
@@ -1150,15 +1131,8 @@ int m2p_remove_override(struct page *page,
 
 			xen_mc_issue(PARAVIRT_LAZY_MMU);
 
-<<<<<<< HEAD
-			set_pte_at(&init_mm, address, ptep,
-					pfn_pte(pfn, PAGE_KERNEL));
-			__flush_tlb_single(address);
-			kmap_op->host_addr = 0;
-=======
 			kmap_op->host_addr = 0;
 			put_balloon_scratch_page();
->>>>>>> android-3.18
 		}
 	}
 
@@ -1173,13 +1147,8 @@ int m2p_remove_override(struct page *page,
 	 * the original pfn causes mfn_to_pfn(mfn) to return the frontend
 	 * pfn again. */
 	mfn &= ~FOREIGN_FRAME_BIT;
-<<<<<<< HEAD
-	ret = __get_user(pfn, &machine_to_phys_mapping[mfn]);
-	if (ret == 0 && get_phys_to_machine(pfn) == FOREIGN_FRAME(mfn) &&
-=======
 	pfn = mfn_to_pfn_no_overrides(mfn);
 	if (get_phys_to_machine(pfn) == FOREIGN_FRAME(mfn) &&
->>>>>>> android-3.18
 			m2p_find_override(mfn) == NULL)
 		set_phys_to_machine(pfn, mfn);
 
