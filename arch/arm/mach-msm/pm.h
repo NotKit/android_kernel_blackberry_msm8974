@@ -118,7 +118,7 @@ static inline void msm_pm_set_l2_flush_flag(unsigned int flag)
 {
 	/* empty */
 }
-bool msm_cpu_pm_check_mode(unsigned int cpu, enum msm_pm_sleep_mode mode,
+static inline bool msm_cpu_pm_check_mode(unsigned int cpu, enum msm_pm_sleep_mode mode,
 		bool from_idle)
 {
 	return false;
