@@ -33,7 +33,7 @@
 #ifndef CONFIG_RTAC
 
 void rtac_add_adm_device(u32 port_id, u32 copp_id, u32 path_id, u32 popp_id) {}
-void rtac_remove_adm_device(u32 port_id) {}
+void rtac_remove_adm_device(u32 port_id, u32 copp_id) {}
 void rtac_remove_popp_from_adm_devices(u32 popp_id) {}
 void rtac_set_adm_handle(void *handle) {}
 bool rtac_make_adm_callback(uint32_t *payload, u32 payload_size)

@@ -312,7 +312,7 @@ static void msm8974_ext_control(struct snd_soc_codec *codec)
 {
 	struct snd_soc_dapm_context *dapm = &codec->dapm;
 
-	mutex_lock(&dapm->codec->mutex);
+	mutex_lock(&dapm->component->codec->mutex);
 
 	pr_debug("%s: msm8974_spk_control = %d", __func__, msm8974_spk_control);
 	if (msm8974_spk_control == MSM8974_SPK_ON) {
@@ -328,7 +328,7 @@ static void msm8974_ext_control(struct snd_soc_codec *codec)
 	}
 
 	snd_soc_dapm_sync(dapm);
-	mutex_unlock(&dapm->codec->mutex);
+	mutex_unlock(&dapm->component->codec->mutex);
 }
 
 static int msm8974_get_spk(struct snd_kcontrol *kcontrol,
@@ -1206,7 +1206,7 @@ static const struct snd_kcontrol_new msm_snd_controls[] = {
 
 static bool msm8974_swap_gnd_mic(struct snd_soc_codec *codec)
 {
-	struct snd_soc_card *card = codec->card;
+	struct snd_soc_card *card = codec->component.card;
 	struct msm8974_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	int value = gpio_get_value_cansleep(pdata->us_euro_gpio);
 	pr_debug("%s: swap select switch %d to %d\n", __func__, value, !value);
@@ -1655,7 +1655,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "MultiMedia1",
 		.platform_name  = "msm-pcm-dsp.0",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1671,7 +1670,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name   = "MultiMedia2",
 		.platform_name  = "msm-pcm-dsp.0",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
@@ -1687,12 +1685,10 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name   = "CS-VOICE",
 		.platform_name  = "msm-pcm-voice",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1704,7 +1700,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "VoIP",
 		.platform_name  = "msm-voip-dsp",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1720,7 +1715,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "MultiMedia3",
 		.platform_name  = "msm-pcm-dsp.2",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1737,10 +1731,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "SLIMBUS0_HOSTLESS",
 		.platform_name = "msm-pcm-hostless",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1752,10 +1744,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "INT_FM_HOSTLESS",
 		.platform_name  = "msm-pcm-hostless",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1788,8 +1778,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "MultiMedia4",
 		.platform_name  = "msm-compress-dsp",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE
-			| ASYNC_DPCM_SND_SOC_HW_PARAMS,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			 SND_SOC_DPCM_TRIGGER_POST},
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1805,10 +1793,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name   = "AUXPCM_HOSTLESS",
 		.platform_name  = "msm-pcm-hostless",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1821,10 +1807,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "SLIMBUS1_HOSTLESS",
 		.platform_name = "msm-pcm-hostless",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1836,10 +1820,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "SLIMBUS3_HOSTLESS",
 		.platform_name = "msm-pcm-hostless",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1851,10 +1833,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "SLIMBUS4_HOSTLESS",
 		.platform_name = "msm-pcm-hostless",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1866,10 +1846,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name   = "VoLTE",
 		.platform_name  = "msm-pcm-voice",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1883,7 +1861,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name   = "MultiMedia5",
 		.platform_name  = "msm-pcm-dsp.1",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
@@ -1900,10 +1877,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM1",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1917,8 +1892,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "MultiMedia6",
 		.platform_name  = "msm-compress-dsp",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE
-			| ASYNC_DPCM_SND_SOC_HW_PARAMS,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			 SND_SOC_DPCM_TRIGGER_POST},
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1934,8 +1907,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "MultiMedia7",
 		.platform_name  = "msm-compress-dsp",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE
-			| ASYNC_DPCM_SND_SOC_HW_PARAMS,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			 SND_SOC_DPCM_TRIGGER_POST},
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1951,8 +1922,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name	= "MultiMedia8",
 		.platform_name  = "msm-compr-dsp",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE
-			| ASYNC_DPCM_SND_SOC_HW_PARAMS,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			 SND_SOC_DPCM_TRIGGER_POST},
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1970,7 +1939,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1987,7 +1955,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1999,10 +1966,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name   = "Voice2",
 		.platform_name  = "msm-pcm-voice",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -2016,10 +1981,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name   = "INT_HFP_BT_HOSTLESS",
 		.platform_name  = "msm-pcm-hostless",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dai link has playback support */
 		.ignore_pmdown_time = 1,
@@ -2032,13 +1995,11 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "MultiMedia6",
 		.platform_name  = "msm-pcm-loopback",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
 		.ignore_suspend = 1,
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
 		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA6,
@@ -2049,10 +2010,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM2",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2065,10 +2024,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM3",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2081,10 +2038,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM4",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2097,10 +2052,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM5",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2113,10 +2066,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM6",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2129,10 +2080,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM7",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2145,10 +2094,8 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.cpu_dai_name = "LSM8",
 		.platform_name = "msm-lsm-client",
 		.dynamic = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2165,7 +2112,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_4_TX,
 		.be_hw_params_fixup = msm_slim_4_tx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 	},
 	/* Ultrasound RX Back End DAI Link */
@@ -2177,7 +2123,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name = "taiko_rx2",
 		.ignore_suspend = 1,
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ops = &msm8974_slimbus_2_be_ops,
 	},
 	/* Ultrasound TX Back End DAI Link */
@@ -2189,7 +2134,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name = "taiko_tx2",
 		.ignore_suspend = 1,
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ops = &msm8974_slimbus_2_be_ops,
 	},
 	{
@@ -2215,7 +2159,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2284,7 +2227,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "msm-stub-codec.1",
 		.codec_dai_name = "msm-stub-rx",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_AFE_PCM_RX,
 		.be_hw_params_fixup = msm_proxy_rx_be_hw_params_fixup,
 		/* this dainlink has playback support */
@@ -2299,7 +2241,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "msm-stub-codec.1",
 		.codec_dai_name = "msm-stub-tx",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_AFE_PCM_TX,
 		.be_hw_params_fixup = msm_proxy_tx_be_hw_params_fixup,
 		.ignore_suspend = 1,
@@ -2372,8 +2313,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name	= "taiko_rx1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE
-			| ASYNC_DPCM_SND_SOC_HW_PARAMS,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_0_RX,
 		.init = &msm_audrx_init,
 		.be_hw_params_fixup = msm_slim_0_rx_be_hw_params_fixup,
@@ -2389,8 +2328,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name	= "taiko_tx1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE
-			| ASYNC_DPCM_SND_SOC_HW_PARAMS,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_0_TX,
 		.be_hw_params_fixup = msm_slim_0_tx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,
@@ -2404,7 +2341,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name	= "taiko_rx1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_1_RX,
 		.be_hw_params_fixup = msm_slim_0_rx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,
@@ -2420,7 +2356,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name	= "taiko_tx1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_1_TX,
 		.be_hw_params_fixup = msm_slim_0_tx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,
@@ -2434,7 +2369,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name	= "taiko_rx1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_3_RX,
 		.be_hw_params_fixup = msm_slim_0_rx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,
@@ -2450,7 +2384,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name	= "taiko_tx1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_3_TX,
 		.be_hw_params_fixup = msm_slim_0_tx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,
@@ -2464,7 +2397,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name	= "taiko_rx1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_4_RX,
 		.be_hw_params_fixup = msm_slim_0_rx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,
@@ -2481,7 +2413,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name     = "msm-stub-codec.1",
 		.codec_dai_name = "msm-stub-tx",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_INCALL_RECORD_TX,
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ignore_suspend = 1,
@@ -2495,7 +2426,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name     = "msm-stub-codec.1",
 		.codec_dai_name = "msm-stub-tx",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_INCALL_RECORD_RX,
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ignore_suspend = 1,
@@ -2509,7 +2439,6 @@ static struct snd_soc_dai_link msm8974_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name = "taiko_mad1",
 		.no_pcm = 1,
-		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_5_TX,
 		.be_hw_params_fixup = msm_slim_5_tx_be_hw_params_fixup,
 		.ops = &msm8974_be_ops,

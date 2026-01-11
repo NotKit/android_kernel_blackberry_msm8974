@@ -2392,9 +2392,10 @@ static struct snd_soc_platform_driver msm_soc_platform = {
 	.probe		= msm_compr_probe,
 	.compr_ops	= &msm_compr_ops,
 	.pcm_new	= msm_compr_new,
-	.controls       = msm_compr_gapless_controls,
-	.num_controls   = ARRAY_SIZE(msm_compr_gapless_controls),
-
+	.component_driver = {
+		.controls       = msm_compr_gapless_controls,
+		.num_controls   = ARRAY_SIZE(msm_compr_gapless_controls),
+	},
 };
 
 static int msm_compr_dev_probe(struct platform_device *pdev)
