@@ -1557,14 +1557,7 @@ static void lo_release(struct gendisk *disk, fmode_t mode)
 	mutex_unlock(&loop_index_mutex);
 }
 
-static int lo_release(struct gendisk *disk, fmode_t mode)
-{
-	int err;
-	mutex_lock(&loop_index_mutex);
-	err =__lo_release(disk->private_data);
-	mutex_unlock(&loop_index_mutex);
-	return err;
-}
+
 
 static const struct block_device_operations lo_fops = {
 	.owner =	THIS_MODULE,

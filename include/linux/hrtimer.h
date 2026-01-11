@@ -110,6 +110,11 @@ struct hrtimer {
 	ktime_t				_softexpires;
 	enum hrtimer_restart		(*function)(struct hrtimer *);
 	struct hrtimer_clock_base	*base;
+#ifdef CONFIG_TIMER_STATS
+	int				start_pid;
+	void				*start_site;
+	char				start_comm[16];
+#endif
 	unsigned long			state;
 };
 

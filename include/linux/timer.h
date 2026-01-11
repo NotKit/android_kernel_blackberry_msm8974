@@ -23,6 +23,12 @@ struct timer_list {
 
 	int slack;
 
+#ifdef CONFIG_TIMER_STATS
+	int start_pid;
+	void *start_site;
+	char start_comm[16];
+#endif
+
 #ifdef CONFIG_LOCKDEP
 	struct lockdep_map lockdep_map;
 #endif
@@ -217,11 +223,14 @@ unsigned long round_jiffies_up(unsigned long j);
 unsigned long round_jiffies_up_relative(unsigned long j);
 
 #ifdef CONFIG_TIMER_STATS
+#define TIMER_STATS_FLAG_DEFERRABLE	0x1
+extern int timer_stats_active;
 extern void timer_stats_timer_set_start_info(struct timer_list *timer);
 extern void timer_stats_timer_clear_start_info(struct timer_list *timer);
-extern void timer_stats_update_stats(struct timer_list *timer, pid_t pid,
-				     void *start_addr, char *comm,
-				     unsigned int timer_flag);
+extern void timer_stats_update_stats(void *timer, pid_t pid,
+				     void *start_addr, void *timer_function,
+				     char *comm, unsigned int timer_flag);
+extern void init_timer_stats(void);
 #else
 static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
 {
@@ -231,9 +240,15 @@ static inline void timer_stats_timer_clear_start_info(struct timer_list *timer)
 {
 }
 
-static inline void timer_stats_update_stats(struct timer_list *timer,
-					    pid_t pid, void *start_addr,
-					    char *comm, unsigned int timer_flag)
+static inline void timer_stats_update_stats(void *timer, pid_t pid,
+					    void *start_addr,
+					    void *timer_function,
+					    char *comm,
+					    unsigned int timer_flag)
+{
+}
+
+static inline void init_timer_stats(void)
 {
 }
 #endif

@@ -121,7 +121,7 @@ static ssize_t iommu_group_show_name(struct iommu_group *group, char *buf)
 {
 	return sprintf(buf, "%s\n", group->name);
 }
-EXPORT_SYMBOL_GPL(iommu_group_set_name);
+
 
 static IOMMU_GROUP_ATTR(name, S_IRUGO, iommu_group_show_name, NULL);
 
@@ -306,15 +306,7 @@ int iommu_group_set_name(struct iommu_group *group, const char *name)
 
 	kobject_get(group->devices_kobj);
 
-	dev->iommu_group = group;
 
-	mutex_lock(&group->mutex);
-	list_add_tail(&device->list, &group->devices);
-	mutex_unlock(&group->mutex);
-
-	/* Notify any listeners about change to group. */
-	blocking_notifier_call_chain(&group->notifier,
-				     IOMMU_GROUP_NOTIFY_ADD_DEVICE, dev);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(iommu_group_set_name);
@@ -899,7 +891,7 @@ void iommu_set_fault_handler(struct iommu_domain *domain,
 }
 EXPORT_SYMBOL_GPL(iommu_set_fault_handler);
 
-struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags)
+struct iommu_domain *iommu_domain_alloc(struct bus_type *bus)
 {
 	struct iommu_domain *domain;
 	int ret;
@@ -913,7 +905,7 @@ struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags)
 
 	domain->ops = bus->iommu_ops;
 
-	ret = domain->ops->domain_init(domain, flags);
+	ret = domain->ops->domain_init(domain);
 	if (ret)
 		goto out_free;
 
