@@ -840,7 +840,7 @@ int usbnet_stop (struct net_device *net)
 	 */
 	dev->flags = 0;
 	del_timer_sync (&dev->delay);
-	tasklet_kill (&dev->bh);
+	cancel_work_sync(&dev->bh_w);
 	if (!pm)
 		usb_autopm_put_interface(dev->intf);
 
@@ -1066,7 +1066,7 @@ static void __handle_link_change(struct usbnet *dev)
 		 */
 	} else {
 		/* submitting URBs for reading packets */
-		tasklet_schedule(&dev->bh);
+		queue_work(usbnet_wq, &dev->bh_w);
 	}
 
 	/* hard_mtu or rx_urb_size may change during link change */
@@ -1260,7 +1260,7 @@ void usbnet_tx_timeout (struct net_device *net)
 	struct usbnet		*dev = netdev_priv(net);
 
 	unlink_urbs (dev, &dev->txq);
-	tasklet_schedule (&dev->bh);
+	queue_work(usbnet_wq, &dev->bh_w);
 	/* this needs to be handled individually because the generic layer
 	 * doesn't know what is sufficient and could not restore private
 	 * information if a remedy of an unconditional reset were used.
@@ -1526,7 +1526,7 @@ static void usbnet_bh (unsigned long param)
 					  "rxqlen %d --> %d\n",
 					  temp, dev->rxq.qlen);
 			if (dev->rxq.qlen < RX_QLEN(dev))
-				tasklet_schedule (&dev->bh);
+				queue_work(usbnet_wq, &dev->bh_w);
 		}
 		if (dev->txq.qlen < TX_QLEN (dev))
 			netif_wake_queue (dev->net);
