@@ -16,7 +16,6 @@
  * @callback: the function to call when buffers are consumed (can be NULL).
  * @name: the name of this virtqueue (mainly for debugging)
  * @vdev: the virtio device this queue was created for.
- * @vq_ops: the operations for this virtqueue (see below).
  * @priv: a pointer for the virtqueue implementation to use.
  * @index: the zero-based ordinal number for this queue.
  * @num_free: number of elements we expect to be able to fit.
@@ -54,43 +53,15 @@ int virtqueue_add_sgs(struct virtqueue *vq,
 
 bool virtqueue_kick(struct virtqueue *vq);
 
-/**
- * virtqueue_disable_cb - disable callbacks
- * @vq: the struct virtqueue we're talking about.
- *
- * Note that this is not necessarily synchronous, hence unreliable and only
- * useful as an optimization.
- *
- * Unlike other operations, this need not be serialized.
- */
-static inline void virtqueue_disable_cb(struct virtqueue *vq)
-{
-	vq->vq_ops->disable_cb(vq);
-}
+bool virtqueue_kick_prepare(struct virtqueue *vq);
 
 bool virtqueue_notify(struct virtqueue *vq);
 
-/**
- * virtqueue_enable_cb_delayed - restart callbacks after disable_cb.
- * @vq: the struct virtqueue we're talking about.
- *
- * This re-enables callbacks but hints to the other side to delay
- * interrupts until most of the available buffers have been processed;
- * it returns "false" if there are many pending buffers in the queue,
- * to detect a possible race between the driver checking for more work,
- * and enabling callbacks.
- *
- * Caller must ensure we don't call this with other virtqueue
- * operations at the same time (except where noted).
- */
-static inline bool virtqueue_enable_cb_delayed(struct virtqueue *vq)
-{
-	return vq->vq_ops->enable_cb_delayed(vq);
-}
+void *virtqueue_get_buf(struct virtqueue *vq, unsigned int *len);
 
-unsigned virtqueue_enable_cb_prepare(struct virtqueue *vq);
+void virtqueue_disable_cb(struct virtqueue *vq);
 
-bool virtqueue_poll(struct virtqueue *vq, unsigned);
+bool virtqueue_enable_cb(struct virtqueue *vq);
 
 unsigned virtqueue_enable_cb_prepare(struct virtqueue *vq);
 
@@ -98,31 +69,9 @@ bool virtqueue_poll(struct virtqueue *vq, unsigned);
 
 bool virtqueue_enable_cb_delayed(struct virtqueue *vq);
 
-/**
- * virtqueue_detach_unused_buf - detach first unused buffer
- * @vq: the struct virtqueue we're talking about.
- *
- * Returns NULL or the "data" token handed to virtqueue_add_buf().
- * This is not valid on an active queue; it is useful only for device
- * shutdown.
- */
-static inline void *virtqueue_detach_unused_buf(struct virtqueue *vq)
-{
-	return vq->vq_ops->detach_unused_buf(vq);
-}
+void *virtqueue_detach_unused_buf(struct virtqueue *vq);
 
-/**
- * virtqueue_get_impl_size - return the size of the virtqueue's implementation
- * @vq: the struct virtqueue containing the implementation of interest.
- *
- * Returns the size of the virtqueue implementation.  This is mainly used
- * for boasting to userspace.  Unlike other operations, this need not
- * be serialized.
- */
-static inline unsigned int virtqueue_get_impl_size(struct virtqueue *vq)
-{
-	return vq->vq_ops->get_impl_size(vq);
-}
+unsigned int virtqueue_get_vring_size(struct virtqueue *vq);
 
 bool virtqueue_is_broken(struct virtqueue *vq);
 

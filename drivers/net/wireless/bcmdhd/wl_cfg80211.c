@@ -1310,7 +1310,7 @@ wl_cfg80211_add_virtual_iface(struct wiphy *wiphy,
 					dhd->plat_enable((void *)dhd);
 #endif /* PROP_TXSTATUS_VSDB */
 				/* reinitialize completion to clear previous count */
-				INIT_COMPLETION(wl->iface_disable);
+				reinit_completion(&wl->iface_disable);
 			} else {
 				/* put back the rtnl_lock again */
 				if (rollback_lock)
@@ -6807,11 +6807,13 @@ static s32 wl_setup_wiphy(struct wireless_dev *wdev, struct device *sdiofunc_dev
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 2, 0)) || 0
 	wdev->wiphy->flags |= WIPHY_FLAG_SUPPORTS_TDLS;
 #endif
-#if defined(CONFIG_PM)
+#if defined(CONFIG_PM) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0))
 	wdev->wiphy->wowlan.flags = WIPHY_WOWLAN_ANY;
 #endif
 	WL_DBG(("Registering custom regulatory)\n"));
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0))
 	wdev->wiphy->flags |= WIPHY_FLAG_CUSTOM_REGULATORY;
+#endif
 	wiphy_apply_custom_regulatory(wdev->wiphy, &brcm_regdom);
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 13, 0)) || defined(WL_VENDOR_EXT_SUPPORT)
@@ -7273,7 +7275,7 @@ wl_notify_connect_status_ibss(struct wl_priv *wl, struct net_device *ndev,
 			wl_get_assoc_ies(wl, ndev);
 			wl_update_prof(wl, ndev, NULL, (void *)&e->addr, WL_PROF_BSSID);
 			wl_update_bss_info(wl, ndev);
-			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, GFP_KERNEL);
+			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, NULL, GFP_KERNEL);
 		}
 		else {
 			/* New connection */
@@ -7282,7 +7284,7 @@ wl_notify_connect_status_ibss(struct wl_priv *wl, struct net_device *ndev,
 			wl_get_assoc_ies(wl, ndev);
 			wl_update_prof(wl, ndev, NULL, (void *)&e->addr, WL_PROF_BSSID);
 			wl_update_bss_info(wl, ndev);
-			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, GFP_KERNEL);
+			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, NULL, GFP_KERNEL);
 			wl_set_drv_status(wl, CONNECTED, ndev);
 			active = true;
 			wl_update_prof(wl, ndev, NULL, (void *)&active, WL_PROF_ACT);
@@ -7793,7 +7795,7 @@ wl_bss_connect_done(struct wl_priv *wl, struct net_device *ndev,
 #endif /* ROAM_AP_ENV_DETECTION */
 			if (ndev != wl_to_prmry_ndev(wl)) {
 				/* reinitialize completion to clear previous count */
-				INIT_COMPLETION(wl->iface_disable);
+				reinit_completion(&wl->iface_disable);
 			}
 		}
 		cfg80211_connect_result(ndev,
@@ -8872,7 +8874,9 @@ wl_cfg80211_netdev_notifier_call(struct notifier_block * nb,
 	struct net_device *dev = ndev;
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct wl_priv *wl = wlcfg_drv_priv;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0))
 	int refcnt = 0;
+#endif
 
 	WL_DBG(("Enter \n"));
 	if (!wdev || !wl || dev == wl_to_prmry_ndev(wl))
@@ -8880,6 +8884,7 @@ wl_cfg80211_netdev_notifier_call(struct notifier_block * nb,
 	switch (state) {
 		case NETDEV_DOWN:
 		{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0))
 			int max_wait_timeout = 2;
 			int max_wait_count = 100;
 			unsigned long limit = jiffies + max_wait_timeout * HZ;
@@ -8908,6 +8913,7 @@ wl_cfg80211_netdev_notifier_call(struct notifier_block * nb,
 				set_current_state(TASK_RUNNING);
 				refcnt++;
 			}
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0) */
 			break;
 		}
 

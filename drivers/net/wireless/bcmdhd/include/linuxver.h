@@ -710,4 +710,16 @@ not match our unaligned address for < 2.6.24
 #define SRANDOM32(entropy)	srandom32(entropy)
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0) */
 
+/* cfg80211 API compatibility for kernel >= 3.14 */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0))
+/* IEEE80211_CHAN_NO_IBSS and IEEE80211_CHAN_PASSIVE_SCAN were removed
+ * and replaced with IEEE80211_CHAN_NO_IR in kernel 3.14 */
+#ifndef IEEE80211_CHAN_NO_IBSS
+#define IEEE80211_CHAN_NO_IBSS		IEEE80211_CHAN_NO_IR
+#endif
+#ifndef IEEE80211_CHAN_PASSIVE_SCAN
+#define IEEE80211_CHAN_PASSIVE_SCAN	IEEE80211_CHAN_NO_IR
+#endif
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0) */
+
 #endif /* _linuxver_h_ */
