@@ -25,6 +25,8 @@
 #include <mach/dma.h>
 #include <mach/msm_iomap.h>
 
+#ifndef CONFIG_ARCH_MSM8974
+
 #define MODULE_NAME "msm_dmov"
 
 #define MSM_DMOV_CHANNEL_COUNT 16
@@ -920,3 +922,5 @@ static int __init msm_init_datamover(void)
 	return 0;
 }
 arch_initcall(msm_init_datamover);
+
+#endif

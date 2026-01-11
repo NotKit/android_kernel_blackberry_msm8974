@@ -6,6 +6,7 @@
 #
 
 obj-y				+= irqchip/
+obj-y				+= clocksource/
 obj-y				+= bus/
 
 obj-$(CONFIG_ARM_AMBA)		+= amba/

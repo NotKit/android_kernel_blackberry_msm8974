@@ -17,7 +17,10 @@
 #include <linux/io.h>
 #include <linux/regulator/krait-regulator.h>
 
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
+
+void gic_secondary_init(unsigned int gic_nr);
+void gic_raise_softirq(const struct cpumask *mask, unsigned int irq);
 #include <asm/cacheflush.h>
 #include <asm/cputype.h>
 #include <asm/mach-types.h>

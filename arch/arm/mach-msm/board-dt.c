@@ -20,7 +20,7 @@
 #include <asm/mach/time.h>
 #include <asm/mach/map.h>
 #include <asm/hardware/cache-l2x0.h>
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
 #include <mach/mpm.h>
 #include <mach/qpnp-int.h>
 #include <mach/msm_iomap.h>
@@ -32,14 +32,17 @@
 #define L2CC_PL310_CTRL_ID	1
 #define L2CC_PL310_ON		1
 
-static void __init msm_dt_timer_init(void)
-{
-	arch_timer_of_register();
-}
+#include <linux/clocksource.h>
 
-struct sys_timer msm_dt_timer = {
-	.init = msm_dt_timer_init
-};
+int gic_of_init(struct device_node *node, struct device_node *parent);
+int msm_gpio_of_init(struct device_node *node, struct device_node *parent);
+int qpnpint_of_init(struct device_node *node, struct device_node *parent);
+int wcd9xxx_irq_of_init(struct device_node *node, struct device_node *parent);
+
+void __init msm_dt_timer_init(void)
+{
+	clocksource_of_init();
+}
 
 static struct of_device_id irq_match[] __initdata  = {
 	{ .compatible = "qcom,msm-qgic2", .data = gic_of_init, },

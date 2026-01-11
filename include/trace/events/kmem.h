@@ -305,6 +305,35 @@ TRACE_EVENT(mm_page_alloc_extfrag,
 		__entry->change_ownership)
 );
 
+DECLARE_EVENT_CLASS(ion_alloc_error,
+	TP_PROTO(const char *client_name,
+		 const char *heap_name,
+		 size_t len,
+		 unsigned int mask,
+		 unsigned int flags,
+		 long error),
+	TP_ARGS(client_name, heap_name, len, mask, flags, error),
+	TP_STRUCT__entry(
+		__string(client_name, client_name)
+		__string(heap_name, heap_name)
+		__field(size_t, len)
+		__field(unsigned int, mask)
+		__field(unsigned int, flags)
+		__field(long, error)
+	),
+	TP_fast_assign(
+		__assign_str(client_name, client_name);
+		__assign_str(heap_name, heap_name);
+		__entry->len = len;
+		__entry->mask = mask;
+		__entry->flags = flags;
+		__entry->error = error;
+	),
+	TP_printk("client_name=%s heap_name=%s len=%zu mask=%x flags=%x error=%ld",
+		__get_str(client_name), __get_str(heap_name), __entry->len,
+		__entry->mask, __entry->flags, __entry->error)
+);
+
 DEFINE_EVENT(ion_alloc_error, ion_alloc_buffer_fail,
 
 	TP_PROTO(const char *client_name,

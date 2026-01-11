@@ -258,6 +258,7 @@ config ARCH_MSM8974
 	select ARM_GIC
 	select CPU_V7
 	select MSM_SCM
+	select ARM_ARCH_TIMER
 	select MSM_GPIOMUX
 	select MULTI_IRQ_HANDLER
 	select MSM_MULTIMEDIA_USE_ION

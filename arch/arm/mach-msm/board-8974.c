@@ -205,7 +205,7 @@ DT_MACHINE_START(MSM8974_DT, "Qualcomm MSM 8974 (Flattened Device Tree)")
 	.init_irq = msm_dt_init_irq,
 	.init_machine = msm8974_init,
 	.handle_irq = gic_handle_irq,
-	.timer = &msm_dt_timer,
+	.init_time = msm_dt_timer_init,
 	.dt_compat = msm8974_dt_match,
 	.reserve = msm_8974_reserve,
 	.restart = msm_restart,

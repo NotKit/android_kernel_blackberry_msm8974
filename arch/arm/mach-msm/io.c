@@ -34,11 +34,11 @@
 #include <mach/board.h>
 #include "board-dt.h"
 
-#define MSM_CHIP_DEVICE(name, chip) { \
+#define MSM_CHIP_DEVICE_TYPE(name, chip, mem_type) { \
 		.virtual = (unsigned long) MSM_##name##_BASE, \
 		.pfn = __phys_to_pfn(chip##_##name##_PHYS), \
 		.length = chip##_##name##_SIZE, \
-		.type = MT_DEVICE, \
+		.type = mem_type, \
 	 }
 
 #define MSM_DEVICE_TYPE(name, mem_type) \

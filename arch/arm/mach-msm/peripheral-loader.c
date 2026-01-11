@@ -527,7 +527,7 @@ static int pil_load_seg(struct pil_desc *desc, struct pil_seg *seg)
 	if (seg->filesz) {
 		snprintf(fw_name, ARRAY_SIZE(fw_name), "%s.b%02d",
 				desc->name, num);
-		ret = request_firmware_direct(fw_name, desc->dev, seg->paddr,
+		ret = request_firmware_direct_to_phys(fw_name, desc->dev, seg->paddr,
 					      seg->filesz);
 		if (ret < 0) {
 			pil_err(desc, "Failed to locate blob %s or blob is too big.\n",
