@@ -52,12 +52,12 @@ struct cpufreq_work_struct {
 static DEFINE_PER_CPU(struct cpufreq_work_struct, cpufreq_work);
 static struct workqueue_struct *msm_cpufreq_wq;
 
-struct cpufreq_suspend_t {
+struct msm_cpufreq_suspend_t {
 	struct mutex suspend_mutex;
 	int device_suspended;
 };
 
-static DEFINE_PER_CPU(struct cpufreq_suspend_t, cpufreq_suspend);
+static DEFINE_PER_CPU(struct msm_cpufreq_suspend_t, msm_cpufreq_suspend_data);
 
 static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq,
 			unsigned int index)
@@ -84,17 +84,14 @@ static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq,
 		sched_setscheduler_nocheck(current, SCHED_FIFO, &param);
 	}
 
-	cpufreq_notify_transition(policy, &freqs, CPUFREQ_PRECHANGE);
+	cpufreq_freq_transition_begin(policy, &freqs);
 
-	trace_cpu_frequency_switch_start(freqs.old, freqs.new, policy->cpu);
+	trace_cpu_frequency(freqs.new, policy->cpu);
 
 	rate = new_freq * 1000;
 	rate = clk_round_rate(cpu_clk[policy->cpu], rate);
 	ret = clk_set_rate(cpu_clk[policy->cpu], rate);
-	if (!ret) {
-		cpufreq_notify_transition(policy, &freqs, CPUFREQ_POSTCHANGE);
-		trace_cpu_frequency_switch_end(policy->cpu);
-	}
+	cpufreq_freq_transition_end(policy, &freqs, ret);
 
 	/* Restore priority after clock ramp-up */
 	if (freqs.new > freqs.old && saved_sched_policy >= 0) {
@@ -124,12 +121,12 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 
 	struct cpufreq_work_struct *cpu_work = NULL;
 
-	mutex_lock(&per_cpu(cpufreq_suspend, policy->cpu).suspend_mutex);
+	mutex_lock(&per_cpu(msm_cpufreq_suspend_data, policy->cpu).suspend_mutex);
 
 	if (target_freq == policy->cur)
 		goto done;
 
-	if (per_cpu(cpufreq_suspend, policy->cpu).device_suspended) {
+	if (per_cpu(msm_cpufreq_suspend_data, policy->cpu).device_suspended) {
 		pr_debug("cpufreq: cpu%d scheduling frequency change "
 				"in suspend.\n", policy->cpu);
 		ret = -EFAULT;
@@ -151,18 +148,18 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 	cpu_work = &per_cpu(cpufreq_work, policy->cpu);
 	cpu_work->policy = policy;
 	cpu_work->frequency = table[index].frequency;
-	cpu_work->index = table[index].index;
+	cpu_work->index = table[index].driver_data;
 	cpu_work->status = -ENODEV;
 
 	cancel_work_sync(&cpu_work->work);
-	INIT_COMPLETION(cpu_work->complete);
+	reinit_completion(&cpu_work->complete);
 	queue_work_on(policy->cpu, msm_cpufreq_wq, &cpu_work->work);
 	wait_for_completion(&cpu_work->complete);
 
 	ret = cpu_work->status;
 
 done:
-	mutex_unlock(&per_cpu(cpufreq_suspend, policy->cpu).suspend_mutex);
+	mutex_unlock(&per_cpu(msm_cpufreq_suspend_data, policy->cpu).suspend_mutex);
 	return ret;
 }
 
@@ -220,13 +217,13 @@ static int msm_cpufreq_init(struct cpufreq_policy *policy)
 	 * online, frequency limit will always be updated.
 	 */
 	ret = set_cpu_freq(policy, table[index].frequency,
-			   table[index].index);
+			   table[index].driver_data);
 	if (ret)
 		return ret;
 	pr_debug("cpufreq: cpu%d init at %d switching to %d\n",
 			policy->cpu, cur_freq, table[index].frequency);
 	policy->cur = table[index].frequency;
-	cpufreq_frequency_table_get_attr(table, policy->cpu);
+	policy->freq_table = table;
 
 	return 0;
 }
@@ -292,25 +289,25 @@ static struct notifier_block __refdata msm_cpufreq_cpu_notifier = {
 	.notifier_call = msm_cpufreq_cpu_callback,
 };
 
-static int msm_cpufreq_suspend(void)
+static int msm_cpufreq_do_suspend(void)
 {
 	int cpu;
 
 	for_each_possible_cpu(cpu) {
-		mutex_lock(&per_cpu(cpufreq_suspend, cpu).suspend_mutex);
-		per_cpu(cpufreq_suspend, cpu).device_suspended = 1;
-		mutex_unlock(&per_cpu(cpufreq_suspend, cpu).suspend_mutex);
+		mutex_lock(&per_cpu(msm_cpufreq_suspend_data, cpu).suspend_mutex);
+		per_cpu(msm_cpufreq_suspend_data, cpu).device_suspended = 1;
+		mutex_unlock(&per_cpu(msm_cpufreq_suspend_data, cpu).suspend_mutex);
 	}
 
 	return NOTIFY_DONE;
 }
 
-static int msm_cpufreq_resume(void)
+static int msm_cpufreq_do_resume(void)
 {
 	int cpu;
 
 	for_each_possible_cpu(cpu) {
-		per_cpu(cpufreq_suspend, cpu).device_suspended = 0;
+		per_cpu(msm_cpufreq_suspend_data, cpu).device_suspended = 0;
 	}
 
 	return NOTIFY_DONE;
@@ -322,10 +319,10 @@ static int msm_cpufreq_pm_event(struct notifier_block *this,
 	switch (event) {
 	case PM_POST_HIBERNATION:
 	case PM_POST_SUSPEND:
-		return msm_cpufreq_resume();
+		return msm_cpufreq_do_resume();
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
-		return msm_cpufreq_suspend();
+		return msm_cpufreq_do_suspend();
 	default:
 		return NOTIFY_DONE;
 	}
@@ -404,11 +401,11 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 		if (i > 0 && f <= ftbl[i-1].frequency)
 			break;
 
-		ftbl[i].index = i;
+		ftbl[i].driver_data = i;
 		ftbl[i].frequency = f;
 	}
 
-	ftbl[i].index = i;
+	ftbl[i].driver_data = i;
 	ftbl[i].frequency = CPUFREQ_TABLE_END;
 
 	devm_kfree(dev, data);
@@ -504,8 +501,8 @@ static int __init msm_cpufreq_register(void)
 	int cpu, rc;
 
 	for_each_possible_cpu(cpu) {
-		mutex_init(&(per_cpu(cpufreq_suspend, cpu).suspend_mutex));
-		per_cpu(cpufreq_suspend, cpu).device_suspended = 0;
+		mutex_init(&(per_cpu(msm_cpufreq_suspend_data, cpu).suspend_mutex));
+		per_cpu(msm_cpufreq_suspend_data, cpu).device_suspended = 0;
 	}
 
 	rc = platform_driver_probe(&msm_cpufreq_plat_driver,
@@ -514,7 +511,7 @@ static int __init msm_cpufreq_register(void)
 		/* Unblock hotplug if msm-cpufreq probe fails */
 		unregister_hotcpu_notifier(&msm_cpufreq_cpu_notifier);
 		for_each_possible_cpu(cpu)
-			mutex_destroy(&(per_cpu(cpufreq_suspend, cpu).
+			mutex_destroy(&(per_cpu(msm_cpufreq_suspend_data, cpu).
 					suspend_mutex));
 		return rc;
 	}
