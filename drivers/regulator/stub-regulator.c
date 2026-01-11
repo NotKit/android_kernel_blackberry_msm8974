@@ -141,6 +141,7 @@ static void regulator_stub_cleanup(struct regulator_stub *vreg_priv)
 
 static int regulator_stub_probe(struct platform_device *pdev)
 {
+	struct regulator_config config = { };
 	struct regulator_init_data *init_data = NULL;
 	struct device *dev = &pdev->dev;
 	struct stub_regulator_pdata *vreg_pdata;
@@ -233,8 +234,12 @@ static int regulator_stub_probe(struct platform_device *pdev)
 	else
 		vreg_priv->mode = REGULATOR_MODE_IDLE;
 
-	vreg_priv->rdev = regulator_register(rdesc, dev, init_data, vreg_priv,
-						dev->of_node);
+	config.dev = dev;
+	config.init_data = init_data;
+	config.driver_data = vreg_priv;
+	config.of_node = dev->of_node;
+
+	vreg_priv->rdev = regulator_register(rdesc, &config);
 
 	if (IS_ERR(vreg_priv->rdev)) {
 		rc = PTR_ERR(vreg_priv->rdev);
