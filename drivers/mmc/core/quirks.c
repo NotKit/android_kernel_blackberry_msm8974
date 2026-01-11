@@ -35,6 +35,15 @@
 #define SDIO_DEVICE_ID_MARVELL_8797_F0	0x9128
 #endif
 
+#define SDIO_VENDOR_ID_MSM			0x0070
+#define SDIO_DEVICE_ID_MSM_WCN1314		0x2881
+
+#define SDIO_VENDOR_ID_MSM_QCA			0x0271
+#define SDIO_DEVICE_ID_MSM_QCA_AR6003_1		0x0300
+#define SDIO_DEVICE_ID_MSM_QCA_AR6003_2		0x0301
+#define SDIO_DEVICE_ID_MSM_QCA_AR6004_1		0x0400
+#define SDIO_DEVICE_ID_MSM_QCA_AR6004_2		0x0401
+
 /*
  * This hook just adds a quirk for all sdio devices
  */

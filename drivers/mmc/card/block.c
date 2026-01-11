@@ -1613,44 +1613,13 @@ out:
 	return err ? 0 : 1;
 }
 
-static int mmc_blk_issue_sanitize_rq(struct mmc_queue *mq,
-				      struct request *req)
-{
-	struct mmc_blk_data *md = mq->data;
-	struct mmc_card *card = md->queue.card;
-	int err = 0;
 
-	BUG_ON(!card);
-	BUG_ON(!card->host);
 
-	if (!(mmc_can_sanitize(card) &&
-	     (card->host->caps2 & MMC_CAP2_SANITIZE))) {
-			pr_warning("%s: %s - SANITIZE is not supported\n",
-				   mmc_hostname(card->host), __func__);
-			err = -EOPNOTSUPP;
-			goto out;
-	}
-
-	pr_debug("%s: %s - SANITIZE IN PROGRESS...\n",
-		mmc_hostname(card->host), __func__);
-
-	err = mmc_switch_ignore_timeout(card, EXT_CSD_CMD_SET_NORMAL,
-					EXT_CSD_SANITIZE_START, 1,
-					MMC_SANITIZE_REQ_TIMEOUT);
-
-	if (err)
-		pr_err("%s: %s - mmc_switch() with "
-		       "EXT_CSD_SANITIZE_START failed. err=%d\n",
-		       mmc_hostname(card->host), __func__, err);
-
-	pr_debug("%s: %s - SANITIZE COMPLETED\n", mmc_hostname(card->host),
-					     __func__);
-
-out:
-	blk_end_request(req, err, blk_rq_bytes(req));
-
-	return err ? 0 : 1;
-}
+static u8 mmc_blk_prep_packed_list(struct mmc_queue *mq, struct request *req);
+static void mmc_blk_packed_hdr_wrq_prep(struct mmc_queue_req *mqrq,
+					struct mmc_card *card,
+					struct mmc_queue *mq);
+static int mmc_blk_end_packed_req(struct mmc_queue_req *mq_rq);
 
 static int mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
 {
@@ -2046,13 +2015,7 @@ static void mmc_blk_rw_rq_prep(struct mmc_queue_req *mqrq,
 
 	mqrq->mmc_active.mrq = &brq->mrq;
 	mqrq->mmc_active.cmd_flags = req->cmd_flags;
-	if (mq->err_check_fn)
-		mqrq->mmc_active.err_check = mq->err_check_fn;
-	else
-		mqrq->mmc_active.err_check = mmc_blk_err_check;
-	mqrq->mmc_active.reinsert_req = mmc_blk_reinsert_req;
-	mqrq->mmc_active.update_interrupted_req =
-		mmc_blk_update_interrupted_req;
+	mqrq->mmc_active.err_check = mmc_blk_err_check;
 
 	mmc_queue_bounce_pre(mqrq);
 }
@@ -2064,142 +2027,13 @@ static void mmc_blk_rw_rq_prep(struct mmc_queue_req *mqrq,
  */
 void mmc_blk_disable_wr_packing(struct mmc_queue *mq)
 {
-	if (mq) {
-		mq->wr_packing_enabled = false;
-		mq->num_of_potential_packed_wr_reqs = 0;
-	}
+
 }
 EXPORT_SYMBOL(mmc_blk_disable_wr_packing);
 
-static int get_packed_trigger(int potential, struct mmc_card *card,
-			      struct request *req, int curr_trigger)
-{
-	static int num_mean_elements = 1;
-	static unsigned long mean_potential = PCKD_TRGR_INIT_MEAN_POTEN;
-	unsigned int trigger = curr_trigger;
-	unsigned int pckd_trgr_upper_bound = card->ext_csd.max_packed_writes;
 
-	/* scale down the upper bound to 75% */
-	pckd_trgr_upper_bound = (pckd_trgr_upper_bound * 3) / 4;
 
-	/*
-	 * since the most common calls for this function are with small
-	 * potential write values and since we don't want these calls to affect
-	 * the packed trigger, set a lower bound and ignore calls with
-	 * potential lower than that bound
-	 */
-	if (potential <= PCKD_TRGR_POTEN_LOWER_BOUND)
-		return trigger;
 
-	/*
-	 * this is to prevent integer overflow in the following calculation:
-	 * once every PACKED_TRIGGER_MAX_ELEMENTS reset the algorithm
-	 */
-	if (num_mean_elements > PACKED_TRIGGER_MAX_ELEMENTS) {
-		num_mean_elements = 1;
-		mean_potential = PCKD_TRGR_INIT_MEAN_POTEN;
-	}
-
-	/*
-	 * get next mean value based on previous mean value and current
-	 * potential packed writes. Calculation is as follows:
-	 * mean_pot[i+1] =
-	 *	((mean_pot[i] * num_mean_elem) + potential)/(num_mean_elem + 1)
-	 */
-	mean_potential *= num_mean_elements;
-	/*
-	 * add num_mean_elements so that the division of two integers doesn't
-	 * lower mean_potential too much
-	 */
-	if (potential > mean_potential)
-		mean_potential += num_mean_elements;
-	mean_potential += potential;
-	/* this is for gaining more precision when dividing two integers */
-	mean_potential *= PCKD_TRGR_PRECISION_MULTIPLIER;
-	/* this completes the mean calculation */
-	mean_potential /= ++num_mean_elements;
-	mean_potential /= PCKD_TRGR_PRECISION_MULTIPLIER;
-
-	/*
-	 * if current potential packed writes is greater than the mean potential
-	 * then the heuristic is that the following workload will contain many
-	 * write requests, therefore we lower the packed trigger. In the
-	 * opposite case we want to increase the trigger in order to get less
-	 * packing events.
-	 */
-	if (potential >= mean_potential)
-		trigger = (trigger <= PCKD_TRGR_LOWER_BOUND) ?
-				PCKD_TRGR_LOWER_BOUND : trigger - 1;
-	else
-		trigger = (trigger >= pckd_trgr_upper_bound) ?
-				pckd_trgr_upper_bound : trigger + 1;
-
-	/*
-	 * an urgent read request indicates a packed list being interrupted
-	 * by this read, therefore we aim for less packing, hence the trigger
-	 * gets increased
-	 */
-	if (req && (req->cmd_flags & REQ_URGENT) && (rq_data_dir(req) == READ))
-		trigger += PCKD_TRGR_URGENT_PENALTY;
-
-	return trigger;
-}
-
-static void mmc_blk_write_packing_control(struct mmc_queue *mq,
-					  struct request *req)
-{
-	struct mmc_host *host = mq->card->host;
-	int data_dir;
-
-	if (!(host->caps2 & MMC_CAP2_PACKED_WR))
-		return;
-
-	/* Support for the write packing on eMMC 4.5 or later */
-	if (mq->card->ext_csd.rev <= 5)
-		return;
-
-	/*
-	 * In case the packing control is not supported by the host, it should
-	 * not have an effect on the write packing. Therefore we have to enable
-	 * the write packing
-	 */
-	if (!(host->caps2 & MMC_CAP2_PACKED_WR_CONTROL)) {
-		mq->wr_packing_enabled = true;
-		return;
-	}
-
-	if (!req || (req && (req->cmd_flags & REQ_FLUSH))) {
-		if (mq->num_of_potential_packed_wr_reqs >
-				mq->num_wr_reqs_to_start_packing)
-			mq->wr_packing_enabled = true;
-		mq->num_wr_reqs_to_start_packing =
-			get_packed_trigger(mq->num_of_potential_packed_wr_reqs,
-					   mq->card, req,
-					   mq->num_wr_reqs_to_start_packing);
-		mq->num_of_potential_packed_wr_reqs = 0;
-		return;
-	}
-
-	data_dir = rq_data_dir(req);
-
-	if (data_dir == READ) {
-		mmc_blk_disable_wr_packing(mq);
-		mq->num_wr_reqs_to_start_packing =
-			get_packed_trigger(mq->num_of_potential_packed_wr_reqs,
-					   mq->card, req,
-					   mq->num_wr_reqs_to_start_packing);
-		mq->num_of_potential_packed_wr_reqs = 0;
-		mq->wr_packing_enabled = false;
-		return;
-	} else if (data_dir == WRITE) {
-		mq->num_of_potential_packed_wr_reqs++;
-	}
-
-	if (mq->num_of_potential_packed_wr_reqs >
-			mq->num_wr_reqs_to_start_packing)
-		mq->wr_packing_enabled = true;
-
-}
 
 struct mmc_wr_pack_stats *mmc_blk_get_packed_statistics(struct mmc_card *card)
 {
@@ -2230,266 +2064,7 @@ void mmc_blk_init_packed_statistics(struct mmc_card *card)
 }
 EXPORT_SYMBOL(mmc_blk_init_packed_statistics);
 
-static u8 mmc_blk_prep_packed_list(struct mmc_queue *mq, struct request *req)
-{
-	struct request_queue *q = mq->queue;
-	struct mmc_card *card = mq->card;
-	struct request *cur = req, *next = NULL;
-	struct mmc_blk_data *md = mq->data;
-	bool en_rel_wr = card->ext_csd.rel_param & EXT_CSD_WR_REL_PARAM_EN;
-	unsigned int req_sectors = 0, phys_segments = 0;
-	unsigned int max_blk_count, max_phys_segs;
-	u8 put_back = 0;
-	u8 max_packed_rw = 0;
-	u8 reqs = 0;
-	struct mmc_wr_pack_stats *stats = &card->wr_pack_stats;
-
-	mmc_blk_clear_packed(mq->mqrq_cur);
-
-	if (!(md->flags & MMC_BLK_CMD23) ||
-			!card->ext_csd.packed_event_en)
-		goto no_packed;
-
-	if (!mq->wr_packing_enabled)
-		goto no_packed;
-
-	if ((rq_data_dir(cur) == WRITE) &&
-			(card->host->caps2 & MMC_CAP2_PACKED_WR))
-		max_packed_rw = card->ext_csd.max_packed_writes;
-
-	if (max_packed_rw == 0)
-		goto no_packed;
-
-	if (mmc_req_rel_wr(cur) &&
-			(md->flags & MMC_BLK_REL_WR) &&
-			!en_rel_wr)
-		goto no_packed;
-
-	if (mmc_large_sec(card) &&
-			!IS_ALIGNED(blk_rq_sectors(cur), 8))
-		goto no_packed;
-
-	if (cur->cmd_flags & REQ_FUA)
-		goto no_packed;
-
-	max_blk_count = min(card->host->max_blk_count,
-			card->host->max_req_size >> 9);
-	if (unlikely(max_blk_count > 0xffff))
-		max_blk_count = 0xffff;
-
-	max_phys_segs = queue_max_segments(q);
-	req_sectors += blk_rq_sectors(cur);
-	phys_segments += cur->nr_phys_segments;
-
-	if (rq_data_dir(cur) == WRITE) {
-		req_sectors++;
-		phys_segments++;
-	}
-
-	spin_lock(&stats->lock);
-
-	while (reqs < max_packed_rw - 1) {
-		spin_lock_irq(q->queue_lock);
-		next = blk_fetch_request(q);
-		spin_unlock_irq(q->queue_lock);
-		if (!next) {
-			MMC_BLK_UPDATE_STOP_REASON(stats, EMPTY_QUEUE);
-			break;
-		}
-
-		if (mmc_large_sec(card) &&
-				!IS_ALIGNED(blk_rq_sectors(next), 8)) {
-			MMC_BLK_UPDATE_STOP_REASON(stats, LARGE_SEC_ALIGN);
-			put_back = 1;
-			break;
-		}
-
-		if (next->cmd_flags & REQ_DISCARD ||
-				next->cmd_flags & REQ_FLUSH) {
-			MMC_BLK_UPDATE_STOP_REASON(stats, FLUSH_OR_DISCARD);
-			put_back = 1;
-			break;
-		}
-
-		if (next->cmd_flags & REQ_FUA) {
-			MMC_BLK_UPDATE_STOP_REASON(stats, FUA);
-			put_back = 1;
-			break;
-		}
-
-		if (rq_data_dir(cur) != rq_data_dir(next)) {
-			MMC_BLK_UPDATE_STOP_REASON(stats, WRONG_DATA_DIR);
-			put_back = 1;
-			break;
-		}
-
-		if (mmc_req_rel_wr(next) &&
-				(md->flags & MMC_BLK_REL_WR) &&
-				!en_rel_wr) {
-			MMC_BLK_UPDATE_STOP_REASON(stats, REL_WRITE);
-			put_back = 1;
-			break;
-		}
-
-		req_sectors += blk_rq_sectors(next);
-		if (req_sectors > max_blk_count) {
-			if (stats->enabled)
-				stats->pack_stop_reason[EXCEEDS_SECTORS]++;
-			put_back = 1;
-			break;
-		}
-
-		phys_segments +=  next->nr_phys_segments;
-		if (phys_segments > max_phys_segs) {
-			MMC_BLK_UPDATE_STOP_REASON(stats, EXCEEDS_SEGMENTS);
-			put_back = 1;
-			break;
-		}
-
-		if (mq->no_pack_for_random) {
-			if ((blk_rq_pos(cur) + blk_rq_sectors(cur)) !=
-			    blk_rq_pos(next)) {
-				MMC_BLK_UPDATE_STOP_REASON(stats, RANDOM);
-				put_back = 1;
-				break;
-			}
-		}
-
-		if (rq_data_dir(next) == WRITE) {
-			mq->num_of_potential_packed_wr_reqs++;
-			if (card->ext_csd.bkops_en)
-				card->bkops_info.sectors_changed +=
-					blk_rq_sectors(next);
-		}
-		list_add_tail(&next->queuelist, &mq->mqrq_cur->packed_list);
-		cur = next;
-		reqs++;
-	}
-
-	if (put_back) {
-		spin_lock_irq(q->queue_lock);
-		blk_requeue_request(q, next);
-		spin_unlock_irq(q->queue_lock);
-	}
-
-	if (stats->enabled) {
-		if (reqs + 1 <= card->ext_csd.max_packed_writes)
-			stats->packing_events[reqs + 1]++;
-		if (reqs + 1 == max_packed_rw)
-			MMC_BLK_UPDATE_STOP_REASON(stats, THRESHOLD);
-	}
-
-	spin_unlock(&stats->lock);
-
-	if (reqs > 0) {
-		list_add(&req->queuelist, &mq->mqrq_cur->packed_list);
-		mq->mqrq_cur->packed_num = ++reqs;
-		mq->mqrq_cur->packed_retries = reqs;
-		return reqs;
-	}
-
-no_packed:
-	mmc_blk_clear_packed(mq->mqrq_cur);
-	return 0;
-}
-
-static void mmc_blk_packed_hdr_wrq_prep(struct mmc_queue_req *mqrq,
-					struct mmc_card *card,
-					struct mmc_queue *mq)
-{
-	struct mmc_blk_request *brq = &mqrq->brq;
-	struct request *req = mqrq->req;
-	struct request *prq;
-	struct mmc_blk_data *md = mq->data;
-	bool do_rel_wr, do_data_tag;
-	u32 *packed_cmd_hdr = mqrq->packed_cmd_hdr;
-	u8 i = 1;
-
-	mqrq->packed_cmd = MMC_PACKED_WRITE;
-	mqrq->packed_blocks = 0;
-	mqrq->packed_fail_idx = MMC_PACKED_N_IDX;
-
-	memset(packed_cmd_hdr, 0, sizeof(mqrq->packed_cmd_hdr));
-	packed_cmd_hdr[0] = (mqrq->packed_num << 16) |
-		(PACKED_CMD_WR << 8) | PACKED_CMD_VER;
-
-	/*
-	 * Argument for each entry of packed group
-	 */
-	list_for_each_entry(prq, &mqrq->packed_list, queuelist) {
-		do_rel_wr = mmc_req_rel_wr(prq) && (md->flags & MMC_BLK_REL_WR);
-		do_data_tag = (card->ext_csd.data_tag_unit_size) &&
-			(prq->cmd_flags & REQ_META) &&
-			(rq_data_dir(prq) == WRITE) &&
-			((brq->data.blocks * brq->data.blksz) >=
-			 card->ext_csd.data_tag_unit_size);
-		/* Argument of CMD23 */
-		packed_cmd_hdr[(i * 2)] =
-			(do_rel_wr ? MMC_CMD23_ARG_REL_WR : 0) |
-			(do_data_tag ? MMC_CMD23_ARG_TAG_REQ : 0) |
-			blk_rq_sectors(prq);
-		/* Argument of CMD18 or CMD25 */
-		packed_cmd_hdr[((i * 2)) + 1] =
-			mmc_card_blockaddr(card) ?
-			blk_rq_pos(prq) : blk_rq_pos(prq) << 9;
-		mqrq->packed_blocks += blk_rq_sectors(prq);
-		i++;
-	}
-
-	memset(brq, 0, sizeof(struct mmc_blk_request));
-	brq->mrq.cmd = &brq->cmd;
-	brq->mrq.data = &brq->data;
-	brq->mrq.sbc = &brq->sbc;
-	brq->mrq.stop = &brq->stop;
-
-	brq->sbc.opcode = MMC_SET_BLOCK_COUNT;
-	brq->sbc.arg = MMC_CMD23_ARG_PACKED | (mqrq->packed_blocks + 1);
-	brq->sbc.flags = MMC_RSP_R1 | MMC_CMD_AC;
-
-	brq->cmd.opcode = MMC_WRITE_MULTIPLE_BLOCK;
-	brq->cmd.arg = blk_rq_pos(req);
-	if (!mmc_card_blockaddr(card))
-		brq->cmd.arg <<= 9;
-	brq->cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_ADTC;
-
-	brq->data.blksz = 512;
-	brq->data.blocks = mqrq->packed_blocks + 1;
-	brq->data.flags |= MMC_DATA_WRITE;
-	brq->data.fault_injected = false;
-
-	brq->stop.opcode = MMC_STOP_TRANSMISSION;
-	brq->stop.arg = 0;
-	brq->stop.flags = MMC_RSP_SPI_R1B | MMC_RSP_R1B | MMC_CMD_AC;
-
-	mmc_set_data_timeout(&brq->data, card);
-
-	brq->data.sg = mqrq->sg;
-	brq->data.sg_len = mmc_queue_map_sg(mq, mqrq);
-
-	mqrq->mmc_active.mrq = &brq->mrq;
-	mqrq->mmc_active.cmd_flags = req->cmd_flags;
-
-	/*
-	 * This is intended for packed commands tests usage - in case these
-	 * functions are not in use the respective pointers are NULL
-	 */
-	if (mq->err_check_fn)
-		mqrq->mmc_active.err_check = mq->err_check_fn;
-	else
-		mqrq->mmc_active.err_check = mmc_blk_packed_err_check;
-
-	if (mq->packed_test_fn)
-		mq->packed_test_fn(mq->queue, mqrq);
-
-
-	mqrq->mmc_active.reinsert_req = mmc_blk_reinsert_req;
-	mqrq->mmc_active.update_interrupted_req =
-		mmc_blk_update_interrupted_req;
-
-	mmc_queue_bounce_pre(mqrq);
-}
-
-static inline u8 mmc_calc_packed_hdr_segs(struct request_queue *q,
+static u8 mmc_calc_packed_hdr_segs(struct request_queue *q,
 					  struct mmc_card *card)
 {
 	unsigned int hdr_sz = mmc_large_sector(card) ? 4096 : 512;
@@ -2504,6 +2079,9 @@ static inline u8 mmc_calc_packed_hdr_segs(struct request_queue *q,
 
 	return nr_segs;
 }
+
+
+
 
 static u8 mmc_blk_prep_packed_list(struct mmc_queue *mq, struct request *req)
 {
@@ -2720,28 +2298,13 @@ static int mmc_blk_cmd_err(struct mmc_blk_data *md, struct mmc_card *card,
 		} else
 			ret = blk_end_request(req, 0, brq->data.bytes_xfered);
 	} else {
-		if (mq_rq->packed_cmd == MMC_PACKED_NONE)
+		if (mq_rq->cmd_type == MMC_PACKED_NONE)
 			ret = blk_end_request(req, 0, brq->data.bytes_xfered);
 	}
 	return ret;
 }
 
-static int mmc_blk_end_packed_req(struct mmc_queue_req *mq_rq)
-{
-	struct request *prq;
-	int idx = mq_rq->packed_fail_idx, i = 0;
-	int ret = 0;
 
-		blocks = mmc_sd_num_wr_blocks(card);
-		if (blocks != (u32)-1) {
-			ret = blk_end_request(req, 0, blocks << 9);
-		}
-	} else {
-		if (!mmc_packed_cmd(mq_rq->cmd_type))
-			ret = blk_end_request(req, 0, brq->data.bytes_xfered);
-	}
-	return ret;
-}
 
 static int mmc_blk_end_packed_req(struct mmc_queue_req *mq_rq)
 {
@@ -2774,41 +2337,7 @@ static int mmc_blk_end_packed_req(struct mmc_queue_req *mq_rq)
 	mmc_blk_clear_packed(mq_rq);
 	return ret;
 }
-static void mmc_blk_abort_packed_req(struct mmc_queue_req *mq_rq,
-					unsigned int cmd_flags)
-{
-	struct request *prq;
 
-	while (!list_empty(&mq_rq->packed_list)) {
-		prq = list_entry_rq(mq_rq->packed_list.next);
-		list_del_init(&prq->queuelist);
-		prq->cmd_flags |= cmd_flags;
-		blk_end_request(prq, -EIO, blk_rq_bytes(prq));
-	}
-
-	mmc_blk_clear_packed(mq_rq);
-}
-
-static void mmc_blk_revert_packed_req(struct mmc_queue *mq,
-				      struct mmc_queue_req *mq_rq)
-{
-	struct request *prq;
-	struct request_queue *q = mq->queue;
-
-	while (!list_empty(&mq_rq->packed_list)) {
-		prq = list_entry_rq(mq_rq->packed_list.prev);
-		if (prq->queuelist.prev != &mq_rq->packed_list) {
-			list_del_init(&prq->queuelist);
-			spin_lock_irq(q->queue_lock);
-			blk_requeue_request(mq->queue, prq);
-			spin_unlock_irq(q->queue_lock);
-		} else {
-			list_del_init(&prq->queuelist);
-		}
-	}
-
-	mmc_blk_clear_packed(mq_rq);
-}
 
 static void mmc_blk_abort_packed_req(struct mmc_queue_req *mq_rq)
 {
@@ -2908,20 +2437,7 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 		mmc_queue_bounce_post(mq_rq);
 
 		switch (status) {
-		case MMC_BLK_URGENT:
-			if (mq_rq->packed_cmd != MMC_PACKED_NONE) {
-				/* complete successfully transmitted part */
-				if (mmc_blk_end_packed_req(mq_rq))
-					/* process for not transmitted part */
-					mmc_blk_reinsert_req(areq);
-			} else {
-				mmc_blk_reinsert_req(areq);
-			}
 
-			set_bit(MMC_QUEUE_URGENT_REQUEST, &mq->flags);
-			ret = 0;
-			break;
-		case MMC_BLK_URGENT_DONE:
 		case MMC_BLK_SUCCESS:
 		case MMC_BLK_PARTIAL:
 			/*
@@ -2960,12 +2476,12 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 				goto start_new_req;
 			break;
 		case MMC_BLK_RETRY:
-			if (retry++ < MMC_BLK_MAX_RETRIES)
+			if (retry++ < 5)
 				break;
 			/* Fall through */
 		case MMC_BLK_ABORT:
 			if (!mmc_blk_reset(md, card->host, type) &&
-					(retry++ < (MMC_BLK_MAX_RETRIES + 1)))
+					(retry++ < (5 + 1)))
 					break;
 			goto cmd_abort;
 		case MMC_BLK_DATA_ERR: {
@@ -3443,6 +2959,7 @@ static int mmc_add_disk(struct mmc_blk_data *md)
 			goto power_ro_lock_fail;
 	}
 
+	/*
 	md->num_wr_reqs_to_start_packing.show =
 		num_wr_reqs_to_start_packing_show;
 	md->num_wr_reqs_to_start_packing.store =
@@ -3475,16 +2992,16 @@ static int mmc_add_disk(struct mmc_blk_data *md)
 				 &md->no_pack_for_random);
 	if (ret)
 		goto no_pack_for_random_fails;
-
+	*/
 	return ret;
 
-no_pack_for_random_fails:
-	device_remove_file(disk_to_dev(md->disk),
-			   &md->bkops_check_threshold);
-bkops_check_threshold_fails:
-	device_remove_file(disk_to_dev(md->disk),
-			   &md->num_wr_reqs_to_start_packing);
-num_wr_reqs_to_start_packing_fail:
+// no_pack_for_random_fails:
+	// device_remove_file(disk_to_dev(md->disk),
+			   // &md->bkops_check_threshold);
+// bkops_check_threshold_fails:
+	// device_remove_file(disk_to_dev(md->disk),
+			   // &md->num_wr_reqs_to_start_packing);
+// num_wr_reqs_to_start_packing_fail:
 	device_remove_file(disk_to_dev(md->disk), &md->power_ro_lock);
 power_ro_lock_fail:
 #ifdef CONFIG_MMC_SIMULATE_MAX_SPEED
@@ -3502,10 +3019,7 @@ force_ro_fail:
 	return ret;
 }
 
-#define CID_MANFID_SANDISK	0x2
-#define CID_MANFID_TOSHIBA	0x11
-#define CID_MANFID_MICRON	0x13
-#define CID_MANFID_SAMSUNG	0x15
+
 
 static const struct mmc_fixup blk_fixups[] =
 {
@@ -3738,10 +3252,12 @@ static int _mmc_blk_suspend(struct mmc_card *card)
 	return rc;
 }
 
+/*
 static void mmc_blk_shutdown(struct mmc_card *card)
 {
 	_mmc_blk_suspend(card);
 }
+*/
 
 #ifdef CONFIG_PM
 static int mmc_blk_suspend(struct mmc_card *card)

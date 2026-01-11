@@ -99,6 +99,8 @@ struct mmc_command {
  */
 
 	unsigned int		busy_timeout;	/* busy detect timeout in ms */
+	unsigned int		ignore_timeout;	/* ignore timeout */
+	unsigned int		cmd_timeout_ms;
 	/* Set this flag only for blocking sanitize request */
 	bool			sanitize_busy;
 

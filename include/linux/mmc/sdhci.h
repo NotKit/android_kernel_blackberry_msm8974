@@ -117,6 +117,14 @@ struct sdhci_host {
 /* The system physically doesn't support 1.8v, even if the host does */
 #define SDHCI_QUIRK2_NO_1_8_V				(1<<2)
 #define SDHCI_QUIRK2_PRESET_VALUE_BROKEN		(1<<3)
+#define SDHCI_QUIRK2_ALWAYS_USE_BASE_CLOCK		(1<<4)
+#define SDHCI_QUIRK2_DIVIDE_TOUT_BY_4			(1<<5)
+#define SDHCI_QUIRK2_IGNORE_DATATOUT_FOR_R1BCMD		(1<<6)
+#define SDHCI_QUIRK2_BROKEN_PRESET_VALUE		(1<<7)
+#define SDHCI_QUIRK2_USE_MAX_DISCARD_SIZE		(1<<8)
+#define SDHCI_QUIRK2_USE_RESERVED_MAX_TIMEOUT		(1<<10)
+#define SDHCI_QUIRK2_SLOW_INT_CLR			(1<<11)
+#define SDHCI_QUIRK2_RDWR_TX_ACTIVE_EOT			(1<<12)
 
 /*
  * Some SDHC controllers are unable to handle data-end bit error in
@@ -136,6 +144,7 @@ struct sdhci_host {
 	struct led_classdev led;	/* LED control */
 	char led_name[32];
 #endif
+	struct regulator *vmmc;		/* Power Regulator */
 
 	spinlock_t lock;	/* Mutex */
 
@@ -145,7 +154,8 @@ struct sdhci_host {
 #define SDHCI_REQ_USE_DMA	(1<<2)	/* Use DMA for this req. */
 #define SDHCI_DEVICE_DEAD	(1<<3)	/* Device unresponsive */
 #define SDHCI_SDR50_NEEDS_TUNING (1<<4)	/* SDR50 needs tuning */
-#define SDHCI_NEEDS_RETUNING	(1<<5)	/* Host needs retuning */
+#define SDHCI_HS400_NEEDS_TUNING (1<<5)	/* HS400 needs tuning */
+#define SDHCI_NEEDS_RETUNING	(1<<6)	/* Host needs retuning */
 #define SDHCI_AUTO_CMD12	(1<<6)	/* Auto CMD12 support */
 #define SDHCI_AUTO_CMD23	(1<<7)	/* Auto CMD23 support */
 #define SDHCI_PV_ENABLED	(1<<8)	/* Preset value enabled */

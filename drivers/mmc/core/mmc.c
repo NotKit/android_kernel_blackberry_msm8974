@@ -31,6 +31,12 @@ static const unsigned int tran_exp[] = {
 	0,		0,		0,		0
 };
 
+static int mmc_reboot_notify(struct notifier_block *notify_block,
+		unsigned long val, void *v)
+{
+	return NOTIFY_OK;
+}
+
 static const unsigned char tran_mant[] = {
 	0,	10,	12,	13,	15,	20,	25,	30,
 	35,	40,	45,	50,	55,	60,	70,	80,
@@ -1133,60 +1139,7 @@ static int mmc_select_hs_ddr(struct mmc_card *card)
 	return err;
 }
 
-static int mmc_select_hs400(struct mmc_card *card)
-{
-	struct mmc_host *host = card->host;
-	int err = 0;
 
-	/*
-	 * HS400 mode requires 8-bit bus width
-	 */
-	if (!(card->mmc_avail_type & EXT_CSD_CARD_TYPE_HS400 &&
-	      host->ios.bus_width == MMC_BUS_WIDTH_8))
-		return 0;
-
-	/*
-	 * Before switching to dual data rate operation for HS400,
-	 * it is required to convert from HS200 mode to HS mode.
-	 */
-	mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-	mmc_set_bus_speed(card);
-
-	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
-			   EXT_CSD_HS_TIMING, EXT_CSD_TIMING_HS,
-			   card->ext_csd.generic_cmd6_time,
-			   true, true, true);
-	if (err) {
-		pr_err("%s: switch to high-speed from hs200 failed, err:%d\n",
-			mmc_hostname(host), err);
-		return err;
-	}
-
-	err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
-			 EXT_CSD_BUS_WIDTH,
-			 EXT_CSD_DDR_BUS_WIDTH_8,
-			 card->ext_csd.generic_cmd6_time);
-	if (err) {
-		pr_err("%s: switch to bus width for hs400 failed, err:%d\n",
-			mmc_hostname(host), err);
-		return err;
-	}
-
-	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
-			   EXT_CSD_HS_TIMING, EXT_CSD_TIMING_HS400,
-			   card->ext_csd.generic_cmd6_time,
-			   true, true, true);
-	if (err) {
-		pr_err("%s: switch to hs400 failed, err:%d\n",
-			 mmc_hostname(host), err);
-		return err;
-	}
-
-	mmc_set_timing(host, MMC_TIMING_MMC_HS400);
-	mmc_set_bus_speed(card);
-
-	return 0;
-}
 
 /*
  * For device supporting HS200 mode, the following sequence
@@ -1217,7 +1170,7 @@ static int mmc_select_hs200(struct mmc_card *card)
 	 * 3. set the clock to > 52Mhz <=200MHz and
 	 * 4. execute tuning for HS200
 	 */
-	err = mmc_select_bus_width(card, 0, ext_csd);
+	err = mmc_select_bus_width(card);
 	if (err) {
 		pr_err("%s: select bus width failed\n",
 			mmc_hostname(host));
@@ -1279,9 +1232,9 @@ static int mmc_select_hs400(struct mmc_card *card, u8 *ext_csd)
 	host = card->host;
 
 	if (!(host->caps2 & MMC_CAP2_HS400) ||
-		!(card->ext_csd.card_type & EXT_CSD_CARD_TYPE_HS400)) {
+		!(card->ext_csd.raw_card_type & EXT_CSD_CARD_TYPE_HS400)) {
 		err = -EOPNOTSUPP;
-		goto out;
+		goto err;
 	}
 
 	/*
@@ -1297,19 +1250,19 @@ static int mmc_select_hs400(struct mmc_card *card, u8 *ext_csd)
 	 *	Perform tuning if required
 	 */
 	mmc_card_set_hs400(card);
-	err = mmc_select_hs200(card, ext_csd);
+	err = mmc_select_hs200(card);
 	if (err)
-		goto out;
+		goto err;
 	mmc_card_clr_hs200(card);
 
-	if ((card->ext_csd.card_type & EXT_CSD_CARD_TYPE_HS400_1_2V)
+	if ((card->ext_csd.raw_card_type & EXT_CSD_CARD_TYPE_HS400_1_2V)
 	    && (host->caps2 & MMC_CAP2_HS400_1_2V))
 		if (mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_120, 0))
 				err = mmc_set_signal_voltage(host,
 						MMC_SIGNAL_VOLTAGE_180, 0);
 	/* If fails try again during next card power cycle */
 	if (err)
-		goto out;
+		goto err;
 
 	/*
 	 * Set the bus width(4 or 8) with host's support and
@@ -1645,7 +1598,7 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		if (err)
 			goto free_card;
 
-		err = mmc_select_hs400(card);
+		err = mmc_select_hs400(card, ext_csd);
 		if (err)
 			goto free_card;
 	} else {
@@ -1821,34 +1774,7 @@ static int mmc_sleep(struct mmc_host *host)
 	return err;
 }
 
-static int mmc_can_poweroff_notify(const struct mmc_card *card)
-{
-	return card &&
-		mmc_card_mmc(card) &&
-		(card->ext_csd.power_off_notification == EXT_CSD_POWER_ON);
-}
 
-static int mmc_poweroff_notify(struct mmc_card *card, unsigned int notify_type)
-{
-	unsigned int timeout = card->ext_csd.generic_cmd6_time;
-	int err;
-
-	/* Use EXT_CSD_POWER_OFF_SHORT as default notification type. */
-	if (notify_type == EXT_CSD_POWER_OFF_LONG)
-		timeout = card->ext_csd.power_off_longtime;
-
-	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
-			EXT_CSD_POWER_OFF_NOTIFICATION,
-			notify_type, timeout, true, false, false);
-	if (err)
-		pr_err("%s: Power Off Notification timed out, %u\n",
-		       mmc_hostname(card->host), timeout);
-
-	/* Disable the power off notification after the switch operation. */
-	card->ext_csd.power_off_notification = EXT_CSD_NO_POWER_NOTIFICATION;
-
-	return err;
-}
 
 /*
  * Host is being removed. Free up the current card.
@@ -1972,7 +1898,7 @@ static int mmc_suspend(struct mmc_host *host)
 		pm_runtime_set_suspended(&host->card->dev);
 	}
 
-out:
+
 	mmc_release_host(host);
 	return err;
 }

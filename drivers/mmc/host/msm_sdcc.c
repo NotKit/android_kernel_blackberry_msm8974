@@ -79,6 +79,11 @@
 #define MSM_MMC_BUS_VOTING_DELAY	200 /* msecs */
 #define INVALID_TUNING_PHASE		-1
 
+#define SDC_DAT1_DISABLE 0
+#define SDC_DAT1_ENABLE  1
+#define SDC_DAT1_ENWAKE  2
+#define SDC_DAT1_DISWAKE 3
+
 #if defined(CONFIG_DEBUG_FS)
 static void msmsdcc_dbg_createhost(struct msmsdcc_host *);
 static struct dentry *debugfs_dir;
@@ -2836,19 +2841,23 @@ out:
 static inline unsigned int msmsdcc_get_min_sup_clk_rate(
 				struct msmsdcc_host *host)
 {
+	unsigned int rate;
 	if (host->plat->sup_clk_table && host->plat->sup_clk_cnt)
-		return host->plat->sup_clk_table[0];
+		rate = host->plat->sup_clk_table[0];
 	else
-		return host->plat->msmsdcc_fmin;
+		rate = host->plat->msmsdcc_fmin;
+	return rate;
 }
 
 static inline unsigned int msmsdcc_get_max_sup_clk_rate(
 				struct msmsdcc_host *host)
 {
+	unsigned int rate;
 	if (host->plat->sup_clk_table && host->plat->sup_clk_cnt)
-		return host->plat->sup_clk_table[host->plat->sup_clk_cnt - 1];
+		rate = host->plat->sup_clk_table[host->plat->sup_clk_cnt - 1];
 	else
-		return host->plat->msmsdcc_fmax;
+		rate = host->plat->msmsdcc_fmax;
+	return rate;
 }
 
 static int msmsdcc_setup_gpio(struct msmsdcc_host *host, bool enable)
@@ -3244,7 +3253,7 @@ static void msmsdcc_msm_bus_queue_work(struct msmsdcc_host *host)
 
 	spin_lock_irqsave(&host->lock, flags);
 	if (host->msm_bus_vote.min_bw_vote != host->msm_bus_vote.curr_vote)
-		queue_delayed_work(system_nrt_wq,
+		queue_delayed_work(system_wq,
 				   &host->msm_bus_vote.vote_work,
 				   msecs_to_jiffies(MSM_MMC_BUS_VOTING_DELAY));
 	spin_unlock_irqrestore(&host->lock, flags);

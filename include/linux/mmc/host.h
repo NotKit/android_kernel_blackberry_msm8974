@@ -10,6 +10,8 @@
 #ifndef LINUX_MMC_HOST_H
 #define LINUX_MMC_HOST_H
 
+#include <linux/wakelock.h>
+
 #include <linux/leds.h>
 #include <linux/mutex.h>
 #include <linux/sched.h>
@@ -20,6 +22,31 @@
 #include <linux/mmc/core.h>
 #include <linux/mmc/card.h>
 #include <linux/mmc/pm.h>
+
+struct mmc_clk_scaling {
+	bool enable;
+	bool invalid_state;
+	bool initialized;
+	bool in_progress;
+	bool scale_down_in_low_wr_load;
+	u32 state;
+	u32 curr_freq;
+	u32 up_threshold;
+	u32 down_threshold;
+	u32 window_time;
+	unsigned long busy_time_us;
+	unsigned long polling_delay_ms;
+	ktime_t start_busy;
+	struct delayed_work work;
+};
+
+struct mmc_perf {
+	ktime_t start;
+	ktime_t rtime_drv;
+	ktime_t wtime_drv;
+	u64 rbytes_drv;
+	u64 wbytes_drv;
+};
 
 struct mmc_ios {
 	unsigned int	clock;			/* clock rate */
@@ -145,11 +172,7 @@ struct mmc_host_ops {
 	/* The tuning command opcode value is different for SD and eMMC cards */
 	int	(*execute_tuning)(struct mmc_host *host, u32 opcode);
 
-	/* Prepare HS400 target operating frequency depending host driver */
-	int	(*prepare_hs400_tuning)(struct mmc_host *host, struct mmc_ios *ios);
-	int	(*select_drive_strength)(unsigned int max_dtr, int host_drv, int card_drv);
-	void	(*hw_reset)(struct mmc_host *host);
-	void	(*card_event)(struct mmc_host *host);
+
 
 	/*
 	 * Optional callback to support controllers with HW issues for multiple
@@ -157,6 +180,20 @@ struct mmc_host_ops {
 	 */
 	int	(*multi_io_quirk)(struct mmc_card *card,
 				  unsigned int direction, int blk_size);
+	int	(*notify_load)(struct mmc_host *host, enum mmc_load state);
+	/*
+	 * Optional callback to support controllers with specific driver strength
+	 * requirements.
+	 */
+	int	(*select_drive_strength)(unsigned int max_dtr, int host_drv,
+					 int card_drv);
+	void	(*hw_reset)(struct mmc_host *host);
+	void	(*card_event)(struct mmc_host *host);
+	int	(*prepare_hs400_tuning)(struct mmc_host *host, struct mmc_ios *ios);
+	void	(*stop_request)(struct mmc_host *host);
+	unsigned int (*get_xfer_remain)(struct mmc_host *host);
+	unsigned long (*get_max_frequency)(struct mmc_host *host);
+	unsigned long (*get_min_frequency)(struct mmc_host *host);
 };
 
 struct mmc_card;
@@ -217,21 +254,7 @@ struct mmc_slot {
 	void *handler_priv;
 };
 
-/**
- * mmc_context_info - synchronization details for mmc context
- * @is_done_rcv		wake up reason was done request
- * @is_new_req		wake up reason was new request
- * @is_waiting_last_req	mmc context waiting for single running request
- * @wait		wait queue
- * @lock		lock to protect data fields
- */
-struct mmc_context_info {
-	bool			is_done_rcv;
-	bool			is_new_req;
-	bool			is_waiting_last_req;
-	wait_queue_head_t	wait;
-	spinlock_t		lock;
-};
+
 
 struct regulator;
 
@@ -239,6 +262,14 @@ struct mmc_supply {
 	struct regulator *vmmc;		/* Card power supply */
 	struct regulator *vqmmc;	/* Optional Vccq supply */
 };
+
+enum dev_state {
+	DEV_SUSPENDING = 1,
+	DEV_SUSPENDED,
+	DEV_RESUMED,
+};
+
+
 
 struct mmc_host {
 	struct device		*parent;
@@ -304,17 +335,26 @@ struct mmc_host {
 #define MMC_CAP_DRIVER_TYPE_A	(1 << 23)	/* Host supports Driver Type A */
 #define MMC_CAP_DRIVER_TYPE_C	(1 << 24)	/* Host supports Driver Type C */
 #define MMC_CAP_DRIVER_TYPE_D	(1 << 25)	/* Host supports Driver Type D */
+#define MMC_CAP_MAX_CURRENT_200	(1 << 26)	/* Host max current limit is 200mA */
+#define MMC_CAP_MAX_CURRENT_400	(1 << 27)	/* Host max current limit is 400mA */
+#define MMC_CAP_MAX_CURRENT_600	(1 << 28)	/* Host max current limit is 600mA */
+#define MMC_CAP_MAX_CURRENT_800	(1 << 29)	/* Host max current limit is 800mA */
 #define MMC_CAP_CMD23		(1 << 30)	/* CMD23 supported. */
 #define MMC_CAP_HW_RESET	(1 << 31)	/* Hardware reset */
+#define MMC_CAP_SET_XPC_330	(1 << 20)	/* Host supports >150mA current at 3.3V */
+#define MMC_CAP_SET_XPC_300	(1 << 21)	/* Host supports >150mA current at 3.0V */
+#define MMC_CAP_SET_XPC_180	(1 << 22)	/* Host supports >150mA current at 1.8V */
 
 	u32			caps2;		/* More host capabilities */
 
 #define MMC_CAP2_BOOTPART_NOACC	(1 << 0)	/* Boot partition no access */
+#define MMC_CAP2_CACHE_CTRL	(1 << 1)	/* Allow cache control */
 #define MMC_CAP2_FULL_PWR_CYCLE	(1 << 2)	/* Can do full power cycle */
 #define MMC_CAP2_HS200_1_8V_SDR	(1 << 5)        /* can support */
 #define MMC_CAP2_HS200_1_2V_SDR	(1 << 6)        /* can support */
 #define MMC_CAP2_HS200		(MMC_CAP2_HS200_1_8V_SDR | \
 				 MMC_CAP2_HS200_1_2V_SDR)
+#define MMC_CAP2_DETECT_ON_ERR	(1 << 8)	/* On I/O err check card removal */
 #define MMC_CAP2_HC_ERASE_SZ	(1 << 9)	/* High-capacity erase size */
 #define MMC_CAP2_CD_ACTIVE_HIGH	(1 << 10)	/* Card-detect signal active high */
 #define MMC_CAP2_RO_ACTIVE_HIGH	(1 << 11)	/* Write-protect signal active high */
@@ -323,11 +363,20 @@ struct mmc_host {
 #define MMC_CAP2_PACKED_CMD	(MMC_CAP2_PACKED_RD | \
 				 MMC_CAP2_PACKED_WR)
 #define MMC_CAP2_NO_PRESCAN_POWERUP (1 << 14)	/* Don't power up before scan */
-#define MMC_CAP2_HS400_1_8V	(1 << 15)	/* Can support HS400 1.8V */
-#define MMC_CAP2_HS400_1_2V	(1 << 16)	/* Can support HS400 1.2V */
+#define MMC_CAP2_SANITIZE	(1 << 15)		/* Support Sanitize */
+#define MMC_CAP2_INIT_BKOPS	    (1 << 16)	/* Need to set BKOPS_EN */
+#define MMC_CAP2_SDIO_IRQ_NOTHREAD (1 << 17)
+#define MMC_CAP2_CLK_SCALE	(1 << 18)	/* Allow clock scaling */
+#define MMC_CAP2_CORE_PM	(1 << 19)
+#define MMC_CAP2_CORE_RUNTIME_PM (1 << 20)
+#define MMC_CAP2_ASYNC_SDIO_IRQ_4BIT_MODE (1 << 21)
+#define MMC_CAP2_STOP_REQUEST	(1 << 22)	/* Can stop pending requests */
+#define MMC_CAP2_POWEROFF_NOTIFY (1 << 23)	/* Notify poweroff supported */
+#define MMC_CAP2_PACKED_WR_CONTROL (1 << 24) /* Allow write packing control */
+#define MMC_CAP2_HS400_1_8V	(1 << 25)	/* Can support HS400 1.8V */
+#define MMC_CAP2_HS400_1_2V	(1 << 26)	/* Can support HS400 1.2V */
 #define MMC_CAP2_HS400		(MMC_CAP2_HS400_1_8V | \
 				 MMC_CAP2_HS400_1_2V)
-#define MMC_CAP2_SDIO_IRQ_NOTHREAD (1 << 17)
 
 	mmc_pm_flag_t		pm_caps;	/* supported pm features */
 
@@ -359,6 +408,10 @@ struct mmc_host {
 	unsigned int		use_spi_crc:1;
 	unsigned int		claimed:1;	/* host exclusively claimed */
 	unsigned int		bus_dead:1;	/* bus has been released */
+	bool			perf_enable;
+	struct mmc_perf		perf;
+	enum dev_state dev_status;
+	struct mmc_clk_scaling	clk_scaling;
 #ifdef CONFIG_MMC_DEBUG
 	unsigned int		removed:1;	/* host is being removed */
 #endif
@@ -440,6 +493,11 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *);
 int mmc_add_host(struct mmc_host *);
 void mmc_remove_host(struct mmc_host *);
 void mmc_free_host(struct mmc_host *);
+int mmc_suspend_host(struct mmc_host *);
+int mmc_resume_host(struct mmc_host *);
+bool mmc_host_may_gate_card(struct mmc_card *card);
+void mmc_set_ios(struct mmc_host *host);
+extern int mmc_try_claim_host(struct mmc_host *host);
 int mmc_of_parse(struct mmc_host *host);
 
 #ifdef CONFIG_MMC_EMBEDDED_SDIO
@@ -562,6 +620,23 @@ static inline int mmc_host_packed_wr(struct mmc_host *host)
 {
 	return host->caps2 & MMC_CAP2_PACKED_WR;
 }
+
+static inline int mmc_use_core_runtime_pm(struct mmc_host *host)
+{
+	return host->caps2 & MMC_CAP2_CORE_RUNTIME_PM;
+}
+
+static inline int mmc_use_core_pm(struct mmc_host *host)
+{
+	return host->caps2 & MMC_CAP2_CORE_PM;
+}
+
+void mmc_init_clk_scaling(struct mmc_host *host);
+void mmc_exit_clk_scaling(struct mmc_host *host);
+void mmc_disable_clk_scaling(struct mmc_host *host);
+bool mmc_can_scale_clk(struct mmc_host *host);
+unsigned long mmc_get_max_frequency(struct mmc_host *host);
+void mmc_reset_clk_scale_stats(struct mmc_host *host);
 
 #ifdef CONFIG_MMC_CLKGATE
 void mmc_host_clk_hold(struct mmc_host *host);

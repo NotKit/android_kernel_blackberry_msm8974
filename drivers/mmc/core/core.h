@@ -27,6 +27,7 @@ struct mmc_bus_ops {
 	int (*power_restore)(struct mmc_host *);
 	int (*alive)(struct mmc_host *);
 	int (*shutdown)(struct mmc_host *);
+	int (*change_bus_speed)(struct mmc_host *host, unsigned long *freq);
 };
 
 void mmc_attach_bus(struct mmc_host *host, const struct mmc_bus_ops *ops);
@@ -37,8 +38,7 @@ struct device_node *mmc_of_find_child_device(struct mmc_host *host,
 
 void mmc_init_erase(struct mmc_card *card);
 
-void mmc_power_up(struct mmc_host *host);
-void mmc_power_off(struct mmc_host *host);
+
 void mmc_set_chip_select(struct mmc_host *host, int mode);
 void mmc_set_clock(struct mmc_host *host, unsigned int hz);
 void mmc_gate_clock(struct mmc_host *host);

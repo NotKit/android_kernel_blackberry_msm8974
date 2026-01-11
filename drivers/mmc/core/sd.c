@@ -28,6 +28,8 @@
 #include "sd.h"
 #include "sd_ops.h"
 
+#define mmc_sd_card_uhs mmc_card_uhs
+
 #define UHS_SDR104_MIN_DTR	(100 * 1000 * 1000)
 #define UHS_DDR50_MIN_DTR	(50 * 1000 * 1000)
 #define UHS_SDR50_MIN_DTR	(50 * 1000 * 1000)
@@ -698,7 +700,7 @@ static int mmc_sd_change_bus_speed(struct mmc_host *host, unsigned long *freq)
 		mmc_host_clk_release(card->host);
 
 		if (err) {
-			pr_warn("%s: %s: tuning execution failed %d. Restoring to previous clock %lu\n",
+			pr_warn("%s: %s: tuning execution failed %d. Restoring to previous clock %u\n",
 				   mmc_hostname(card->host), __func__, err,
 				   host->clk_scaling.curr_freq);
 			mmc_set_clock(host, host->clk_scaling.curr_freq);
@@ -1406,6 +1408,7 @@ static const struct mmc_bus_ops mmc_sd_ops = {
 	.power_restore = mmc_sd_power_restore,
 	.alive = mmc_sd_alive,
 	.shutdown = mmc_sd_suspend,
+	.change_bus_speed = mmc_sd_change_bus_speed,
 };
 
 /*

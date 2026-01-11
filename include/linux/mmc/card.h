@@ -70,6 +70,7 @@ struct mmc_ext_csd {
 #define MMC_HIGH_52_MAX_DTR	52000000
 #define MMC_HIGH_DDR_MAX_DTR	52000000
 #define MMC_HS200_MAX_DTR	200000000
+#define MMC_HS400_MAX_DTR	200000000
 	unsigned int		sectors;
 	unsigned int		hc_erase_size;		/* In sectors */
 	unsigned int		hc_erase_timeout;	/* In milliseconds */
@@ -263,6 +264,26 @@ struct mmc_part {
  * @sectors_changed:  number of  sectors written or
  *       discard since the last idle BKOPS were scheduled
  */
+struct mmc_wr_pack_stats {
+	u32 *packing_events;
+	u32 pack_stop_reason[8];
+	spinlock_t lock;
+	bool enabled;
+};
+
+#define BKOPS_NUM_OF_SEVERITY_LEVELS 4
+
+struct mmc_bkops_stats {
+	spinlock_t lock;
+	u32 manual_start;
+	u32 hpi;
+	u32 auto_start;
+	u32 print_stats;
+	u32 suspend;
+	u32 bkops_level[8];
+	bool enabled;
+	bool ignore_card_bkops_status;
+};
 struct mmc_bkops_info {
 	struct delayed_work	dw;
 	unsigned int		host_delay_ms;
@@ -312,6 +333,17 @@ struct mmc_card {
 #define MMC_CARD_REMOVED	(1<<4)		/* card has been removed */
 #define MMC_STATE_DOING_BKOPS	(1<<5)		/* card is doing BKOPS */
 #define MMC_STATE_SUSPENDED	(1<<6)		/* card is suspended */
+#define MMC_STATE_HS200		(1<<7)		/* card is in HS200 mode */
+#define MMC_STATE_HS400		(1<<8)		/* card is in HS400 mode */
+#define MMC_STATE_HS400ES	(1<<9)		/* card is in HS400ES mode */
+#define mmc_card_set_hs200(c)	((c)->state |= MMC_STATE_HS200)
+#define mmc_card_clr_hs200(c)	((c)->state &= ~MMC_STATE_HS200)
+#define mmc_card_set_hs400(c)	((c)->state |= MMC_STATE_HS400)
+#define mmc_card_clr_hs400(c)	((c)->state &= ~MMC_STATE_HS400)
+#define mmc_card_hs400es(c)	((c)->state & MMC_STATE_HS400ES)
+#define mmc_card_set_hs400es(c)	((c)->state |= MMC_STATE_HS400ES)
+#define mmc_card_clr_hs400es(c)	((c)->state &= ~MMC_STATE_HS400ES)
+
 	unsigned int		quirks; 	/* card quirks */
 #define MMC_QUIRK_LENIENT_FN0	(1<<0)		/* allow SDIO FN0 writes outside of the VS CCCR range */
 #define MMC_QUIRK_BLKSZ_FOR_BYTE_MODE (1<<1)	/* use func->cur_blksize */
@@ -320,6 +352,8 @@ struct mmc_card {
 						/* (missing CIA registers) */
 #define MMC_QUIRK_BROKEN_CLK_GATING (1<<3)	/* clock gating the sdio bus will make card fail */
 #define MMC_QUIRK_NONSTD_FUNC_IF (1<<4)		/* SDIO card has nonstd function interfaces */
+#define MMC_QUIRK_BROKEN_HPI	(1<<12)		/* Disable HPI */
+#define MMC_QUIRK_CACHE_DISABLE	(1<<13)		/* Disable Cache */
 #define MMC_QUIRK_DISABLE_CD	(1<<5)		/* disconnect CD/DAT[3] resistor */
 #define MMC_QUIRK_INAND_CMD38	(1<<6)		/* iNAND devices have broken CMD38 */
 #define MMC_QUIRK_BLK_NO_CMD23	(1<<7)		/* Avoid CMD23 for regular multiblock */
@@ -328,6 +362,9 @@ struct mmc_card {
 #define MMC_QUIRK_LONG_READ_TIME (1<<9)		/* Data read time > CSD says */
 #define MMC_QUIRK_SEC_ERASE_TRIM_BROKEN (1<<10)	/* Skip secure for erase/trim */
 #define MMC_QUIRK_BROKEN_IRQ_POLLING	(1<<11)	/* Polling SDIO_CCCR_INTx could create a fake interrupt */
+#define MMC_QUIRK_INAND_DATA_TIMEOUT	(1<<12)
+#define MMC_QUIRK_BROKEN_DATA_TIMEOUT	(1<<13)
+#define MMC_QUIRK_SEC_SEARCH_TUNE	(1<<14)
 
 	unsigned int		erase_size;	/* erase size in sectors */
  	unsigned int		erase_shift;	/* if erase unit is power 2 */
@@ -417,8 +454,16 @@ struct mmc_fixup {
 };
 
 #define CID_MANFID_ANY (-1u)
+#define CID_MANFID_SANDISK	0x02
+#define CID_MANFID_HYNIX	0x90
+#define CID_MANFID_SAMSUNG	0x15
+#define CID_MANFID_TOSHIBA	0x11
+#define CID_MANFID_MICRON	0x13
+#define CID_MANFID_KINGSTON	0x70
 #define CID_OEMID_ANY ((unsigned short) -1)
 #define CID_NAME_ANY (NULL)
+
+#define EXT_CSD_REV_ANY (-1u)
 
 #define END_FIXUP { NULL }
 

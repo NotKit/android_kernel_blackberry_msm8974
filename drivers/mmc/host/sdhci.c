@@ -213,6 +213,27 @@ static void sdhci_set_card_detection(struct sdhci_host *host, bool enable)
 	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
 }
 
+static void sdhci_clear_set_irqs(struct sdhci_host *host, u32 clear, u32 set)
+{
+	u32 ier;
+
+	ier = sdhci_readl(host, SDHCI_INT_ENABLE);
+	ier &= ~clear;
+	ier |= set;
+	sdhci_writel(host, ier, SDHCI_INT_ENABLE);
+	sdhci_writel(host, ier, SDHCI_SIGNAL_ENABLE);
+}
+
+static void sdhci_unmask_irqs(struct sdhci_host *host, u32 irqs)
+{
+	sdhci_clear_set_irqs(host, 0, irqs);
+}
+
+static void sdhci_mask_irqs(struct sdhci_host *host, u32 irqs)
+{
+	sdhci_clear_set_irqs(host, irqs, 0);
+}
+
 static void sdhci_enable_card_detection(struct sdhci_host *host)
 {
 	sdhci_set_card_detection(host, true);
@@ -574,7 +595,9 @@ static int sdhci_adma_table_pre(struct sdhci_host *host,
 	struct scatterlist *sg;
 	int i;
 	char *buffer;
+
 	unsigned long flags;
+	enum dma_data_direction direction;
 
 	/*
 	 * The spec does not specify endianness of descriptor table.
@@ -1265,7 +1288,6 @@ void sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	int real_div = div, clk_mul = 1;
 	u16 clk = 0;
 	unsigned long timeout;
-	unsigned long flags;
 
 	host->mmc->actual_clock = 0;
 
@@ -1352,7 +1374,7 @@ clock_set:
 			pr_err("%s: Internal clock never "
 				"stabilised.\n", mmc_hostname(host->mmc));
 			sdhci_dumpregs(host);
-			goto ret;
+			return;
 		}
 		timeout--;
 		spin_unlock_irq(&host->lock);
@@ -1435,7 +1457,6 @@ void sdhci_set_power(struct sdhci_host *host, unsigned char mode,
 		sdhci_writeb(host, pwr, SDHCI_POWER_CONTROL);
 		if (host->ops->check_power_status)
 			host->ops->check_power_status(host, REQ_BUS_ON);
-	}
 
 		if (host->quirks2 & SDHCI_QUIRK2_CARD_ON_NEEDS_BUS_ON)
 			sdhci_runtime_pm_bus_on(host);
@@ -1773,6 +1794,22 @@ void sdhci_set_uhs_signaling(struct sdhci_host *host, unsigned timing)
 }
 EXPORT_SYMBOL_GPL(sdhci_set_uhs_signaling);
 
+static void sdhci_cfg_async_intr(struct sdhci_host *host, bool enable)
+{
+	if (!host->async_int_supp)
+		return;
+
+	if (enable)
+		sdhci_writew(host,
+			     sdhci_readw(host, SDHCI_HOST_CONTROL2) |
+			     SDHCI_CTRL_ASYNC_INT_ENABLE,
+			     SDHCI_HOST_CONTROL2);
+	else
+		sdhci_writew(host, sdhci_readw(host, SDHCI_HOST_CONTROL2) &
+			     ~SDHCI_CTRL_ASYNC_INT_ENABLE,
+			     SDHCI_HOST_CONTROL2);
+}
+
 static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 {
 	unsigned long flags;
@@ -1816,20 +1853,18 @@ static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 	 * the clocks to the card.
 	 */
 	if (ios->power_mode & MMC_POWER_UP) {
-		if (host->ops->enable_controller_clock) {
-			ret = host->ops->enable_controller_clock(host);
-			if (ret) {
-				pr_err("%s: enabling controller clock: failed: %d\n",
-				       mmc_hostname(host->mmc), ret);
-			} else {
-				vdd_bit = sdhci_set_power(host, ios->vdd);
+		if (!host->pwr && ios->power_mode != MMC_POWER_OFF) {
+		int ret;
 
-				if (host->vmmc && vdd_bit != -1)
-					mmc_regulator_set_ocr(host->mmc,
-							      host->vmmc,
-							      vdd_bit);
-			}
+		ret = host->ops->enable_controller_clock(host);
+		if (ret) {
+			pr_err("%s: enabling controller clock failed\n",
+				   mmc_hostname(mmc));
+			return;
 		}
+	}
+
+	sdhci_set_power(host, ios->power_mode, ios->vdd);
 		/*
 		 * make sure interrupts are enabled, these are the same
 		 * interrupts which get enabled in sdhci_init().
@@ -1991,9 +2026,7 @@ static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 	if (ios->power_mode == MMC_POWER_OFF) {
 		sdhci_writel(host, 0, SDHCI_SIGNAL_ENABLE);
 		sdhci_reinit(host);
-		vdd_bit = sdhci_set_power(host, -1);
-		if (host->vmmc && vdd_bit != -1)
-			mmc_regulator_set_ocr(host->mmc, host->vmmc, vdd_bit);
+		sdhci_set_power(host, MMC_POWER_OFF, -1);
 		if ((host->quirks & SDHCI_QUIRK_BROKEN_CARD_DETECTION) ||
 		    (host->mmc->caps & MMC_CAP_NONREMOVABLE)) {
 			/* clear all the pending interrupts */
