@@ -59,3 +59,4 @@ static inline bool br_multicast_has_querier_adjacent(struct net_device *dev,
 	return false;
 }
 #endif
+#endif

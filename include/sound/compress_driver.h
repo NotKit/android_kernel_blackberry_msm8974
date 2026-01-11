@@ -33,6 +33,7 @@
 
 struct snd_compr_ops;
 struct snd_pcm_substream;
+union snd_codec_options;
 
 /**
  * struct snd_compr_runtime: runtime stream description
@@ -132,6 +133,8 @@ struct snd_compr_ops {
 			struct snd_compr_caps *caps);
 	int (*get_codec_caps) (struct snd_compr_stream *stream,
 			struct snd_compr_codec_caps *codec);
+	int (*set_next_track_param)(struct snd_compr_stream *stream,
+			union snd_codec_options *codec_options);
 };
 
 /**

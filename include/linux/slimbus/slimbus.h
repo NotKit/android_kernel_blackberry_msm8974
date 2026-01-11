@@ -22,6 +22,7 @@
 extern struct bus_type slimbus_type;
 
 /* Standard values per SLIMbus spec needed by controllers and devices */
+#define SLIMBUS_NAME_SIZE 32
 #define SLIM_CL_PER_SUPERFRAME		6144
 #define SLIM_CL_PER_SUPERFRAME_DIV8	(SLIM_CL_PER_SUPERFRAME >> 3)
 #define SLIM_MAX_CLK_GEAR		10

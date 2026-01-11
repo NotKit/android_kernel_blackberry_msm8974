@@ -75,8 +75,8 @@ struct gen_pool_chunk {
 };
 
 extern struct gen_pool *gen_pool_create(int, int);
-extern phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, u64);
-extern int gen_pool_add_virt(struct gen_pool *, u64, phys_addr_t,
+extern phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long);
+extern int gen_pool_add_virt(struct gen_pool *, unsigned long, phys_addr_t,
 			     size_t, int);
 /**
  * gen_pool_add - add a new chunk of special memory to the pool
@@ -90,7 +90,7 @@ extern int gen_pool_add_virt(struct gen_pool *, u64, phys_addr_t,
  *
  * Returns 0 on success or a -ve errno on failure.
  */
-static inline int gen_pool_add(struct gen_pool *pool, u64 addr,
+static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
 			       size_t size, int nid)
 {
 	return gen_pool_add_virt(pool, addr, -1, size, nid);

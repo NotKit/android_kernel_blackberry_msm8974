@@ -280,6 +280,11 @@ static inline int arch_spin_is_contended(arch_spinlock_t *lock)
 	unsigned long tmp = ACCESS_ONCE(lock->slock);
 	return ((tmp - (tmp >> TICKET_SHIFT)) & TICKET_MASK) > 1;
 }
+static inline int arch_spin_value_unlocked(arch_spinlock_t lock)
+{
+	return lock.tickets.owner == lock.tickets.next;
+}
+
 #define arch_spin_is_contended	arch_spin_is_contended
 
 #endif

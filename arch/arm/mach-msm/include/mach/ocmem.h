@@ -228,6 +228,12 @@ static inline int ocmem_unmap(int client_id, struct ocmem_buf *buffer,
 	return -ENODEV;
 }
 
+static inline int ocmem_drop(int client_id, struct ocmem_buf *buffer,
+			struct ocmem_map_list *list)
+{
+	return -ENODEV;
+}
+
 static inline int ocmem_dump(int client_id, struct ocmem_buf *buffer,
 				unsigned long dst_phys_addr)
 {
