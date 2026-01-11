@@ -525,7 +525,7 @@ module_param(dhd_pktgen_len, uint, 0);
 
 static char dhd_version[] = "Dongle Host Driver, version " EPI_VERSION_STR
 #ifdef DHD_DEBUG
-"\nCompiled in " SRCBASE " on " __DATE__ " at " __TIME__
+"\nCompiled in " SRCBASE
 #endif
 ;
 static void dhd_net_if_lock_local(dhd_info_t *dhd);
