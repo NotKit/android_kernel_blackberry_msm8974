@@ -1111,17 +1111,6 @@ struct snd_soc_card {
 	void *drvdata;
 };
 
-/* DSP runtime data */
-struct snd_soc_dpcm_runtime {
-	struct list_head be_clients;
-	struct list_head fe_clients;
-	int users;
-	struct snd_pcm_runtime *runtime;
-	struct snd_pcm_hw_params hw_params;
-	int runtime_update;
-	enum snd_soc_dpcm_state state;
-};
-
 /* SoC machine DAI configuration, glues a codec and cpu DAI together */
 struct snd_soc_pcm_runtime {
 	struct device *dev;
