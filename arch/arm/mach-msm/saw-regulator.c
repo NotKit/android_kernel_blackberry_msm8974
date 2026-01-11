@@ -192,7 +192,7 @@ static struct regulator_ops saw_ops = {
 	.is_enabled  = saw_is_enabled,
 };
 
-static int __devinit saw_probe(struct platform_device *pdev)
+static int  saw_probe(struct platform_device *pdev)
 {
 	struct regulator_init_data *init_data;
 	struct saw_vreg *vreg;
@@ -252,7 +252,7 @@ free_vreg:
 	return rc;
 }
 
-static int __devexit saw_remove(struct platform_device *pdev)
+static int  saw_remove(struct platform_device *pdev)
 {
 	struct saw_vreg *vreg = platform_get_drvdata(pdev);
 
@@ -266,7 +266,7 @@ static int __devexit saw_remove(struct platform_device *pdev)
 
 static struct platform_driver saw_driver = {
 	.probe = saw_probe,
-	.remove = __devexit_p(saw_remove),
+	.remove = _p(saw_remove),
 	.driver = {
 		.name = "saw-regulator",
 		.owner = THIS_MODULE,

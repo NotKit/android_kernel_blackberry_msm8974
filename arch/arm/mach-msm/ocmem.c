@@ -240,7 +240,7 @@ static struct ocmem_plat_data *parse_static_config(struct platform_device *pdev)
 	return pdata;
 }
 
-int __devinit of_ocmem_parse_regions(struct device *dev,
+int  of_ocmem_parse_regions(struct device *dev,
 			struct ocmem_partition **part)
 {
 	const char *name;
@@ -388,7 +388,7 @@ void ocmem_disable_iface_clock(void)
 	pr_debug("ocmem: Disabled iface clock\n");
 }
 
-static struct ocmem_plat_data * __devinit parse_dt_config
+static struct ocmem_plat_data *  parse_dt_config
 						(struct platform_device *pdev)
 {
 	struct device   *dev = &pdev->dev;
@@ -769,7 +769,7 @@ static int ocmem_init_gfx_mpu(struct platform_device *pdev)
 }
 #endif /* CONFIG_MSM_OCMEM_NONSECURE */
 
-static int __devinit ocmem_debugfs_init(struct platform_device *pdev)
+static int  ocmem_debugfs_init(struct platform_device *pdev)
 {
 	struct dentry *debug_dir = NULL;
 	struct ocmem_plat_data *pdata = platform_get_drvdata(pdev);
@@ -784,13 +784,13 @@ static int __devinit ocmem_debugfs_init(struct platform_device *pdev)
 	return 0;
 }
 
-static void __devexit ocmem_debugfs_exit(struct platform_device *pdev)
+static void  ocmem_debugfs_exit(struct platform_device *pdev)
 {
 	struct ocmem_plat_data *pdata = platform_get_drvdata(pdev);
 	debugfs_remove_recursive(pdata->debug_node);
 }
 
-static int __devinit msm_ocmem_probe(struct platform_device *pdev)
+static int  msm_ocmem_probe(struct platform_device *pdev)
 {
 	struct device   *dev = &pdev->dev;
 	struct clk *ocmem_core_clk = NULL;
@@ -887,7 +887,7 @@ core_clk_fail:
 	return rc;
 }
 
-static int __devexit msm_ocmem_remove(struct platform_device *pdev)
+static int  msm_ocmem_remove(struct platform_device *pdev)
 {
 	ocmem_debugfs_exit(pdev);
 	return 0;
@@ -901,7 +901,7 @@ static struct of_device_id msm_ocmem_dt_match[] = {
 
 static struct platform_driver msm_ocmem_driver = {
 	.probe = msm_ocmem_probe,
-	.remove = __devexit_p(msm_ocmem_remove),
+	.remove = _p(msm_ocmem_remove),
 	.driver = {
 		.name = "msm_ocmem",
 		.owner = THIS_MODULE,

@@ -64,7 +64,7 @@ static void tzapps_stop(const struct subsys_desc *desc)
 	pil_shutdown(&drv->pil_desc);
 }
 
-static int __devinit pil_tzapps_driver_probe(struct platform_device *pdev)
+static int  pil_tzapps_driver_probe(struct platform_device *pdev)
 {
 	struct pil_desc *desc;
 	struct tzapps_data *drv;
@@ -104,7 +104,7 @@ static int __devinit pil_tzapps_driver_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int __devexit pil_tzapps_driver_exit(struct platform_device *pdev)
+static int  pil_tzapps_driver_exit(struct platform_device *pdev)
 {
 	struct tzapps_data *drv = platform_get_drvdata(pdev);
 	subsys_unregister(drv->subsys);
@@ -114,7 +114,7 @@ static int __devexit pil_tzapps_driver_exit(struct platform_device *pdev)
 
 static struct platform_driver pil_tzapps_driver = {
 	.probe = pil_tzapps_driver_probe,
-	.remove = __devexit_p(pil_tzapps_driver_exit),
+	.remove = _p(pil_tzapps_driver_exit),
 	.driver = {
 		.name = "pil_tzapps",
 		.owner = THIS_MODULE,

@@ -978,7 +978,7 @@ static int cpr_regulator_resume(struct platform_device *pdev)
 #define cpr_regulator_resume NULL
 #endif
 
-static int __devinit cpr_config(struct cpr_regulator *cpr_vreg,
+static int  cpr_config(struct cpr_regulator *cpr_vreg,
 				struct device *dev)
 {
 	int i;
@@ -1064,7 +1064,7 @@ static int __devinit cpr_config(struct cpr_regulator *cpr_vreg,
 	return 0;
 }
 
-static int __devinit cpr_fuse_is_setting_expected(struct cpr_regulator *cpr_vreg,
+static int  cpr_fuse_is_setting_expected(struct cpr_regulator *cpr_vreg,
 					u32 sel_array[5])
 {
 	u64 fuse_bits;
@@ -1112,7 +1112,7 @@ static int cpr_voltage_uplift_wa_inc_volt(struct cpr_regulator *cpr_vreg,
 	return rc;
 }
 
-static int __devinit cpr_pvs_init(struct platform_device *pdev,
+static int  cpr_pvs_init(struct platform_device *pdev,
 			       struct cpr_regulator *cpr_vreg)
 {
 	struct device_node *of_node = pdev->dev.of_node;
@@ -1226,7 +1226,7 @@ do {									\
 	}								\
 } while (0)
 
-static int __devinit cpr_apc_init(struct platform_device *pdev,
+static int  cpr_apc_init(struct platform_device *pdev,
 			       struct cpr_regulator *cpr_vreg)
 {
 	struct device_node *of_node = pdev->dev.of_node;
@@ -1557,7 +1557,7 @@ static int cpr_get_corner_quot_adjustment(struct cpr_regulator *cpr_vreg,
 	return 0;
 }
 
-static int __devinit cpr_init_cpr_efuse(struct platform_device *pdev,
+static int  cpr_init_cpr_efuse(struct platform_device *pdev,
 				     struct cpr_regulator *cpr_vreg)
 {
 	struct device_node *of_node = pdev->dev.of_node;
@@ -1731,7 +1731,7 @@ static int __devinit cpr_init_cpr_efuse(struct platform_device *pdev,
 	return 0;
 }
 
-static int __devinit cpr_init_cpr_voltages(struct cpr_regulator *cpr_vreg,
+static int  cpr_init_cpr_voltages(struct cpr_regulator *cpr_vreg,
 			struct device *dev)
 {
 	int i;
@@ -1749,7 +1749,7 @@ static int __devinit cpr_init_cpr_voltages(struct cpr_regulator *cpr_vreg,
 	return 0;
 }
 
-static int __devinit cpr_init_cpr_parameters(struct platform_device *pdev,
+static int  cpr_init_cpr_parameters(struct platform_device *pdev,
 					  struct cpr_regulator *cpr_vreg)
 {
 	struct device_node *of_node = pdev->dev.of_node;
@@ -1817,7 +1817,7 @@ static int __devinit cpr_init_cpr_parameters(struct platform_device *pdev,
 	return rc;
 }
 
-static int __devinit cpr_init_cpr(struct platform_device *pdev,
+static int  cpr_init_cpr(struct platform_device *pdev,
 			       struct cpr_regulator *cpr_vreg)
 {
 	struct resource *res;
@@ -1875,7 +1875,7 @@ static int __devinit cpr_init_cpr(struct platform_device *pdev,
 	return 0;
 }
 
-static int __devinit cpr_efuse_init(struct platform_device *pdev,
+static int  cpr_efuse_init(struct platform_device *pdev,
 				 struct cpr_regulator *cpr_vreg)
 {
 	struct resource *res;
@@ -1976,7 +1976,7 @@ static int cpr_voltage_uplift_enable_check(struct cpr_regulator *cpr_vreg,
 	return 0;
 }
 
-static int __devinit cpr_voltage_plan_init(struct platform_device *pdev,
+static int  cpr_voltage_plan_init(struct platform_device *pdev,
 					struct cpr_regulator *cpr_vreg)
 {
 	struct device_node *of_node = pdev->dev.of_node;
@@ -2040,7 +2040,7 @@ static int cpr_mem_acc_init(struct platform_device *pdev,
 	return 0;
 }
 
-static int __devinit cpr_regulator_probe(struct platform_device *pdev)
+static int  cpr_regulator_probe(struct platform_device *pdev)
 {
 	struct cpr_regulator *cpr_vreg;
 	struct regulator_desc *rdesc;
@@ -2137,7 +2137,7 @@ err_out:
 	return rc;
 }
 
-static int __devexit cpr_regulator_remove(struct platform_device *pdev)
+static int  cpr_regulator_remove(struct platform_device *pdev)
 {
 	struct cpr_regulator *cpr_vreg;
 
@@ -2168,7 +2168,7 @@ static struct platform_driver cpr_regulator_driver = {
 		.owner = THIS_MODULE,
 	},
 	.probe		= cpr_regulator_probe,
-	.remove		= __devexit_p(cpr_regulator_remove),
+	.remove		= _p(cpr_regulator_remove),
 	.suspend	= cpr_regulator_suspend,
 	.resume		= cpr_regulator_resume,
 };

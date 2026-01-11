@@ -524,7 +524,7 @@ static int hs_cb_func(struct msm_rpc_client *client, void *buffer, int in_size)
 	return 0;
 }
 
-static int __devinit hs_rpc_cb_init(void)
+static int  hs_rpc_cb_init(void)
 {
 	int rc = 0, i, num_vers;
 
@@ -568,7 +568,7 @@ err_client_req:
 	return rc;
 }
 
-static int __devinit hs_rpc_init(void)
+static int  hs_rpc_init(void)
 {
 	int rc;
 
@@ -587,7 +587,7 @@ static int __devinit hs_rpc_init(void)
 	return rc;
 }
 
-static void __devexit hs_rpc_deinit(void)
+static void  hs_rpc_deinit(void)
 {
 	if (rpc_client)
 		msm_rpc_unregister_client(rpc_client);
@@ -604,7 +604,7 @@ static ssize_t msm_headset_print_name(struct switch_dev *sdev, char *buf)
 	return -EINVAL;
 }
 
-static int __devinit hs_probe(struct platform_device *pdev)
+static int  hs_probe(struct platform_device *pdev)
 {
 	int rc = 0;
 	struct input_dev *ipdev;
@@ -678,7 +678,7 @@ err_switch_dev_register:
 	return rc;
 }
 
-static int __devexit hs_remove(struct platform_device *pdev)
+static int  hs_remove(struct platform_device *pdev)
 {
 	struct msm_handset *hs = platform_get_drvdata(pdev);
 
@@ -691,7 +691,7 @@ static int __devexit hs_remove(struct platform_device *pdev)
 
 static struct platform_driver hs_driver = {
 	.probe		= hs_probe,
-	.remove		= __devexit_p(hs_remove),
+	.remove		= _p(hs_remove),
 	.driver		= {
 		.name	= DRIVER_NAME,
 		.owner	= THIS_MODULE,

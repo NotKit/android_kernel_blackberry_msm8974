@@ -31,9 +31,9 @@
 #define PM8921_IRQ_BASE			(NR_MSM_IRQS + NR_GPIO_IRQS)
 
 extern struct pm8xxx_regulator_platform_data
-	msm_pm8921_regulator_pdata[] __devinitdata;
+	msm_pm8921_regulator_pdata[] data;
 
-extern int msm_pm8921_regulator_pdata_len __devinitdata;
+extern int msm_pm8921_regulator_pdata_len data;
 
 #define GPIO_VREG_ID_EXT_5V		0
 #define GPIO_VREG_ID_EXT_L2		1
@@ -41,12 +41,12 @@ extern int msm_pm8921_regulator_pdata_len __devinitdata;
 #define GPIO_VREG_ID_EXT_OTG_SW		3
 
 extern struct gpio_regulator_platform_data
-	msm_gpio_regulator_pdata[] __devinitdata;
+	msm_gpio_regulator_pdata[] data;
 
 extern struct regulator_init_data msm_saw_regulator_pdata_s5;
 extern struct regulator_init_data msm_saw_regulator_pdata_s6;
 
-extern struct rpm_regulator_platform_data msm_rpm_regulator_pdata __devinitdata;
+extern struct rpm_regulator_platform_data msm_rpm_regulator_pdata data;
 
 #if defined(CONFIG_GPIO_SX150X) || defined(CONFIG_GPIO_SX150X_MODULE)
 enum {
