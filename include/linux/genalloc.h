@@ -118,6 +118,40 @@ extern unsigned long gen_pool_first_fit_order_align(unsigned long *map,
 extern unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
 		unsigned long start, unsigned int nr, void *data);
 
+/**
+ * gen_pool_alloc_aligned - allocate special memory from the pool
+ * @pool: pool to allocate from
+ * @size: number of bytes to allocate from the pool
+ * @alignment_order: Order of the alignment requirement (log2 of alignment)
+ *
+ * Allocate the requested number of bytes from the specified pool
+ * with the requested alignment.
+ */
+static inline unsigned long gen_pool_alloc_aligned(struct gen_pool *pool,
+						   size_t size,
+						   unsigned int alignment_order)
+{
+	genpool_algo_t old_algo;
+	void *old_data;
+	unsigned long addr;
+
+	/* Save old algorithm settings */
+	old_algo = pool->algo;
+	old_data = pool->data;
+
+	/* Set alignment algorithm temporarily */
+	gen_pool_set_algo(pool, gen_pool_first_fit_order_align,
+			  (void *)(unsigned long)alignment_order);
+
+	/* Allocate */
+	addr = gen_pool_alloc(pool, size);
+
+	/* Restore old algorithm */
+	gen_pool_set_algo(pool, old_algo, old_data);
+
+	return addr;
+}
+
 extern struct gen_pool *devm_gen_pool_create(struct device *dev,
 		int min_alloc_order, int nid);
 extern struct gen_pool *dev_get_gen_pool(struct device *dev);

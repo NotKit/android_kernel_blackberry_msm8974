@@ -31,6 +31,7 @@
 #include <linux/err.h>
 #include <linux/pci.h>
 #include <linux/bitops.h>
+#include <linux/scatterlist.h>
 #include <trace/events/iommu.h>
 
 static struct kset *iommu_group_kset;
@@ -1130,6 +1131,26 @@ size_t iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
 	return unmapped;
 }
 EXPORT_SYMBOL_GPL(iommu_unmap);
+
+int iommu_map_range(struct iommu_domain *domain, unsigned int iova,
+		    struct scatterlist *sg, unsigned int len, int prot)
+{
+	if (unlikely(domain->ops->map_range == NULL))
+		return -ENODEV;
+
+	return domain->ops->map_range(domain, iova, sg, len, prot);
+}
+EXPORT_SYMBOL_GPL(iommu_map_range);
+
+int iommu_unmap_range(struct iommu_domain *domain, unsigned int iova,
+		      unsigned int len)
+{
+	if (unlikely(domain->ops->unmap_range == NULL))
+		return -ENODEV;
+
+	return domain->ops->unmap_range(domain, iova, len);
+}
+EXPORT_SYMBOL_GPL(iommu_unmap_range);
 
 
 int iommu_domain_window_enable(struct iommu_domain *domain, u32 wnd_nr,

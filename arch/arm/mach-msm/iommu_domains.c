@@ -506,7 +506,8 @@ int msm_register_domain(struct msm_iova_layout *layout)
 	if (data->domain_num < 0)
 		goto free_pools;
 
-	data->domain = iommu_domain_alloc(bus, layout->domain_flags);
+	/* Note: domain_flags is ignored in 3.18 kernel iommu_domain_alloc */
+	data->domain = iommu_domain_alloc(bus);
 	if (!data->domain)
 		goto free_domain_num;
 
@@ -867,7 +868,7 @@ static int iommu_domain_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int __devexit iommu_domain_exit(struct platform_device *pdev)
+static int  iommu_domain_exit(struct platform_device *pdev)
 {
 	return 0;
 }
@@ -884,7 +885,7 @@ static struct platform_driver iommu_domain_driver = {
 		.owner = THIS_MODULE
 	},
 	.probe		= iommu_domain_probe,
-	.remove		= __devexit_p(iommu_domain_exit),
+	.remove		= iommu_domain_exit,
 };
 
 static int __init msm_subsystem_iommu_init(void)
