@@ -256,8 +256,17 @@ static int gdsc_probe(struct platform_device *pdev)
 			clk_set_flags(sc->clocks[i], CLKFLAG_NORETAIN_PERIPH);
 	}
 
-	sc->rdev = regulator_register(&sc->rdesc, &pdev->dev, init_data, sc,
-				      pdev->dev.of_node);
+	{
+		struct regulator_config config = { };
+
+		config.dev = &pdev->dev;
+		config.init_data = init_data;
+		config.driver_data = sc;
+		config.of_node = pdev->dev.of_node;
+
+		sc->rdev = regulator_register(&sc->rdesc, &config);
+	}
+
 	if (IS_ERR(sc->rdev)) {
 		dev_err(&pdev->dev, "regulator_register(\"%s\") failed.\n",
 			sc->rdesc.name);
