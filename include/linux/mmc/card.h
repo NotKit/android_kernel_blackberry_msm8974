@@ -210,6 +210,20 @@ struct mmc_queue;
 
 #define SDIO_MAX_FUNCS		7
 
+enum mmc_packed_stop_reasons {
+	EXCEEDS_SEGMENTS = 0,
+	EXCEEDS_SECTORS,
+	WRONG_DATA_DIR,
+	FLUSH_OR_DISCARD,
+	EMPTY_QUEUE,
+	REL_WRITE,
+	THRESHOLD,
+	LARGE_SEC_ALIGN,
+	RANDOM,
+	FUA,
+	MAX_REASONS,
+};
+
 enum mmc_blk_status {
 	MMC_BLK_SUCCESS = 0,
 	MMC_BLK_PARTIAL,
@@ -266,9 +280,10 @@ struct mmc_part {
  */
 struct mmc_wr_pack_stats {
 	u32 *packing_events;
-	u32 pack_stop_reason[8];
+	u32 pack_stop_reason[MAX_REASONS];
 	spinlock_t lock;
 	bool enabled;
+	bool print_in_read;
 };
 
 #define BKOPS_NUM_OF_SEVERITY_LEVELS 4
