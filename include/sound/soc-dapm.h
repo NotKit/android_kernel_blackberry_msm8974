@@ -549,10 +549,13 @@ struct snd_soc_dapm_widget {
 	/* dapm control */
 	int reg;				/* negative reg = no direct dapm */
 	unsigned char shift;			/* bits to shift */
+	unsigned int saved_value;		/* widget saved value */
+	unsigned int value;			/* widget current value */
 	unsigned int mask;			/* non-shifted mask */
 	unsigned int on_val;			/* on state value */
 	unsigned int off_val;			/* off state value */
 	unsigned char power:1;			/* block power status */
+	unsigned char invert:1;			/* invert the power bit */
 	unsigned char active:1;			/* active stream on DAC, ADC's */
 	unsigned char connected:1;		/* connected codec pin */
 	unsigned char new:1;			/* cnew complete */
@@ -645,6 +648,35 @@ static inline void snd_soc_dapm_widget_set_pdata(struct snd_soc_dapm_widget *w,
 		void *data)
 {
 	w->private_data = data;
+}
+
+/*
+ * Compatibility wrapper for old snd_soc_dapm_mux_update_power API
+ * Old: (widget, kcontrol, change, mux, e)
+ * New: (dapm, kcontrol, mux, e, update)
+ */
+static inline int snd_soc_dapm_mux_update_power_compat(
+	struct snd_soc_dapm_widget *widget,
+	struct snd_kcontrol *kcontrol, int change,
+	int mux, struct soc_enum *e)
+{
+	if (change)
+		return snd_soc_dapm_mux_update_power(widget->dapm, kcontrol,
+						     mux, e, NULL);
+	return 0;
+}
+
+/*
+ * Compatibility wrapper for old snd_soc_dapm_mixer_update_power API
+ * Old: (widget, kcontrol, connect)
+ * New: (dapm, kcontrol, connect, update)
+ */
+static inline int snd_soc_dapm_mixer_update_power_compat(
+	struct snd_soc_dapm_widget *widget,
+	struct snd_kcontrol *kcontrol, int connect)
+{
+	return snd_soc_dapm_mixer_update_power(widget->dapm, kcontrol,
+					       connect, NULL);
 }
 
 #endif

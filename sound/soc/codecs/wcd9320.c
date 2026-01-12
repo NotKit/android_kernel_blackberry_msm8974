@@ -2038,7 +2038,7 @@ static int wcd9320_put_dec_enum(struct snd_kcontrol *kcontrol,
 	int ret = 0;
 	char *dec;
 
-	if (ucontrol->value.enumerated.item[0] > e->max - 1)
+	if (ucontrol->value.enumerated.item[0] > e->items - 1)
 		return -EINVAL;
 
 	dec_mux = ucontrol->value.enumerated.item[0];
@@ -2328,7 +2328,7 @@ static int slim_tx_mixer_put(struct snd_kcontrol *kcontrol,
 		widget->name, widget->sname, widget->value, widget->shift);
 
 	mutex_unlock(&codec->mutex);
-	snd_soc_dapm_mixer_update_power(widget, kcontrol, enable);
+	snd_soc_dapm_mixer_update_power_compat(widget, kcontrol, enable);
 
 	return 0;
 }
@@ -2419,7 +2419,7 @@ static int slim_rx_mux_put(struct snd_kcontrol *kcontrol,
 rtn:
 
 	mutex_unlock(&codec->mutex);
-	snd_soc_dapm_mux_update_power(widget, kcontrol, 1, widget->value, e);
+	snd_soc_dapm_mux_update_power_compat(widget, kcontrol, 1, widget->value, e);
 
 	return 0;
 err:
