@@ -555,11 +555,8 @@ static int get_port_status(struct usb_device *hdev, int port1,
 {
 	int i, status = -ETIMEDOUT;
 
-	/* ISP1763A HUB sometimes returns 2 bytes instead of 4 bytes, retry
-	 * if this happens
-	 */
 	for (i = 0; i < USB_STS_RETRIES &&
-			(status == -ETIMEDOUT || status == -EPIPE || status == 2); i++) {
+			(status == -ETIMEDOUT || status == -EPIPE); i++) {
 		status = usb_control_msg(hdev, usb_rcvctrlpipe(hdev, 0),
 			USB_REQ_GET_STATUS, USB_DIR_IN | USB_RT_PORT, 0, port1,
 			data, sizeof(*data), USB_STS_TIMEOUT);
@@ -737,9 +734,6 @@ static void hub_tt_work(struct work_struct *work)
 		struct usb_device	*hdev = hub->hdev;
 		const struct hc_driver	*drv;
 		int			status;
-
-		if (!hub->quiescing && --limit < 0)
-			break;
 
 		next = hub->tt.clear_list.next;
 		clear = list_entry (next, struct usb_tt_clear, clear_list);
@@ -967,7 +961,6 @@ enum hub_activation_type {
 
 static void hub_init_func2(struct work_struct *ws);
 static void hub_init_func3(struct work_struct *ws);
-static void hub_release(struct kref *kref);
 
 static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 {
@@ -1203,11 +1196,6 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 	 * will see them later and handle them normally.
 	 */
 	if (need_debounce_delay) {
-#ifdef CONFIG_USB_OTG
-		if (hdev->bus->is_b_host && type == HUB_INIT)
-			goto init3;
-#endif
-
 		delay = HUB_DEBOUNCE_STABLE;
 
 		/* Don't do a long sleep inside a workqueue routine */
@@ -1626,7 +1614,6 @@ static int hub_configure(struct usb_hub *hub,
 	return 0;
 
 fail:
-	hdev->maxchild = 0;
 	dev_err (hub_dev, "config failed, %s (err %d)\n",
 			message, ret);
 	/* hub_disconnect() frees urb and descriptor */
@@ -1761,7 +1748,6 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
 #ifdef	CONFIG_USB_OTG_BLACKLIST_HUB
 	if (hdev->parent) {
 		dev_warn(&intf->dev, "ignoring external hub\n");
-		otg_send_event(OTG_EVENT_HUB_NOT_SUPPORTED);
 		return -ENODEV;
 	}
 #endif
@@ -2232,7 +2218,6 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 	int err = 0;
 
 #ifdef	CONFIG_USB_OTG
-	bool old_otg = false;
 	/*
 	 * OTG-aware devices on OTG-capable root hubs may be able to use SRP,
 	 * to wake us after we've powered off VBUS; and HNP, switching roles
@@ -2257,34 +2242,15 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 					(port1 == bus->otg_port)
 						? "" : "non-");
 
-				/* a_alt_hnp_support is obsoleted */
-				if (port1 != bus->otg_port)
-					goto out;
-
-				bus->hnp_support = 1;
-
-				/* a_hnp_support is not required for devices
-				 * compliant to revision 2.0 or subsequent
-				 * versions.
-				 */
-
-				if ((le16_to_cpu(desc->bLength) ==
-						USB_DT_OTG_SIZE) &&
-					le16_to_cpu(desc->bcdOTG) >= 0x0200)
-					goto out;
-
-				/* Legacy B-device i.e compliant to spec
-				 * revision 1.3 expect A-device to set
-				 * a_hnp_support or b_hnp_enable before
-				 * selecting configuration.
-				 */
-				old_otg = true;
-
 				/* enable HNP before suspend, it's simpler */
+				if (port1 == bus->otg_port)
+					bus->b_hnp_enable = 1;
 				err = usb_control_msg(udev,
 					usb_sndctrlpipe(udev, 0),
 					USB_REQ_SET_FEATURE, 0,
-					USB_DEVICE_A_HNP_SUPPORT,
+					bus->b_hnp_enable
+						? USB_DEVICE_B_HNP_ENABLE
+						: USB_DEVICE_A_ALT_HNP_SUPPORT,
 					0, NULL, 0, USB_CTRL_SET_TIMEOUT);
 				if (err < 0) {
 					/* OTG MESSAGE: report errors here,
@@ -2293,7 +2259,7 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 					dev_info(&udev->dev,
 						"can't set HNP mode: %d\n",
 						err);
-					bus->hnp_support = 0;
+					bus->b_hnp_enable = 0;
 				}
 			}
 		}
@@ -2685,7 +2651,6 @@ static int hub_port_wait_reset(struct usb_hub *hub, int port1,
 		    (portstatus & USB_PORT_STAT_CONNECTION))
 			break;
 
-delay:
 		/* switch to the long delay after two short delay failures */
 		if (delay_time >= 2 * HUB_SHORT_RESET_TIME)
 			delay = HUB_LONG_RESET_TIME;
@@ -3144,22 +3109,6 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 				goto err_wakeup;
 		}
 	}
-#ifdef CONFIG_USB_OTG
-	if (!udev->bus->is_b_host && udev->bus->hnp_support &&
-		udev->portnum == udev->bus->otg_port) {
-		status = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-				USB_REQ_SET_FEATURE, 0,
-				USB_DEVICE_B_HNP_ENABLE,
-				0, NULL, 0, USB_CTRL_SET_TIMEOUT);
-		if (status < 0) {
-			otg_send_event(OTG_EVENT_NO_RESP_FOR_HNP_ENABLE);
-			dev_dbg(&udev->dev, "can't enable HNP on port %d, "
-					"status %d\n", port1, status);
-		} else {
-			udev->bus->b_hnp_enable = 1;
-		}
-	}
-#endif
 
 	/* disable USB2 hardware LPM */
 	if (udev->usb2_hw_lpm_enabled == 1)
@@ -3507,7 +3456,6 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 int usb_remote_wakeup(struct usb_device *udev)
 {
 	int	status = 0;
-	struct usb_hcd *hcd = bus_to_hcd(udev->bus);
 
 	usb_lock_device(udev);
 	if (udev->state == USB_STATE_SUSPENDED) {
@@ -3517,9 +3465,6 @@ int usb_remote_wakeup(struct usb_device *udev)
 			/* Let the drivers do their thing, then... */
 			usb_autosuspend_device(udev);
 		}
-	} else {
-		dev_dbg(&udev->dev, "usb not suspended\n");
-		clear_bit(HCD_FLAG_WAKEUP_PENDING, &hcd->flags);
 	}
 	usb_unlock_device(udev);
 	return status;
@@ -4516,22 +4461,14 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
 					buf->bMaxPacketSize0;
 			kfree(buf);
 
-			/*
-			 * If it is a HSET Test device, we don't issue a
-			 * second reset which results in failure due to
-			 * speed change.
-			 */
-			if (le16_to_cpu(buf->idVendor) != 0x1a0a) {
-				retval = hub_port_reset(hub, port1, udev,
-							 delay, false);
-				if (retval < 0)	/* error or disconnect */
-					goto fail;
-				if (oldspeed != udev->speed) {
-					dev_dbg(&udev->dev,
-					       "device reset changed speed!\n");
-					retval = -ENODEV;
-					goto fail;
-				}
+			retval = hub_port_reset(hub, port1, udev, delay, false);
+			if (retval < 0)		/* error or disconnect */
+				goto fail;
+			if (oldspeed != udev->speed) {
+				dev_dbg(&udev->dev,
+					"device reset changed speed!\n");
+				retval = -ENODEV;
+				goto fail;
 			}
 			if (r) {
 				if (r != -ENODEV)
@@ -4770,9 +4707,6 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
 			(portchange & USB_PORT_STAT_C_CONNECTION))
 		clear_bit(port1, hub->removed_bits);
 
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-	if (Unwanted_SecondReset == 0)   /*stericsson*/
-#endif
 	if (portchange & (USB_PORT_STAT_C_CONNECTION |
 				USB_PORT_STAT_C_ENABLE)) {
 		status = hub_port_debounce_be_stable(hub, port1);
@@ -4929,16 +4863,6 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
 		if (status)
 			dev_dbg(hub->intfdev, "%dmA power budget left\n", status);
 
-			if (HostTest == 8) {
-				dev_info(hub_dev, "Testing "
-						"SINGLE_STEP_SET_FEATURE\n");
-				/* Test Single Step Set Feature */
-				No_Status_Phase = 1;
-				usb_get_device_descriptor(udev, 8);
-				No_Status_Phase = 0;
-			}
-		}
-#endif
 		return;
 
 loop_disable:
@@ -5210,16 +5134,6 @@ static void hub_event(struct work_struct *work)
 		if (ret) {
 			dev_dbg(hub_dev, "error resetting hub: %d\n", ret);
 			goto out_autopm;
-		}
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-		/* if we have something on otg */
-		if (otgport) {
-			otgport = 0;
-			/* notify otg controller about it */
-			if (hdev->parent == hdev->bus->root_hub)
-				if (hdev->otg_notif)
-					hdev->otg_notif(hdev->otgpriv,
-							PDC_HOST_NOTIFY, 0);
 		}
 
 		hub->nerrors = 0;
