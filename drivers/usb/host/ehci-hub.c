@@ -275,14 +275,6 @@ static int ehci_bus_suspend (struct usb_hcd *hcd)
 		if (t1 & PORT_OWNER)
 			set_bit(port, &ehci->owned_ports);
 		else if ((t1 & PORT_PE) && !(t1 & PORT_SUSPEND)) {
-			/*clear RS bit before setting SUSP bit
-			* and wait for HCH to get set*/
-			if (ehci->susp_sof_bug) {
-				spin_unlock_irq(&ehci->lock);
-				ehci_halt(ehci);
-				spin_lock_irq(&ehci->lock);
-			}
-
 			t2 |= PORT_SUSPEND;
 			set_bit(port, &ehci->bus_suspended);
 		}
@@ -381,7 +373,7 @@ static int ehci_bus_suspend (struct usb_hcd *hcd)
 
 
 /* caller has locked the root hub, and should reset/reinit on error */
-static int __maybe_unused ehci_bus_resume(struct usb_hcd *hcd)
+static int ehci_bus_resume (struct usb_hcd *hcd)
 {
 	struct ehci_hcd		*ehci = hcd_to_ehci (hcd);
 	u32			temp;
@@ -422,9 +414,6 @@ static int __maybe_unused ehci_bus_resume(struct usb_hcd *hcd)
 	ehci_writel(ehci, ehci->periodic_dma, &ehci->regs->frame_list);
 	ehci_writel(ehci, (u32) ehci->async->qh_dma, &ehci->regs->async_next);
 
-	/*CMD_RUN will be set after, PORT_RESUME gets cleared*/
-	if (ehci->resume_sof_bug)
-		ehci->command &= ~CMD_RUN;
 	/* restore CMD_RUN, framelist size, and irq threshold */
 	ehci->command |= CMD_RUN;
 	ehci_writel(ehci, ehci->command, &ehci->regs->command);
@@ -626,10 +615,6 @@ ehci_hub_status_data (struct usb_hcd *hcd, char *buf)
 	int		ports, i, retval = 1;
 	unsigned long	flags;
 	u32		ppcd = ~0;
-
-	/* if !USB_SUSPEND, root hub timers won't get shut down ... */
-	if (ehci->rh_state != EHCI_RH_RUNNING)
-		return 0;
 
 	/* init status to no-changes */
 	buf [0] = 0;
@@ -1182,18 +1167,7 @@ int ehci_hub_control(
 			if ((temp & PORT_PE) == 0
 					|| (temp & PORT_RESET) != 0)
 				goto error;
-			/*port gets suspended as part of bus suspend routine*/
-			if (!ehci->susp_sof_bug)
-				ehci_writel(ehci, temp | PORT_SUSPEND,
-						status_reg);
-#ifdef	CONFIG_USB_OTG
-			if (hcd->self.otg_port == (wIndex + 1) &&
-					hcd->self.b_hnp_enable) {
-				set_bit(wIndex, &ehci->suspended_ports);
-				otg_start_hnp(ehci->transceiver->otg);
-				break;
-			}
-#endif
+
 			/* After above check the port must be connected.
 			 * Set appropriate bit thus could put phy into low power
 			 * mode if we have tdi_phy_lpm feature
@@ -1245,20 +1219,7 @@ int ehci_hub_control(
 				ehci->reset_done [wIndex] = jiffies
 						+ msecs_to_jiffies (50);
 			}
-			if (ehci->reset_sof_bug && (temp & PORT_RESET) &&
-					hcd->driver->reset_sof_bug_handler) {
-				spin_unlock_irqrestore(&ehci->lock, flags);
-				hcd->driver->reset_sof_bug_handler(hcd, temp);
-				spin_lock_irqsave(&ehci->lock, flags);
-			} else {
-				ehci_writel(ehci, temp, status_reg);
-			}
-
-			if (ehci->reset_delay) {
-				spin_unlock_irqrestore(&ehci->lock, flags);
-				msleep(ehci->reset_delay);
-				spin_lock_irqsave(&ehci->lock, flags);
-			}
+			ehci_writel(ehci, temp, status_reg);
 			break;
 
 		/* For downstream facing ports (these):  one hub port is put
@@ -1284,23 +1245,14 @@ int ehci_hub_control(
 			spin_lock_irqsave(&ehci->lock, flags);
 
 			/* Put all enabled ports into suspend */
-				while (ports--) {
-					u32 __iomem *sreg =
+			while (ports--) {
+				u32 __iomem *sreg =
 						&ehci->regs->port_status[ports];
 
-					temp = ehci_readl(ehci, sreg)
-					       	& ~PORT_RWC_BITS;
-					if (temp & PORT_PE)
-						ehci_writel(ehci,
-							temp | PORT_SUSPEND,
+				temp = ehci_readl(ehci, sreg) & ~PORT_RWC_BITS;
+				if (temp & PORT_PE)
+					ehci_writel(ehci, temp | PORT_SUSPEND,
 							sreg);
-				}
-				spin_unlock_irq(&ehci->lock);
-				ehci_halt(ehci);
-				spin_lock_irq(&ehci->lock);
-				temp = ehci_readl(ehci, status_reg);
-				temp |= selector << 16;
-				ehci_writel(ehci, temp, status_reg);
 			}
 
 			spin_unlock_irqrestore(&ehci->lock, flags);
@@ -1311,6 +1263,7 @@ int ehci_hub_control(
 			temp |= selector << 16;
 			ehci_writel(ehci, temp, status_reg);
 			break;
+
 		default:
 			goto error;
 		}

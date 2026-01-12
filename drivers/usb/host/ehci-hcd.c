@@ -526,8 +526,6 @@ static int ehci_init(struct usb_hcd *hcd)
 	hw->hw_alt_next = QTD_NEXT(ehci, ehci->async->dummy->qtd_dma);
 
 	/* clear interrupt enables, set irq latency */
-	log2_irq_thresh = ehci->log2_irq_thresh;
-
 	if (log2_irq_thresh < 0 || log2_irq_thresh > 6)
 		log2_irq_thresh = 0;
 	temp = 1 << (16 + log2_irq_thresh);
@@ -565,7 +563,7 @@ static int ehci_init(struct usb_hcd *hcd)
 }
 
 /* start HC running; it's halted, ehci_init() has been run (once) */
-static int __maybe_unused ehci_run (struct usb_hcd *hcd)
+static int ehci_run (struct usb_hcd *hcd)
 {
 	struct ehci_hcd		*ehci = hcd_to_ehci (hcd);
 	u32			temp;
@@ -792,12 +790,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 			pstatus = ehci_readl(ehci,
 					 &ehci->regs->port_status[i]);
 
-			/*set RS bit in case of remote wakeup*/
-			if (ehci_is_TDI(ehci) && !(cmd & CMD_RUN) &&
-					(pstatus & PORT_SUSPEND))
-				ehci_writel(ehci, cmd | CMD_RUN,
-						&ehci->regs->command);
-
 			if (pstatus & PORT_OWNER)
 				continue;
 			if (!(test_bit(i, &ehci->suspended_ports) &&
@@ -823,10 +815,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 	/* PCI errors [4.15.2.4] */
 	if (unlikely ((status & STS_FATAL) != 0)) {
 		ehci_err(ehci, "fatal error\n");
-		if (hcd->driver->dump_regs) {
-			hcd->driver->dump_regs(hcd);
-			panic("System error\n");
-		}
 		dbg_cmd(ehci, "fatal", cmd);
 		dbg_status(ehci, "fatal", status);
 dead:
@@ -1018,7 +1006,7 @@ idle_timeout:
 		/* caller was supposed to have unlinked any requests;
 		 * that's not our job.  just leak this memory.
 		 */
-		ehci_err (ehci, "qh %pK (#%02x) state %d%s\n",
+		ehci_err (ehci, "qh %p (#%02x) state %d%s\n",
 			qh, ep->desc.bEndpointAddress, qh->qh_state,
 			list_empty (&qh->qtd_list) ? "" : "(has tds)");
 		break;
@@ -1028,7 +1016,7 @@ idle_timeout:
 	spin_unlock_irqrestore (&ehci->lock, flags);
 }
 
-static void __maybe_unused
+static void
 ehci_endpoint_reset(struct usb_hcd *hcd, struct usb_host_endpoint *ep)
 {
 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
@@ -1269,12 +1257,12 @@ MODULE_LICENSE ("GPL");
 
 #ifdef CONFIG_USB_EHCI_FSL
 #include "ehci-fsl.c"
-#define PLATFORM_DRIVER_PRESENT
+#define	PLATFORM_DRIVER		ehci_fsl_driver
 #endif
 
 #ifdef CONFIG_USB_EHCI_SH
 #include "ehci-sh.c"
-#define PLATFORM_DRIVER_PRESENT
+#define PLATFORM_DRIVER		ehci_hcd_sh_driver
 #endif
 
 #ifdef CONFIG_PPC_PS3
@@ -1294,7 +1282,7 @@ MODULE_LICENSE ("GPL");
 
 #ifdef CONFIG_USB_OCTEON_EHCI
 #include "ehci-octeon.c"
-#define PLATFORM_DRIVER_PRESENT
+#define PLATFORM_DRIVER		ehci_octeon_driver
 #endif
 
 #ifdef CONFIG_TILE_USB
@@ -1304,38 +1292,17 @@ MODULE_LICENSE ("GPL");
 
 #ifdef CONFIG_USB_EHCI_HCD_PMC_MSP
 #include "ehci-pmcmsp.c"
-#define PLATFORM_DRIVER_PRESENT
+#define	PLATFORM_DRIVER		ehci_hcd_msp_driver
 #endif
 
 #ifdef CONFIG_SPARC_LEON
 #include "ehci-grlib.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM_72K
-#include "ehci-msm72k.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM
-#include "ehci-msm.c"
-#include "ehci-msm2.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM_HSIC
-#include "ehci-msm-hsic.c"
-#define PLATFORM_DRIVER_PRESENT
-#endif
-
-#ifdef CONFIG_USB_PXA168_EHCI
-#include "ehci-pxa168.c"
-#define PLATFORM_DRIVER_PRESENT
+#define PLATFORM_DRIVER		ehci_grlib_driver
 #endif
 
 #ifdef CONFIG_USB_EHCI_MV
 #include "ehci-mv.c"
-#define PLATFORM_DRIVER_PRESENT
+#define        PLATFORM_DRIVER         ehci_mv_driver
 #endif
 
 #ifdef CONFIG_MIPS_SEAD3
@@ -1343,116 +1310,9 @@ MODULE_LICENSE ("GPL");
 #define	PLATFORM_DRIVER		ehci_hcd_sead3_driver
 #endif
 
-static struct platform_driver *plat_drivers[]  = {
-#ifdef CONFIG_USB_EHCI_FSL
-	&ehci_fsl_driver,
-#endif
-
-#ifdef CONFIG_USB_EHCI_MXC
-	&ehci_mxc_driver,
-#endif
-
-#ifdef CONFIG_CPU_SUBTYPE_SH7786
-	&ehci_hcd_sh_driver,
-#endif
-
-#ifdef CONFIG_SOC_AU1200
-	&ehci_hcd_au1xxx_driver,
-#endif
-
-#ifdef CONFIG_USB_EHCI_HCD_OMAP
-	&ehci_hcd_omap_driver,
-#endif
-
-#ifdef CONFIG_PLAT_ORION
-	&ehci_orion_driver,
-#endif
-
-#ifdef CONFIG_ARCH_IXP4XX
-	&ixp4xx_ehci_driver,
-#endif
-
-#ifdef CONFIG_USB_W90X900_EHCI
-	&ehci_hcd_w90x900_driver,
-#endif
-
-#ifdef CONFIG_ARCH_AT91
-	&ehci_atmel_driver,
-#endif
-
-#ifdef CONFIG_USB_OCTEON_EHCI
-	&ehci_octeon_driver,
-#endif
-
-#ifdef CONFIG_USB_CNS3XXX_EHCI
-	&cns3xxx_ehci_driver,
-#endif
-
-#ifdef CONFIG_ARCH_VT8500
-	&vt8500_ehci_driver,
-#endif
-
-#ifdef CONFIG_PLAT_SPEAR
-	&spear_ehci_hcd_driver,
-#endif
-
-#ifdef CONFIG_USB_EHCI_HCD_PMC_MSP
-	&ehci_hcd_msp_driver
-#endif
-
-#ifdef CONFIG_USB_EHCI_TEGRA
-	&tegra_ehci_driver
-#endif
-
-#ifdef CONFIG_USB_EHCI_S5P
-	&s5p_ehci_driver
-#endif
-
-#ifdef CONFIG_USB_EHCI_ATH79
-	&ehci_ath79_driver
-#endif
-
-#ifdef CONFIG_SPARC_LEON
-	&ehci_grlib_driver
-#endif
-
-#if defined(CONFIG_USB_EHCI_MSM_72K) || defined(CONFIG_USB_EHCI_MSM)
-	&ehci_msm_driver,
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM_HSIC
-	&ehci_msm_hsic_driver,
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM
-	&ehci_msm2_driver,
-#endif
-
-#ifdef CONFIG_USB_PXA168_EHCI
-	&ehci_pxa168_driver,
-#endif
-
-#ifdef CONFIG_CPU_XLR
-	&ehci_xls_driver,
-#endif
-
-#ifdef CONFIG_USB_EHCI_MV
-	&ehci_mv_driver,
-#endif
-
-#ifdef CONFIG_MACH_LOONGSON1
-	&ehci_ls1x_driver,
-#endif
-
-#ifdef CONFIG_USB_EHCI_HCD_PLATFORM
-	&ehci_platform_driver,
-#endif
-};
-
-
 static int __init ehci_hcd_init(void)
 {
-	int i, retval = 0;
+	int retval = 0;
 
 	if (usb_disabled())
 		return -ENODEV;
@@ -1477,14 +1337,11 @@ static int __init ehci_hcd_init(void)
 	}
 #endif
 
-	for (i = 0; i < ARRAY_SIZE(plat_drivers); i++) {
-		retval = platform_driver_register(plat_drivers[i]);
-		if (retval) {
-			while (--i >= 0)
-				platform_driver_unregister(plat_drivers[i]);
-			goto err_debug;
-		}
-	}
+#ifdef PLATFORM_DRIVER
+	retval = platform_driver_register(&PLATFORM_DRIVER);
+	if (retval < 0)
+		goto clean0;
+#endif
 
 #ifdef PS3_SYSTEM_BUS_DRIVER
 	retval = ps3_ehci_driver_register(&PS3_SYSTEM_BUS_DRIVER);
@@ -1533,7 +1390,6 @@ module_init(ehci_hcd_init);
 
 static void __exit ehci_hcd_cleanup(void)
 {
-	int i;
 #ifdef XILINX_OF_PLATFORM_DRIVER
 	platform_driver_unregister(&XILINX_OF_PLATFORM_DRIVER);
 #endif
