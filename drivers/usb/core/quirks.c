@@ -491,15 +491,3 @@ void usb_detect_interface_quirks(struct usb_device *udev)
 	udev->quirks |= quirks;
 }
 
-void usb_detect_interface_quirks(struct usb_device *udev)
-{
-	u32 quirks;
-
-	quirks = __usb_detect_quirks(udev, usb_interface_quirk_list);
-	if (quirks == 0)
-		return;
-
-	dev_dbg(&udev->dev, "USB interface quirks for this device: %x\n",
-		quirks);
-	udev->quirks |= quirks;
-}
