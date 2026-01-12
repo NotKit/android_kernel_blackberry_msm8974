@@ -11,6 +11,17 @@
 
 #include <linux/types.h>	/* __u8 etc */
 
+/* This is arbitrary.
+ * From USB 2.0 spec Table 11-13, offset 7, a hub can
+ * have up to 255 ports. The most yet reported is 10.
+ *
+ * Current Wireless USB host hardware (://www.telekinesis.org/~qc/papers/HWA.pdf)
+ * allows
+ *       22 devices to connect to the host and a maximum of 4 are exposed
+ *       as combos of USB 2.0 hub and UWB RC.
+ */
+#define USB_MAXCHILDREN		31
+
 /*
  * Hub request types
  */

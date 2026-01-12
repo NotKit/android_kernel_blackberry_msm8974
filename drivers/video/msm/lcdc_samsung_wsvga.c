@@ -98,7 +98,7 @@ static ssize_t store_vga_enable(struct device *dev,
 	unsigned long enable;
 	int rc;
 
-	rc = strict_strtoul(buf, 10, &enable);
+	rc = kstrtoul(buf, 10, &enable);
 	if (rc)
 		return -EINVAL;
 

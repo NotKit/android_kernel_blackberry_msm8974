@@ -94,7 +94,7 @@ static ssize_t hdcp_ctrl_store(
 {
 	int ret;
 	long val;
-	ret = strict_strtol(buf, 10, &val);
+	ret = kstrtol(buf, 10, &val);
 	if (ret)
 		return ret;
 	hdcp_en = val;

@@ -1954,7 +1954,7 @@ static ssize_t debug_write_release_wlocks(struct file *file,
 	if (copy_from_user(kbuf, buf, count > 10 ? 10 : count))
 		return -EFAULT;
 
-	if (strict_strtol(kbuf, 10, &temp))
+	if (kstrtol(kbuf, 10, &temp))
 		return -EINVAL;
 
 	if (temp)
@@ -2612,7 +2612,7 @@ static ssize_t store_usb_chg_current(struct device *dev,
 	if (ui->gadget.is_a_peripheral)
 		return -EINVAL;
 
-	if (strict_strtoul(buf, 10, &mA))
+	if (kstrtoul(buf, 10, &mA))
 		return -EINVAL;
 
 	ui->chg_current = mA;
@@ -2662,7 +2662,7 @@ static ssize_t store_host_req(struct device *dev,
 	struct usb_info *ui = the_usb_info;
 	unsigned long val, flags;
 
-	if (strict_strtoul(buf, 10, &val))
+	if (kstrtoul(buf, 10, &val))
 		return -EINVAL;
 
 	dev_dbg(&ui->pdev->dev, "%s host request\n",

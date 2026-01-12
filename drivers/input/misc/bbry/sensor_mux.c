@@ -23,7 +23,7 @@
 #include <linux/delay.h>
 #include <linux/sensors.h>
 #include <linux/of.h>
-#include <linux/of_i2c.h>
+#include <linux/i2c.h>
 
 #define SENSOR_MUX_DEV_NAME "sensor_mux"
 #define SENSOR_HUB_ADDR_GESTURE 0x03
@@ -270,7 +270,7 @@ static int sensor_mux_probe(struct i2c_client *client,
 		return -1;
 	}
 	
-	of_i2c_register_devices(&priv->adapter);
+	/* of_i2c_register_devices removed in 3.12+, devices are registered automatically */
 
 	return 0;
 }
@@ -278,13 +278,10 @@ static int sensor_mux_probe(struct i2c_client *client,
 static int sensor_mux_remove(struct i2c_client *client)
 {
 	struct sensor_mux_priv *priv = i2c_get_clientdata(client);
-	int rc;
 
 	dev_info(&client->dev, "sensor_mux remove\n");
 
-	rc = i2c_del_adapter(&priv->adapter);
-	if (rc < 0)
-		return rc;
+	i2c_del_adapter(&priv->adapter);
 	free_irq(priv->irq, priv);
 	kfree(priv);
 

@@ -1119,7 +1119,7 @@ static ssize_t stk_als_firlen_store(struct device *dev,
 	struct stk3x1x_data *ps_data =  dev_get_drvdata(dev);
 	ret = kstrtoull(buf, 10, &value);
 	if (ret < 0) {
-		dev_err(dev, "%s:strict_strtoull failed, ret=0x%x\n",
+		dev_err(dev, "%s:kstrtoull failed, ret=0x%x\n",
 			__func__, ret);
 		return ret;
 	}
@@ -1154,7 +1154,7 @@ static ssize_t stk_als_fir_enable_store(struct device *dev,
 	struct stk3x1x_data *ps_data =  dev_get_drvdata(dev);
 	ret = kstrtoull(buf, 10, &value);
 	if (ret < 0) {
-		dev_err(dev, "%s:strict_strtoull failed, ret=0x%x\n",
+		dev_err(dev, "%s:kstrtoull failed, ret=0x%x\n",
 			__func__, ret);
 		return ret;
 	}
@@ -1530,10 +1530,10 @@ static ssize_t stk_als_lux_thd_h_store(struct device *dev, struct device_attribu
 	struct stk3x1x_data *ps_data =  dev_get_drvdata(dev);
 	unsigned long value = 0;
 	int ret;
-	ret = strict_strtoul(buf, 10, &value);
+	ret = kstrtoul(buf, 10, &value);
 	if(ret < 0)
 	{
-		printk(KERN_ERR "%s:strict_strtoul failed, ret=0x%x\n", __func__, ret);
+		printk(KERN_ERR "%s:kstrtoul failed, ret=0x%x\n", __func__, ret);
 		return ret;
 	}
 	mutex_lock(&ps_data->io_lock);

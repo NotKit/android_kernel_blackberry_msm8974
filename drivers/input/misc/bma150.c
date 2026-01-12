@@ -491,7 +491,7 @@ static int bma150_set_high_g_interrupt(struct bma150_data *bma150,
 	struct i2c_client *client = to_i2c_client(dev);
 	struct bma150_data *bma150 = i2c_get_clientdata(client);
 
-	error = strict_strtoul(buf, 10, &data);
+	error = kstrtoul(buf, 10, &data);
 	if (error)
 		return error;
 	if (bma150_set_mode(bma150->bma150_client, (unsigned char) data) < 0)
@@ -521,7 +521,7 @@ static int bma150_set_any_motion_interrupt(struct bma150_data *bma150,
 	struct i2c_client *client = to_i2c_client(dev);
 	struct bma150_data *bma150 = i2c_get_clientdata(client);
 
-	error = strict_strtoul(buf, 10, &data);
+	error = kstrtoul(buf, 10, &data);
 	if (error)
 		return error;
 	if (bma150_set_range(bma150->bma150_client, (unsigned char) data) < 0)
@@ -598,7 +598,7 @@ static int bma150_initialize(struct bma150_data *bma150,
 	struct i2c_client *client = to_i2c_client(dev);
 	struct bma150_data *bma150 = i2c_get_clientdata(client);
 
-	error = strict_strtoul(buf, 10, &data);
+	error = kstrtoul(buf, 10, &data);
 	if (error)
 		return error;
 	if (data > BMA150_MAX_DELAY)

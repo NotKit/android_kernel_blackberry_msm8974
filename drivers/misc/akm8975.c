@@ -84,7 +84,7 @@ static ssize_t akm8975_store(struct device *dev, struct device_attribute *attr,
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	unsigned long val;
-	strict_strtoul(buf, 10, &val);
+	kstrtoul(buf, 10, &val);
 	if (val > 0xff)
 		return -EINVAL;
 	i2c_smbus_write_byte_data(client, AK8975_REG_CNTL, val);

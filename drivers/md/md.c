@@ -3192,7 +3192,7 @@ static void analyze_sbs(struct mddev *mddev)
  * multiplying that number by 10^'scale'.
  * all without any floating-point arithmetic.
  */
-int strict_strtoul_scaled(const char *cp, unsigned long *res, int scale)
+int kstrtoul_scaled(const char *cp, unsigned long *res, int scale)
 {
 	unsigned long result = 0;
 	long decimals = -1;
@@ -3235,7 +3235,7 @@ safe_delay_store(struct mddev *mddev, const char *cbuf, size_t len)
 {
 	unsigned long msec;
 
-	if (strict_strtoul_scaled(cbuf, &msec, 3) < 0)
+	if (kstrtoul_scaled(cbuf, &msec, 3) < 0)
 		return -EINVAL;
 	if (msec == 0)
 		mddev->safemode_delay = 0;
