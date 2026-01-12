@@ -2891,7 +2891,7 @@ unreg_chrdev:
 	return ret;
 }
 
-static int __devinit dwc3_msm_probe(struct platform_device *pdev)
+static int  dwc3_msm_probe(struct platform_device *pdev)
 {
 	struct device_node *node = pdev->dev.of_node, *dwc3_node;
 	struct dwc3_msm *mdwc;
@@ -3402,7 +3402,7 @@ disable_dwc3_gdsc:
 	return ret;
 }
 
-static int __devexit dwc3_msm_remove(struct platform_device *pdev)
+static int  dwc3_msm_remove(struct platform_device *pdev)
 {
 	struct dwc3_msm	*mdwc = platform_get_drvdata(pdev);
 
@@ -3562,7 +3562,7 @@ MODULE_DEVICE_TABLE(of, of_dwc3_matach);
 
 static struct platform_driver dwc3_msm_driver = {
 	.probe		= dwc3_msm_probe,
-	.remove		= __devexit_p(dwc3_msm_remove),
+	.remove		= dwc3_msm_remove,
 	.driver		= {
 		.name	= "msm-dwc3",
 		.pm	= &dwc3_msm_dev_pm_ops,
@@ -3573,7 +3573,7 @@ static struct platform_driver dwc3_msm_driver = {
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("DesignWare USB3 MSM Glue Layer");
 
-static int __devinit dwc3_msm_init(void)
+static int  dwc3_msm_init(void)
 {
 	return platform_driver_register(&dwc3_msm_driver);
 }

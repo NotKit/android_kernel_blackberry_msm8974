@@ -647,7 +647,7 @@ static struct ci13xxx_udc_driver ci13xxx_msm_udc_hsic_driver = {
 	.notify_event		= ci13xxx_msm_hsic_notify_event,
 };
 
-static int __devinit msm_hsic_probe(struct platform_device *pdev)
+static int  msm_hsic_probe(struct platform_device *pdev)
 {
 	struct resource *res;
 	struct msm_hsic_per *mhsic;
@@ -783,7 +783,7 @@ error:
 	return ret;
 }
 
-static int __devexit hsic_msm_remove(struct platform_device *pdev)
+static int  hsic_msm_remove(struct platform_device *pdev)
 {
 	struct msm_hsic_per *mhsic = platform_get_drvdata(pdev);
 
@@ -805,7 +805,7 @@ static int __devexit hsic_msm_remove(struct platform_device *pdev)
 
 static struct platform_driver msm_hsic_peripheral_driver = {
 	.probe	= msm_hsic_probe,
-	.remove	= __devexit_p(hsic_msm_remove),
+	.remove	= hsic_msm_remove,
 	.driver = {
 		.name = "msm_hsic_peripheral",
 #ifdef CONFIG_PM
