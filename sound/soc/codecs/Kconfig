@@ -810,3 +810,7 @@ config SND_SOC_TPA6130A2
 	depends on I2C
 
 endmenu
+config SND_SOC_WCD9320
+tristate "Qualcomm WCD9320 Codec"
+depends on I2C || SPI
+

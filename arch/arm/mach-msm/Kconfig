@@ -719,6 +719,15 @@ config MSM_REMOTE_SPINLOCK_SFPB
 config MSM_ADM3
 	bool
 
+config MSM_QDSP6_APRV2
+	bool
+
+config MSM_QDSP6V2_CODECS
+	bool
+
+config MSM_AUDIO_QDSP6V2
+	bool
+
 menu "MSM Board Selection"
 
 config MACH_HALIBUT

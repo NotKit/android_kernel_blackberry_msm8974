@@ -478,38 +478,9 @@ static int msm_audio_ion_probe(struct platform_device *pdev)
 	msm_audio_ion_data.smmu_enabled = smmu_enabled;
 
 	if (smmu_enabled) {
-		msm_audio_ion_data.group = iommu_group_find("lpass_audio");
-		if (!msm_audio_ion_data.group) {
-			pr_debug("Failed to find group lpass_audio deferred\n");
-			goto fail_group;
-		}
-		msm_audio_ion_data.domain =
-			iommu_group_get_iommudata(msm_audio_ion_data.group);
-		if (IS_ERR_OR_NULL(msm_audio_ion_data.domain)) {
-			pr_err("Failed to get domain data for group %pK",
-					msm_audio_ion_data.group);
-			goto fail_group;
-		}
-		msm_audio_ion_data.domain_id =
-				msm_find_domain_no(msm_audio_ion_data.domain);
-		if (msm_audio_ion_data.domain_id < 0) {
-			pr_err("Failed to get domain index for domain %pK",
-					msm_audio_ion_data.domain);
-			goto fail_group;
-		}
-		pr_debug("domain=%pK, domain_id=%d, group=%pK",
-			msm_audio_ion_data.domain,
-			msm_audio_ion_data.domain_id, msm_audio_ion_data.group);
-
-		/* iommu_attach_group() will make AXI clock ON. For future PL
-		this will require to be called in once per session */
-		rc = iommu_attach_group(msm_audio_ion_data.domain,
-					msm_audio_ion_data.group);
-		if (rc) {
-			pr_err("%s:ION attach group failed %d\n", __func__, rc);
-			return rc;
-		}
-
+		/* iommu_group_find not available in kernel 3.18 */
+		pr_warn("%s: SMMU not supported in this kernel, disabling\n", __func__);
+		msm_audio_ion_data.smmu_enabled = 0;
 	}
 
 	pr_debug("%s: SMMU-Enabled = %d\n", __func__, smmu_enabled);
@@ -541,7 +512,7 @@ static struct platform_driver msm_audio_ion_driver = {
 		.of_match_table = msm_audio_ion_dt_match,
 	},
 	.probe = msm_audio_ion_probe,
-	.remove = _p(msm_audio_ion_remove),
+	.remove = msm_audio_ion_remove,
 };
 
 static int __init msm_audio_ion_init(void)
