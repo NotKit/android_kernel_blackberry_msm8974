@@ -42,6 +42,8 @@
 #include "ion_priv.h"
 #include "compat_ion.h"
 
+static struct ion_device *internal_dev;
+
 /**
  * struct ion_device - the metadata of the ion device node
  * @dev:		the actual misc device
@@ -1645,9 +1647,22 @@ debugfs_done:
 	mutex_init(&idev->buffer_lock);
 	init_rwsem(&idev->lock);
 	plist_head_init(&idev->heaps);
-	idev->clients = RB_ROOT;
+	internal_dev = idev;
 	return idev;
 }
+
+struct ion_client *msm_ion_client_create(unsigned int heap_mask,
+					const char *name)
+{
+	if (internal_dev == NULL)
+		return ERR_PTR(-EPROBE_DEFER);
+
+	if (IS_ERR(internal_dev))
+		return (struct ion_client *)internal_dev;
+
+	return ion_client_create(internal_dev, name);
+}
+EXPORT_SYMBOL(msm_ion_client_create);
 
 void ion_device_destroy(struct ion_device *dev)
 {
@@ -1691,3 +1706,46 @@ void __init ion_reserve(struct ion_platform_data *data)
 			data->heaps[i].size);
 	}
 }
+
+/* MSM Specific ION extensions backport */
+
+int ion_handle_get_flags(struct ion_client *client, struct ion_handle *handle,
+			unsigned long *flags)
+{
+	struct ion_buffer *buffer;
+
+	mutex_lock(&client->lock);
+	if (!ion_handle_validate(client, handle)) {
+		mutex_unlock(&client->lock);
+		return -EINVAL;
+	}
+	buffer = handle->buffer;
+	*flags = buffer->flags;
+	mutex_unlock(&client->lock);
+	return 0;
+}
+EXPORT_SYMBOL(ion_handle_get_flags);
+
+int ion_map_iommu(struct ion_client *client, struct ion_handle *handle,
+			int domain_num, int partition_num, unsigned long align,
+			unsigned long iova_length, unsigned long *iova,
+			unsigned long *buffer_size,
+			unsigned long flags, unsigned long iommu_flags)
+{
+	return -ENODEV;
+}
+EXPORT_SYMBOL(ion_map_iommu);
+
+void ion_unmap_iommu(struct ion_client *client, struct ion_handle *handle,
+			int domain_num, int partition_num)
+{
+}
+EXPORT_SYMBOL(ion_unmap_iommu);
+
+int msm_ion_do_cache_op(struct ion_client *client, struct ion_handle *handle,
+			void *vaddr, unsigned long len, unsigned int cmd)
+{
+	/* Dummy implementation */
+	return 0;
+}
+EXPORT_SYMBOL(msm_ion_do_cache_op);
