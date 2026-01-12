@@ -305,7 +305,6 @@ int tty_insert_flip_string_fixed_flag(struct tty_port *port,
 		if (~tb->flags & TTYB_NORMAL)
 			memset(flag_buf_ptr(tb, tb->used), flag, space);
 		tb->used += space;
-		spin_unlock_irqrestore(&tty->buf.lock, flags);
 		copied += space;
 		chars += space;
 		/* There is a small chance that we need to split the data over
@@ -340,7 +339,6 @@ int tty_insert_flip_string_flags(struct tty_port *port,
 		memcpy(char_buf_ptr(tb, tb->used), chars, space);
 		memcpy(flag_buf_ptr(tb, tb->used), flags, space);
 		tb->used += space;
-		spin_unlock_irqrestore(&tty->buf.lock, __flags);
 		copied += space;
 		chars += space;
 		flags += space;
@@ -419,7 +417,6 @@ int tty_prepare_flip_string(struct tty_port *port, unsigned char **chars,
 			memset(flag_buf_ptr(tb, tb->used), TTY_NORMAL, space);
 		tb->used += space;
 	}
-	spin_unlock_irqrestore(&tty->buf.lock, flags);
 	return space;
 }
 EXPORT_SYMBOL_GPL(tty_prepare_flip_string);
