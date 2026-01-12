@@ -811,6 +811,8 @@ config SND_SOC_TPA6130A2
 
 endmenu
 config SND_SOC_WCD9320
-tristate "Qualcomm WCD9320 Codec"
-depends on I2C || SPI
-
+	tristate "Qualcomm WCD9320 Codec"
+	depends on I2C || SPI
+	select WCD9320_CODEC
+	help
+	  Enable support for Qualcomm WCD9320 (Taiko) audio codec.

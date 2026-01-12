@@ -1355,5 +1355,33 @@ config MFD_VEXPRESS_SYSREG
 	  System Registers are the platform configuration block
 	  on the ARM Ltd. Versatile Express board.
 
+config WCD9310_CODEC
+	tristate "WCD9310 Codec"
+	select SLIMBUS
+	select MFD_CORE
+	help
+	  Enables the WCD9xxx codec core driver for WCD9310.
+
+config WCD9304_CODEC
+	tristate "WCD9304 Codec"
+	select SLIMBUS
+	select MFD_CORE
+	help
+	  Enables the WCD9xxx codec core driver for WCD9304.
+
+config WCD9320_CODEC
+	tristate "WCD9320 Codec"
+	select SLIMBUS
+	select MFD_CORE
+	help
+	  Enables the WCD9xxx codec core driver for WCD9320 (Taiko).
+
+config WCD9306_CODEC
+	tristate "WCD9306 Codec"
+	select SLIMBUS
+	select MFD_CORE
+	help
+	  Enables the WCD9xxx codec core driver for WCD9306.
+
 endmenu
 endif

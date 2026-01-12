@@ -26,10 +26,6 @@ static struct device_type mfd_dev_type = {
 	.name	= "mfd_device",
 };
 
-static struct device_type mfd_dev_type = {
-	.name	= "mfd_device",
-};
-
 int mfd_cell_enable(struct platform_device *pdev)
 {
 	const struct mfd_cell *cell = mfd_get_cell(pdev);

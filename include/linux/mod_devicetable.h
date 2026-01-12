@@ -628,8 +628,19 @@ struct rio_device_id {
 };
 
 struct mcb_device_id {
-	__u16 device;
-	kernel_ulong_t driver_data;
+        __u16 device;
+        kernel_ulong_t driver_data;
+};
+
+/* SLIMbus */
+
+#define SLIMBUS_NAME_SIZE 32
+#define SLIMBUS_MODULE_PREFIX "slim:"
+
+struct slim_device_id {
+        char name[SLIMBUS_NAME_SIZE];
+        kernel_ulong_t driver_data
+                        __attribute__((aligned(sizeof(kernel_ulong_t))));
 };
 
 #endif /* LINUX_MOD_DEVICETABLE_H */
