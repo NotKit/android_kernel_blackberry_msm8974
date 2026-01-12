@@ -555,7 +555,7 @@ static struct android_usb_function ffs_function = {
 	.attributes	= ffs_function_attributes,
 };
 
-static int functionfs_ready_callback(struct ffs_data *ffs)
+static int __maybe_unused functionfs_ready_callback(struct ffs_data *ffs)
 {
 	struct android_dev *dev = ffs_function.android_dev;
 	struct functionfs_config *config = ffs_function.config;
@@ -589,7 +589,7 @@ static int functionfs_ready_callback(struct ffs_data *ffs)
 
 }
 
-static void functionfs_closed_callback(struct ffs_data *ffs)
+static void __maybe_unused functionfs_closed_callback(struct ffs_data *ffs)
 {
 	struct android_dev *dev = ffs_function.android_dev;
 	struct functionfs_config *config = ffs_function.config;
@@ -622,12 +622,12 @@ static void functionfs_closed_callback(struct ffs_data *ffs)
 		mutex_unlock(&dev->mutex);
 }
 
-static void *functionfs_acquire_dev_callback(const char *dev_name)
+static void * __maybe_unused functionfs_acquire_dev_callback(const char *dev_name)
 {
 	return 0;
 }
 
-static void functionfs_release_dev_callback(struct ffs_data *ffs_data)
+static void __maybe_unused functionfs_release_dev_callback(struct ffs_data *ffs_data)
 {
 }
 
@@ -2166,12 +2166,14 @@ static ssize_t audio_source_pcm_show(struct device *dev,
 			"%d %d\n", config->card, config->device);
 }
 
-static DEVICE_ATTR(pcm, S_IRUGO | S_IWUSR, audio_source_pcm_show, NULL);
+__maybe_unused static DEVICE_ATTR(pcm, S_IRUGO | S_IWUSR, audio_source_pcm_show, NULL);
 
+#if 0
 static struct device_attribute *audio_source_function_attributes[] = {
 	&dev_attr_pcm,
 	NULL
 };
+#endif
 
 static struct android_usb_function audio_source_function = {
 	.name		= "audio_source",
@@ -2229,6 +2231,7 @@ static struct android_usb_function uasp_function = {
 	.bind_config	= uasp_function_bind_config,
 };
 
+#if 0
 #ifdef CONFIG_SND_RAWMIDI
 static int midi_function_init(struct android_usb_function *f,
 					struct usb_composite_dev *cdev)
@@ -2284,6 +2287,7 @@ static struct android_usb_function midi_function = {
 	.attributes	= midi_function_attributes,
 };
 #endif
+#endif
 static struct android_usb_function *supported_functions[] = {
 	&ffs_function,
 	&mbim_function,
@@ -2314,7 +2318,7 @@ static struct android_usb_function *supported_functions[] = {
 	&audio_source_function,
 #endif
 	&uasp_function,
-#ifdef CONFIG_SND_RAWMIDI
+#if 0
 	&midi_function,
 #endif
 	NULL
@@ -2463,8 +2467,10 @@ static inline void check_streaming_func(struct usb_gadget *gadget,
 	for (i = 0; i < pdata->streaming_func_count; i++) {
 		if (!strcmp(name,
 			pdata->streaming_func[i])) {
+#if 0
 			pr_debug("set streaming_enabled to true\n");
 			gadget->streaming_enabled = true;
+#endif
 			break;
 		}
 	}
@@ -2885,6 +2891,12 @@ static struct device_attribute *android_usb_attributes[] = {
 
 /*-------------------------------------------------------------------------*/
 /* Composite driver */
+static int android_bind(struct usb_composite_dev *cdev);
+static void android_usb_unbind(struct usb_composite_dev *cdev);
+static int android_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *c);
+static void android_disconnect(struct usb_gadget *gadget);
+static void android_suspend(struct usb_gadget *gadget);
+static void android_resume(struct usb_gadget *gadget);
 
 static int android_bind_config(struct usb_configuration *c)
 {
@@ -2902,10 +2914,12 @@ static void android_unbind_config(struct usb_configuration *c)
 {
 	struct android_dev *dev = cdev_to_android_dev(c->cdev);
 
+#if 0
 	if (c->cdev->gadget->streaming_enabled) {
 		c->cdev->gadget->streaming_enabled = false;
 		pr_debug("setting streaming_enabled to false.\n");
 	}
+#endif
 	android_unbind_enabled_functions(dev, c);
 }
 
@@ -2993,6 +3007,11 @@ static struct usb_composite_driver android_usb_driver = {
 	.name		= "android_usb",
 	.dev		= &device_desc,
 	.strings	= dev_strings,
+	.bind		= android_bind,
+	.setup		= android_setup,
+	.disconnect	= android_disconnect,
+	.suspend	= android_suspend,
+	.resume		= android_resume,
 	.unbind		= android_usb_unbind,
 	.max_speed	= USB_SPEED_SUPER
 };
@@ -3233,7 +3252,7 @@ static int usb_diag_update_pid_and_serial_num(u32 pid, const char *snum)
 	return 0;
 }
 
-static int __devinit android_probe(struct platform_device *pdev)
+static int  android_probe(struct platform_device *pdev)
 {
 	struct android_usb_platform_data *pdata;
 	struct android_dev *android_dev;
@@ -3317,10 +3336,7 @@ static int __devinit android_probe(struct platform_device *pdev)
 	list_add_tail(&android_dev->list_item, &android_dev_list);
 	android_dev_count++;
 
-	if (pdata)
-		composite_driver.usb_core_id = pdata->usb_core_id;
-	else
-		composite_driver.usb_core_id = 0; /*To backward compatibility*/
+	/* No more composite_driver.usb_core_id in 3.18 */
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (res) {
@@ -3335,13 +3351,13 @@ static int __devinit android_probe(struct platform_device *pdev)
 		dev_dbg(&pdev->dev, "failed to get mem resource\n");
 	}
 
-	ret = android_create_device(android_dev, composite_driver.usb_core_id);
+	ret = android_create_device(android_dev, pdata ? pdata->usb_core_id : 0);
 	if (ret) {
 		pr_err("%s(): android_create_device failed\n", __func__);
 		goto err_dev;
 	}
 
-	ret = usb_composite_probe(&android_usb_driver, android_bind);
+	ret = usb_composite_probe(&android_usb_driver);
 	if (ret) {
 		pr_err("%s(): Failed to register android "
 				 "composite driver\n", __func__);
@@ -3404,7 +3420,7 @@ static int android_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id android_id_table[] __devinitconst = {
+static const struct platform_device_id android_id_table[] = {
 	{
 		.name = "android_usb",
 	},
@@ -3432,12 +3448,6 @@ static struct platform_driver android_platform_driver = {
 static int __init init(void)
 {
 	int ret;
-
-	/* Override composite driver functions */
-	composite_driver.setup = android_setup;
-	composite_driver.disconnect = android_disconnect;
-	composite_driver.suspend = android_suspend;
-	composite_driver.resume = android_resume;
 
 	INIT_LIST_HEAD(&android_dev_list);
 	android_dev_count = 0;
