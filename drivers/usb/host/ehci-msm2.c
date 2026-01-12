@@ -45,6 +45,17 @@
 
 #define MSM_USB_BASE (hcd->regs)
 
+/* Missing defines for 3.18 compatibility */
+#ifndef PHY_POR_BIT_MASK
+#define PHY_POR_BIT_MASK        BIT(0)
+#endif
+#ifndef PHY_POR_DEASSERT  
+#define PHY_POR_DEASSERT        0
+#endif
+#ifndef USBCMD_RESET
+#define USBCMD_RESET            2
+#endif
+
 #define PDEV_NAME_LEN 20
 
 static bool uicc_card_present;

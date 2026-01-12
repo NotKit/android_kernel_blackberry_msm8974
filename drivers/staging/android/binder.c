@@ -952,7 +952,6 @@ binder_defer_work(struct binder_proc *proc, enum binder_deferred_state defer);
 static void binder_free_thread(struct binder_thread *thread);
 static void binder_free_proc(struct binder_proc *proc);
 static void binder_inc_node_tmpref_ilocked(struct binder_node *node);
-static int binder_proc_show(struct seq_file *m, void *unused);
 
 static int task_get_unused_fd_flags(struct binder_proc *proc, int flags)
 {
