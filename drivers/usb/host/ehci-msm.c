@@ -59,7 +59,7 @@ static int ehci_msm_reset(struct usb_hcd *hcd)
 	/* Disable streaming mode and select host mode */
 	writel_relaxed(0x13, USB_USBMODE);
 
-	if (ehci->usb_phy && ehci->usb_phy->flags & ENABLE_SECONDARY_PHY) {
+	if (hcd->usb_phy && hcd->usb_phy->flags & ENABLE_SECONDARY_PHY) {
 		ehci_dbg(ehci, "using secondary hsphy\n");
 		writel_relaxed(readl_relaxed(USB_PHY_CTRL2) | (1<<16),
 							USB_PHY_CTRL2);
@@ -182,7 +182,7 @@ static int ehci_msm_probe(struct platform_device *pdev)
 		goto put_transceiver;
 	}
 
-	hcd_to_ehci(hcd)->usb_phy = phy;
+	hcd->usb_phy = phy;
 	device_init_wakeup(&pdev->dev, 1);
 	pm_runtime_enable(&pdev->dev);
 
@@ -206,7 +206,7 @@ static int ehci_msm_remove(struct platform_device *pdev)
 	pm_runtime_disable(&pdev->dev);
 	pm_runtime_set_suspended(&pdev->dev);
 
-	hcd_to_ehci(hcd)->usb_phy = NULL;
+	hcd->usb_phy = NULL;
 	otg_set_host(phy->otg, NULL);
 	usb_put_phy(phy);
 

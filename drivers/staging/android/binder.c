@@ -144,8 +144,6 @@ module_param_named(debug_mask, binder_debug_mask, uint, S_IWUSR | S_IRUGO);
 static char *binder_devices_param = CONFIG_ANDROID_BINDER_DEVICES;
 module_param_named(devices, binder_devices_param, charp, S_IRUGO);
 
-static char *binder_devices_param = CONFIG_ANDROID_BINDER_DEVICES;
-module_param_named(devices, binder_devices_param, charp, S_IRUGO);
 
 static DECLARE_WAIT_QUEUE_HEAD(binder_user_error_wait);
 static int binder_stop_on_user_error;
@@ -1335,9 +1333,6 @@ static struct binder_node *binder_init_node_ilocked(
 
 	assert_spin_locked(&proc->inner_lock);
 
-	binder_uintptr_t ptr = fp ? fp->binder : 0;
-	binder_uintptr_t cookie = fp ? fp->cookie : 0;
-	__u32 flags = fp ? fp->flags : 0;
 
 	while (*p) {
 
