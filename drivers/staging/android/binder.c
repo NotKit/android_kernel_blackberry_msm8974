@@ -104,7 +104,6 @@ static const struct file_operations binder_##name##_fops = { \
 	.release = single_release, \
 }
 
-/* Forward declaration for BINDER_DEBUG_ENTRY */
 static int binder_proc_show(struct seq_file *m, void *unused);
 BINDER_DEBUG_ENTRY(proc);
 
@@ -138,12 +137,12 @@ enum {
 	BINDER_DEBUG_PRIORITY_CAP           = 1U << 13,
 	BINDER_DEBUG_SPINLOCKS              = 1U << 14,
 };
-static uint32_t binder_debug_mask;
+static uint32_t binder_debug_mask = BINDER_DEBUG_USER_ERROR |
+	BINDER_DEBUG_FAILED_TRANSACTION | BINDER_DEBUG_DEAD_TRANSACTION;
 module_param_named(debug_mask, binder_debug_mask, uint, S_IWUSR | S_IRUGO);
 
 static char *binder_devices_param = CONFIG_ANDROID_BINDER_DEVICES;
 module_param_named(devices, binder_devices_param, charp, S_IRUGO);
-
 
 static DECLARE_WAIT_QUEUE_HEAD(binder_user_error_wait);
 static int binder_stop_on_user_error;
@@ -160,9 +159,6 @@ static int binder_set_stop_on_user_error(const char *val,
 }
 module_param_call(stop_on_user_error, binder_set_stop_on_user_error,
 	param_get_int, &binder_stop_on_user_error, S_IWUSR | S_IRUGO);
-
-static bool binder_global_pid_lookups = true;
-module_param_named(global_pid_lookups, binder_global_pid_lookups, bool, S_IRUGO);
 
 #define binder_debug(mask, x...) \
 	do { \
@@ -1333,7 +1329,6 @@ static struct binder_node *binder_init_node_ilocked(
 
 	assert_spin_locked(&proc->inner_lock);
 
-
 	while (*p) {
 
 		parent = *p;
@@ -1812,7 +1807,6 @@ static int binder_inc_ref_olocked(struct binder_ref *ref, int strong,
  */
 static bool binder_dec_ref_olocked(struct binder_ref *ref, int strong)
 {
-	struct binder_ref *ref = *ptr_to_ref;
 	if (strong) {
 		if (ref->data.strong == 0) {
 			binder_user_error("%d invalid dec strong, ref %d desc %d s %d w %d\n",
@@ -3598,7 +3592,6 @@ static int binder_thread_write(struct binder_proc *proc,
 					strong, target, ret);
 				break;
 			}
-		  if (ref == NULL) {
 			binder_debug(BINDER_DEBUG_USER_REFS,
 				     "%d:%d %s ref %d desc %d s %d w %d\n",
 				     proc->pid, thread->pid, debug_string,
@@ -4845,50 +4838,6 @@ static int binder_ioctl_get_node_debug_info(struct binder_proc *proc,
 	return 0;
 }
 
-static int binder_ioctl_set_ctx_mgr(struct file *filp,
-				    struct flat_binder_object *fbo)
-{
-	int ret = 0;
-	struct binder_proc *proc = filp->private_data;
-	struct binder_context *context = proc->context;
-	struct binder_node *new_node;
-
-	if (context->binder_context_mgr_node) {
-		binder_debug(BINDER_DEBUG_TOP_ERRORS,
-			     "binder: BINDER_SET_CONTEXT_MGR already set\n");
-		ret = -EBUSY;
-		goto out;
-	}
-	ret = security_binder_set_context_mgr(binder_get_cred(proc));
-	if (ret < 0)
-		goto out;
-	if (context->binder_context_mgr_uid != -1) {
-		if (context->binder_context_mgr_uid != current->cred->euid) {
-			binder_debug(BINDER_DEBUG_TOP_ERRORS,
-				     "binder: BINDER_SET_"
-				     "CONTEXT_MGR bad uid %d != %d\n",
-				     current->cred->euid,
-				     context->binder_context_mgr_uid);
-			ret = -EPERM;
-			goto out;
-		}
-	} else
-		context->binder_context_mgr_uid = current->cred->euid;
-
-	new_node = binder_new_node(proc, fbo);
-	if (!new_node) {
-		ret = -ENOMEM;
-		goto out;
-	}
-	new_node->local_weak_refs++;
-	new_node->local_strong_refs++;
-	new_node->has_strong_ref = 1;
-	new_node->has_weak_ref = 1;
-	context->binder_context_mgr_node = new_node;
-out:
-	return ret;
-}
-
 static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	int ret;
@@ -5067,9 +5016,6 @@ static int binder_mmap(struct file *filp, struct vm_area_struct *vma)
 	if (proc->tsk != current->group_leader)
 		return -EINVAL;
 
-	if (proc->tsk != current->group_leader)
-		return -EINVAL;
-
 	if ((vma->vm_end - vma->vm_start) > SZ_4M)
 		vma->vm_end = vma->vm_start + SZ_4M;
 
@@ -5110,8 +5056,7 @@ static int binder_open(struct inode *nodp, struct file *filp)
 	binder_debug(BINDER_DEBUG_OPEN_CLOSE, "binder_open: %d:%d\n",
 		     current->group_leader->pid, current->pid);
 
-	eproc = kzalloc(sizeof(*eproc), GFP_KERNEL);
-	proc = &eproc->proc;
+	proc = kzalloc(sizeof(*proc), GFP_KERNEL);
 	if (proc == NULL)
 		return -ENOMEM;
 	spin_lock_init(&proc->inner_lock);
