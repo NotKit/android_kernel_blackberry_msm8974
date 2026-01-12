@@ -104,6 +104,7 @@ static const struct file_operations binder_##name##_fops = { \
 	.release = single_release, \
 }
 
+/* Forward declaration for BINDER_DEBUG_ENTRY */
 static int binder_proc_show(struct seq_file *m, void *unused);
 BINDER_DEBUG_ENTRY(proc);
 
@@ -951,6 +952,7 @@ binder_defer_work(struct binder_proc *proc, enum binder_deferred_state defer);
 static void binder_free_thread(struct binder_thread *thread);
 static void binder_free_proc(struct binder_proc *proc);
 static void binder_inc_node_tmpref_ilocked(struct binder_node *node);
+static int binder_proc_show(struct seq_file *m, void *unused);
 
 static int task_get_unused_fd_flags(struct binder_proc *proc, int flags)
 {

@@ -31,6 +31,7 @@
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 #include <linux/irq.h>
+#include <linux/uaccess.h>
 
 #include <linux/usb/ulpi.h>
 #include <linux/usb/msm_hsusb_hw.h>

@@ -1312,6 +1312,17 @@ MODULE_LICENSE ("GPL");
 #define PLATFORM_DRIVER_PRESENT
 #endif
 
+#ifdef CONFIG_USB_EHCI_MSM_72K
+#include "ehci-msm72k.c"
+#define PLATFORM_DRIVER_PRESENT
+#endif
+
+#ifdef CONFIG_USB_EHCI_MSM
+#include "ehci-msm.c"
+#include "ehci-msm2.c"
+#define PLATFORM_DRIVER_PRESENT
+#endif
+
 #ifdef CONFIG_USB_EHCI_MSM_HSIC
 #include "ehci-msm-hsic.c"
 #define PLATFORM_DRIVER_PRESENT
@@ -1471,7 +1482,7 @@ static int __init ehci_hcd_init(void)
 		if (retval) {
 			while (--i >= 0)
 				platform_driver_unregister(plat_drivers[i]);
-			goto clean0;
+			goto err_debug;
 		}
 	}
 

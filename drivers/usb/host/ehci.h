@@ -175,6 +175,7 @@ struct ehci_hcd {			/* one per controller */
 	unsigned		intr_count;	/* intr activity count */
 	unsigned		isoc_count;	/* isoc activity count */
 	unsigned		periodic_count;	/* periodic activity count */
+#define periodic_sched periodic_count	/* alias for MSM compatibility */
 	unsigned		uframe_periodic_max; /* max periodic time per uframe */
 
 
@@ -228,6 +229,13 @@ struct ehci_hcd {			/* one per controller */
 	unsigned		frame_index_bug:1; /* MosChip (AKA NetMos) */
 	unsigned		need_oc_pp_cycle:1; /* MPC834X port power */
 	unsigned		imx28_write_fix:1; /* For Freescale i.MX28 */
+
+	/* MSM/Qualcomm specific fields */
+	unsigned		susp_sof_bug:1;    /* Chip Idea HC */
+	unsigned		resume_sof_bug:1;  /* Chip Idea HC */
+	unsigned		reset_sof_bug:1;   /* Chip Idea HC */
+	bool			disable_cerr;
+	u32			reset_delay;
 
 	/* required for usb32 quirk */
 	#define OHCI_CTRL_HCFS          (3 << 6)
