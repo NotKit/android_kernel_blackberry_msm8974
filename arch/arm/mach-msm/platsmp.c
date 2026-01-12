@@ -43,7 +43,7 @@ void gic_raise_softirq(const struct cpumask *mask, unsigned int irq);
  * control for which core is the next to come out of the secondary
  * boot "holding pen".
  */
-volatile int pen_release = -1;
+
 
 /*
  * Write pen_release in a way that is guaranteed to be visible to all
