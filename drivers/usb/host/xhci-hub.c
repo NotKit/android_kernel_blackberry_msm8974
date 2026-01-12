@@ -848,8 +848,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		put_unaligned(cpu_to_le32(status), (__le32 *) buf);
 		break;
 	case SetPortFeature:
-		/* The MSB of wIndex is the TEST Mode */
-		test_mode = (wIndex & 0xff00) >> 8;
 		if (wValue == USB_PORT_FEAT_LINK_STATE)
 			link_state = (wIndex & 0xff00) >> 3;
 		if (wValue == USB_PORT_FEAT_REMOTE_WAKE_MASK)
@@ -1028,28 +1026,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 			temp &= ~PORT_U2_TIMEOUT_MASK;
 			temp |= PORT_U2_TIMEOUT(timeout);
 			writel(temp, port_array[wIndex] + PORTPMSC);
-			break;
-		case USB_PORT_FEAT_TEST:
-			slot_id = xhci_find_slot_id_by_port(hcd, xhci,
-					wIndex + 1);
-			if (test_mode && test_mode <= 5) {
-				/* unlock to execute stop endpoint commands */
-				spin_unlock_irqrestore(&xhci->lock, flags);
-				xhci_stop_device(xhci, slot_id, 1);
-				spin_lock_irqsave(&xhci->lock, flags);
-				xhci_halt(xhci);
-
-				temp = xhci_readl(xhci, port_array[wIndex] + 1);
-				temp |= test_mode << 28;
-				xhci_writel(xhci, temp, port_array[wIndex] + 1);
-			} else if (test_mode == 6) {
-				spin_unlock_irqrestore(&xhci->lock, flags);
-				retval = xhci_ehset_single_step_set_feature(hcd,
-									wIndex);
-				spin_lock_irqsave(&xhci->lock, flags);
-			} else {
-				goto error;
-			}
 			break;
 		default:
 			goto error;

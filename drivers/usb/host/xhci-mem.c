@@ -1066,7 +1066,7 @@ int xhci_alloc_virt_device(struct xhci_hcd *xhci, int slot_id,
 
 	/* Point to output device context in dcbaa. */
 	xhci->dcbaa->dev_context_ptrs[slot_id] = cpu_to_le64(dev->out_ctx->dma);
-	xhci_dbg(xhci, "Set slot id %d dcbaa entry %pK to 0x%llx\n",
+	xhci_dbg(xhci, "Set slot id %d dcbaa entry %p to 0x%llx\n",
 		 slot_id,
 		 &xhci->dcbaa->dev_context_ptrs[slot_id],
 		 le64_to_cpu(xhci->dcbaa->dev_context_ptrs[slot_id]));
@@ -1237,7 +1237,7 @@ int xhci_setup_addressable_virt_dev(struct xhci_hcd *xhci, struct usb_device *ud
 		if (udev->tt->multi)
 			slot_ctx->dev_info |= cpu_to_le32(DEV_MTT);
 	}
-	xhci_dbg(xhci, "udev->tt = %pK\n", udev->tt);
+	xhci_dbg(xhci, "udev->tt = %p\n", udev->tt);
 	xhci_dbg(xhci, "udev->ttport = 0x%x\n", udev->ttport);
 
 	/* Step 4 - ring already allocated */
@@ -1968,15 +1968,15 @@ static int xhci_test_trb_in_td(struct xhci_hcd *xhci,
 	if (seg != result_seg) {
 		xhci_warn(xhci, "WARN: %s TRB math test %d failed!\n",
 				test_name, test_number);
-		xhci_warn(xhci, "Tested TRB math w/ seg %pK and "
+		xhci_warn(xhci, "Tested TRB math w/ seg %p and "
 				"input DMA 0x%llx\n",
 				input_seg,
 				(unsigned long long) input_dma);
-		xhci_warn(xhci, "starting TRB %pK (0x%llx DMA), "
-				"ending TRB %pK (0x%llx DMA)\n",
+		xhci_warn(xhci, "starting TRB %p (0x%llx DMA), "
+				"ending TRB %p (0x%llx DMA)\n",
 				start_trb, start_dma,
 				end_trb, end_dma);
-		xhci_warn(xhci, "Expected seg %pK, got seg %pK\n",
+		xhci_warn(xhci, "Expected seg %p, got seg %p\n",
 				result_seg, seg);
 		trb_in_td(xhci, input_seg, start_trb, end_trb, input_dma,
 			  true);
@@ -2139,7 +2139,7 @@ static void xhci_add_in_port(struct xhci_hcd *xhci, unsigned int num_ports,
 
 	if (major_revision > 0x03) {
 		xhci_warn(xhci, "Ignoring unknown port speed, "
-				"Ext Cap %pK, revision = 0x%x\n",
+				"Ext Cap %p, revision = 0x%x\n",
 				addr, major_revision);
 		/* Ignoring port protocol we can't understand. FIXME */
 		return;
@@ -2185,7 +2185,7 @@ static void xhci_add_in_port(struct xhci_hcd *xhci, unsigned int num_ports,
 	for (i = port_offset; i < (port_offset + port_count); i++) {
 		/* Duplicate entry.  Ignore the port if the revisions differ. */
 		if (xhci->port_array[i] != 0) {
-			xhci_warn(xhci, "Duplicate port entry, Ext Cap %pK,"
+			xhci_warn(xhci, "Duplicate port entry, Ext Cap %p,"
 					" port %u\n", addr, i);
 			xhci_warn(xhci, "Port was marked as USB %u, "
 					"duplicated as USB %u\n",

@@ -25,14 +25,8 @@
 
 static struct hc_driver __read_mostly xhci_plat_hc_driver;
 
-#define SYNOPSIS_DWC3_VENDOR	0x5533
-
-static struct usb_phy *phy;
-
 static void xhci_plat_quirks(struct device *dev, struct xhci_hcd *xhci)
 {
-	struct xhci_plat_data *pdata = dev->platform_data;
-
 	/*
 	 * As of now platform drivers don't provide MSI support so we ensure
 	 * here that the generic code does not try to make a pci_dev from our
@@ -106,7 +100,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 	if (!hcd)
 		return -ENOMEM;
 
-	hcd_to_bus(hcd)->skip_resume = true;
 	hcd->rsrc_start = res->start;
 	hcd->rsrc_len = resource_size(res);
 
@@ -138,10 +131,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 		if (ret)
 			goto disable_clk;
 	}
-
-	pm_runtime_set_active(&pdev->dev);
-	pm_runtime_enable(&pdev->dev);
-	pm_runtime_get_sync(&pdev->dev);
 
 	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
 	if (ret)
@@ -176,23 +165,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 	if (ret)
 		goto put_usb3_hcd;
 
-	phy = usb_get_transceiver();
-	/* Register with OTG if present, ignore USB2 OTG using other PHY */
-	if (phy && phy->otg && !(phy->flags & ENABLE_SECONDARY_PHY)) {
-		dev_dbg(&pdev->dev, "%s otg support available\n", __func__);
-		ret = otg_set_host(phy->otg, &hcd->self);
-		if (ret) {
-			dev_err(&pdev->dev, "%s otg_set_host failed\n",
-				__func__);
-			usb_put_transceiver(phy);
-			goto put_usb3_hcd;
-		}
-	} else {
-		pm_runtime_no_callbacks(&pdev->dev);
-	}
-
-	pm_runtime_put(&pdev->dev);
-
 	return 0;
 
 put_usb3_hcd:
@@ -219,7 +191,6 @@ static int xhci_plat_remove(struct platform_device *dev)
 
 	xhci->xhc_state |= XHCI_STATE_REMOVING;
 
-
 	usb_remove_hcd(xhci->shared_hcd);
 	usb_put_hcd(xhci->shared_hcd);
 
@@ -228,11 +199,6 @@ static int xhci_plat_remove(struct platform_device *dev)
 		clk_disable_unprepare(clk);
 	usb_put_hcd(hcd);
 	kfree(xhci);
-
-	if (phy && phy->otg) {
-		otg_set_host(phy->otg, NULL);
-		usb_put_transceiver(phy);
-	}
 
 	return 0;
 }

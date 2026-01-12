@@ -119,16 +119,6 @@ static int enqueue_is_link_trb(struct xhci_ring *ring)
 	return TRB_TYPE_LINK_LE32(link->control);
 }
 
-union xhci_trb *xhci_find_next_enqueue(struct xhci_ring *ring)
-{
-	/* Enqueue pointer can be left pointing to the link TRB,
-	 * we must handle that
-	 */
-	if (TRB_TYPE_LINK_LE32(ring->enqueue->link.control))
-		return ring->enq_seg->next->trbs;
-	return ring->enqueue;
-}
-
 /* Updates trb to point to the next TRB in the ring, and updates seg if the next
  * TRB is in a new segment.  This does not skip over link TRBs, and it does not
  * effect the ring dequeue or enqueue pointers.
@@ -399,123 +389,6 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci, unsigned long flags)
 	}
 
 	return 0;
-}
-
-static int xhci_abort_cmd_ring(struct xhci_hcd *xhci)
-{
-	u64 temp_64;
-	int ret;
-
-	xhci_dbg(xhci, "Abort command ring\n");
-
-	if (!(xhci->cmd_ring_state & CMD_RING_STATE_RUNNING)) {
-		xhci_dbg(xhci, "The command ring isn't running, "
-				"Have the command ring been stopped?\n");
-		return 0;
-	}
-
-	temp_64 = xhci_read_64(xhci, &xhci->op_regs->cmd_ring);
-	if (!(temp_64 & CMD_RING_RUNNING)) {
-		xhci_dbg(xhci, "Command ring had been stopped\n");
-		return 0;
-	}
-	xhci->cmd_ring_state = CMD_RING_STATE_ABORTED;
-	xhci_write_64(xhci, temp_64 | CMD_RING_ABORT,
-			&xhci->op_regs->cmd_ring);
-
-	/* Section 4.6.1.2 of xHCI 1.0 spec says software should
-	 * time the completion od all xHCI commands, including
-	 * the Command Abort operation. If software doesn't see
-	 * CRR negated in a timely manner (e.g. longer than 5
-	 * seconds), then it should assume that the there are
-	 * larger problems with the xHC and assert HCRST.
-	 */
-	ret = handshake(xhci, &xhci->op_regs->cmd_ring,
-			CMD_RING_RUNNING, 0, 5 * 1000 * 1000);
-	if (ret < 0) {
-		/* we are about to kill xhci, give it one more chance */
-		xhci_write_64(xhci, temp_64 | CMD_RING_ABORT,
-			      &xhci->op_regs->cmd_ring);
-		udelay(1000);
-		ret = handshake(xhci, &xhci->op_regs->cmd_ring,
-				CMD_RING_RUNNING, 0, 3 * 1000 * 1000);
-		if (ret == 0)
-			return 0;
-
-		xhci_err(xhci, "Stopped the command ring failed, "
-				"maybe the host is dead\n");
-		xhci->xhc_state |= XHCI_STATE_DYING;
-		xhci_quiesce(xhci);
-		xhci_halt(xhci);
-		return -ESHUTDOWN;
-	}
-
-	return 0;
-}
-
-static int xhci_queue_cd(struct xhci_hcd *xhci,
-		struct xhci_command *command,
-		union xhci_trb *cmd_trb)
-{
-	struct xhci_cd *cd;
-	cd = kzalloc(sizeof(struct xhci_cd), GFP_ATOMIC);
-	if (!cd)
-		return -ENOMEM;
-	INIT_LIST_HEAD(&cd->cancel_cmd_list);
-
-	cd->command = command;
-	cd->cmd_trb = cmd_trb;
-	list_add_tail(&cd->cancel_cmd_list, &xhci->cancel_cmd_list);
-
-	return 0;
-}
-
-/*
- * Cancel the command which has issue.
- *
- * Some commands may hang due to waiting for acknowledgement from
- * usb device. It is outside of the xHC's ability to control and
- * will cause the command ring is blocked. When it occurs software
- * should intervene to recover the command ring.
- * See Section 4.6.1.1 and 4.6.1.2
- */
-int xhci_cancel_cmd(struct xhci_hcd *xhci, struct xhci_command *command,
-		union xhci_trb *cmd_trb)
-{
-	int retval = 0;
-	unsigned long flags;
-
-	spin_lock_irqsave(&xhci->lock, flags);
-
-	if (xhci->xhc_state & XHCI_STATE_DYING) {
-		xhci_warn(xhci, "Abort the command ring,"
-				" but the xHCI is dead.\n");
-		retval = -ESHUTDOWN;
-		goto fail;
-	}
-
-	/* queue the cmd desriptor to cancel_cmd_list */
-	retval = xhci_queue_cd(xhci, command, cmd_trb);
-	if (retval) {
-		xhci_warn(xhci, "Queuing command descriptor failed.\n");
-		goto fail;
-	}
-
-	/* abort command ring */
-	retval = xhci_abort_cmd_ring(xhci);
-	if (retval) {
-		xhci_err(xhci, "Abort command ring failed\n");
-		if (unlikely(retval == -ESHUTDOWN)) {
-			spin_unlock_irqrestore(&xhci->lock, flags);
-			usb_hc_died(xhci_to_hcd(xhci)->primary_hcd);
-			xhci_dbg(xhci, "xHCI host controller is dead.\n");
-			return retval;
-		}
-	}
-
-fail:
-	spin_unlock_irqrestore(&xhci->lock, flags);
-	return retval;
 }
 
 void xhci_ring_ep_doorbell(struct xhci_hcd *xhci,
@@ -884,7 +757,7 @@ static void xhci_handle_cmd_stop_ep(struct xhci_hcd *xhci, int slot_id,
 			 * short, don't muck with the stream ID after
 			 * submission.
 			 */
-			xhci_warn(xhci, "WARN Cancelled URB %pK "
+			xhci_warn(xhci, "WARN Cancelled URB %p "
 					"has invalid stream ID %u.\n",
 					cur_td->urb,
 					cur_td->urb->stream_id);
@@ -1037,8 +910,6 @@ void xhci_stop_endpoint_command_watchdog(unsigned long arg)
 
 	spin_lock_irqsave(&xhci->lock, flags);
 
-	if (xhci->main_hcd->driver->set_autosuspend)
-		xhci->main_hcd->driver->set_autosuspend(xhci->main_hcd, 1);
 	ep->stop_cmds_pending--;
 	if (!(ep->stop_cmds_pending == 0 && (ep->ep_state & EP_HALT_PENDING))) {
 		xhci_dbg_trace(xhci, trace_xhci_dbg_cancel_urb,
@@ -1451,150 +1322,6 @@ time_out_completed:
 	return;
 }
 
-/*
- * Finding the command trb need to be cancelled and modifying it to
- * NO OP command. And if the command is in device's command wait
- * list, finishing and freeing it.
- *
- * If we can't find the command trb, we think it had already been
- * executed.
- */
-static void xhci_cmd_to_noop(struct xhci_hcd *xhci, struct xhci_cd *cur_cd)
-{
-	struct xhci_segment *cur_seg;
-	union xhci_trb *cmd_trb;
-	u32 cycle_state;
-
-	if (xhci->cmd_ring->dequeue == xhci->cmd_ring->enqueue)
-		return;
-
-	/* find the current segment of command ring */
-	cur_seg = find_trb_seg(xhci->cmd_ring->first_seg,
-			xhci->cmd_ring->dequeue, &cycle_state);
-
-	if (!cur_seg) {
-		xhci_warn(xhci, "Command ring mismatch, dequeue = %pK %llx (dma)\n",
-				xhci->cmd_ring->dequeue,
-				(unsigned long long)
-				xhci_trb_virt_to_dma(xhci->cmd_ring->deq_seg,
-					xhci->cmd_ring->dequeue));
-		xhci_debug_ring(xhci, xhci->cmd_ring);
-		xhci_dbg_ring_ptrs(xhci, xhci->cmd_ring);
-		return;
-	}
-
-	/* find the command trb matched by cd from command ring */
-	for (cmd_trb = xhci->cmd_ring->dequeue;
-			cmd_trb != xhci->cmd_ring->enqueue;
-			next_trb(xhci, xhci->cmd_ring, &cur_seg, &cmd_trb)) {
-		/* If the trb is link trb, continue */
-		if (TRB_TYPE_LINK_LE32(cmd_trb->generic.field[3]))
-			continue;
-
-		if (cur_cd->cmd_trb == cmd_trb) {
-
-			/* If the command in device's command list, we should
-			 * finish it and free the command structure.
-			 */
-			if (cur_cd->command)
-				xhci_complete_cmd_in_cmd_wait_list(xhci,
-					cur_cd->command, COMP_CMD_STOP);
-
-			/* get cycle state from the origin command trb */
-			cycle_state = le32_to_cpu(cmd_trb->generic.field[3])
-				& TRB_CYCLE;
-
-			/* modify the command trb to NO OP command */
-			cmd_trb->generic.field[0] = 0;
-			cmd_trb->generic.field[1] = 0;
-			cmd_trb->generic.field[2] = 0;
-			cmd_trb->generic.field[3] = cpu_to_le32(
-					TRB_TYPE(TRB_CMD_NOOP) | cycle_state);
-			break;
-		}
-	}
-}
-
-static void xhci_cancel_cmd_in_cd_list(struct xhci_hcd *xhci)
-{
-	struct xhci_cd *cur_cd, *next_cd;
-
-	if (list_empty(&xhci->cancel_cmd_list))
-		return;
-
-	list_for_each_entry_safe(cur_cd, next_cd,
-			&xhci->cancel_cmd_list, cancel_cmd_list) {
-		xhci_cmd_to_noop(xhci, cur_cd);
-		list_del(&cur_cd->cancel_cmd_list);
-		kfree(cur_cd);
-	}
-}
-
-/*
- * traversing the cancel_cmd_list. If the command descriptor according
- * to cmd_trb is found, the function free it and return 1, otherwise
- * return 0.
- */
-static int xhci_search_cmd_trb_in_cd_list(struct xhci_hcd *xhci,
-		union xhci_trb *cmd_trb)
-{
-	struct xhci_cd *cur_cd, *next_cd;
-
-	if (list_empty(&xhci->cancel_cmd_list))
-		return 0;
-
-	list_for_each_entry_safe(cur_cd, next_cd,
-			&xhci->cancel_cmd_list, cancel_cmd_list) {
-		if (cur_cd->cmd_trb == cmd_trb) {
-			if (cur_cd->command)
-				xhci_complete_cmd_in_cmd_wait_list(xhci,
-					cur_cd->command, COMP_CMD_STOP);
-			list_del(&cur_cd->cancel_cmd_list);
-			kfree(cur_cd);
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-/*
- * If the cmd_trb_comp_code is COMP_CMD_ABORT, we just check whether the
- * trb pointed by the command ring dequeue pointer is the trb we want to
- * cancel or not. And if the cmd_trb_comp_code is COMP_CMD_STOP, we will
- * traverse the cancel_cmd_list to trun the all of the commands according
- * to command descriptor to NO-OP trb.
- */
-static int handle_stopped_cmd_ring(struct xhci_hcd *xhci,
-		int cmd_trb_comp_code)
-{
-	int cur_trb_is_good = 0;
-
-	/* Searching the cmd trb pointed by the command ring dequeue
-	 * pointer in command descriptor list. If it is found, free it.
-	 */
-	cur_trb_is_good = xhci_search_cmd_trb_in_cd_list(xhci,
-			xhci->cmd_ring->dequeue);
-
-	if (cmd_trb_comp_code == COMP_CMD_ABORT)
-		xhci->cmd_ring_state = CMD_RING_STATE_STOPPED;
-	else if (cmd_trb_comp_code == COMP_CMD_STOP) {
-		/* traversing the cancel_cmd_list and canceling
-		 * the command according to command descriptor
-		 */
-		xhci_cancel_cmd_in_cd_list(xhci);
-
-		xhci->cmd_ring_state = CMD_RING_STATE_RUNNING;
-		/*
-		 * ring command ring doorbell again to restart the
-		 * command ring
-		 */
-		if (xhci->cmd_ring->dequeue != xhci->cmd_ring->enqueue)
-			xhci_ring_cmd_db(xhci);
-	}
-	return cur_trb_is_good;
-}
-
 static void handle_cmd_completion(struct xhci_hcd *xhci,
 		struct xhci_event_cmd *event)
 {
@@ -1797,7 +1524,7 @@ static void handle_device_notification(struct xhci_hcd *xhci,
 static void handle_port_status(struct xhci_hcd *xhci,
 		union xhci_trb *event)
 {
-	struct usb_hcd *hcd = NULL;
+	struct usb_hcd *hcd;
 	u32 port_id;
 	u32 temp, temp1;
 	int max_ports;
@@ -1869,9 +1596,6 @@ static void handle_port_status(struct xhci_hcd *xhci,
 		xhci_dbg(xhci, "resume root hub\n");
 		usb_hcd_resume_root_hub(hcd);
 	}
-
-	if (hcd->speed == HCD_USB3 && (temp & PORT_PLS_MASK) == XDEV_INACTIVE)
-		bus_state->port_remote_wakeup &= ~(1 << faked_port_index);
 
 	if ((temp & PORT_PLC) && (temp & PORT_PLS_MASK) == XDEV_RESUME) {
 		xhci_dbg(xhci, "port resume event for port %d\n", port_id);
@@ -3826,150 +3550,6 @@ int xhci_queue_ctrl_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 
 	giveback_first_trb(xhci, slot_id, ep_index, 0,
 			start_cycle, start_trb);
-	return 0;
-}
-
-/*
- * Variant of xhci_queue_ctrl_tx() used to implement EHSET
- * SINGLE_STEP_SET_FEATURE test mode. It differs in that the control
- * transfer is broken up so that the SETUP stage can happen and call
- * the URB's completion handler before the DATA/STATUS stages are
- * executed by the xHC hardware. This assumes the control transfer is a
- * GetDescriptor, with a DATA stage in the IN direction, and an OUT
- * STATUS stage.
- *
- * This function is called twice, usually with a 15-second delay in between.
- * - with is_setup==true, the SETUP stage for the control request
- *   (GetDescriptor) is queued in the TRB ring and sent to HW immediately
- * - with is_setup==false, the DATA and STATUS TRBs are queued and exceuted
- *
- * Caller must have locked xhci->lock
- */
-int xhci_submit_single_step_set_feature(struct usb_hcd *hcd, struct urb *urb,
-					int is_setup)
-{
-	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
-	struct xhci_ring *ep_ring;
-	int num_trbs;
-	int ret;
-	unsigned int slot_id, ep_index;
-	struct usb_ctrlrequest *setup;
-	struct xhci_generic_trb *start_trb;
-	int start_cycle;
-	u32 field, length_field;
-	struct urb_priv *urb_priv;
-	struct xhci_td *td;
-
-	ep_ring = xhci_urb_to_transfer_ring(xhci, urb);
-	if (!ep_ring)
-		return -EINVAL;
-
-	/* Need buffer for data stage */
-	if (urb->transfer_buffer_length <= 0)
-		return -EINVAL;
-
-	/*
-	 * Need to copy setup packet into setup TRB, so we can't use the setup
-	 * DMA address.
-	 */
-	if (!urb->setup_packet)
-		return -EINVAL;
-	setup = (struct usb_ctrlrequest *) urb->setup_packet;
-
-	slot_id = urb->dev->slot_id;
-	ep_index = xhci_get_endpoint_index(&urb->ep->desc);
-
-	urb_priv = kzalloc(sizeof(struct urb_priv) +
-				  sizeof(struct xhci_td *), GFP_ATOMIC);
-	if (!urb_priv)
-		return -ENOMEM;
-
-	td = urb_priv->td[0] = kzalloc(sizeof(struct xhci_td), GFP_ATOMIC);
-	if (!td) {
-		kfree(urb_priv);
-		return -ENOMEM;
-	}
-
-	urb_priv->length = 1;
-	urb_priv->td_cnt = 0;
-	urb->hcpriv = urb_priv;
-
-	num_trbs = is_setup ? 1 : 2;
-
-	ret = prepare_transfer(xhci, xhci->devs[slot_id],
-			ep_index, urb->stream_id,
-			num_trbs, urb, 0, GFP_ATOMIC);
-	if (ret < 0) {
-		kfree(td);
-		kfree(urb_priv);
-		return ret;
-	}
-
-	/*
-	 * Don't give the first TRB to the hardware (by toggling the cycle bit)
-	 * until we've finished creating all the other TRBs.  The ring's cycle
-	 * state may change as we enqueue the other TRBs, so save it too.
-	 */
-	start_trb = &ep_ring->enqueue->generic;
-	start_cycle = ep_ring->cycle_state;
-
-	if (is_setup) {
-		/* Queue only the setup TRB */
-		field = TRB_IDT | TRB_IOC | TRB_TYPE(TRB_SETUP);
-		if (start_cycle == 0)
-			field |= 0x1;
-
-		/* xHCI 1.0 6.4.1.2.1: Transfer Type field */
-		if (xhci->hci_version == 0x100) {
-			if (setup->bRequestType & USB_DIR_IN)
-				field |= TRB_TX_TYPE(TRB_DATA_IN);
-			else
-				field |= TRB_TX_TYPE(TRB_DATA_OUT);
-		}
-
-		/* Save the DMA address of the last TRB in the TD */
-		td->last_trb = ep_ring->enqueue;
-
-		queue_trb(xhci, ep_ring, false,
-			  setup->bRequestType | setup->bRequest << 8 |
-				le16_to_cpu(setup->wValue) << 16,
-			  le16_to_cpu(setup->wIndex) |
-				le16_to_cpu(setup->wLength) << 16,
-			  TRB_LEN(8) | TRB_INTR_TARGET(0),
-			  field);
-	} else {
-		/* Queue data TRB */
-		field = TRB_ISP | TRB_TYPE(TRB_DATA);
-		if (start_cycle == 0)
-			field |= 0x1;
-		if (setup->bRequestType & USB_DIR_IN)
-			field |= TRB_DIR_IN;
-
-		length_field = TRB_LEN(urb->transfer_buffer_length) |
-			xhci_td_remainder(urb->transfer_buffer_length) |
-			TRB_INTR_TARGET(0);
-		queue_trb(xhci, ep_ring, true,
-			  lower_32_bits(urb->transfer_dma),
-			  upper_32_bits(urb->transfer_dma),
-			  length_field,
-			  field);
-
-		/* Save the DMA address of the last TRB in the TD */
-		td->last_trb = ep_ring->enqueue;
-
-		/* Queue status TRB */
-		field = TRB_IOC | TRB_TYPE(TRB_STATUS);
-		if (!(setup->bRequestType & USB_DIR_IN))
-			field |= TRB_DIR_IN;
-
-		queue_trb(xhci, ep_ring, false,
-			  0,
-			  0,
-			  TRB_INTR_TARGET(0),
-			  field | ep_ring->cycle_state);
-	}
-
-	giveback_first_trb(xhci, slot_id, ep_index, 0, start_cycle, start_trb);
 	return 0;
 }
 
