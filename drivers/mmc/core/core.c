@@ -708,6 +708,34 @@ void mmc_wait_for_req(struct mmc_host *host, struct mmc_request *mrq)
 }
 EXPORT_SYMBOL(mmc_wait_for_req);
 
+/**
+ *	mmc_wait_for_cmd - start a command and wait for completion
+ *	@host: MMC host to start command
+ *	@cmd: MMC command to start
+ *	@retries: maximum number of retries
+ *
+ *	Start a new MMC command for a host, and wait for the command
+ *	to complete.  Return any error that occurred while the command
+ *	was executing.  Do not attempt to parse the response.
+ */
+int mmc_wait_for_cmd(struct mmc_host *host, struct mmc_command *cmd, int retries)
+{
+	struct mmc_request mrq = {NULL};
+
+	WARN_ON(!host->claimed);
+
+	memset(cmd->resp, 0, sizeof(cmd->resp));
+	cmd->retries = retries;
+
+	mrq.cmd = cmd;
+	cmd->data = NULL;
+
+	mmc_wait_for_req(host, &mrq);
+
+	return cmd->error;
+}
+EXPORT_SYMBOL(mmc_wait_for_cmd);
+
 bool mmc_card_is_prog_state(struct mmc_card *card)
 {
 	bool rc;
@@ -800,6 +828,33 @@ int mmc_interrupt_hpi(struct mmc_card *card)
 	} while (!err);
 
 out:
+	return err;
+}
+/**
+ *	mmc_stop_bkops - stop ongoing BKOPS
+ *	@card: MMC card to check BKOPS
+ *
+ *	Send HPI command to stop ongoing background operations to
+ *	allow rapid servicing of foreground operations, e.g. read/
+ *	writes. Wait until the card comes out of the programming state
+ *	to avoid errors in servicing read/write requests.
+ */
+int mmc_stop_bkops(struct mmc_card *card)
+{
+	int err = 0;
+
+	BUG_ON(!card);
+	err = mmc_interrupt_hpi(card);
+
+	/*
+	 * If err is EINVAL, we can't issue an HPI.
+	 * It should complete the BKOPS.
+	 */
+	if (!err || (err == -EINVAL)) {
+		mmc_card_clr_doing_bkops(card);
+		err = 0;
+	}
+
 	return err;
 }
 EXPORT_SYMBOL(mmc_stop_bkops);
