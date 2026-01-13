@@ -1200,4 +1200,12 @@ config PHYS_OFFSET
 	default "0x40200000" if ARCH_MSM8X60
 	default "0x00000000"
 
+config KRAIT_REGULATOR
+	bool "Support Kraits powered via ganged regulators in the pmic"
+	help
+	  Certain MSMs have the Krait CPUs powered via a single supply
+	  line from the PMIC. This supply line is powered by multiple
+	  regulators running in ganged mode inside the PMIC. Enable
+	  this option if such board configuration is desired.
+
 endif
