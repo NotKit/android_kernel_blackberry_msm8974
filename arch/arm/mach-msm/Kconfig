@@ -288,7 +288,7 @@ config ARCH_MSM8974
 	select MSM_ULTRASOUND_B
 	select MSM_RPM_LOG
 	select ARCH_WANT_KMAP_ATOMIC_FLUSH
-	select KRAIT_REGULATOR
+	# select KRAIT_REGULATOR - disabled due to SPMI API changes in 3.18
 	select ENABLE_VMALLOC_SAVINGS
 	select HAS_MACH_MEMUTILS
 
