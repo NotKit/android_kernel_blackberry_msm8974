@@ -1366,8 +1366,15 @@ static int  krait_power_probe(struct platform_device *pdev)
 
 	per_cpu(krait_vregs, cpu_num) = kvreg;
 
-	kvreg->rdev = regulator_register(&kvreg->desc, &pdev->dev, init_data,
-					 kvreg, pdev->dev.of_node);
+	{
+		struct regulator_config config = {
+			.dev = &pdev->dev,
+			.init_data = init_data,
+			.driver_data = kvreg,
+			.of_node = pdev->dev.of_node,
+		};
+		kvreg->rdev = regulator_register(&kvreg->desc, &config);
+	}
 	if (IS_ERR(kvreg->rdev)) {
 		rc = PTR_ERR(kvreg->rdev);
 		pr_err("regulator_register failed, rc=%d.\n", rc);
@@ -1407,7 +1414,7 @@ static struct of_device_id krait_power_match_table[] = {
 
 static struct platform_driver krait_power_driver = {
 	.probe	= krait_power_probe,
-	.remove	= _p(krait_power_remove),
+	.remove	= krait_power_remove,
 	.driver	= {
 		.name		= KRAIT_REGULATOR_DRIVER_NAME,
 		.of_match_table	= krait_power_match_table,
@@ -1614,7 +1621,7 @@ static int  krait_pdn_remove(struct platform_device *pdev)
 
 static struct platform_driver krait_pdn_driver = {
 	.probe	= krait_pdn_probe,
-	.remove	= _p(krait_pdn_remove),
+	.remove	= krait_pdn_remove,
 	.driver	= {
 		.name		= KRAIT_PDN_DRIVER_NAME,
 		.of_match_table	= krait_pdn_match_table,
