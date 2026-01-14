@@ -1132,8 +1132,8 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
 	if (temp >= trip_temp) {
 		tz->passive = true;
 
-		trend = (tz->tc1 * (temp - tz->last_temperature)) +
-			(tz->tc2 * (temp - trip_temp));
+		trend = (1 * (temp - tz->last_temperature)) +
+			(1 * (temp - trip_temp));
 
 		/* Heating up? */
 		if (trend > 0) {
@@ -1577,10 +1577,11 @@ EXPORT_SYMBOL(thermal_zone_device_update);
  * longer needed. The passive cooling formula uses tc1 and tc2 as described in
  * section 11.1.5.1 of the ACPI specification 3.0.
  */
-struct thermal_zone_device *thermal_zone_device_register(char *type,
-	int trips, void *devdata,
-	const struct thermal_zone_device_ops *ops,
-	int tc1, int tc2, int passive_delay, int polling_delay)
+struct thermal_zone_device *thermal_zone_device_register(const char *type,
+	int trips, int mask, void *devdata,
+	struct thermal_zone_device_ops *ops,
+	const struct thermal_zone_params *tzp,
+	int passive_delay, int polling_delay)
 {
 	struct thermal_zone_device *tz;
 	struct thermal_cooling_device *pos;
@@ -1616,10 +1617,11 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
 	tz->device.class = &thermal_class;
 	tz->devdata = devdata;
 	tz->trips = trips;
-	tz->tc1 = tc1;
-	tz->tc2 = tc2;
+
 	tz->passive_delay = passive_delay;
 	tz->polling_delay = polling_delay;
+	tz->trips_disabled = mask;
+	tz->tzp = tzp;
 
 	dev_set_name(&tz->device, "thermal_zone%d", tz->id);
 	result = device_register(&tz->device);
@@ -1752,16 +1754,19 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
 EXPORT_SYMBOL(thermal_zone_device_unregister);
 
 #ifdef CONFIG_NET
+static struct genl_multicast_group thermal_event_mcgrp = {
+	.name = THERMAL_GENL_MCAST_GROUP_NAME,
+};
+
 static struct genl_family thermal_event_genl_family = {
 	.id = GENL_ID_GENERATE,
 	.name = THERMAL_GENL_FAMILY_NAME,
 	.version = THERMAL_GENL_VERSION,
 	.maxattr = THERMAL_GENL_ATTR_MAX,
+	.mcgrps = &thermal_event_mcgrp,
+	.n_mcgrps = 1,
 };
 
-static struct genl_multicast_group thermal_event_mcgrp = {
-	.name = THERMAL_GENL_MCAST_GROUP_NAME,
-};
 
 int thermal_generate_netlink_event(u32 orig, enum events event)
 {
@@ -1817,7 +1822,7 @@ int thermal_generate_netlink_event(u32 orig, enum events event)
 		return result;
 	}
 
-	result = genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
+	result = genlmsg_multicast(&thermal_event_genl_family, skb, 0, 0, GFP_ATOMIC);
 	if (result)
 		pr_info("failed to send netlink event:%d\n", result);
 
@@ -1827,17 +1832,10 @@ EXPORT_SYMBOL(thermal_generate_netlink_event);
 
 static int genetlink_init(void)
 {
-	int result;
 
-	result = genl_register_family(&thermal_event_genl_family);
-	if (result)
-		return result;
 
-	result = genl_register_mc_group(&thermal_event_genl_family,
-					&thermal_event_mcgrp);
-	if (result)
-		genl_unregister_family(&thermal_event_genl_family);
-	return result;
+	return genl_register_family(&thermal_event_genl_family);
+
 }
 
 static void genetlink_exit(void)

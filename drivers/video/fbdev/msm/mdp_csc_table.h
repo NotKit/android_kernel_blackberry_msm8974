@@ -16,7 +16,7 @@
 static struct {
 	uint32_t reg;
 	uint32_t val;
-} csc_matrix_config_table[] = {
+} csc_matrix_config_table[] __maybe_unused = {
 	/* RGB -> YUV primary forward matrix (set1). */
 	{ MDP_CSC_PFMVn(0), 0x83 },
 	{ MDP_CSC_PFMVn(1), 0x102 },
@@ -125,7 +125,7 @@ static struct {
 static struct {
 	uint32_t reg;
 	uint32_t val;
-} csc_color_lut[] = {
+} csc_color_lut[] __maybe_unused = {
 	{ 0x40800, 0x0 },
 	{ 0x40804, 0x151515 },
 	{ 0x40808, 0x1d1d1d },

@@ -66,6 +66,31 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(mmc_blk_rw_end);
 #define MMC_BKOPS_MAX_TIMEOUT	(4 * 60 * 1000) /* max time to wait in ms */
 
 static struct workqueue_struct *workqueue;
+
+#define MMC_UPDATE_BKOPS_STATS_HPI(stats)	\
+	do {					\
+		spin_lock(&stats.lock);		\
+		if (stats.enabled)		\
+			stats.hpi++;		\
+		spin_unlock(&stats.lock);	\
+	} while (0);
+#define MMC_UPDATE_BKOPS_STATS_SUSPEND(stats)	\
+	do {					\
+		spin_lock(&stats.lock);		\
+		if (stats.enabled)		\
+			stats.suspend++;	\
+		spin_unlock(&stats.lock);	\
+	} while (0);
+#define MMC_UPDATE_STATS_BKOPS_SEVERITY_LEVEL(stats, level)		\
+	do {								\
+		if (level <= 0 || level > BKOPS_NUM_OF_SEVERITY_LEVELS)	\
+			break;						\
+		spin_lock(&stats.lock);					\
+		if (stats.enabled)					\
+			stats.bkops_level[level-1]++;			\
+		spin_unlock(&stats.lock);				\
+	} while (0);
+
 static const unsigned freqs[] = { 400000, 300000, 200000, 100000 };
 
 /*
@@ -1111,6 +1136,34 @@ void mmc_release_host(struct mmc_host *host)
 }
 EXPORT_SYMBOL(mmc_release_host);
 
+
+
+
+/**
+ *	mmc_try_claim_host - try to exclusively claim a host
+ *	@host: mmc host to claim
+ *
+ *	Returns %1 if the host is claimed, %0 otherwise.
+ */
+int mmc_try_claim_host(struct mmc_host *host)
+{
+	int claimed_host = 0;
+	unsigned long flags;
+
+	spin_lock_irqsave(&host->lock, flags);
+	if (!host->claimed || host->claimer == current) {
+		host->claimed = 1;
+		host->claimer = current;
+		host->claim_cnt += 1;
+		claimed_host = 1;
+	}
+	spin_unlock_irqrestore(&host->lock, flags);
+	if (host->ops->enable && claimed_host && host->claim_cnt == 1)
+		host->ops->enable(host);
+	return claimed_host;
+}
+EXPORT_SYMBOL(mmc_try_claim_host);
+
 /*
  * This is a helper function, which fetches a runtime pm reference for the
  * card device and also claims the host.
@@ -1961,6 +2014,44 @@ void mmc_detach_bus(struct mmc_host *host)
 	mmc_bus_put(host);
 }
 
+/**
+ * mmc_hw_reset - reset the host hardware
+ * @host: pointer to mmc host structure
+ *
+ * Hard reset the host.
+ */
+int mmc_hw_reset(struct mmc_host *host)
+{
+	if (!host->card)
+		return -EINVAL;
+
+	if (host->ops && host->ops->hw_reset) {
+		host->ops->hw_reset(host);
+		return 0;
+	}
+
+	return -EOPNOTSUPP;
+}
+
+EXPORT_SYMBOL(mmc_hw_reset);
+
+void mmc_start_delayed_bkops(struct mmc_card *card)
+{
+	/* Stub implementation to verify linking */
+}
+EXPORT_SYMBOL(mmc_start_delayed_bkops);
+
+void mmc_blk_init_bkops_statistics(struct mmc_card *card)
+{
+	/* Stub implementation to verify linking */
+	if (!card)
+		return;
+	spin_lock_init(&card->bkops_info.bkops_stats.lock);
+	card->bkops_info.bkops_stats.enabled = true;
+}
+EXPORT_SYMBOL(mmc_blk_init_bkops_statistics);
+
+
 static void _mmc_detect_change(struct mmc_host *host, unsigned long delay,
 				bool cd_irq)
 {
@@ -2659,6 +2750,7 @@ out:
 	return freq;
 }
 
+#if 0
 static bool mmc_is_vaild_state_for_clk_scaling(struct mmc_host *host,
 				enum mmc_load state)
 {
@@ -2695,6 +2787,8 @@ static bool mmc_is_vaild_state_for_clk_scaling(struct mmc_host *host,
 out:
 	return ret;
 }
+#endif
+
 
 
 
@@ -3171,7 +3265,187 @@ int mmc_flush_cache(struct mmc_card *card)
 }
 EXPORT_SYMBOL(mmc_flush_cache);
 
+#ifdef CONFIG_PM_RUNTIME
+void mmc_dump_dev_pm_state(struct mmc_host *host, struct device *dev)
+{
+	pr_err("%s: %s: err: runtime_error: %d\n", dev_name(dev),
+	       mmc_hostname(host), dev->power.runtime_error);
+	pr_err("%s: %s: disable_depth: %d runtime_status: %d idle_notification: %d\n",
+	       dev_name(dev), mmc_hostname(host), dev->power.disable_depth,
+	       dev->power.runtime_status,
+	       dev->power.idle_notification);
+	pr_err("%s: %s: request_pending: %d, request: %d\n",
+	       dev_name(dev), mmc_hostname(host),
+	       dev->power.request_pending, dev->power.request);
+}
+
+void mmc_rpm_hold(struct mmc_host *host, struct device *dev)
+{
+	int ret = 0;
+
+	if (!mmc_use_core_runtime_pm(host))
+		return;
+
+	ret = pm_runtime_get_sync(dev);
+	if ((ret < 0) &&
+	    (dev->power.runtime_error || (dev->power.disable_depth > 0))) {
+		pr_err("%s: %s: %s: pm_runtime_get_sync: err: %d\n",
+		       dev_name(dev), mmc_hostname(host), __func__, ret);
+		mmc_dump_dev_pm_state(host, dev);
+		if (pm_runtime_suspended(dev))
+			BUG_ON(1);
+	}
+}
+EXPORT_SYMBOL(mmc_rpm_hold);
+
+void mmc_rpm_release(struct mmc_host *host, struct device *dev)
+{
+	int ret = 0;
+
+	if (!mmc_use_core_runtime_pm(host))
+		return;
+
+	ret = pm_runtime_put_sync(dev);
+	if ((ret < 0) &&
+	    (dev->power.runtime_error || (dev->power.disable_depth > 0))) {
+		pr_err("%s: %s: %s: pm_runtime_put_sync: err: %d\n",
+		       dev_name(dev), mmc_hostname(host), __func__, ret);
+		mmc_dump_dev_pm_state(host, dev);
+	}
+}
+EXPORT_SYMBOL(mmc_rpm_release);
+#else
+void mmc_rpm_hold(struct mmc_host *host, struct device *dev) {}
+EXPORT_SYMBOL(mmc_rpm_hold);
+
+void mmc_rpm_release(struct mmc_host *host, struct device *dev) {}
+EXPORT_SYMBOL(mmc_rpm_release);
+#endif
+
 #ifdef CONFIG_PM
+
+/**
+ *	mmc_suspend_host - suspend a host
+ *	@host: mmc host
+ */
+int mmc_suspend_host(struct mmc_host *host)
+{
+	int err = 0;
+
+	if (mmc_bus_needs_resume(host))
+		return 0;
+
+	mmc_bus_get(host);
+	if (host->bus_ops && !host->bus_dead) {
+		/*
+		 * A long response time is not acceptable for device drivers
+		 * when doing suspend. Prevent mmc_claim_host in the suspend
+		 * sequence, to potentially wait "forever" by trying to
+		 * pre-claim the host.
+		 *
+		 * Skip try claim host for SDIO cards, doing so fixes deadlock
+		 * conditions. The function driver suspend may again call into
+		 * SDIO driver within a different context for enabling power
+		 * save mode in the card and hence wait in mmc_claim_host
+		 * causing deadlock.
+		 */
+		if (!(host->card && mmc_card_sdio(host->card)))
+			if (!mmc_try_claim_host(host))
+				err = -EBUSY;
+
+		if (!err) {
+			if (host->bus_ops->suspend) {
+				err = mmc_stop_bkops(host->card);
+				if (err)
+					goto stop_bkops_err;
+				err = host->bus_ops->suspend(host);
+				MMC_UPDATE_BKOPS_STATS_SUSPEND(host->
+						card->bkops_info.bkops_stats);
+			}
+			if (!(host->card && mmc_card_sdio(host->card)))
+				mmc_release_host(host);
+
+			if (err == -ENOSYS || !host->bus_ops->resume) {
+				/*
+				 * We simply "remove" the card in this case.
+				 * It will be redetected on resume.  (Calling
+				 * bus_ops->remove() with a claimed host can
+				 * deadlock.)
+				 */
+				if (host->bus_ops->remove)
+					host->bus_ops->remove(host);
+				mmc_claim_host(host);
+				mmc_detach_bus(host);
+				mmc_power_off(host);
+				mmc_release_host(host);
+				host->pm_flags = 0;
+				err = 0;
+			}
+		}
+	}
+	mmc_bus_put(host);
+
+	if (!err && !mmc_card_keep_power(host))
+		mmc_power_off(host);
+
+	return err;
+stop_bkops_err:
+	if (!(host->card && mmc_card_sdio(host->card)))
+		mmc_release_host(host);
+	return err;
+}
+EXPORT_SYMBOL(mmc_suspend_host);
+
+/**
+ *	mmc_resume_host - resume a previously suspended host
+ *	@host: mmc host
+ */
+int mmc_resume_host(struct mmc_host *host)
+{
+	int err = 0;
+
+	mmc_bus_get(host);
+	if (mmc_bus_manual_resume(host)) {
+		host->bus_resume_flags |= MMC_BUSRESUME_NEEDS_RESUME;
+		mmc_bus_put(host);
+		return 0;
+	}
+
+	if (host->bus_ops && !host->bus_dead) {
+		if (!mmc_card_keep_power(host)) {
+			u32 ocr = host->card ? host->card->ocr : host->ocr_avail;
+			mmc_power_up(host, ocr);
+			mmc_select_voltage(host, ocr);
+			/*
+			 * Tell runtime PM core we just powered up the card,
+
+			 * since it still believes the card is powered off.
+			 * Note that currently runtime PM is only enabled
+			 * for SDIO cards that are MMC_CAP_POWER_OFF_CARD
+			 */
+			if (mmc_card_sdio(host->card) &&
+			    (host->caps & MMC_CAP_POWER_OFF_CARD)) {
+				pm_runtime_disable(&host->card->dev);
+				pm_runtime_set_active(&host->card->dev);
+				pm_runtime_enable(&host->card->dev);
+			}
+		}
+		BUG_ON(!host->bus_ops->resume);
+		err = host->bus_ops->resume(host);
+		if (err) {
+			pr_warn("%s: error %d during resume "
+					    "(card was removed?)\n",
+					    mmc_hostname(host), err);
+			err = 0;
+		}
+	}
+	host->pm_flags &= ~MMC_PM_KEEP_POWER;
+	mmc_bus_put(host);
+
+	return err;
+}
+EXPORT_SYMBOL(mmc_resume_host);
+
 
 /* Do the card removal on suspend if card is assumed removeable
  * Do that in pm notifier while userspace isn't yet frozen, so we will be able

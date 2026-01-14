@@ -2099,3 +2099,9 @@ err:
 
 	return err;
 }
+int mmc_send_pon(struct mmc_card *card)
+{
+	return mmc_poweroff_notify(card, EXT_CSD_POWER_OFF_LONG);
+}
+EXPORT_SYMBOL(mmc_send_pon);
+

@@ -62,6 +62,11 @@
 
 static struct iommu_access_ops *iommu_access_ops;
 
+struct bus_type msm_iommu_sec_bus_type = {
+	.name = "msm_iommu_sec_bus",
+};
+
+
 static const struct of_device_id msm_smmu_list[] = {
 	{ .compatible = "qcom,msm-smmu-v1", },
 	{ .compatible = "qcom,msm-smmu-v2", },
@@ -776,7 +781,7 @@ fail:
 }
 
 static phys_addr_t msm_iommu_iova_to_phys(struct iommu_domain *domain,
-					  unsigned long va)
+					  dma_addr_t va)
 {
 	return 0;
 }
@@ -802,8 +807,7 @@ static struct iommu_ops msm_iommu_ops = {
 	.map_range = msm_iommu_map_range,
 	.unmap_range = msm_iommu_unmap_range,
 	.iova_to_phys = msm_iommu_iova_to_phys,
-	.domain_has_cap = msm_iommu_domain_has_cap,
-	.get_pt_base_addr = msm_iommu_get_pt_base_addr,
+
 	.pgsize_bitmap = MSM_IOMMU_PGSIZES,
 };
 

@@ -438,8 +438,8 @@ int mdp_probe(struct platform_device *pdev)
 	mdp_writel(mdp, 0, MDP_CMD_DEBUG_ACCESS_BASE + 0x01f8);
 	mdp_writel(mdp, 0, MDP_CMD_DEBUG_ACCESS_BASE + 0x01fc);
 
-	for (n = 0; n < ARRAY_SIZE(csc_table); n++)
-		mdp_writel(mdp, csc_table[n].val, csc_table[n].reg);
+	for (n = 0; n < ARRAY_SIZE(csc_matrix_config_table); n++)
+		mdp_writel(mdp, csc_matrix_config_table[n].val, csc_matrix_config_table[n].reg);
 
 	/* clear up unused fg/main registers */
 	/* comp.plane 2&3 ystride */

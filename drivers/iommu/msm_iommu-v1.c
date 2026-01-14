@@ -1195,3 +1195,8 @@ subsys_initcall(msm_iommu_init);
 
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("MSM SMMU v2 Driver");
+
+irqreturn_t msm_iommu_fault_handler(int irq, void *dev_id)
+{
+	return msm_iommu_fault_handler_v2(irq, dev_id);
+}
