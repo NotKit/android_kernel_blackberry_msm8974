@@ -13,7 +13,7 @@
 #ifndef __QPNP_PWM_H__
 #define __QPNP_PWM_H__
 
-#include <linux/pwm.h>
+/* #include <linux/pwm.h> */
 
 /* usec: 19.2M, n=6, m=0, pre=2 */
 #define PM_PWM_PERIOD_MIN			7
@@ -108,10 +108,12 @@ struct pwm_duty_cycles {
 	int start_idx;
 };
 
-int pwm_config_period(struct pwm_device *pwm,
+struct qpnp_pwm_device;
+
+int qpnp_pwm_config_period(struct qpnp_pwm_device *pwm,
 			     struct pwm_period_config *pwm_p);
 
-int pwm_config_pwm_value(struct pwm_device *pwm, int pwm_value);
+int qpnp_pwm_config_pwm_value(struct qpnp_pwm_device *pwm, int pwm_value);
 
 /*
  * enum pm_pwm_mode - PWM mode selection
@@ -123,7 +125,7 @@ enum pm_pwm_mode {
 	PM_PWM_MODE_LPG,
 };
 
-int pwm_change_mode(struct pwm_device *pwm, enum pm_pwm_mode mode);
+int qpnp_pwm_change_mode(struct qpnp_pwm_device *pwm, enum pm_pwm_mode mode);
 
 /*
  * lut_params: Lookup table (LUT) parameters
@@ -143,13 +145,13 @@ struct lut_params {
 	int flags;
 };
 
-int pwm_lut_config(struct pwm_device *pwm, int period_us,
+int qpnp_pwm_lut_config(struct qpnp_pwm_device *pwm, int period_us,
 		int duty_pct[], struct lut_params lut_params);
 
 /*
  * support microsecond level configuration
  */
-int pwm_config_us(struct pwm_device *pwm,
+int qpnp_pwm_config_us(struct qpnp_pwm_device *pwm,
 		int duty_us, int period_us);
 
 /* Standard APIs supported */
@@ -158,11 +160,13 @@ int pwm_config_us(struct pwm_device *pwm,
  * @pwm_id: PWM id or channel
  * @label: the label to identify the user
  */
+struct qpnp_pwm_device *qpnp_pwm_request(int pwm_id, const char *label);
 
 /*
  * pwm_free - free a PWM device
  * @pwm: the PWM device
  */
+void qpnp_pwm_free(struct qpnp_pwm_device *pwm);
 
 /*
  * pwm_config - change a PWM device configuration
@@ -170,15 +174,18 @@ int pwm_config_us(struct pwm_device *pwm,
  * @period_ns: period in nanosecond
  * @duty_ns: duty cycle in nanosecond
  */
+int qpnp_pwm_config(struct qpnp_pwm_device *pwm, int duty_ns, int period_ns);
 
 /*
  * pwm_enable - start a PWM output toggling
  * @pwm: the PWM device
  */
+int qpnp_pwm_enable(struct qpnp_pwm_device *pwm);
 
 /*
  * pwm_disable - stop a PWM output toggling
  * @pwm: the PWM device
  */
+void qpnp_pwm_disable(struct qpnp_pwm_device *pwm);
 
 #endif /* __QPNP_PWM_H__ */
