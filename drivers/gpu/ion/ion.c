@@ -525,17 +525,13 @@ static int ion_handle_add(struct ion_client *client, struct ion_handle *handle)
 	struct rb_node *parent = NULL;
 	struct ion_handle *entry;
 
-	do {
-		int id;
-		rc = idr_pre_get(&client->idr, GFP_KERNEL);
-		if (!rc)
-			return -ENOMEM;
-		rc = idr_get_new_above(&client->idr, handle, 1, &id);
-		handle->id = id;
-	} while (rc == -EAGAIN);
+	int id;
+	
+	id = idr_alloc(&client->idr, handle, 1, 0, GFP_KERNEL);
+	if (id < 0)
+		return id;
+	handle->id = id;
 
-	if (rc < 0)
-		return rc;
 
 	while (*p) {
 		parent = *p;
@@ -601,17 +597,17 @@ static struct ion_handle *__ion_alloc(struct ion_client *client, size_t len,
 		if (secure_allocation &&
 		    !ion_heap_allow_secure_allocation(heap->type))
 			continue;
-		trace_ion_alloc_buffer_start(client->name, heap->name, len,
-					     heap_id_mask, flags);
+		// trace_ion_alloc_buffer_start(client->name, heap->name, len,
+		// 			     heap_id_mask, flags);
 		buffer = ion_buffer_create(heap, dev, len, align, flags);
-		trace_ion_alloc_buffer_end(client->name, heap->name, len,
-					   heap_id_mask, flags);
+		// trace_ion_alloc_buffer_end(client->name, heap->name, len,
+		// 			   heap_id_mask, flags);
 		if (!IS_ERR_OR_NULL(buffer))
 			break;
 
-		trace_ion_alloc_buffer_fallback(client->name, heap->name, len,
-					    heap_id_mask, flags,
-					    PTR_ERR(buffer));
+		// trace_ion_alloc_buffer_fallback(client->name, heap->name, len,
+		// 			    heap_id_mask, flags,
+		// 			    PTR_ERR(buffer));
 		if (dbg_str_idx < MAX_DBG_STR_LEN) {
 			unsigned int len_left = MAX_DBG_STR_LEN-dbg_str_idx-1;
 			int ret_value = snprintf(&dbg_str[dbg_str_idx],
@@ -996,7 +992,8 @@ void ion_client_destroy(struct ion_client *client)
 		ion_handle_destroy(&handle->ref);
 	}
 
-	idr_remove_all(&client->idr);
+	// idr_remove_all(&client->idr);
+	idr_destroy(&client->idr);
 	idr_destroy(&client->idr);
 
 	down_write(&dev->lock);
@@ -1293,7 +1290,7 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 
 	if (ion_buffer_fault_user_mappings(buffer)) {
 		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND |
-							VM_NODUMP;
+							       VM_DONTDUMP;
 		vma->vm_private_data = buffer;
 		vma->vm_ops = &ion_vma_ops;
 		vma->vm_flags |= VM_MIXEDMAP;
@@ -1399,7 +1396,8 @@ struct dma_buf *ion_share_dma_buf(struct ion_client *client,
 	ion_buffer_get(buffer);
 	mutex_unlock(&client->lock);
 
-	dmabuf = dma_buf_export(buffer, &dma_buf_ops, buffer->size, O_RDWR);
+	dmabuf = dma_buf_export(buffer, &dma_buf_ops, buffer->size, O_RDWR,
+				NULL);
 	if (IS_ERR(dmabuf)) {
 		ion_buffer_put(buffer);
 		return dmabuf;

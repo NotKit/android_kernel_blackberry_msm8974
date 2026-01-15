@@ -116,7 +116,7 @@ static int secure_buffer_change_chunk(u32 chunks,
 	request.chunks.chunk_size = chunk_size;
 
 	kmap_flush_unused();
-	kmap_atomic_flush_unused();
+	/* kmap_atomic_flush_unused(); */
 	return scm_call(SCM_SVC_MP, MEM_PROTECT_LOCK_ID2,
 			&request, sizeof(request), &resp, sizeof(resp));
 

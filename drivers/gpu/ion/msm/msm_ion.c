@@ -27,9 +27,19 @@
 #include <linux/memblock.h>
 #include <linux/dma-mapping.h>
 #include <linux/dma-contiguous.h>
+#include <linux/cma.h>
 #include <linux/vmalloc.h>
 #include <linux/highmem.h>
 #include <asm/cacheflush.h>
+
+#ifndef dmac_clean_range
+#define dmac_clean_range dmac_flush_range
+#endif
+
+#ifndef dmac_inv_range
+#define dmac_inv_range dmac_flush_range
+#endif
+
 #include "../ion_priv.h"
 #include "ion_cp_common.h"
 
