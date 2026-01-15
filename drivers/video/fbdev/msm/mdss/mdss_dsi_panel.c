@@ -43,7 +43,7 @@ bool is_display_on()
 
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
-	ctrl->pwm_bl = pwm_request(ctrl->pwm_lpg_chan, "lcd-bklt");
+	ctrl->pwm_bl = qpnp_pwm_request(ctrl->pwm_lpg_chan, "lcd-bklt");
 	if (ctrl->pwm_bl == NULL || IS_ERR(ctrl->pwm_bl)) {
 		pr_err("%s: Error: lpg_chan=%d pwm request failed",
 				__func__, ctrl->pwm_lpg_chan);
@@ -63,7 +63,7 @@ static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 
 	if (level == 0) {
 		if (ctrl->pwm_enabled)
-			pwm_disable(ctrl->pwm_bl);
+			qpnp_pwm_disable(ctrl->pwm_bl);
 		ctrl->pwm_enabled = 0;
 		return;
 	}
@@ -79,32 +79,32 @@ static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 					ctrl->ndx, level, duty);
 
 	if (ctrl->pwm_enabled) {
-		pwm_disable(ctrl->pwm_bl);
+		qpnp_pwm_disable(ctrl->pwm_bl);
 		ctrl->pwm_enabled = 0;
 	}
 
 	if (ctrl->pwm_period >= USEC_PER_SEC) {
-		ret = pwm_config_us(ctrl->pwm_bl, duty, ctrl->pwm_period);
+		ret = qpnp_pwm_config_us(ctrl->pwm_bl, duty, ctrl->pwm_period);
 		if (ret) {
-			pr_err("%s: pwm_config_us() failed err=%d.\n",
+			pr_err("%s: qpnp_pwm_config_us() failed err=%d.\n",
 					__func__, ret);
 			return;
 		}
 	} else {
 		period_ns = ctrl->pwm_period * NSEC_PER_USEC;
-		ret = pwm_config(ctrl->pwm_bl,
+		ret = qpnp_pwm_config(ctrl->pwm_bl,
 				level * period_ns / ctrl->bklt_max,
 				period_ns);
 		if (ret) {
-			pr_err("%s: pwm_config() failed err=%d.\n",
+			pr_err("%s: qpnp_pwm_config() failed err=%d.\n",
 					__func__, ret);
 			return;
 		}
 	}
 
-	ret = pwm_enable(ctrl->pwm_bl);
+	ret = qpnp_pwm_enable(ctrl->pwm_bl);
 	if (ret)
-		pr_err("%s: pwm_enable() failed err=%d\n", __func__, ret);
+		pr_err("%s: qpnp_pwm_enable() failed err=%d\n", __func__, ret);
 	ctrl->pwm_enabled = 1;
 }
 

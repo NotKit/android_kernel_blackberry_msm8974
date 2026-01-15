@@ -178,7 +178,7 @@ static int mdss_edp_pwm_config(struct mdss_edp_drv_pdata *edp_drv)
 
 	if (edp_drv->pwm_period != -EINVAL &&
 		edp_drv->lpg_channel != -EINVAL) {
-		edp_drv->bl_pwm = pwm_request(edp_drv->lpg_channel,
+		edp_drv->bl_pwm = qpnp_pwm_request(edp_drv->lpg_channel,
 				"lcd-backlight");
 		if (edp_drv->bl_pwm == NULL || IS_ERR(edp_drv->bl_pwm)) {
 			pr_err("%s: pwm request failed", __func__);
@@ -215,29 +215,29 @@ void mdss_edp_set_backlight(struct mdss_panel_data *pdata, u32 bl_level)
 		 * to 1 second.
 		 */
 		if (edp_drv->pwm_period >= USEC_PER_SEC) {
-			ret = pwm_config_us(edp_drv->bl_pwm,
+			ret = qpnp_pwm_config_us(edp_drv->bl_pwm,
 					bl_level * edp_drv->pwm_period / bl_max,
 					edp_drv->pwm_period);
 			if (ret) {
-				pr_err("%s: pwm_config_us() failed err=%d.\n",
+				pr_err("%s: qpnp_pwm_config_us() failed err=%d.\n",
 						__func__, ret);
 				return;
 			}
 		} else {
 			period_ns = edp_drv->pwm_period * NSEC_PER_USEC;
-			ret = pwm_config(edp_drv->bl_pwm,
+			ret = qpnp_pwm_config(edp_drv->bl_pwm,
 					bl_level * period_ns / bl_max,
 					period_ns);
 			if (ret) {
-				pr_err("%s: pwm_config() failed err=%d.\n",
+				pr_err("%s: qpnp_pwm_config() failed err=%d.\n",
 						__func__, ret);
 				return;
 			}
 		}
 
-		ret = pwm_enable(edp_drv->bl_pwm);
+		ret = qpnp_pwm_enable(edp_drv->bl_pwm);
 		if (ret) {
-			pr_err("%s: pwm_enable() failed err=%d\n", __func__,
+			pr_err("%s: qpnp_pwm_enable() failed err=%d\n", __func__,
 					ret);
 			return;
 		}
@@ -625,7 +625,7 @@ int mdss_edp_off(struct mdss_panel_data *pdata)
 	gpio_set_value(edp_drv->gpio_panel_en, 0);
 
 	if (edp_drv->bl_pwm != NULL)
-		pwm_disable(edp_drv->bl_pwm);
+		qpnp_pwm_disable(edp_drv->bl_pwm);
 
 	mdss_edp_mainlink_reset(edp_drv);
 	mdss_edp_mainlink_ctrl(edp_drv, 0);

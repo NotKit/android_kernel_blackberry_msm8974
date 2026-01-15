@@ -261,6 +261,10 @@ config ARCH_MSM8974
 	select ARM_ARCH_TIMER
 	select MSM_GPIOMUX
 	select MULTI_IRQ_HANDLER
+	select ION
+	select ION_MSM
+	select SND_COMPRESS_OFFLOAD
+	select QPNP_PWM
 	select MSM_MULTIMEDIA_USE_ION
 	select PM_DEVFREQ
 	select MSM_DEVFREQ_DEVBW
@@ -1207,5 +1211,21 @@ config KRAIT_REGULATOR
 	  line from the PMIC. This supply line is powered by multiple
 	  regulators running in ganged mode inside the PMIC. Enable
 	  this option if such board configuration is desired.
+
+config MSM_PM2
+	depends on PM
+	bool
+
+config MSM_PM
+	depends on PM
+	bool
+
+config MSM_PM8X60
+	depends on PM
+	bool
+
+config MSM_NOPM
+	default y if !PM
+	bool
 
 endif

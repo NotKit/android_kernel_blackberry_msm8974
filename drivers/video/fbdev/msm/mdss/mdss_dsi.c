@@ -136,7 +136,7 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 				__func__, __mdss_dsi_pm_name(i));
 			goto error;
 		}
-		
+
 		if (vdd_was_on) {
 			pdata->panel_info.panel_power_state = MDSS_PANEL_POWER_ON;
 		}

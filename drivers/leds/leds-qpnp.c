@@ -323,7 +323,7 @@ static u8 kpdbl_debug_regs[] = {
  */
 struct pwm_config_data {
 	struct lut_params	lut_params;
-	struct pwm_device	*pwm_dev;
+	struct qpnp_pwm_device	*pwm_dev;
 	int			pwm_channel;
 	u32			pwm_period_us;
 	struct pwm_duty_cycles	*duty_cycles;
@@ -495,7 +495,7 @@ struct qpnp_led_data {
 };
 
 static DEFINE_MUTEX(flash_lock);
-static struct pwm_device *kpdbl_master;
+static struct qpnp_pwm_device *kpdbl_master;
 static u32 kpdbl_master_period_us;
 DECLARE_BITMAP(kpdbl_leds_in_use, NUM_KPDBL_LEDS);
 static bool is_kpdbl_master_turn_on;
@@ -730,14 +730,14 @@ static int qpnp_mpp_set(struct qpnp_led_data *led)
 			if (period_us > INT_MAX / NSEC_PER_USEC) {
 				duty_us = (period_us * led->cdev.brightness) /
 					LED_FULL;
-				rc = pwm_config_us(
+				rc = qpnp_pwm_config_us(
 					led->mpp_cfg->pwm_cfg->pwm_dev,
 					duty_us,
 					period_us);
 			} else {
 				duty_ns = ((period_us * NSEC_PER_USEC) /
 					LED_FULL) * led->cdev.brightness;
-				rc = pwm_config(
+				rc = qpnp_pwm_config(
 					led->mpp_cfg->pwm_cfg->pwm_dev,
 					duty_ns,
 					period_us * NSEC_PER_USEC);
@@ -750,7 +750,7 @@ static int qpnp_mpp_set(struct qpnp_led_data *led)
 		}
 
 		if (led->mpp_cfg->pwm_mode != MANUAL_MODE)
-			pwm_enable(led->mpp_cfg->pwm_cfg->pwm_dev);
+			qpnp_pwm_enable(led->mpp_cfg->pwm_cfg->pwm_dev);
 		else {
 			if (led->cdev.brightness < LED_MPP_CURRENT_MIN)
 				led->cdev.brightness = LED_MPP_CURRENT_MIN;
@@ -794,7 +794,7 @@ static int qpnp_mpp_set(struct qpnp_led_data *led)
 				led->mpp_cfg->pwm_cfg->default_mode;
 			led->mpp_cfg->pwm_mode =
 				led->mpp_cfg->pwm_cfg->default_mode;
-			pwm_disable(led->mpp_cfg->pwm_cfg->pwm_dev);
+			qpnp_pwm_disable(led->mpp_cfg->pwm_cfg->pwm_dev);
 		}
 		rc = qpnp_led_masked_write(led,
 					LED_MPP_MODE_CTRL(led->base),
@@ -1841,7 +1841,7 @@ static int qpnp_pwm_init(struct pwm_config_data *pwm_cfg,
 
 	if (pwm_cfg->pwm_channel != -1) {
 		pwm_cfg->pwm_dev =
-			pwm_request(pwm_cfg->pwm_channel, name);
+			qpnp_pwm_request(pwm_cfg->pwm_channel, name);
 
 		if (IS_ERR_OR_NULL(pwm_cfg->pwm_dev)) {
 			dev_err(&spmi_dev->dev,
@@ -1875,7 +1875,7 @@ static int qpnp_pwm_init(struct pwm_config_data *pwm_cfg,
 					"Exceed LUT limit\n");
 				return -EINVAL;
 			}
-			rc = pwm_lut_config(pwm_cfg->pwm_dev,
+			rc = qpnp_pwm_lut_config(pwm_cfg->pwm_dev,
 				pwm_cfg->pwm_period_us,
 				pwm_cfg->duty_cycles->duty_pcts,
 				pwm_cfg->lut_params);
@@ -1935,11 +1935,11 @@ static ssize_t pwm_us_store(struct device *dev,
 	previous_pwm_us = pwm_cfg->pwm_period_us;
 
 	pwm_cfg->pwm_period_us = pwm_us;
-	pwm_free(pwm_cfg->pwm_dev);
+	qpnp_pwm_free(pwm_cfg->pwm_dev);
 	ret = qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 	if (ret) {
 		pwm_cfg->pwm_period_us = previous_pwm_us;
-		pwm_free(pwm_cfg->pwm_dev);
+		qpnp_pwm_free(pwm_cfg->pwm_dev);
 		qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 		qpnp_led_set(&led->cdev, led->cdev.brightness);
 		dev_err(&led->spmi_dev->dev,
@@ -1989,12 +1989,12 @@ static ssize_t pause_lo_store(struct device *dev,
 
 	previous_pause_lo = pwm_cfg->lut_params.lut_pause_lo;
 
-	pwm_free(pwm_cfg->pwm_dev);
+	qpnp_pwm_free(pwm_cfg->pwm_dev);
 	pwm_cfg->lut_params.lut_pause_lo = pause_lo;
 	ret = qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 	if (ret) {
 		pwm_cfg->lut_params.lut_pause_lo = previous_pause_lo;
-		pwm_free(pwm_cfg->pwm_dev);
+		qpnp_pwm_free(pwm_cfg->pwm_dev);
 		qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 		qpnp_led_set(&led->cdev, led->cdev.brightness);
 		dev_err(&led->spmi_dev->dev,
@@ -2044,12 +2044,12 @@ static ssize_t pause_hi_store(struct device *dev,
 
 	previous_pause_hi = pwm_cfg->lut_params.lut_pause_hi;
 
-	pwm_free(pwm_cfg->pwm_dev);
+	qpnp_pwm_free(pwm_cfg->pwm_dev);
 	pwm_cfg->lut_params.lut_pause_hi = pause_hi;
 	ret = qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 	if (ret) {
 		pwm_cfg->lut_params.lut_pause_hi = previous_pause_hi;
-		pwm_free(pwm_cfg->pwm_dev);
+		qpnp_pwm_free(pwm_cfg->pwm_dev);
 		qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 		qpnp_led_set(&led->cdev, led->cdev.brightness);
 		dev_err(&led->spmi_dev->dev,
@@ -2100,12 +2100,12 @@ static ssize_t start_idx_store(struct device *dev,
 	previous_start_idx = pwm_cfg->duty_cycles->start_idx;
 	pwm_cfg->duty_cycles->start_idx = start_idx;
 	pwm_cfg->lut_params.start_idx = pwm_cfg->duty_cycles->start_idx;
-	pwm_free(pwm_cfg->pwm_dev);
+	qpnp_pwm_free(pwm_cfg->pwm_dev);
 	ret = qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 	if (ret) {
 		pwm_cfg->duty_cycles->start_idx = previous_start_idx;
 		pwm_cfg->lut_params.start_idx = pwm_cfg->duty_cycles->start_idx;
-		pwm_free(pwm_cfg->pwm_dev);
+		qpnp_pwm_free(pwm_cfg->pwm_dev);
 		qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 		qpnp_led_set(&led->cdev, led->cdev.brightness);
 		dev_err(&led->spmi_dev->dev,
@@ -2155,12 +2155,12 @@ static ssize_t ramp_step_ms_store(struct device *dev,
 
 	previous_ramp_step_ms = pwm_cfg->lut_params.ramp_step_ms;
 
-	pwm_free(pwm_cfg->pwm_dev);
+	qpnp_pwm_free(pwm_cfg->pwm_dev);
 	pwm_cfg->lut_params.ramp_step_ms = ramp_step_ms;
 	ret = qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 	if (ret) {
 		pwm_cfg->lut_params.ramp_step_ms = previous_ramp_step_ms;
-		pwm_free(pwm_cfg->pwm_dev);
+		qpnp_pwm_free(pwm_cfg->pwm_dev);
 		qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 		qpnp_led_set(&led->cdev, led->cdev.brightness);
 		dev_err(&led->spmi_dev->dev,
@@ -2210,12 +2210,12 @@ static ssize_t lut_flags_store(struct device *dev,
 
 	previous_lut_flags = pwm_cfg->lut_params.flags;
 
-	pwm_free(pwm_cfg->pwm_dev);
+	qpnp_pwm_free(pwm_cfg->pwm_dev);
 	pwm_cfg->lut_params.flags = lut_flags;
 	ret = qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 	if (ret) {
 		pwm_cfg->lut_params.flags = previous_lut_flags;
-		pwm_free(pwm_cfg->pwm_dev);
+		qpnp_pwm_free(pwm_cfg->pwm_dev);
 		qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 		qpnp_led_set(&led->cdev, led->cdev.brightness);
 		dev_err(&led->spmi_dev->dev,
@@ -2295,7 +2295,7 @@ static ssize_t duty_pcts_store(struct device *dev,
 	pwm_cfg->old_duty_pcts = previous_duty_pcts;
 	pwm_cfg->lut_params.idx_len = pwm_cfg->duty_cycles->num_duty_pcts;
 
-	pwm_free(pwm_cfg->pwm_dev);
+	qpnp_pwm_free(pwm_cfg->pwm_dev);
 	ret = qpnp_pwm_init(pwm_cfg, led->spmi_dev, led->cdev.name);
 	if (ret)
 		goto restore;

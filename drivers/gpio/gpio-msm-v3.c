@@ -20,6 +20,7 @@
 
 #include <mach/msm_iomap.h>
 #include <mach/gpiomux.h>
+#include <mach/gpio.h>
 #include "gpio-msm-common.h"
 
 /* Bits of interest in the GPIO_IN_OUT register.
