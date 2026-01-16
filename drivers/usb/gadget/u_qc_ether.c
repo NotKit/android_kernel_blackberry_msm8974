@@ -75,33 +75,29 @@ struct eth_qc_dev {
 
 /*-------------------------------------------------------------------------*/
 
-#undef DBG
-#undef VDBG
-#undef ERROR
-#undef INFO
 
 #define xprintk(d, level, fmt, args...) \
 	printk(level "%s: " fmt , (d)->net->name , ## args)
 
 #ifdef DEBUG
 #undef DEBUG
-#define DBG(dev, fmt, args...) \
+#define QC_DBG(dev, fmt, args...) \
 	xprintk(dev , KERN_DEBUG , fmt , ## args)
 #else
-#define DBG(dev, fmt, args...) \
+#define QC_DBG(dev, fmt, args...) \
 	do { } while (0)
 #endif /* DEBUG */
 
 #ifdef VERBOSE_DEBUG
 #define VDBG	DBG
 #else
-#define VDBG(dev, fmt, args...) \
+#define QC_VDBG(dev, fmt, args...) \
 	do { } while (0)
 #endif /* DEBUG */
 
-#define ERROR(dev, fmt, args...) \
+#define QC_ERROR(dev, fmt, args...) \
 	xprintk(dev , KERN_ERR , fmt , ## args)
-#define INFO(dev, fmt, args...) \
+#define QC_INFO(dev, fmt, args...) \
 	xprintk(dev , KERN_INFO , fmt , ## args)
 
 /*-------------------------------------------------------------------------*/
@@ -153,7 +149,7 @@ static int eth_qc_open(struct net_device *net)
 	struct eth_qc_dev	*dev = netdev_priv(net);
 	struct qc_gether	*link;
 
-	DBG(dev, "%s\n", __func__);
+	QC_DBG(dev, "%s\n", __func__);
 	if (netif_carrier_ok(dev->net)) {
 		/* Force the netif to send the RTM_NEWLINK event
 		 * that in use to notify on the USB cable status.
@@ -178,7 +174,7 @@ static int eth_qc_stop(struct net_device *net)
 	unsigned long	flags;
 	struct qc_gether	*link = dev->port_usb;
 
-	VDBG(dev, "%s\n", __func__);
+	QC_VDBG(dev, "%s\n", __func__);
 	netif_stop_queue(net);
 
 	spin_lock_irqsave(&dev->lock, flags);
@@ -305,7 +301,8 @@ int gether_qc_setup_name(struct usb_gadget *g, u8 ethaddr[ETH_ALEN],
 
 	net->netdev_ops = &eth_qc_netdev_ops;
 
-	SET_ETHTOOL_OPS(net, &qc_ethtool_ops);
+	// SET_ETHTOOL_OPS(net, &qc_ethtool_ops);
+	net->ethtool_ops = &qc_ethtool_ops;
 
 	netif_carrier_off(net);
 
@@ -318,8 +315,8 @@ int gether_qc_setup_name(struct usb_gadget *g, u8 ethaddr[ETH_ALEN],
 		dev_dbg(&g->dev, "register_netdev failed, %d\n", status);
 		free_netdev(net);
 	} else {
-		INFO(dev, "MAC %pM\n", net->dev_addr);
-		INFO(dev, "HOST MAC %pM\n", dev->host_mac);
+		QC_INFO(dev, "MAC %pM\n", net->dev_addr);
+		QC_INFO(dev, "HOST MAC %pM\n", dev->host_mac);
 
 	}
 
@@ -428,7 +425,7 @@ void gether_qc_disconnect_name(struct qc_gether *link, const char *netname)
 	if (!dev)
 		return;
 
-	DBG(dev, "%s\n", __func__);
+	QC_DBG(dev, "%s\n", __func__);
 
 	netif_stop_queue(dev->net);
 	netif_carrier_off(dev->net);

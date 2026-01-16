@@ -188,7 +188,7 @@ static struct usb_cdc_union_desc ncm_union_desc = {
 	/* .bSlaveInterface0 =	DYNAMIC */
 };
 
-static struct usb_cdc_ether_desc ecm_desc = {
+static struct usb_cdc_ether_desc ncm_ecm_desc = {
 	.bLength =		sizeof ecm_desc,
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
 	.bDescriptorSubType =	USB_CDC_ETHERNET_TYPE,
@@ -277,7 +277,7 @@ static struct usb_descriptor_header *ncm_fs_function[] = {
 	(struct usb_descriptor_header *) &ncm_control_intf,
 	(struct usb_descriptor_header *) &ncm_header_desc,
 	(struct usb_descriptor_header *) &ncm_union_desc,
-	(struct usb_descriptor_header *) &ecm_desc,
+	(struct usb_descriptor_header *) &ncm_ecm_desc,
 	(struct usb_descriptor_header *) &ncm_desc,
 	(struct usb_descriptor_header *) &fs_ncm_notify_desc,
 	/* data interface, altsettings 0 and 1 */
@@ -323,7 +323,7 @@ static struct usb_descriptor_header *ncm_hs_function[] = {
 	(struct usb_descriptor_header *) &ncm_control_intf,
 	(struct usb_descriptor_header *) &ncm_header_desc,
 	(struct usb_descriptor_header *) &ncm_union_desc,
-	(struct usb_descriptor_header *) &ecm_desc,
+	(struct usb_descriptor_header *) &ncm_ecm_desc,
 	(struct usb_descriptor_header *) &ncm_desc,
 	(struct usb_descriptor_header *) &hs_ncm_notify_desc,
 	/* data interface, altsettings 0 and 1 */
@@ -338,6 +338,7 @@ static struct usb_descriptor_header *ncm_hs_function[] = {
 
 #define STRING_CTRL_IDX	0
 #define STRING_MAC_IDX	1
+#undef STRING_DATA_IDX
 #define STRING_DATA_IDX	2
 #define STRING_IAD_IDX	3
 
@@ -384,6 +385,7 @@ struct ndp_parser_opts {
 	unsigned	next_ndp_index;
 };
 
+#undef INIT_NDP16_OPTS
 #define INIT_NDP16_OPTS {					\
 		.nth_sign = USB_CDC_NCM_NTH16_SIGN,		\
 		.ndp_sign = USB_CDC_NCM_NDP16_NOCRC_SIGN,	\
@@ -400,6 +402,7 @@ struct ndp_parser_opts {
 	}
 
 
+#undef INIT_NDP32_OPTS
 #define INIT_NDP32_OPTS {					\
 		.nth_sign = USB_CDC_NCM_NTH32_SIGN,		\
 		.ndp_sign = USB_CDC_NCM_NDP32_NOCRC_SIGN,	\

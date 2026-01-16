@@ -180,6 +180,7 @@ typedef struct rndis_params
 	u8			confignr;
 	u8			used;
 	u16			saved_filter;
+	u16			pkt_alignment_factor;
 	enum rndis_state	state;
 	u32			medium;
 	u32			speed;

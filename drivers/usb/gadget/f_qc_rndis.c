@@ -34,6 +34,16 @@
 #include "u_qc_ether.h"
 #include "rndis.h"
 
+#ifndef REMOTE_NDIS_PACKET_MSG
+#define REMOTE_NDIS_PACKET_MSG RNDIS_MSG_PACKET
+#endif
+#ifndef REMOTE_NDIS_INITIALIZE_MSG
+#define REMOTE_NDIS_INITIALIZE_MSG RNDIS_MSG_INIT
+#endif
+#ifndef NDIS_MEDIUM_802_3
+#define NDIS_MEDIUM_802_3 RNDIS_MEDIUM_802_3
+#endif
+
 
 /*
  * This function is an RNDIS Ethernet port -- a Microsoft protocol that's

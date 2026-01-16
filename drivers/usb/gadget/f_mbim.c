@@ -213,6 +213,30 @@ static struct usb_cdc_union_desc mbim_union_desc = {
 	/* .bSlaveInterface0 =	DYNAMIC */
 };
 
+struct usb_cdc_mbb_desc {
+	__u8	bLength;
+	__u8	bDescriptorType;
+	__u8	bDescriptorSubType;
+	__le16	bcdMbbVersion;
+	__le16	wMaxControlMessage;
+	__u8	bNumberFilters;
+	__u8	bMaxFilterSize;
+	__le16	wMaxSegmentSize;
+	__u8	bmNetworkCapabilities;
+} __attribute__ ((packed));
+
+#ifndef USB_CDC_MBB_TYPE
+#define USB_CDC_MBB_TYPE 0x1b
+#endif
+
+#ifndef USB_CDC_EXT_MBB_TYPE
+#define USB_CDC_EXT_MBB_TYPE 0x1c
+#endif
+
+#ifndef USB_CDC_RESET_FUNCTION
+#define USB_CDC_RESET_FUNCTION 0x05
+#endif
+
 static struct usb_cdc_mbb_desc mbb_desc = {
 	.bLength =		sizeof mbb_desc,
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
@@ -226,6 +250,15 @@ static struct usb_cdc_mbb_desc mbb_desc = {
 	.wMaxSegmentSize =	cpu_to_le16(0xfe0),
 	.bmNetworkCapabilities = 0x20,
 };
+
+struct usb_cdc_ext_mbb_desc {
+	__u8	bLength;
+	__u8	bDescriptorType;
+	__u8	bDescriptorSubType;
+	__le16	bcdMbbExtendedVersion;
+	__u8	bMaxOutstandingCmdMsges;
+	__le16	wMTU;
+} __attribute__ ((packed));
 
 static struct usb_cdc_ext_mbb_desc ext_mbb_desc = {
 	.bLength =	sizeof ext_mbb_desc,

@@ -50,6 +50,8 @@ struct gserial {
 	void (*connect)(struct gserial *p);
 	void (*disconnect)(struct gserial *p);
 	int (*send_break)(struct gserial *p, int duration);
+	unsigned int (*send_modem_ctrl_bits)(struct gserial *p, int ctrl_bits);
+	void (*notify_modem)(void *gser, u8 port, int ctrl_bits);
 };
 
 /* utilities to allocate/free request and buffer */

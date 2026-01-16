@@ -773,18 +773,18 @@ static struct usb_function *acm_alloc_func(struct usb_function_instance *fi)
 	return &acm->port.func;
 }
 
-static inline struct f_serial_opts *to_f_serial_opts(struct config_item *item)
+static inline struct f_serial_opts *to_f_acm_opts(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct f_serial_opts,
 			func_inst.group);
 }
 
-CONFIGFS_ATTR_STRUCT(f_serial_opts);
+// CONFIGFS_ATTR_STRUCT(f_serial_opts);
 static ssize_t f_acm_attr_show(struct config_item *item,
 				 struct configfs_attribute *attr,
 				 char *page)
 {
-	struct f_serial_opts *opts = to_f_serial_opts(item);
+	struct f_serial_opts *opts = to_f_acm_opts(item);
 	struct f_serial_opts_attribute *f_serial_opts_attr =
 		container_of(attr, struct f_serial_opts_attribute, attr);
 	ssize_t ret = 0;
@@ -796,7 +796,7 @@ static ssize_t f_acm_attr_show(struct config_item *item,
 
 static void acm_attr_release(struct config_item *item)
 {
-	struct f_serial_opts *opts = to_f_serial_opts(item);
+	struct f_serial_opts *opts = to_f_acm_opts(item);
 
 	usb_put_function_instance(&opts->func_inst);
 }
@@ -815,14 +815,14 @@ static struct f_serial_opts_attribute f_acm_port_num =
 	__CONFIGFS_ATTR_RO(port_num, f_acm_port_num_show);
 
 
-static struct configfs_attribute *acm_attrs[] = {
+static struct configfs_attribute *f_acm_attrs[] = {
 	&f_acm_port_num.attr,
 	NULL,
 };
 
 static struct config_item_type acm_func_type = {
 	.ct_item_ops    = &acm_item_ops,
-	.ct_attrs	= acm_attrs,
+	.ct_attrs	= f_acm_attrs,
 	.ct_owner       = THIS_MODULE,
 };
 
