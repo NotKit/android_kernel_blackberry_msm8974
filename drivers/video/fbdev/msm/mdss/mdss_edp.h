@@ -300,7 +300,7 @@ struct mdss_edp_drv_pdata {
 	int gpio_panel_en;
 
 	/* backlight */
-	struct pwm_device *bl_pwm;
+	struct qpnp_pwm_device *bl_pwm;
 	int lpg_channel;
 	int pwm_period;
 
