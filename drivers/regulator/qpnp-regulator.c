@@ -23,6 +23,8 @@
 #include <linux/bitops.h>
 #include <linux/slab.h>
 #include <linux/spmi.h>
+#include <linux/of_address.h>
+#include <linux/of_irq.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
@@ -355,15 +357,15 @@ static inline int qpnp_vreg_read(struct qpnp_regulator *vreg, u16 addr, u8 *buf,
 	char str[DEBUG_PRINT_BUFFER_SIZE];
 	int rc = 0;
 
-	rc = spmi_ext_register_readl(vreg->spmi_dev->ctrl, vreg->spmi_dev->sid,
+	rc = spmi_ext_register_readl(vreg->spmi_dev,
 		vreg->base_addr + addr, buf, len);
 
 	if (!rc && (qpnp_vreg_debug_mask & QPNP_VREG_DEBUG_READS)) {
 		str[0] = '\0';
 		fill_string(str, DEBUG_PRINT_BUFFER_SIZE, buf, len);
-		pr_info(" %-11s:  read(0x%04X), sid=%d, len=%d; %s\n",
+		pr_info(" %-11s:  read(0x%04X), len=%d; %s\n",
 			vreg->rdesc.name, vreg->base_addr + addr,
-			vreg->spmi_dev->sid, len, str);
+			len, str);
 	}
 
 	return rc;
@@ -378,13 +380,13 @@ static inline int qpnp_vreg_write(struct qpnp_regulator *vreg, u16 addr,
 	if (qpnp_vreg_debug_mask & QPNP_VREG_DEBUG_WRITES) {
 		str[0] = '\0';
 		fill_string(str, DEBUG_PRINT_BUFFER_SIZE, buf, len);
-		pr_info("%-11s: write(0x%04X), sid=%d, len=%d; %s\n",
+		pr_info("%-11s: write(0x%04X), len=%d; %s\n",
 			vreg->rdesc.name, vreg->base_addr + addr,
-			vreg->spmi_dev->sid, len, str);
+			len, str);
 	}
 
-	rc = spmi_ext_register_writel(vreg->spmi_dev->ctrl,
-		vreg->spmi_dev->sid, vreg->base_addr + addr, buf, len);
+	rc = spmi_ext_register_writel(vreg->spmi_dev,
+		vreg->base_addr + addr, buf, len);
 	if (!rc)
 		vreg->write_count += len;
 
@@ -1326,23 +1328,24 @@ static int qpnp_regulator_init_registers(struct qpnp_regulator *vreg,
 static int qpnp_regulator_get_dt_config(struct spmi_device *spmi,
 				struct qpnp_regulator_platform_data *pdata)
 {
-	struct resource *res;
 	struct device_node *node = spmi->dev.of_node;
 	int rc = 0;
 
 	pdata->init_data.constraints.input_uV
 		= pdata->init_data.constraints.max_uV;
 
-	res = spmi_get_resource(spmi, NULL, IORESOURCE_MEM, 0);
-	if (!res) {
+	struct resource res;
+	/* ... */
+	rc = of_address_to_resource(node, 0, &res);
+	if (rc) {
 		dev_err(&spmi->dev, "%s: node is missing base address\n",
 			__func__);
 		return -EINVAL;
 	}
-	pdata->base_addr = res->start;
+	pdata->base_addr = res.start;
 
 	/* OCP IRQ is optional so ignore get errors. */
-	pdata->ocp_irq = spmi_get_irq_byname(spmi, NULL, "ocp");
+	pdata->ocp_irq = of_irq_get_byname(node, "ocp");
 	if (pdata->ocp_irq < 0)
 		pdata->ocp_irq = 0;
 
@@ -1400,6 +1403,7 @@ static int qpnp_regulator_probe(struct spmi_device *spmi)
 	struct regulator_desc *rdesc;
 	struct qpnp_regulator_platform_data of_pdata;
 	struct regulator_init_data *init_data;
+	struct regulator_config config = { };
 	char *reg_name;
 	int rc;
 	bool is_dt;
@@ -1531,8 +1535,12 @@ static int qpnp_regulator_probe(struct spmi_device *spmi)
 		INIT_DELAYED_WORK(&vreg->ocp_work, qpnp_regulator_vs_ocp_work);
 	}
 
-	vreg->rdev = regulator_register(rdesc, &spmi->dev,
-			&(pdata->init_data), vreg, spmi->dev.of_node);
+	config.dev = &spmi->dev;
+	config.init_data = &pdata->init_data;
+	config.driver_data = vreg;
+	config.of_node = spmi->dev.of_node;
+
+	vreg->rdev = regulator_register(rdesc, &config);
 	if (IS_ERR(vreg->rdev)) {
 		rc = PTR_ERR(vreg->rdev);
 		if (rc != -EPROBE_DEFER)
@@ -1558,7 +1566,7 @@ bail:
 	return rc;
 }
 
-static int qpnp_regulator_remove(struct spmi_device *spmi)
+static void qpnp_regulator_remove(struct spmi_device *spmi)
 {
 	struct qpnp_regulator *vreg;
 
@@ -1572,8 +1580,6 @@ static int qpnp_regulator_remove(struct spmi_device *spmi)
 		kfree(vreg->rdesc.name);
 		kfree(vreg);
 	}
-
-	return 0;
 }
 
 static struct of_device_id spmi_match_table[] = {
@@ -1595,7 +1601,6 @@ static struct spmi_driver qpnp_regulator_driver = {
 	},
 	.probe		= qpnp_regulator_probe,
 	.remove		= qpnp_regulator_remove,
-	.id_table	= qpnp_regulator_id,
 };
 
 /*
