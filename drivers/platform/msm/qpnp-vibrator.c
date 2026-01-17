@@ -18,6 +18,8 @@
 #include <linux/slab.h>
 #include <linux/hrtimer.h>
 #include <linux/of_device.h>
+#include <linux/of_device.h>
+#include <linux/of_address.h>
 #include <linux/spmi.h>
 
 #include <linux/qpnp/vibrator.h>
@@ -133,8 +135,7 @@ static int qpnp_vib_read_u8(struct qpnp_vib *vib, u8 *data, u16 reg)
 {
 	int rc;
 
-	rc = spmi_ext_register_readl(vib->spmi->ctrl, vib->spmi->sid,
-							reg, data, 1);
+	rc = spmi_ext_register_readl(vib->spmi, reg, data, 1);
 	if (rc < 0)
 		dev_err(&vib->spmi->dev,
 			"Error reading address: %X - ret %X\n", reg, rc);
@@ -146,8 +147,7 @@ static int qpnp_vib_write_u8(struct qpnp_vib *vib, u8 *data, u16 reg)
 {
 	int rc;
 
-	rc = spmi_ext_register_writel(vib->spmi->ctrl, vib->spmi->sid,
-							reg, data, 1);
+	rc = spmi_ext_register_writel(vib->spmi, reg, data, 1);
 	if (rc < 0)
 		dev_err(&vib->spmi->dev,
 			"Error writing address: %X - ret %X\n", reg, rc);
@@ -305,7 +305,7 @@ static int qpnp_vibrator_suspend(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(qpnp_vibrator_pm_ops, qpnp_vibrator_suspend, NULL);
 
-static int __devinit qpnp_vibrator_probe(struct spmi_device *spmi)
+static int qpnp_vibrator_probe(struct spmi_device *spmi)
 {
 	struct qpnp_vib *vib;
 	struct resource *vib_resource;
@@ -364,12 +364,13 @@ static int __devinit qpnp_vibrator_probe(struct spmi_device *spmi)
 	vib->vtg_max /= 100;
 	vib->vtg_default = vib->vtg_level;
 
-	vib_resource = spmi_get_resource(spmi, 0, IORESOURCE_MEM, 0);
-	if (!vib_resource) {
+	struct resource res;
+	rc = of_address_to_resource(spmi->dev.of_node, 0, &res);
+	if (rc) {
 		dev_err(&spmi->dev, "Unable to get vibrator base address\n");
 		return -EINVAL;
 	}
-	vib->base = vib_resource->start;
+	vib->base = res.start;
 
 	/* save the control registers values */
 	rc = qpnp_vib_read_u8(vib, &val, QPNP_VIB_VTG_CTL(vib->base));
@@ -425,7 +426,7 @@ error_create_level:
 	return rc;
 }
 
-static int  __devexit qpnp_vibrator_remove(struct spmi_device *spmi)
+static void qpnp_vibrator_remove(struct spmi_device *spmi)
 {
 	struct qpnp_vib *vib = dev_get_drvdata(&spmi->dev);
 
@@ -436,7 +437,7 @@ static int  __devexit qpnp_vibrator_remove(struct spmi_device *spmi)
 	device_remove_file(vib->timed_dev.dev, &dev_attr_vtg_default);
 	timed_output_dev_unregister(&vib->timed_dev);
 
-	return 0;
+	timed_output_dev_unregister(&vib->timed_dev);
 }
 
 static struct of_device_id spmi_match_table[] = {
@@ -452,7 +453,8 @@ static struct spmi_driver qpnp_vibrator_driver = {
 		.pm	= &qpnp_vibrator_pm_ops,
 	},
 	.probe		= qpnp_vibrator_probe,
-	.remove		= __devexit_p(qpnp_vibrator_remove),
+	.probe		= qpnp_vibrator_probe,
+	.remove		= qpnp_vibrator_remove,
 };
 
 static int __init qpnp_vibrator_init(void)

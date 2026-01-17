@@ -15,6 +15,7 @@
 #include <linux/spmi.h>
 #include <linux/err.h>
 #include <linux/qpnp-revid.h>
+#include <linux/of_address.h>
 
 #define REVID_REVISION1	0x0
 #define REVID_REVISION2	0x1
@@ -57,7 +58,7 @@ static u8 qpnp_read_byte(struct spmi_device *spmi, u16 addr)
 	int rc;
 	u8 val;
 
-	rc = spmi_ext_register_readl(spmi->ctrl, spmi->sid, addr, &val, 1);
+	rc = spmi_ext_register_readl(spmi, addr, &val, 1);
 	if (rc) {
 		pr_err("SPMI read failed rc=%d\n", rc);
 		return 0;
@@ -128,32 +129,34 @@ static size_t build_pmic_string(char *buf, size_t n, int sid,
 
 #define PMIC_PERIPHERAL_TYPE		0x51
 #define PMIC_STRING_MAXLENGTH		80
-static int __devinit qpnp_revid_probe(struct spmi_device *spmi)
+static int qpnp_revid_probe(struct spmi_device *spmi)
 {
 	u8 rev1, rev2, rev3, rev4, pmic_type, pmic_subtype, pmic_status;
 	u8 option1, option2, option3, option4;
-	struct resource *resource;
 	char pmic_string[PMIC_STRING_MAXLENGTH] = {'\0'};
 	struct revid_chip *revid_chip;
 
-	resource = spmi_get_resource(spmi, NULL, IORESOURCE_MEM, 0);
-	if (!resource) {
+	struct resource res;
+	int rc;
+
+	rc = of_address_to_resource(spmi->dev.of_node, 0, &res);
+	if (rc) {
 		pr_err("Unable to get spmi resource for REVID\n");
 		return -EINVAL;
 	}
-	pmic_type = qpnp_read_byte(spmi, resource->start + REVID_TYPE);
+	pmic_type = qpnp_read_byte(spmi, res.start + REVID_TYPE);
 	if (pmic_type != PMIC_PERIPHERAL_TYPE) {
 		pr_err("Invalid REVID peripheral type: %02X\n", pmic_type);
 		return -EINVAL;
 	}
 
-	rev1 = qpnp_read_byte(spmi, resource->start + REVID_REVISION1);
-	rev2 = qpnp_read_byte(spmi, resource->start + REVID_REVISION2);
-	rev3 = qpnp_read_byte(spmi, resource->start + REVID_REVISION3);
-	rev4 = qpnp_read_byte(spmi, resource->start + REVID_REVISION4);
+	rev1 = qpnp_read_byte(spmi, res.start + REVID_REVISION1);
+	rev2 = qpnp_read_byte(spmi, res.start + REVID_REVISION2);
+	rev3 = qpnp_read_byte(spmi, res.start + REVID_REVISION3);
+	rev4 = qpnp_read_byte(spmi, res.start + REVID_REVISION4);
 
-	pmic_subtype = qpnp_read_byte(spmi, resource->start + REVID_SUBTYPE);
-	pmic_status = qpnp_read_byte(spmi, resource->start + REVID_STATUS1);
+	pmic_subtype = qpnp_read_byte(spmi, res.start + REVID_SUBTYPE);
+	pmic_status = qpnp_read_byte(spmi, res.start + REVID_STATUS1);
 
 	revid_chip = devm_kzalloc(&spmi->dev, sizeof(struct revid_chip),
 						GFP_KERNEL);
@@ -177,7 +180,7 @@ static int __devinit qpnp_revid_probe(struct spmi_device *spmi)
 	option3 = (pmic_status >> 4) & 0x3;
 	option4 = (pmic_status >> 6) & 0x3;
 
-	build_pmic_string(pmic_string, PMIC_STRING_MAXLENGTH, spmi->sid,
+	build_pmic_string(pmic_string, PMIC_STRING_MAXLENGTH, spmi->usid,
 			pmic_subtype, rev1, rev2, rev3, rev4);
 	pr_info("%s options: %d, %d, %d, %d\n",
 			pmic_string, option1, option2, option3, option4);

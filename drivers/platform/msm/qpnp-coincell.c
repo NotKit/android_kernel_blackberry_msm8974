@@ -18,6 +18,7 @@
 #include <linux/spmi.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
+#include <linux/of_address.h>
 #include <linux/platform_device.h>
 
 #define QPNP_COINCELL_DRIVER_NAME "qcom,qpnp-coincell"
@@ -167,6 +168,7 @@ static int qpnp_coincell_probe(struct spmi_device *spmi)
 {
 	struct device_node *node = spmi->dev.of_node;
 	struct qpnp_coincell *chip;
+	struct resource res;
 	u32 temp;
 	int rc = 0;
 
@@ -183,7 +185,8 @@ static int qpnp_coincell_probe(struct spmi_device *spmi)
 	}
 	chip->spmi_dev = spmi;
 
-	struct resource res;
+	chip->spmi_dev = spmi;
+
 	rc = of_address_to_resource(node, 0, &res);
 	if (rc) {
 		dev_err(&spmi->dev, "%s: node is missing base address\n",
