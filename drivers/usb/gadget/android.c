@@ -61,7 +61,8 @@
 #include "f_audio_source.c"
 #endif
 #include "f_fs.c"
-#include "f_mass_storage.c"
+#include "function/f_mass_storage.c"
+#include "function/storage_common.c"
 // #include "u_serial.c"
 #include "u_sdio.c"
 #include "u_smd.c"

@@ -205,6 +205,13 @@ config USB_F_ACC
 config USB_F_MIDI
 	tristate
 
+config USB_CONFIGFS_UEVENT
+	boolean "Uevent notification of Gadget state"
+	help
+	  Enable uevent notifications to userspace when the gadget
+	  state changes. The gadget can be in any of the following
+	  three states: "CONNECTED/DISCONNECTED/CONFIGURED"
+
 choice
 	tristate "USB Gadget Drivers"
 	default USB_ETH
@@ -408,13 +415,7 @@ config USB_CONFIGFS_F_AUDIO_SRC
 	help
 	  USB gadget Audio Source support
 
-config USB_CONFIGFS_UEVENT
-	boolean "Uevent notification of Gadget state"
-	depends on USB_CONFIGFS
-	help
-	  Enable uevent notifications to userspace when the gadget
-	  state changes. The gadget can be in any of the following
-	  three states: "CONNECTED/DISCONNECTED/CONFIGURED"
+
 
 config USB_CONFIGFS_F_MIDI
         boolean "MIDI function"
@@ -434,6 +435,7 @@ config USB_G_ANDROID
 	select USB_F_ACM
 	select USB_LIBCOMPOSITE
 	select USB_U_SERIAL
+	select USB_CONFIGFS_UEVENT
 	help
 	  The Android Composite Gadget supports multiple USB
 	  functions: adb, acm, mass storage, mtp, accessory
