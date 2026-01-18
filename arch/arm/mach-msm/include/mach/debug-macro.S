@@ -28,15 +28,41 @@
 	.endm
 
 	.macro	senduart,rd,rx
-	ldr	r2, [\rx]
-	cmp	r2, #0
-	moveq	r2, #16
-	strb	\rd, [\rx, r2]
-	add	r2, r2, #1
-	str	r2, [\rx]
+#ifdef CONFIG_MSM_HAS_DEBUG_UART_HS
+	@ Clear TX_READY by writing to the UARTDM_CR register
+	mov	r12, #0x300
+	str	r12, [\rx, #UARTDM_CR_OFFSET]
+	@ Write 0x1 to NCF register
+	mov 	r12, #0x1
+	str	r12, [\rx, #UARTDM_NCF_TX_OFFSET]
+	@ UARTDM reg. Read to induce delay
+	ldr	r12, [\rx, #UARTDM_SR_OFFSET]
+	@ Write the 1 character to UARTDM_TF
+	str	\rd, [\rx, #UARTDM_TF_OFFSET]
+#else
+	teq     \rx, #0
+	strne   \rd, [\rx, #0x0C]
+#endif
 	.endm
 
 	.macro	waituart,rd,rx
+#ifdef CONFIG_MSM_HAS_DEBUG_UART_HS
+	@ check for TX_EMT in UARTDM_SR
+	ldr	\rd, [\rx, #UARTDM_SR_OFFSET]
+	tst	\rd, #0x08
+	bne	1002f
+	@ wait for TXREADY in UARTDM_ISR
+1001:	ldreq	\rd, [\rx, #UARTDM_ISR_OFFSET]
+	tst	\rd, #0x80
+	dsb
+	beq 	1001b
+#else
+	@ wait for TX_READY
+1001:   ldr \rd, [\rx, #0x08]
+	tst     \rd, #0x04
+	beq     1001b
+#endif
+1002:
 	.endm
 
 #else
