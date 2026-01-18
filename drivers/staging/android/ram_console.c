@@ -209,5 +209,21 @@ static int __init ram_console_late_init(void)
 	return 0;
 }
 
+void __init ram_console_early_init(unsigned long start, unsigned long size)
+{
+	struct persistent_ram_zone *prz;
+
+	prz = persistent_ram_new(start, size, true);
+	if (IS_ERR(prz)) {
+		pr_err("failed to allocate persistent ram zone\n");
+		return;
+	}
+
+	ram_console_zone = prz;
+	ram_console.data = prz;
+	register_console(&ram_console);
+	kmsg_dump_register(&ram_console_kmsg_dumper);
+}
+
 late_initcall(ram_console_late_init);
 postcore_initcall(ram_console_module_init);

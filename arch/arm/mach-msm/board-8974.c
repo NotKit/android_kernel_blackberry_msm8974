@@ -78,19 +78,14 @@ static struct resource ram_console_resources[] = {
 		.flags = IORESOURCE_MEM,
 	},
 };
-static struct platform_device ram_console_device = {
-	.name           = "ram_console",
-	.id             = -1,
-	.num_resources  = ARRAY_SIZE(ram_console_resources),
-	.resource       = ram_console_resources,
-};
+
+void __init ram_console_early_init(unsigned long start, unsigned long size);
+
 void __init ram_console_debug_init(void)
 {
-	int err;
-	err = platform_device_register(&ram_console_device);
-	if (err)
-		pr_err("%s: ram console registration failed (%d)!\n", __func__, err);
+	ram_console_early_init(ram.start, ram.size);
 }
+console_initcall(ram_console_debug_init);
 #endif
 
 void __init msm_8974_reserve(void)
@@ -125,7 +120,7 @@ void __init msm8974_add_drivers(void)
 	tsens_tm_init_driver();
 	msm_thermal_device_init();
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
-	ram_console_debug_init();
+	/* ram_console_debug_init() is called via console_initcall */
 #endif
 }
 
