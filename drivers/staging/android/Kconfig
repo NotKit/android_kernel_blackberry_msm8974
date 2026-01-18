@@ -86,6 +86,22 @@ config ASHMEM
 	  It is, in theory, a good memory allocator for low-memory devices,
 	  because it can discard shared memory units when under memory pressure.
 
+config ANDROID_PERSISTENT_RAM
+	bool
+	depends on HAVE_MEMBLOCK
+	select REED_SOLOMON
+	select REED_SOLOMON_ENC8
+	select REED_SOLOMON_DEC8
+
+config ANDROID_RAM_CONSOLE
+	bool "Android RAM buffer console"
+	depends on !S390 && !UML && HAVE_MEMBLOCK
+	select ANDROID_PERSISTENT_RAM
+	default n
+	---help---
+	  Enables a persistent RAM-based console for crash debugging.
+	  The console survives warm reboots and can be read at /proc/last_kmsg.
+
 config ANDROID_TIMED_OUTPUT
 	bool "Timed output class driver"
 	default y
