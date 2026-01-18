@@ -14,16 +14,17 @@
  *
  */
 
-
+#define CONFIG_MSM_HAS_DEBUG_UART_HS
+#define CONFIG_MSM_HAS_DEBUG_UART_HS_V14
 
 #include <mach/hardware.h>
 #include <mach/msm_iomap.h>
 #include <mach/msm_serial_hsl_regs.h>
 
-#ifdef MSM_DEBUG_UART_PHYS
-       .macro  addruart, rp, rv, tmp
-	ldr     \rp, =MSM_DEBUG_UART_PHYS
-	ldr     \rv, =MSM_DEBUG_UART_BASE
+#ifdef CONFIG_DEBUG_UART_PHYS
+    .macro  addruart, rp, rv, tmp
+	ldr     \rp, =CONFIG_DEBUG_UART_PHYS
+	ldr     \rv, =CONFIG_DEBUG_UART_VIRT
 	.endm
 
 	.macro	senduart,rd,rx
