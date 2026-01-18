@@ -361,23 +361,29 @@ void __init bootmem_init(void)
 {
 	unsigned long min, max_low, max_high;
 
+	pr_info("DEBUG: bootmem_init: memblock_allow_resize\n");
 	memblock_allow_resize();
 	max_low = max_high = 0;
 
+	pr_info("DEBUG: bootmem_init: find_limits\n");
 	find_limits(&min, &max_low, &max_high);
 
 	/*
 	 * Sparsemem tries to allocate bootmem in memory_present(),
 	 * so must be done after the fixed reservations
 	 */
+	pr_info("DEBUG: bootmem_init: arm_memory_present\n");
 	arm_memory_present();
 
 	/*
 	 * sparse_init() needs the bootmem allocator up and running.
 	 */
+	pr_info("DEBUG: bootmem_init: sparse_init\n");
 	sparse_init();
+	pr_info("DEBUG: bootmem_init: sparse_init done\n");
 
 #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+	pr_info("DEBUG: bootmem_init: arm_bootmem_free_hmnm\n");
 	arm_bootmem_free_hmnm(max_low, max_high);
 #else
 	/*
@@ -385,7 +391,9 @@ void __init bootmem_init(void)
 	 * the sparse mem_map arrays initialized by sparse_init()
 	 * for memmap_init_zone(), otherwise all PFNs are invalid.
 	 */
+	pr_info("DEBUG: bootmem_init: zone_sizes_init\n");
 	zone_sizes_init(min, max_low, max_high);
+	pr_info("DEBUG: bootmem_init: zone_sizes_init done\n");
 
 	/*
 	 * This doesn't seem to be used by the Linux memory manager any
@@ -396,6 +404,7 @@ void __init bootmem_init(void)
 	max_low_pfn = max_low;
 	max_pfn = max_high;
 #endif
+	pr_info("DEBUG: bootmem_init: done\n");
 }
 
 /*

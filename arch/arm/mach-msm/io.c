@@ -57,11 +57,14 @@ static void __init msm_map_io(struct map_desc *io_desc, int size)
 	int i;
 
 	BUG_ON(!size);
-	for (i = 0; i < size; i++)
+	for (i = 0; i < size; i++) {
 		if (io_desc[i].virtual == (unsigned long)MSM_SHARED_RAM_BASE)
 			io_desc[i].pfn = __phys_to_pfn(msm_shared_ram_phys);
-
-	iotable_init(io_desc, size);
+		
+		pr_info("DEBUG: iotable_init mapping %d: virt=%lx\n", i, io_desc[i].virtual);
+		iotable_init(&io_desc[i], 1);
+	}
+	// iotable_init(io_desc, size);
 }
 
 #if defined(CONFIG_ARCH_MSM7X01A) || defined(CONFIG_ARCH_MSM7X27) \
@@ -326,9 +329,13 @@ static struct map_desc msm_8974_io_desc[] __initdata = {
 
 void __init msm_map_8974_io(void)
 {
+	pr_info("DEBUG: msm_map_8974_io start\n");
 	msm_shared_ram_phys = MSM8974_MSM_SHARED_RAM_PHYS;
+	pr_info("DEBUG: calling msm_map_io\n");
 	msm_map_io(msm_8974_io_desc, ARRAY_SIZE(msm_8974_io_desc));
+	pr_info("DEBUG: calling of_scan_flat_dt\n");
 	of_scan_flat_dt(msm_scan_dt_map_imem, NULL);
+	pr_info("DEBUG: msm_map_8974_io end\n");
 }
 #endif /* CONFIG_ARCH_MSM8974 */
 
