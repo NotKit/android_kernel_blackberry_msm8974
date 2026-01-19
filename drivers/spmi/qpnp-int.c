@@ -125,7 +125,9 @@ static int qpnpint_spmi_read(struct q_irq_data *irq_d, uint8_t reg,
 	if (!chip_d->spmi_ctrl)
 		return -ENODEV;
 
-	return spmi_ext_register_readl(chip_d->spmi_ctrl, irq_d->spmi_slave,
+	return chip_d->spmi_ctrl->read_cmd(chip_d->spmi_ctrl,
+				       SPMI_CMD_EXT_READL,
+				       irq_d->spmi_slave,
 				       irq_d->spmi_offset + reg, buf, len);
 }
 
@@ -138,7 +140,9 @@ static int qpnpint_spmi_write(struct q_irq_data *irq_d, uint8_t reg,
 	if (!chip_d->spmi_ctrl)
 		return -ENODEV;
 
-	rc = spmi_ext_register_writel(chip_d->spmi_ctrl, irq_d->spmi_slave,
+	rc = chip_d->spmi_ctrl->write_cmd(chip_d->spmi_ctrl,
+				      SPMI_CMD_EXT_WRITEL,
+				      irq_d->spmi_slave,
 				      irq_d->spmi_offset + reg, buf, len);
 	return rc;
 }
@@ -337,9 +341,9 @@ static int qpnpint_irq_set_type(struct irq_data *d, unsigned int flow_type)
 	}
 
 	if (flow_type & IRQ_TYPE_EDGE_BOTH)
-		__irq_set_handler_locked(d->irq, handle_edge_irq);
+		__irq_set_handler_locked(d->irq, (irq_flow_handler_t)handle_edge_irq);
 	else
-		__irq_set_handler_locked(d->irq, handle_level_irq);
+		__irq_set_handler_locked(d->irq, (irq_flow_handler_t)handle_level_irq);
 
 	return 0;
 }
@@ -506,8 +510,6 @@ static int qpnpint_irq_domain_map(struct irq_domain *d,
 		return -EINVAL;
 	}
 
-	irq_radix_revmap_insert(d, virq, hwirq);
-
 	irq_d = qpnpint_alloc_irq_data(chip_d, hwirq);
 	if (IS_ERR(irq_d)) {
 		pr_err("failed to alloc irq data for hwirq %lu\n", hwirq);
@@ -522,7 +524,7 @@ static int qpnpint_irq_domain_map(struct irq_domain *d,
 
 	irq_set_chip_and_handler(virq,
 			&qpnpint_chip,
-			handle_level_irq);
+			(irq_flow_handler_t)handle_level_irq);
 	irq_set_chip_data(virq, irq_d);
 #ifdef CONFIG_ARM
 	set_irq_flags(virq, IRQF_VALID);
@@ -622,7 +624,7 @@ static int __qpnpint_handle_irq(struct spmi_controller *spmi_ctrl,
 	}
 
 	domain = chip_lookup[busno]->domain;
-	irq = irq_radix_revmap_lookup(domain, hwirq);
+	irq = irq_find_mapping(domain, hwirq);
 
 	if (show) {
 		struct irq_desc *desc;
