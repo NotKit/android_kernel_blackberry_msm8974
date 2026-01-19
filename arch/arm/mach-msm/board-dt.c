@@ -46,7 +46,13 @@ void __init msm_dt_timer_init(void)
 }
 
 /* MSM-specific irqchip drivers - GIC is handled via irqchip_init() */
+static int __init msm_dummy_gic_init(struct device_node *node, struct device_node *parent)
+{
+	return 0;
+}
+
 static struct of_device_id msm_irq_match[] __initdata  = {
+	{ .compatible = "qcom,msm-qgic2", .data = msm_dummy_gic_init, },
 	{ .compatible = "qcom,msm-gpio", .data = msm_gpio_of_init, },
 	{ .compatible = "qcom,spmi-pmic-arb", .data = qpnpint_of_init, },
 	{ .compatible = "qcom,wcd9xxx-irq", .data = wcd9xxx_irq_of_init, },
