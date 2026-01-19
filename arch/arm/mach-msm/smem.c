@@ -344,6 +344,21 @@ static void *__smem_get_entry(unsigned id, unsigned *size,
 }
 
 /**
+ * smem_item - Find SMEM item and return its size (Legacy Compat)
+ * @id:       ID of SMEM item
+ * @size:     Pointer to size variable for storing the result
+ * @returns:  Pointer to SMEM item or NULL if it doesn't exist
+ *
+ * This function provides a compatibility interface for legacy drivers
+ * (like last_radio_log.c) that expect smem_item().
+ */
+void *smem_item(unsigned id, unsigned *size)
+{
+	return __smem_get_entry(id, size, false, true);
+}
+EXPORT_SYMBOL(smem_item);
+
+/**
  * __smem_get_entry_to_proc - Get pointer and size of existing SMEM item with
  *                   security support
  *

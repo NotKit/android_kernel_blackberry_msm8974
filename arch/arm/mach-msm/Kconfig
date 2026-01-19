@@ -277,6 +277,8 @@ config ARCH_MSM8974
 	select MSM_PM if PM
 	select MAY_HAVE_SPARSE_IRQ
 	select SPARSE_IRQ
+	select MSM_SMD
+	select MSM_N_WAY_SMSM
 	select MSM_RPM_SMD
 	select REGULATOR
 	select MSM_QDSP6_APRV2
@@ -539,10 +541,10 @@ config ARCH_MSM8226
 	select MSM_SPM_REGULATOR
 	select MSM_JTAG_MM if CORESIGHT_ETM
 	select MSM_CPR_REGULATOR
-	select MSM_RPM_LOG
 	select MSM_RPM_STATS_LOG
 	select ARCH_WANT_KMAP_ATOMIC_FLUSH
 	select ENABLE_VMALLOC_SAVINGS
+
 
 config ARCH_MSMSAMARIUM
 	bool "MSMSAMARIUM"
@@ -611,6 +613,40 @@ config  MSM_CORTEX_A7
 config  MSM_SMP
 	select HAVE_SMP
 	bool
+
+config MSM_SCM
+	bool
+
+config MSM_SMD
+	bool "MSM Shared Memory Driver (SMD)"
+	help
+	  Support for the shared memory interface between the apps
+	  processor and the baseband processor.  Provides access to
+	  the "shared heap", as well as virtual serial channels
+	  used to communicate with various services on the baseband
+	  processor.
+
+choice
+	prompt "MSM Shared memory interface version"
+	depends on MSM_SMD
+	default MSM_SMD_PKG4
+
+	config MSM_SMD_PKG3
+	  bool
+	    prompt "Package 3"
+
+	config MSM_SMD_PKG4
+	  bool
+	    prompt "Package 4"
+endchoice
+
+config MSM_N_WAY_SMSM
+	depends on MSM_SMD
+	default y
+	bool "MSM N-WAY SMSM support"
+	help
+	  Supports APPS-QDSP SMSM communication along with
+	  normal APPS-MODEM SMSM communication.
 
 config  ARCH_MSM_SCORPIONMP
 	select ARCH_MSM_SCORPION
@@ -1237,3 +1273,4 @@ config MSM_IPC_LOGGING
 	  If in doubt, say no.
 
 endif
+

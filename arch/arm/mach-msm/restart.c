@@ -339,6 +339,8 @@ late_initcall(msm_pmic_restart_init);
 
 static int __init msm_restart_init(void)
 {
+	pr_info("DEBUG: msm_restart_init start\n");
+
 #ifdef CONFIG_MSM_DLOAD_MODE
 	atomic_notifier_chain_register(&panic_notifier_list, &panic_blk);
 	dload_mode_addr = MSM_IMEM_BASE + DLOAD_MODE_ADDR;
@@ -353,6 +355,7 @@ static int __init msm_restart_init(void)
 	if (scm_is_call_available(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER) > 0)
 		scm_pmic_arbiter_disable_supported = true;
 
+	pr_info("DEBUG: msm_restart_init done\n");
 	return 0;
 }
 early_initcall(msm_restart_init);
