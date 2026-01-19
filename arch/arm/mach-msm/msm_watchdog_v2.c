@@ -410,7 +410,7 @@ static void init_watchdog_work(struct work_struct *work)
 			dev_err(wdog_dd->dev, "fail to allocate cpu data\n");
 			return;
 		}
-		*__this_cpu_ptr(wdog_dd->wdog_cpu_dd) = wdog_dd;
+		*this_cpu_ptr(wdog_dd->wdog_cpu_dd) = wdog_dd;
 		ret = request_percpu_irq(wdog_dd->bark_irq, wdog_ppi_bark,
 					"apps_wdog_bark",
 					wdog_dd->wdog_cpu_dd);
@@ -516,7 +516,7 @@ static int  msm_wdog_dt_to_pdata(struct platform_device *pdev,
 								__func__);
 		return -ENXIO;
 	}
-	pdata->irq_ppi = irq_is_per_cpu(pdata->bark_irq);
+	pdata->irq_ppi = irqd_is_per_cpu(irq_get_irq_data(pdata->bark_irq));
 	dump_pdata(pdata);
 	return 0;
 }

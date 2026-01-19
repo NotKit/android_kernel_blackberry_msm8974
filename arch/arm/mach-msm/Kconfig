@@ -299,6 +299,7 @@ config ARCH_MSM8974
 	select HAS_MACH_MEMUTILS
 	select MSM_IPC_LOGGING
 	select MSM_QPNP_INT
+	select MSM_WATCHDOG_V2
 
 config ARCH_APQ8084
 	bool "APQ8084"
@@ -1272,6 +1273,14 @@ config MSM_IPC_LOGGING
 	  This option allows the debug logging for IPC Drivers.
 
 	  If in doubt, say no.
+
+config MSM_WATCHDOG_V2
+	bool "MSM Watchdog Support"
+	help
+		This enables the watchdog module. It causes kernel panic if the
+		watchdog times out. It allows for detection of cpu hangs and
+		deadlocks. It does not run during the bootup process, so it will
+		not catch any early lockups.
 
 endif
 
