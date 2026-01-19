@@ -295,6 +295,7 @@ config ARCH_MSM8974
 	select KRAIT_REGULATOR
 	select ENABLE_VMALLOC_SAVINGS
 	select HAS_MACH_MEMUTILS
+	select MSM_IPC_LOGGING
 
 config ARCH_APQ8084
 	bool "APQ8084"
@@ -1227,5 +1228,12 @@ config MSM_PM8X60
 config MSM_NOPM
 	default y if !PM
 	bool
+
+config MSM_IPC_LOGGING
+	bool "MSM Debug Logging for IPC Drivers"
+	help
+	  This option allows the debug logging for IPC Drivers.
+
+	  If in doubt, say no.
 
 endif

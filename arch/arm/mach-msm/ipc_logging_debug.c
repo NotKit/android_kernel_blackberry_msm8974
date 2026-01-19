@@ -153,7 +153,7 @@ void check_and_create_debugfs(void)
 
 		if (IS_ERR(root_dent)) {
 			pr_err("%s: unable to create debugfs %ld\n",
-				__func__, IS_ERR(root_dent));
+				__func__, (long)IS_ERR(root_dent));
 			root_dent = NULL;
 		}
 	}
