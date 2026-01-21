@@ -313,6 +313,14 @@ void __init msm_map_apq8064_io(void)
 
 #ifdef CONFIG_ARCH_MSM8974
 static struct map_desc msm_8974_io_desc[] __initdata = {
+#if defined(CONFIG_DEBUG_UART_PHYS) && defined(CONFIG_DEBUG_UART_VIRT)
+	{
+		.virtual = CONFIG_DEBUG_UART_VIRT,
+		.pfn = __phys_to_pfn(CONFIG_DEBUG_UART_PHYS),
+		.length = SZ_4K,
+		.type = MT_DEVICE,
+	},
+#endif
 	MSM_CHIP_DEVICE(QGIC_DIST, MSM8974),
 	MSM_CHIP_DEVICE(QGIC_CPU, MSM8974),
 	MSM_CHIP_DEVICE(TLMM, MSM8974),
