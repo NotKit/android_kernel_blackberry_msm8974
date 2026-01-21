@@ -1352,12 +1352,10 @@ static void __init devicemaps_init(const struct machine_desc *mdesc)
 	/*
 	 * Ask the machine support to map in the statically mapped devices.
 	 */
-	pr_info("DEBUG: devicemaps_init: map_io calling\n");
 	if (mdesc->map_io)
 		mdesc->map_io();
 	else
 		debug_ll_io_init();
-	pr_info("DEBUG: devicemaps_init: map_io done, calling fill_pmd_gaps\n");
 	fill_pmd_gaps();
 
 	/* Reserve fixed i/o space in VMALLOC region */
@@ -1369,11 +1367,8 @@ static void __init devicemaps_init(const struct machine_desc *mdesc)
 	 * any write-allocated cache lines in the vector page are written
 	 * back.  After this point, we can start to touch devices again.
 	 */
-	pr_info("DEBUG: devicemaps_init: flushing tlb/cache\n");
 	local_flush_tlb_all();
-	pr_info("DEBUG: calling flush_cache_all\n");
 	flush_cache_all();
-	pr_info("DEBUG: devicemaps_init: done\n");
 }
 
 static void __init kmap_init(void)
@@ -1551,34 +1546,21 @@ void __init paging_init(const struct machine_desc *mdesc)
 {
 	void *zero_page;
 
-	pr_info("DEBUG: calling build_mem_type_table\n");
 	build_mem_type_table();
-	pr_info("DEBUG: calling prepare_page_table\n");
 	prepare_page_table();
-	pr_info("DEBUG: calling map_lowmem\n");
 	map_lowmem();
-	pr_info("DEBUG: calling dma_contiguous_remap\n");
 	dma_contiguous_remap();
-	pr_info("DEBUG: calling devicemaps_init\n");
 	devicemaps_init(mdesc);
-	pr_info("DEBUG: calling kmap_init\n");
 	kmap_init();
-	pr_info("DEBUG: calling tcm_init\n");
 	tcm_init();
-	pr_info("DEBUG: tcm_init done\n");
 
 	top_pmd = pmd_off_k(0xffff0000);
-	pr_info("DEBUG: top_pmd set\n");
 
 	/* allocate the zero page. */
 	zero_page = early_alloc(PAGE_SIZE);
-	pr_info("DEBUG: zero_page allocated\n");
 
 	bootmem_init();
-	pr_info("DEBUG: bootmem_init done\n");
 
 	empty_zero_page = virt_to_page(zero_page);
-	pr_info("DEBUG: calling __flush_dcache_page\n");
 	__flush_dcache_page(NULL, empty_zero_page);
-	pr_info("DEBUG: paging_init complete\n");
 }
