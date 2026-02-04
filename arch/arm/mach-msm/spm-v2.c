@@ -121,6 +121,7 @@ static void msm_spm_drv_flush_shadow(struct msm_spm_driver_data *dev,
 {
 	__raw_writel(dev->reg_shadow[reg_index],
 		dev->reg_base_addr + dev->reg_offsets[reg_index]);
+	mb();
 }
 
 static void msm_spm_drv_load_shadow(struct msm_spm_driver_data *dev,
@@ -129,6 +130,7 @@ static void msm_spm_drv_load_shadow(struct msm_spm_driver_data *dev,
 	dev->reg_shadow[reg_index] =
 		__raw_readl(dev->reg_base_addr +
 				dev->reg_offsets[reg_index]);
+	mb();
 }
 
 static inline void msm_spm_drv_set_start_addr(
@@ -235,11 +237,41 @@ void msm_spm_drv_flush_seq_entry(struct msm_spm_driver_data *dev)
 	}
 
 	for (i = 0; i < num_spm_entry; i++) {
-		__raw_writel(dev->reg_seq_entry_shadow[i],
+		writel_relaxed(dev->reg_seq_entry_shadow[i],
 			dev->reg_base_addr
 			+ dev->reg_offsets[MSM_SPM_REG_SAW2_SEQ_ENTRY]
 			+ 4 * i);
 	}
+	mb();
+}
+
+/**
+ * msm_spm_drv_flush_shadow_regs - Flush control registers to hardware
+ * @dev: SPM driver data
+ *
+ * This function flushes the shadow control registers to hardware.
+ * IMPORTANT: Must be called AFTER msm_spm_drv_flush_seq_entry() to match
+ * the mainline kernel order (sequence entries first, then control registers).
+ */
+void msm_spm_drv_flush_shadow_regs(struct msm_spm_driver_data *dev)
+{
+	int i;
+
+	if (!dev) {
+		__WARN();
+		return;
+	}
+
+	for (i = 0; i < MSM_SPM_REG_NR_INITIALIZE; i++)
+		msm_spm_drv_flush_shadow(dev, i);
+
+	/* barrier to ensure write completes before we update shadow registers */
+	mb();
+
+	for (i = 0; i < MSM_SPM_REG_NR_INITIALIZE; i++)
+		msm_spm_drv_load_shadow(dev, i);
+
+	/* barrier to ensure read completes before we proceed further */
 	mb();
 }
 
@@ -504,8 +536,9 @@ int msm_spm_drv_init(struct msm_spm_driver_data *dev,
 	for (i = 0; i < ARRAY_SIZE(saw2_info); i++)
 		if (dev->major == saw2_info[i].major &&
 			dev->minor == saw2_info[i].minor) {
-			pr_debug("%s: Version found\n",
-					saw2_info[i].ver_name);
+			pr_debug("%s: SAW2 version %s (major=%d minor=%d) found, SEQ_ENTRY offset=0x%x\n",
+				__func__, saw2_info[i].ver_name, dev->major, dev->minor,
+				saw2_info[i].spm_reg_offset_ptr[MSM_SPM_REG_SAW2_SEQ_ENTRY]);
 			dev->reg_offsets = saw2_info[i].spm_reg_offset_ptr;
 			found = true;
 			break;
@@ -516,18 +549,12 @@ int msm_spm_drv_init(struct msm_spm_driver_data *dev,
 		BUG_ON(!found);
 	}
 
-	for (i = 0; i < MSM_SPM_REG_NR_INITIALIZE; i++)
-		msm_spm_drv_flush_shadow(dev, i);
-	/* barrier to ensure write completes before we update shadow
-	 * registers
+	/*
+	 * MAINLINE FIX: Do NOT flush control registers here.
+	 * The sequence entries must be written FIRST, then control registers.
+	 * Control registers will be flushed via msm_spm_drv_flush_shadow_regs()
+	 * AFTER sequence entries are written.
 	 */
-	mb();
-
-	for (i = 0; i < MSM_SPM_REG_NR_INITIALIZE; i++)
-		msm_spm_drv_load_shadow(dev, i);
-
-	/* barrier to ensure read completes before we proceed further*/
-	mb();
 
 	num_spm_entry = msm_spm_drv_get_num_spm_entry(dev);
 

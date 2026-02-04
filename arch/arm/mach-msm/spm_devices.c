@@ -172,11 +172,22 @@ static int  msm_spm_dev_init(struct msm_spm_device *dev,
 		goto spm_failed_malloc;
 
 	dev->reg_data.ver_reg = data->ver_reg;
+
+	/*
+	 * MAINLINE FIX: Write sequence entries FIRST, before control registers.
+	 * On some SoC if the control registers are written first and if the
+	 * CPU was held in reset, the reset signal could trigger the SPM state
+	 * machine, before the sequences are completely written.
+	 * See: drivers/soc/qcom/spm.c in mainline kernel.
+	 */
+
+	/* Step 1: Initialize driver data WITHOUT writing control registers */
 	ret = msm_spm_drv_init(&dev->reg_data, data);
 
 	if (ret)
 		goto spm_failed_init;
 
+	/* Step 2: Write sequence data to shadow registers */
 	for (i = 0; i < dev->num_modes; i++) {
 
 		/* Default offset is 0 and gets updated as we write more
@@ -191,7 +202,13 @@ static int  msm_spm_dev_init(struct msm_spm_device *dev,
 		dev->modes[i].mode = data->modes[i].mode;
 		dev->modes[i].notify_rpm = data->modes[i].notify_rpm;
 	}
+
+	/* Step 3: Flush sequence entries to hardware FIRST */
 	msm_spm_drv_flush_seq_entry(&dev->reg_data);
+
+	/* Step 4: Now flush control registers AFTER sequences are written */
+	msm_spm_drv_flush_shadow_regs(&dev->reg_data);
+
 	dev->initialized = true;
 	return 0;
 
