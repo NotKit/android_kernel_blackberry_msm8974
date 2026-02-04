@@ -95,6 +95,90 @@ static inline __maybe_unused phys_addr_t cma_early_percent_memory(void)
 
 #endif
 
+/* Legacy support for linux,reserve-contiguous-region */
+#ifdef CONFIG_OF
+#include <linux/of.h>
+#include <linux/of_fdt.h>
+#include <linux/string.h>
+
+struct cma_label_map {
+	char label[64];
+	struct cma *cma;
+};
+
+#define MAX_CMA_LABEL_MAPS 32
+static struct cma_label_map cma_label_maps[MAX_CMA_LABEL_MAPS];
+static int cma_label_map_count;
+
+struct cma *dma_contiguous_get_cma_by_label(const char *label)
+{
+	int i;
+	if (!label)
+		return NULL;
+	for (i = 0; i < cma_label_map_count; i++) {
+		if (strcmp(cma_label_maps[i].label, label) == 0)
+			return cma_label_maps[i].cma;
+	}
+	return NULL;
+}
+EXPORT_SYMBOL(dma_contiguous_get_cma_by_label);
+
+phys_addr_t cma_get_base_phys(struct cma *cma)
+{
+	return cma_get_base(cma);
+}
+EXPORT_SYMBOL(cma_get_base_phys);
+
+static int __init cma_fdt_scan(unsigned long node, const char *uname,
+				int depth, void *data)
+{
+	phys_addr_t base, size;
+	unsigned long len;
+	const __be32 *prop;
+	const char *name;
+	struct cma *cma = NULL;
+	unsigned long size_cells = OF_ROOT_NODE_SIZE_CELLS_DEFAULT;
+	unsigned long addr_cells = OF_ROOT_NODE_ADDR_CELLS_DEFAULT;
+
+	if (!of_get_flat_dt_prop(node, "linux,reserve-contiguous-region", NULL))
+		return 0;
+
+	prop = of_get_flat_dt_prop(0, "#size-cells", NULL);
+	if (prop)
+		size_cells = be32_to_cpup(prop);
+
+	prop = of_get_flat_dt_prop(0, "#address-cells", NULL);
+	if (prop)
+		addr_cells = be32_to_cpup(prop);
+
+	prop = of_get_flat_dt_prop(node, "reg", &len);
+	if (!prop)
+		return 0;
+
+	base = dt_mem_next_cell(addr_cells, &prop);
+	size = dt_mem_next_cell(size_cells, &prop);
+
+	name = of_get_flat_dt_prop(node, "label", NULL);
+
+	if (dma_contiguous_reserve_area(size, base, 0, &cma, base != 0) == 0) {
+		if (cma_label_map_count < MAX_CMA_LABEL_MAPS && name) {
+			strlcpy(cma_label_maps[cma_label_map_count].label, name, sizeof(cma_label_maps[cma_label_map_count].label));
+			cma_label_maps[cma_label_map_count].cma = cma;
+			cma_label_map_count++;
+			pr_info("Reserved legacy CMA area %s at %pa, size %pa\n", name, &base, &size);
+		}
+	}
+	return 0;
+}
+
+static void __init dma_contiguous_reserve_early(void)
+{
+	of_scan_flat_dt(cma_fdt_scan, NULL);
+}
+#else
+static inline void dma_contiguous_reserve_early(void) { }
+#endif
+
 /**
  * dma_contiguous_reserve() - reserve area(s) for contiguous memory handling
  * @limit: End address of the reserved memory (optional, 0 for any).
@@ -110,6 +194,8 @@ void __init dma_contiguous_reserve(phys_addr_t limit)
 	phys_addr_t selected_base = 0;
 	phys_addr_t selected_limit = limit;
 	bool fixed = false;
+
+	dma_contiguous_reserve_early();
 
 	pr_debug("%s(limit %08lx)\n", __func__, (unsigned long)limit);
 
