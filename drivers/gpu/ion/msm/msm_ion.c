@@ -536,7 +536,14 @@ static void msm_ion_get_heap_base(struct device_node *node,
 
 	pnode = of_parse_phandle(node, "linux,contiguous-region", 0);
 	if (pnode != NULL) {
-		heap->base = cma_get_base(heap->priv);
+		/*
+		 * In 3.18 kernel, cma_get_base() expects struct cma *, not
+		 * struct device *. Use dev_get_cma_area() to convert.
+		 */
+		struct device *dev = heap->priv;
+		struct cma *cma = dev_get_cma_area(dev);
+		if (cma)
+			heap->base = cma_get_base(cma);
 		of_node_put(pnode);
 	}
 
