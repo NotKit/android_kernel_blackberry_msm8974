@@ -1503,7 +1503,15 @@ static int  rpm_vreg_device_probe(struct platform_device *pdev)
 	list_add(&reg->list, &rpm_vreg->reg_list);
 	rpm_vreg_unlock(rpm_vreg);
 
-	reg->rdev = regulator_register(&reg->rdesc, dev, init_data, reg, node);
+	{
+		struct regulator_config config = {
+			.dev = dev,
+			.init_data = init_data,
+			.driver_data = reg,
+			.of_node = node,
+		};
+		reg->rdev = regulator_register(&reg->rdesc, &config);
+	}
 	if (IS_ERR(reg->rdev)) {
 		rc = PTR_ERR(reg->rdev);
 		reg->rdev = NULL;
@@ -1661,7 +1669,7 @@ static struct of_device_id rpm_vreg_match_table_resource[] = {
 
 static struct platform_driver rpm_vreg_device_driver = {
 	.probe = rpm_vreg_device_probe,
-	.remove = _p(rpm_vreg_device_remove),
+	.remove = rpm_vreg_device_remove,
 	.driver = {
 		.name = "qcom,rpm-regulator-smd",
 		.owner = THIS_MODULE,
@@ -1671,7 +1679,7 @@ static struct platform_driver rpm_vreg_device_driver = {
 
 static struct platform_driver rpm_vreg_resource_driver = {
 	.probe = rpm_vreg_resource_probe,
-	.remove = _p(rpm_vreg_resource_remove),
+	.remove = rpm_vreg_resource_remove,
 	.driver = {
 		.name = "qcom,rpm-regulator-smd-resource",
 		.owner = THIS_MODULE,

@@ -718,6 +718,18 @@ config MSM_RPM_SMD
 	  the MSM_MPM config that programs the MPM module to monitor interrupts
 	  during sleep modes.
 
+config MSM_RPM_REGULATOR_SMD
+	bool "SMD RPM regulator driver"
+	depends on REGULATOR
+	depends on OF
+	depends on MSM_RPM_SMD
+	help
+	  Compile in support for the SMD RPM regulator driver which is used for
+	  setting voltages and other parameters of the various power rails
+	  supplied by some Qualcomm PMICs.  The SMD RPM regulator driver should
+	  be used on systems which contain an RPM which communicates with the
+	  application processor over SMD.
+
 config MSM_MPM
 	bool "Modem Power Manager"
 	help
