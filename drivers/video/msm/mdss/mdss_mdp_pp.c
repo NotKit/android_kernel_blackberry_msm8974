@@ -1996,7 +1996,7 @@ void mdss_mdp_pp_term(struct device *dev)
 		msm_bus_scale_unregister_client(mdata->pp_bus_hdl);
 		mdata->pp_bus_hdl = 0;
 	}
-	if (!mdss_pp_res) {
+	if (mdss_pp_res) {
 		mutex_lock(&mdss_pp_mutex);
 		devm_kfree(dev, mdss_pp_res);
 		mdss_pp_res = NULL;
