@@ -41,7 +41,7 @@
 
 #if defined(CONFIG_LEDS_CLASS) || (defined(CONFIG_LEDS_CLASS_MODULE) && \
 	defined(CONFIG_MMC_SDHCI_MODULE))
-#define SDHCI_USE_LEDS_CLASS
+//#define SDHCI_USE_LEDS_CLASS
 #endif
 
 #define MAX_TUNING_LOOP 40
@@ -1818,10 +1818,10 @@ static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 
 	mutex_lock(&host->ios_mutex);
 	if (host->flags & SDHCI_DEVICE_DEAD) {
-		spin_unlock_irqrestore(&host->lock, flags);
 		if (!IS_ERR(mmc->supply.vmmc) &&
 		    ios->power_mode == MMC_POWER_OFF)
 			mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, 0);
+		mutex_unlock(&host->ios_mutex);
 		return;
 	}
 
@@ -1831,6 +1831,13 @@ static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 	spin_unlock_irqrestore(&host->lock, flags);
 	if (ios->clock) {
 		sdhci_set_clock(host, ios->clock);
+		if (host->ops->set_clock && host->ops->set_clock != sdhci_set_clock) {
+			host->ops->set_clock(host, ios->clock);
+		} else {
+			spin_lock_irqsave(&host->lock, flags);
+			sdhci_set_clock(host, ios->clock);
+			spin_unlock_irqrestore(&host->lock, flags);
+		}
 		if (host->async_int_supp && sdhci_get_async_int_status(host)) {
 			if (host->disable_sdio_irq_deferred) {
 				pr_debug("%s: %s: disable sdio irq\n",
@@ -1860,6 +1867,7 @@ static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 		if (ret) {
 			pr_err("%s: enabling controller clock failed\n",
 				   mmc_hostname(mmc));
+			mutex_unlock(&host->ios_mutex);
 			return;
 		}
 	}
@@ -2010,6 +2018,7 @@ static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 	} else
 		sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
 
+	spin_lock_irqsave(&host->lock, flags);
 	spin_unlock_irqrestore(&host->lock, flags);
 	/*
 	 * Some (ENE) controllers go apeshit on some ios operation,
@@ -2588,6 +2597,8 @@ static void sdhci_card_event(struct mmc_host *mmc)
 }
 
 static const struct mmc_host_ops sdhci_ops = {
+	.pre_req	= sdhci_pre_req,
+	.post_req	= sdhci_post_req,
 	.request	= sdhci_request,
 	.set_ios	= sdhci_set_ios,
 	.get_cd		= sdhci_get_cd,
@@ -2596,6 +2607,9 @@ static const struct mmc_host_ops sdhci_ops = {
 	.enable_sdio_irq = sdhci_enable_sdio_irq,
 	.start_signal_voltage_switch	= sdhci_start_signal_voltage_switch,
 	.execute_tuning			= sdhci_execute_tuning,
+	.enable		= sdhci_enable,
+	.disable	= sdhci_disable,
+	.notify_load	= sdhci_notify_load,
 	.card_event			= sdhci_card_event,
 	.card_busy	= sdhci_card_busy,
 };
@@ -3829,8 +3843,6 @@ int sdhci_add_host(struct sdhci_host *host)
 		host->tuning_timer.function = sdhci_tuning_timer;
 	}
 
-	sdhci_init(host, 0);
-
 	ret = request_threaded_irq(host->irq, sdhci_irq, sdhci_thread_irq,
 				   IRQF_SHARED,	mmc_hostname(mmc), host);
 	if (ret) {
@@ -3838,6 +3850,10 @@ int sdhci_add_host(struct sdhci_host *host)
 		       mmc_hostname(mmc), host->irq, ret);
 		goto untasklet;
 	}
+
+	host->irq_enabled = true;
+
+	sdhci_init(host, 0);
 
 #ifdef CONFIG_MMC_DEBUG
 	sdhci_dumpregs(host);

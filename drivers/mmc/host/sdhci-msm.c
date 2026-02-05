@@ -1518,7 +1518,14 @@ static int sdhci_msm_dt_parse_gpio_info(struct device *dev,
 
 			snprintf(result, GPIO_NAME_MAX_LEN, "%s-%s",
 					dev_name(dev), name ? name : "?");
-			pin_data->gpio_data->gpio[i].name = result;
+			pin_data->gpio_data->gpio[i].name =
+				devm_kstrdup(dev, result, GFP_KERNEL);
+			if (!pin_data->gpio_data->gpio[i].name) {
+				dev_err(dev, "%s: failed to duplicate gpio name\n",
+					__func__);
+				ret = -ENOMEM;
+				goto out;
+			}
 			dev_dbg(dev, "%s: gpio[%s] = %d\n", __func__,
 				pin_data->gpio_data->gpio[i].name,
 				pin_data->gpio_data->gpio[i].no);
@@ -1671,6 +1678,40 @@ static struct sdhci_msm_pltfm_data *sdhci_msm_populate_pdata(struct device *dev)
 	else
 		pdata->mpm_sdiowakeup_int = -1;
 
+	len = of_get_child_count(np);
+	if (len) {
+		struct sdhci_msm_pin_data *pin_data = NULL;
+		int ret;
+		int id = 0;
+
+		pin_data = devm_kzalloc(dev, sizeof(struct sdhci_msm_pin_data),
+			GFP_KERNEL);
+		dev_info(dev, "DEBUG: pin_data alloc %p size %u\n", pin_data, sizeof(struct sdhci_msm_pin_data));
+
+		if (!pin_data) {
+			dev_err(dev, "failed to allocate memory for pin data\n");
+			goto out;
+		}
+		pin_data->is_gpio = 0;
+
+		pin_data->pad_data = devm_kzalloc(dev, sizeof(struct sdhci_msm_pad_data),
+				GFP_KERNEL);
+		if (!pin_data->pad_data) {
+			dev_err(dev, "failed to allocate memory for pad data\n");
+			goto out;
+		}
+
+		ret = sdhci_msm_dt_get_pad_pull_info(
+			dev, id, &pin_data->pad_data->pull);
+		if (ret)
+			goto out;
+		ret = sdhci_msm_dt_get_pad_drv_info(
+			dev, id, &pin_data->pad_data->drv);
+		if (ret)
+			goto out;
+
+		pdata->pin_data = pin_data;
+	}
 	return pdata;
 out:
 	return NULL;
@@ -2771,13 +2812,14 @@ static void sdhci_msm_set_clock(struct sdhci_host *host, unsigned int clock)
 			return;
 		}
 		msm_host->clk_rate = sup_clock;
-		host->clock = clock;
 		/*
 		 * Update the bus vote in case of frequency change due to
 		 * clock scaling.
 		 */
 		sdhci_msm_bus_voting(host, 1);
 	}
+	/* Always update host->clock to reflect the requested clock */
+	host->clock = clock;
 }
 
 static void sdhci_msm_set_uhs_signaling(struct sdhci_host *host,
@@ -2957,6 +2999,7 @@ void sdhci_msm_dump_vendor_regs(struct sdhci_host *host)
 }
 
 static struct sdhci_ops sdhci_msm_ops = {
+	.reset = sdhci_reset,
 	.set_uhs_signaling = sdhci_msm_set_uhs_signaling,
 	.check_power_status = sdhci_msm_check_power_status,
 	.execute_tuning = sdhci_msm_execute_tuning,
@@ -2965,6 +3008,7 @@ static struct sdhci_ops sdhci_msm_ops = {
 	.set_clock = sdhci_msm_set_clock,
 	.get_min_clock = sdhci_msm_get_min_clock,
 	.get_max_clock = sdhci_msm_get_max_clock,
+	.set_bus_width = sdhci_set_bus_width,
 	.disable_data_xfer = sdhci_msm_disable_data_xfer,
 	.dump_vendor_regs = sdhci_msm_dump_vendor_regs,
 	.config_auto_tuning_cmd = sdhci_msm_config_auto_tuning_cmd,
