@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,23 +14,24 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <mach/msm_bus.h>
 #include <linux/platform_device.h>
 #include <linux/io.h>
 #include <linux/clk.h>
 #include <linux/iommu.h>
 #include <linux/interrupt.h>
+#include <mach/msm_bus.h>
 #include <linux/err.h>
 #include <linux/slab.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 
-#include <mach/iommu_hw-v1.h>
-#include <mach/iommu.h>
-#include <mach/iommu_perfmon.h>
-#include <mach/msm_bus.h>
+#include "msm_iommu_hw-v1.h"
+#include <linux/qcom_iommu.h>
+#include "msm_iommu_perfmon.h"
 
-static struct of_device_id msm_iommu_v1_ctx_match_table[];
+static struct of_device_id msm_iommu_ctx_match_table[];
 
 #ifdef CONFIG_IOMMU_LPAE
 static const char *BFB_REG_NODE_NAME = "qcom,iommu-lpae-bfb-regs";
@@ -126,6 +127,11 @@ static void __put_bus_vote_client(struct msm_iommu_drvdata *drvdata)
 	drvdata->bus_client = 0;
 }
 
+/*
+ * CONFIG_IOMMU_NON_SECURE allows us to override the secure
+ * designation of SMMUs in device tree. With this config enabled
+ * all SMMUs will be programmed by this driver.
+ */
 #ifdef CONFIG_IOMMU_NON_SECURE
 static inline void get_secure_id(struct device_node *node,
 			  struct msm_iommu_drvdata *drvdata)
@@ -133,22 +139,43 @@ static inline void get_secure_id(struct device_node *node,
 }
 
 static inline void get_secure_ctx(struct device_node *node,
+				  struct msm_iommu_drvdata *iommu_drvdata,
 				  struct msm_iommu_ctx_drvdata *ctx_drvdata)
 {
 	ctx_drvdata->secure_context = 0;
 }
 #else
+
+static inline int is_vfe_smmu(char const *iommu_name)
+{
+	return (strcmp(iommu_name, "vfe_iommu") == 0);
+}
+
 static void get_secure_id(struct device_node *node,
 			  struct msm_iommu_drvdata *drvdata)
 {
-	of_property_read_u32(node, "qcom,iommu-secure-id", &drvdata->sec_id);
+	if (msm_iommu_get_scm_call_avail()) {
+		if (!is_vfe_smmu(drvdata->name) || is_vfe_secure())
+			of_property_read_u32(node, "qcom,iommu-secure-id",
+					     &drvdata->sec_id);
+		else
+			pr_info("vfe_iommu: Keeping vfe non-secure\n");
+	}
 }
 
 static void get_secure_ctx(struct device_node *node,
+			   struct msm_iommu_drvdata *iommu_drvdata,
 			   struct msm_iommu_ctx_drvdata *ctx_drvdata)
 {
-	ctx_drvdata->secure_context =
+	u32 secure_ctx = 0;
+
+	if (msm_iommu_get_scm_call_avail()) {
+		if (!is_vfe_smmu(iommu_drvdata->name) || is_vfe_secure()) {
+			secure_ctx =
 			of_property_read_bool(node, "qcom,secure-context");
+		}
+	}
+	ctx_drvdata->secure_context = secure_ctx;
 }
 #endif
 
@@ -170,17 +197,8 @@ static int msm_iommu_parse_dt(struct platform_device *pdev,
 	if (ret)
 		goto fail;
 
-	for_each_child_of_node(pdev->dev.of_node, child)
+	for_each_available_child_of_node(pdev->dev.of_node, child)
 		drvdata->ncb++;
-
-	drvdata->asid = devm_kzalloc(&pdev->dev, drvdata->ncb * sizeof(int),
-				     GFP_KERNEL);
-
-	if (!drvdata->asid) {
-		pr_err("Unable to get memory for asid array\n");
-		ret = -ENOMEM;
-		goto fail;
-	}
 
 	ret = of_property_read_string(pdev->dev.of_node, "label",
 				      &drvdata->name);
@@ -204,14 +222,6 @@ static int msm_iommu_parse_dt(struct platform_device *pdev,
 
 	drvdata->halt_enabled = of_property_read_bool(pdev->dev.of_node,
 						      "qcom,iommu-enable-halt");
-
-	ret = of_platform_populate(pdev->dev.of_node,
-				   msm_iommu_v1_ctx_match_table,
-				   NULL, &pdev->dev);
-	if (ret) {
-		pr_err("Failed to create iommu context device\n");
-		goto fail;
-	}
 
 	msm_iommu_add_drv(drvdata);
 	return 0;
@@ -285,7 +295,9 @@ static int msm_iommu_probe(struct platform_device *pdev)
 	struct iommu_pmon *pmon_info;
 	struct msm_iommu_drvdata *drvdata;
 	struct resource *r;
-	int ret, needs_alt_core_clk;
+	int ret, needs_alt_core_clk, needs_alt_iface_clk;
+	int global_cfg_irq, global_client_irq;
+	u32 temp;
 
 	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
 	if (!drvdata)
@@ -300,7 +312,27 @@ static int msm_iommu_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	drvdata->phys_base = r->start;
+
+	if (IS_ENABLED(CONFIG_MSM_IOMMU_VBIF_CHECK)) {
+		drvdata->vbif_base =
+			ioremap(drvdata->phys_base - (phys_addr_t) 0x4000,
+				0x1000);
+		WARN_ON_ONCE(!drvdata->vbif_base);
+	}
+
+	r = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+					"smmu_local_base");
+	if (r) {
+		drvdata->smmu_local_base =
+			devm_ioremap(&pdev->dev, r->start, resource_size(r));
+		if (!drvdata->smmu_local_base)
+			return -ENOMEM;
+	}
+
 	drvdata->glb_base = drvdata->base;
+
+	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-mmu-500"))
+		drvdata->model = MMU_500;
 
 	if (of_get_property(pdev->dev.of_node, "vdd-supply", NULL)) {
 
@@ -317,20 +349,63 @@ static int msm_iommu_probe(struct platform_device *pdev)
 	}
 
 	drvdata->pclk = devm_clk_get(&pdev->dev, "iface_clk");
-	if (IS_ERR(drvdata->pclk))
-		return PTR_ERR(drvdata->pclk);
+	if (IS_ERR(drvdata->pclk)) {
+		ret = PTR_ERR(drvdata->pclk);
+		drvdata->pclk = NULL;
+		goto fail;
+	}
+
+	ret = clk_prepare(drvdata->pclk);
+	if (ret)
+		return ret;
 
 	drvdata->clk = devm_clk_get(&pdev->dev, "core_clk");
-	if (IS_ERR(drvdata->clk))
-		return PTR_ERR(drvdata->clk);
+	if (IS_ERR(drvdata->clk)) {
+		ret = PTR_ERR(drvdata->clk);
+		drvdata->clk = NULL;
+		goto fail;
+	}
+
+	ret = clk_prepare(drvdata->clk);
+	if (ret)
+		goto fail;
 
 	needs_alt_core_clk = of_property_read_bool(pdev->dev.of_node,
 						   "qcom,needs-alt-core-clk");
 	if (needs_alt_core_clk) {
 		drvdata->aclk = devm_clk_get(&pdev->dev, "alt_core_clk");
-		if (IS_ERR(drvdata->aclk))
-			return PTR_ERR(drvdata->aclk);
+		if (IS_ERR(drvdata->aclk)) {
+			ret =  PTR_ERR(drvdata->aclk);
+			drvdata->aclk = NULL;
+			goto fail;
+		}
+
+		ret =  clk_prepare(drvdata->aclk);
+		if (ret)
+			goto fail;
 	}
+
+	needs_alt_iface_clk = of_property_read_bool(pdev->dev.of_node,
+						   "qcom,needs-alt-iface-clk");
+	if (needs_alt_iface_clk) {
+		drvdata->aiclk = devm_clk_get(&pdev->dev, "alt_iface_clk");
+		if (IS_ERR(drvdata->aiclk)) {
+			ret = PTR_ERR(drvdata->aiclk);
+			drvdata->aiclk = NULL;
+			goto fail;
+		}
+
+		ret =  clk_prepare(drvdata->aiclk);
+		if (ret)
+			goto fail;
+	}
+
+	if (!of_property_read_u32(pdev->dev.of_node,
+				"qcom,cb-base-offset",
+				&temp))
+		drvdata->cb_base = drvdata->base + temp;
+	else
+		drvdata->cb_base = drvdata->base + 0x8000;
 
 	if (clk_get_rate(drvdata->clk) == 0) {
 		ret = clk_round_rate(drvdata->clk, 1000);
@@ -342,12 +417,18 @@ static int msm_iommu_probe(struct platform_device *pdev)
 		clk_set_rate(drvdata->aclk, ret);
 	}
 
+	if (drvdata->aiclk && clk_get_rate(drvdata->aiclk) == 0) {
+		ret = clk_round_rate(drvdata->aiclk, 1000);
+		clk_set_rate(drvdata->aiclk, ret);
+	}
+
 	ret = msm_iommu_parse_dt(pdev, drvdata);
 	if (ret)
 		return ret;
 
-	dev_info(&pdev->dev, "device %s mapped at %p, with %d ctx banks\n",
-		drvdata->name, drvdata->base, drvdata->ncb);
+	dev_info(&pdev->dev,
+		"device %s (model: %d) mapped at %p, with %d ctx banks\n",
+		drvdata->name, drvdata->model, drvdata->base, drvdata->ncb);
 
 	platform_set_drvdata(pdev, drvdata);
 
@@ -373,7 +454,47 @@ static int msm_iommu_probe(struct platform_device *pdev)
 			}
 		}
 	}
-	return 0;
+
+	global_cfg_irq =
+		platform_get_irq_byname(pdev, "global_cfg_NS_irq");
+	if (global_cfg_irq > 0) {
+		ret = devm_request_threaded_irq(&pdev->dev, global_cfg_irq,
+				NULL,
+				msm_iommu_global_fault_handler,
+				IRQF_ONESHOT | IRQF_SHARED |
+				IRQF_TRIGGER_RISING,
+				"msm_iommu_global_cfg_irq", pdev);
+		if (ret < 0)
+			pr_err("Request Global CFG IRQ %d failed with ret=%d\n",
+					global_cfg_irq, ret);
+	}
+
+	global_client_irq =
+		platform_get_irq_byname(pdev, "global_client_NS_irq");
+	if (global_client_irq > 0) {
+		ret = devm_request_threaded_irq(&pdev->dev, global_client_irq,
+				NULL,
+				msm_iommu_global_fault_handler,
+				IRQF_ONESHOT | IRQF_SHARED |
+				IRQF_TRIGGER_RISING,
+				"msm_iommu_global_client_irq", pdev);
+		if (ret < 0)
+			pr_err("Request Global Client IRQ %d failed with ret=%d\n",
+					global_client_irq, ret);
+	}
+
+	ret = of_platform_populate(pdev->dev.of_node, msm_iommu_ctx_match_table,
+				   NULL, &pdev->dev);
+fail:
+	if (ret) {
+		clk_unprepare(drvdata->clk);
+		clk_unprepare(drvdata->pclk);
+		clk_unprepare(drvdata->aclk);
+		clk_unprepare(drvdata->aiclk);
+		pr_err("Failed to create iommu context device\n");
+	}
+
+	return ret;
 }
 
 static int msm_iommu_remove(struct platform_device *pdev)
@@ -386,6 +507,10 @@ static int msm_iommu_remove(struct platform_device *pdev)
 	drv = platform_get_drvdata(pdev);
 	if (drv) {
 		__put_bus_vote_client(drv);
+		clk_unprepare(drv->clk);
+		clk_unprepare(drv->pclk);
+		clk_unprepare(drv->aclk);
+		clk_unprepare(drv->aiclk);
 		msm_iommu_remove_drv(drv);
 		platform_set_drvdata(pdev, NULL);
 	}
@@ -397,12 +522,26 @@ static int msm_iommu_ctx_parse_dt(struct platform_device *pdev,
 {
 	struct resource *r, rp;
 	int irq = 0, ret = 0;
+	struct msm_iommu_drvdata *drvdata;
 	u32 nsid;
+	u32 n_sid_mask;
+	unsigned long cb_offset;
 
-	get_secure_ctx(pdev->dev.of_node, ctx_drvdata);
+	drvdata = dev_get_drvdata(pdev->dev.parent);
 
-	if (ctx_drvdata->secure_context) {
+	get_secure_ctx(pdev->dev.of_node, drvdata, ctx_drvdata);
+
+	if (drvdata->sec_id != -1) {
 		irq = platform_get_irq(pdev, 1);
+
+		/*
+		 * This is for supporting old DTs where it was assumed
+		 * that interrupt 0 is only required as their CB is
+		 * non-secure.
+		 */
+		if (irq < 0)
+			irq = platform_get_irq(pdev, 0);
+
 		if (irq > 0) {
 			ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
 					msm_iommu_secure_fault_handler_v2,
@@ -415,18 +554,21 @@ static int msm_iommu_ctx_parse_dt(struct platform_device *pdev,
 			}
 		}
 	} else {
+		/*
+		 * Skip non-secure IRQ registration during probe.
+		 * The fault handler requires the IOMMU to be attached and
+		 * powered on (checks drvdata->powered_on), so registering
+		 * it here is premature. Additionally, enabling the interrupt
+		 * in the GIC during probe can cause an intermittent spinlock
+		 * deadlock on irq_controller_lock when racing with other
+		 * GIC operations on other CPUs.
+		 *
+		 * The non-secure fault IRQ will still be available if needed
+		 * by registering it at attach time.
+		 */
 		irq = platform_get_irq(pdev, 0);
-		if (irq > 0) {
-			ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
-					msm_iommu_fault_handler_v2,
-					IRQF_ONESHOT | IRQF_SHARED,
-					"msm_iommu_nonsecure_irq", pdev);
-			if (ret) {
-				pr_err("Request IRQ %d failed with ret=%d\n",
-					irq, ret);
-				goto out;
-			}
-		}
+		if (irq > 0)
+			pr_info("non-secure irq %d available for later registration\n", irq);
 	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -439,16 +581,22 @@ static int msm_iommu_ctx_parse_dt(struct platform_device *pdev,
 	if (ret)
 		goto out;
 
-	/* Calculate the context bank number using the base addresses. The
-	 * first 8 pages belong to the global address space which is followed
-	 * by the context banks, hence subtract by 8 to get the context bank
-	 * number.
+	/* Calculate the context bank number using the base addresses.
+	 * Typically CB0 base address is 0x8000 pages away if the number
+	 * of CBs are <=8. So, assume the offset 0x8000 until mentioned
+	 * explicitely.
 	 */
-	ctx_drvdata->num = ((r->start - rp.start) >> CTX_SHIFT) - 8;
+	cb_offset = drvdata->cb_base - drvdata->base;
+	ctx_drvdata->num = ((r->start - rp.start - cb_offset)
+					>> CTX_SHIFT);
 
 	if (of_property_read_string(pdev->dev.of_node, "label",
 					&ctx_drvdata->name))
 		ctx_drvdata->name = dev_name(&pdev->dev);
+
+	ctx_drvdata->report_error_on_fault =
+		of_property_read_bool(pdev->dev.of_node,
+				"qcom,report-error-on-fault");
 
 	if (!of_get_property(pdev->dev.of_node, "qcom,iommu-ctx-sids", &nsid)) {
 		ret = -EINVAL;
@@ -468,6 +616,26 @@ static int msm_iommu_ctx_parse_dt(struct platform_device *pdev,
 	ctx_drvdata->nsid = nsid;
 
 	ctx_drvdata->asid = -1;
+
+	if (!of_get_property(pdev->dev.of_node, "qcom,iommu-sid-mask",
+						&n_sid_mask)) {
+		memset(ctx_drvdata->sid_mask, 0, MAX_NUM_SMR);
+		goto out;
+	}
+
+	if (n_sid_mask != nsid) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	if (of_property_read_u32_array(pdev->dev.of_node, "qcom,iommu-sid-mask",
+				ctx_drvdata->sid_mask,
+				n_sid_mask / sizeof(*ctx_drvdata->sid_mask))) {
+		ret = -EINVAL;
+		goto out;
+	}
+	ctx_drvdata->n_sid_mask = n_sid_mask;
+
 out:
 	return ret;
 }
@@ -507,27 +675,29 @@ static int msm_iommu_ctx_remove(struct platform_device *pdev)
 
 static struct of_device_id msm_iommu_match_table[] = {
 	{ .compatible = "qcom,msm-smmu-v1", },
+	{ .compatible = "qcom,msm-smmu-v2", },
 	{}
 };
 
 static struct platform_driver msm_iommu_driver = {
 	.driver = {
-		.name	= "msm_iommu_v1",
+		.name	= "msm_iommu",
 		.of_match_table = msm_iommu_match_table,
 	},
 	.probe		= msm_iommu_probe,
 	.remove		= msm_iommu_remove,
 };
 
-static struct of_device_id msm_iommu_v1_ctx_match_table[] = {
+static struct of_device_id msm_iommu_ctx_match_table[] = {
 	{ .compatible = "qcom,msm-smmu-v1-ctx", },
+	{ .compatible = "qcom,msm-smmu-v2-ctx", },
 	{}
 };
 
 static struct platform_driver msm_iommu_ctx_driver = {
 	.driver = {
-		.name	= "msm_iommu_ctx_v1",
-		.of_match_table = msm_iommu_v1_ctx_match_table,
+		.name	= "msm_iommu_ctx",
+		.of_match_table = msm_iommu_ctx_match_table,
 	},
 	.probe		= msm_iommu_ctx_probe,
 	.remove		= msm_iommu_ctx_remove,
@@ -537,10 +707,11 @@ static int __init msm_iommu_driver_init(void)
 {
 	int ret;
 
-	if (!msm_soc_version_supports_iommu_v0()) {
-		msm_set_iommu_access_ops(&iommu_access_ops_v1);
-		msm_iommu_sec_set_access_ops(&iommu_access_ops_v1);
-	}
+	msm_iommu_check_scm_call_avail();
+
+	msm_set_iommu_access_ops(&iommu_access_ops_v1);
+	msm_iommu_sec_set_access_ops(&iommu_access_ops_v1);
+
 	ret = platform_driver_register(&msm_iommu_driver);
 	if (ret != 0) {
 		pr_err("Failed to register IOMMU driver\n");
