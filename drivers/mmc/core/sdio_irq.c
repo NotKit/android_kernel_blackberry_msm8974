@@ -93,7 +93,9 @@ void sdio_run_irqs(struct mmc_host *host)
 {
 	mmc_claim_host(host);
 	host->sdio_irq_pending = true;
+	mmc_host_clk_hold(host);
 	process_sdio_pending_irqs(host);
+	mmc_host_clk_release(host);
 	mmc_release_host(host);
 }
 EXPORT_SYMBOL_GPL(sdio_run_irqs);
@@ -138,6 +140,17 @@ static int sdio_irq_thread(void *_host)
 		ret = __mmc_claim_host(host, &host->sdio_irq_thread_abort);
 		if (ret)
 			break;
+		ws = false;
+		/*
+		 * prevent suspend if it has started when scheduled;
+		 * 100 msec (approx. value) should be enough for the system to
+		 * resume and attend to the card's request
+		 */
+		if ((host->dev_status == DEV_SUSPENDING) ||
+		    (host->dev_status == DEV_SUSPENDED)) {
+			pm_wakeup_event(&host->card->dev, 100);
+			ws = true;
+		}
 		ret = process_sdio_pending_irqs(host);
 		host->sdio_irq_pending = false;
 		mmc_release_host(host);

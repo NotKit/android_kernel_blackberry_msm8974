@@ -222,6 +222,55 @@ out:
 	return ret;
 }
 
+static void sdio_enable_vendor_specific_settings(struct mmc_card *card)
+{
+	int ret;
+	u8 settings;
+
+	if (mmc_enable_qca6574_settings(card) ||
+		mmc_enable_qca9377_settings(card) ||
+		mmc_enable_qca9379_settings(card)) {
+		ret = mmc_io_rw_direct(card, 1, 0, 0xF2, 0x0F, NULL);
+		if (ret) {
+			pr_crit("%s: failed to write to fn 0xf2 %d\n",
+					mmc_hostname(card->host), ret);
+			goto out;
+		}
+
+		ret = mmc_io_rw_direct(card, 0, 0, 0xF1, 0, &settings);
+		if (ret) {
+			pr_crit("%s: failed to read fn 0xf1 %d\n",
+					mmc_hostname(card->host), ret);
+			goto out;
+		}
+
+		settings |= 0x80;
+		ret = mmc_io_rw_direct(card, 1, 0, 0xF1, settings, NULL);
+		if (ret) {
+			pr_crit("%s: failed to write to fn 0xf1 %d\n",
+					mmc_hostname(card->host), ret);
+			goto out;
+		}
+
+		ret = mmc_io_rw_direct(card, 0, 0, 0xF0, 0, &settings);
+		if (ret) {
+			pr_crit("%s: failed to read fn 0xf0 %d\n",
+					mmc_hostname(card->host), ret);
+			goto out;
+		}
+
+		settings |= 0x20;
+		ret = mmc_io_rw_direct(card, 1, 0, 0xF0, settings, NULL);
+		if (ret) {
+			pr_crit("%s: failed to write to fn 0xf0 %d\n",
+					mmc_hostname(card->host), ret);
+			goto out;
+		}
+	}
+out:
+	return;
+}
+
 static int sdio_enable_wide(struct mmc_card *card)
 {
 	int ret;
@@ -243,7 +292,10 @@ static int sdio_enable_wide(struct mmc_card *card)
 
 	/* set as 4-bit bus width */
 	ctrl &= ~SDIO_BUS_WIDTH_MASK;
-	ctrl |= SDIO_BUS_WIDTH_4BIT;
+	if (card->host->caps & MMC_CAP_8_BIT_DATA)
+		ctrl |= SDIO_BUS_WIDTH_8BIT;
+	else if (card->host->caps & MMC_CAP_4_BIT_DATA)
+		ctrl |= SDIO_BUS_WIDTH_4BIT;
 
 	ret = mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_IF, ctrl, NULL);
 	if (ret)
@@ -542,6 +594,9 @@ static int sdio_set_bus_speed_mode(struct mmc_card *card)
 	if (err)
 		return err;
 
+	/* Vendor specific settings based on card quirks */
+	sdio_enable_vendor_specific_settings(card);
+
 	speed &= ~SDIO_SPEED_BSS_MASK;
 	speed |= bus_speed;
 	err = mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_SPEED, speed, NULL);
@@ -590,8 +645,8 @@ static int mmc_sdio_init_uhs_card(struct mmc_card *card)
 	 * SDR104 mode SD-cards. Note that tuning is mandatory for SDR104.
 	 */
 	if (!mmc_host_is_spi(card->host) &&
-	    ((card->host->ios.timing == MMC_TIMING_UHS_SDR50) ||
-	      (card->host->ios.timing == MMC_TIMING_UHS_SDR104)))
+	    ((card->sw_caps.sd3_bus_mode & SD_MODE_UHS_SDR50) ||
+	     (card->sw_caps.sd3_bus_mode & SD_MODE_UHS_SDR104)))
 		err = mmc_execute_tuning(card);
 out:
 	return err;
@@ -976,6 +1031,7 @@ static int mmc_sdio_pre_suspend(struct mmc_host *host)
  */
 static int mmc_sdio_suspend(struct mmc_host *host)
 {
+	MMC_TRACE(host, "%s: Enter\n", __func__);
 	if (mmc_card_keep_power(host) && mmc_card_wake_sdio_irq(host)) {
 		mmc_claim_host(host);
 		sdio_disable_wide(host->card);
@@ -984,6 +1040,9 @@ static int mmc_sdio_suspend(struct mmc_host *host)
 
 	if (!mmc_card_keep_power(host))
 		mmc_power_off(host);
+	else if (host->ios.clock)
+		mmc_gate_clock(host);
+	MMC_TRACE(host, "%s: Exit\n", __func__);
 
 	return 0;
 }
@@ -995,6 +1054,7 @@ static int mmc_sdio_resume(struct mmc_host *host)
 	BUG_ON(!host);
 	BUG_ON(!host->card);
 
+	MMC_TRACE(host, "%s: Enter\n", __func__);
 	/* Basic card reinitialization. */
 	mmc_claim_host(host);
 
@@ -1045,6 +1105,8 @@ static int mmc_sdio_resume(struct mmc_host *host)
 	mmc_release_host(host);
 
 	host->pm_flags &= ~MMC_PM_KEEP_POWER;
+	host->pm_flags &= ~MMC_PM_WAKE_SDIO_IRQ;
+	MMC_TRACE(host, "%s: Exit err: %d\n", __func__, err);
 	return err;
 }
 
@@ -1263,38 +1325,6 @@ err:
 
 int sdio_reset_comm(struct mmc_card *card)
 {
-	struct mmc_host *host = card->host;
-	u32 ocr;
-	u32 rocr;
-	int err;
-
-	printk("%s():\n", __func__);
-	mmc_claim_host(host);
-
-	mmc_go_idle(host);
-
-	mmc_set_clock(host, host->f_min);
-
-	err = mmc_send_io_op_cond(host, 0, &ocr);
-	if (err)
-		goto err;
-
-	rocr = mmc_select_voltage(host, ocr);
-	if (!rocr) {
-		err = -EINVAL;
-		goto err;
-	}
-
-	err = mmc_sdio_init_card(host, rocr, card, 0);
-	if (err)
-		goto err;
-
-	mmc_release_host(host);
-	return 0;
-err:
-	printk("%s: Error resetting SDIO communications (%d)\n",
-	       mmc_hostname(host), err);
-	mmc_release_host(host);
-	return err;
+	return mmc_power_restore_host(card->host);
 }
 EXPORT_SYMBOL(sdio_reset_comm);
