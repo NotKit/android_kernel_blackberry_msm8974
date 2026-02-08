@@ -35,7 +35,11 @@
 #ifndef __LINUX_REGULATOR_CONSUMER_H_
 #define __LINUX_REGULATOR_CONSUMER_H_
 
+<<<<<<< HEAD
+#include <linux/compiler.h>
+=======
 #include <linux/err.h>
+>>>>>>> android-3.18
 
 struct device;
 struct notifier_block;
@@ -97,10 +101,14 @@ struct regmap;
  * VOLTAGE_CHANGE Regulator voltage changed.
  *                Data passed is old voltage cast to (void *).
  * DISABLE        Regulator was disabled.
+<<<<<<< HEAD
+ * ENABLE         Regulator was enabled.
+=======
  * PRE_VOLTAGE_CHANGE   Regulator is about to have voltage changed.
  *                      Data passed is "struct pre_voltage_change_data"
  * ABORT_VOLTAGE_CHANGE Regulator voltage change failed for some reason.
  *                      Data passed is old voltage cast to (void *).
+>>>>>>> android-3.18
  *
  * NOTE: These events can be OR'ed together when passed into handler.
  */
@@ -113,6 +121,9 @@ struct regmap;
 #define REGULATOR_EVENT_FORCE_DISABLE		0x20
 #define REGULATOR_EVENT_VOLTAGE_CHANGE		0x40
 #define REGULATOR_EVENT_DISABLE 		0x80
+<<<<<<< HEAD
+#define REGULATOR_EVENT_ENABLE			0x100
+=======
 #define REGULATOR_EVENT_PRE_VOLTAGE_CHANGE	0x100
 #define REGULATOR_EVENT_ABORT_VOLTAGE_CHANGE	0x200
 
@@ -128,6 +139,7 @@ struct pre_voltage_change_data {
 	unsigned long min_uV;
 	unsigned long max_uV;
 };
+>>>>>>> android-3.18
 
 struct regulator;
 
@@ -138,6 +150,10 @@ struct regulator;
  *            using the bulk regulator APIs.
  * @consumer: The regulator consumer for the supply.  This will be managed
  *            by the bulk API.
+ * @min_uV:   The minimum requested voltage for the regulator (in microvolts),
+ *            or 0 to not set a voltage.
+ * @max_uV:   The maximum requested voltage for the regulator (in microvolts),
+ *            or 0 to use @min_uV.
  *
  * The regulator APIs provide a series of regulator_bulk_() API calls as
  * a convenience to consumers which require multiple supplies.  This
@@ -146,6 +162,8 @@ struct regulator;
 struct regulator_bulk_data {
 	const char *supply;
 	struct regulator *consumer;
+	int min_uV;
+	int max_uV;
 
 	/* private: Internal use */
 	int ret;
@@ -204,12 +222,23 @@ int regulator_force_disable(struct regulator *regulator);
 int regulator_is_enabled(struct regulator *regulator);
 int regulator_disable_deferred(struct regulator *regulator, int ms);
 
+<<<<<<< HEAD
+int regulator_bulk_get(struct device *dev, int num_consumers,
+		       struct regulator_bulk_data *consumers);
+int devm_regulator_bulk_get(struct device *dev, int num_consumers,
+			    struct regulator_bulk_data *consumers);
+int regulator_bulk_enable(int num_consumers,
+			  struct regulator_bulk_data *consumers);
+int regulator_bulk_set_voltage(int num_consumers,
+			  struct regulator_bulk_data *consumers);
+=======
 int __must_check regulator_bulk_get(struct device *dev, int num_consumers,
 				    struct regulator_bulk_data *consumers);
 int __must_check devm_regulator_bulk_get(struct device *dev, int num_consumers,
 					 struct regulator_bulk_data *consumers);
 int __must_check regulator_bulk_enable(int num_consumers,
 				       struct regulator_bulk_data *consumers);
+>>>>>>> android-3.18
 int regulator_bulk_disable(int num_consumers,
 			   struct regulator_bulk_data *consumers);
 int regulator_bulk_force_disable(int num_consumers,
@@ -425,7 +454,11 @@ static inline void regulator_bulk_free(int num_consumers,
 {
 }
 
+<<<<<<< HEAD
+static inline int regulator_count_voltages(struct regulator *regulator)
+=======
 static inline int regulator_can_change_voltage(struct regulator *regulator)
+>>>>>>> android-3.18
 {
 	return 0;
 }

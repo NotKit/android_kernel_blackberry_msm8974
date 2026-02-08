@@ -557,7 +557,11 @@ static inline void ftrace_disable_daemon(void) { }
 static inline void ftrace_enable_daemon(void) { }
 static inline void ftrace_release_mod(struct module *mod) {}
 static inline void ftrace_module_init(struct module *mod) {}
+<<<<<<< HEAD
+static inline int register_ftrace_command(struct ftrace_func_command *cmd)
+=======
 static inline __init int register_ftrace_command(struct ftrace_func_command *cmd)
+>>>>>>> android-3.18
 {
 	return -EINVAL;
 }
@@ -593,6 +597,8 @@ static inline ssize_t ftrace_notrace_write(struct file *file, const char __user 
 static inline int
 ftrace_regex_release(struct inode *inode, struct file *file) { return -ENODEV; }
 #endif /* CONFIG_DYNAMIC_FTRACE */
+
+loff_t ftrace_filter_lseek(struct file *file, loff_t offset, int whence);
 
 /* totally disable ftrace - can not re-enable after this */
 void ftrace_kill(void);

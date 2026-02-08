@@ -4,8 +4,92 @@
 #ifndef _LINUX_PROC_FS_H
 #define _LINUX_PROC_FS_H
 
+<<<<<<< HEAD
+/*
+ * Offset of the first process in the /proc root directory..
+ */
+#define FIRST_PROCESS_ENTRY 256
+
+/* Worst case buffer size needed for holding an integer. */
+#define PROC_NUMBUF 13
+
+/*
+ * We always define these enumerators
+ */
+
+enum {
+	PROC_ROOT_INO		= 1,
+	PROC_IPC_INIT_INO	= 0xEFFFFFFFU,
+	PROC_UTS_INIT_INO	= 0xEFFFFFFEU,
+	PROC_USER_INIT_INO	= 0xEFFFFFFDU,
+	PROC_PID_INIT_INO	= 0xEFFFFFFCU,
+};
+
+/*
+ * This is not completely implemented yet. The idea is to
+ * create an in-memory tree (like the actual /proc filesystem
+ * tree) of these proc_dir_entries, so that we can dynamically
+ * add new files to /proc.
+ *
+ * The "next" pointer creates a linked list of one /proc directory,
+ * while parent/subdir create the directory structure (every
+ * /proc file has a parent, but "subdir" is NULL for all
+ * non-directory entries).
+ */
+
+typedef	int (read_proc_t)(char *page, char **start, off_t off,
+			  int count, int *eof, void *data);
+typedef	int (write_proc_t)(struct file *file, const char __user *buffer,
+			   unsigned long count, void *data);
+
+struct proc_dir_entry {
+	unsigned int low_ino;
+	umode_t mode;
+	nlink_t nlink;
+	uid_t uid;
+	gid_t gid;
+	loff_t size;
+	const struct inode_operations *proc_iops;
+	/*
+	 * NULL ->proc_fops means "PDE is going away RSN" or
+	 * "PDE is just created". In either case, e.g. ->read_proc won't be
+	 * called because it's too late or too early, respectively.
+	 *
+	 * If you're allocating ->proc_fops dynamically, save a pointer
+	 * somewhere.
+	 */
+	const struct file_operations *proc_fops;
+	struct proc_dir_entry *next, *parent, *subdir;
+	void *data;
+	read_proc_t *read_proc;
+	write_proc_t *write_proc;
+	atomic_t count;		/* use count */
+	int pde_users;	/* number of callers into module in progress */
+	struct completion *pde_unload_completion;
+	struct list_head pde_openers;	/* who did ->open, but not ->release */
+	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
+	u8 namelen;
+	char name[];
+};
+
+enum kcore_type {
+	KCORE_TEXT,
+	KCORE_VMALLOC,
+	KCORE_RAM,
+	KCORE_VMEMMAP,
+	KCORE_OTHER,
+};
+
+struct kcore_list {
+	struct list_head list;
+	unsigned long addr;
+	size_t size;
+	int type;
+};
+=======
 #include <linux/types.h>
 #include <linux/fs.h>
+>>>>>>> android-3.18
 
 struct proc_dir_entry;
 
@@ -34,6 +118,32 @@ static inline struct proc_dir_entry *proc_create(
 	return proc_create_data(name, mode, parent, proc_fops, NULL);
 }
 
+<<<<<<< HEAD
+static inline struct proc_dir_entry *create_proc_read_entry(const char *name,
+	umode_t mode, struct proc_dir_entry *base, 
+	read_proc_t *read_proc, void * data)
+{
+	struct proc_dir_entry *res=create_proc_entry(name,mode,base);
+	if (res) {
+		res->read_proc=read_proc;
+		res->data=data;
+	}
+	return res;
+}
+ 
+extern struct proc_dir_entry *proc_net_fops_create(struct net *net,
+	const char *name, umode_t mode, const struct file_operations *fops);
+extern void proc_net_remove(struct net *net, const char *name);
+extern struct proc_dir_entry *proc_net_mkdir(struct net *net, const char *name,
+	struct proc_dir_entry *parent);
+
+extern struct file *proc_ns_fget(int fd);
+extern bool proc_ns_inode(struct inode *inode);
+
+extern int proc_alloc_inum(unsigned int *pino);
+extern void proc_free_inum(unsigned int inum);
+#else
+=======
 extern void proc_set_size(struct proc_dir_entry *, loff_t);
 extern void proc_set_user(struct proc_dir_entry *, kuid_t, kgid_t);
 extern void *PDE_DATA(const struct inode *);
@@ -41,6 +151,7 @@ extern void *proc_get_parent_data(const struct inode *);
 extern void proc_remove(struct proc_dir_entry *);
 extern void remove_proc_entry(const char *, struct proc_dir_entry *);
 extern int remove_proc_subtree(const char *, struct proc_dir_entry *);
+>>>>>>> android-3.18
 
 #else /* CONFIG_PROC_FS */
 
@@ -72,9 +183,82 @@ static inline void proc_remove(struct proc_dir_entry *de) {}
 #define remove_proc_entry(name, parent) do {} while (0)
 static inline int remove_proc_subtree(const char *name, struct proc_dir_entry *parent) { return 0; }
 
+static inline bool proc_ns_inode(struct inode *inode)
+{
+	return false;
+}
+
+static inline int proc_alloc_inum(unsigned int *inum)
+{
+	*inum = 1;
+	return 0;
+}
+static inline void proc_free_inum(unsigned int inum)
+{
+}
 #endif /* CONFIG_PROC_FS */
 
+<<<<<<< HEAD
+#if !defined(CONFIG_PROC_KCORE)
+static inline void
+kclist_add(struct kcore_list *new, void *addr, size_t size, int type)
+{
+}
+#else
+extern void kclist_add(struct kcore_list *, void *, size_t, int type);
+#endif
+
+struct nsproxy;
+struct proc_ns_operations {
+	const char *name;
+	int type;
+	void *(*get)(struct task_struct *task);
+	void (*put)(void *ns);
+	int (*install)(struct nsproxy *nsproxy, void *ns);
+	unsigned int (*inum)(void *ns);
+};
+extern const struct proc_ns_operations netns_operations;
+extern const struct proc_ns_operations utsns_operations;
+extern const struct proc_ns_operations ipcns_operations;
+extern const struct proc_ns_operations pidns_operations;
+extern const struct proc_ns_operations userns_operations;
+extern const struct proc_ns_operations mntns_operations;
+
+union proc_op {
+	int (*proc_get_link)(struct dentry *, struct path *);
+	int (*proc_read)(struct task_struct *task, char *page);
+	int (*proc_show)(struct seq_file *m,
+		struct pid_namespace *ns, struct pid *pid,
+		struct task_struct *task);
+};
+
+struct ctl_table_header;
+struct ctl_table;
+
+struct proc_inode {
+	struct pid *pid;
+	int fd;
+	union proc_op op;
+	struct proc_dir_entry *pde;
+	struct ctl_table_header *sysctl;
+	struct ctl_table *sysctl_entry;
+	void *ns;
+	const struct proc_ns_operations *ns_ops;
+	struct inode vfs_inode;
+};
+
+static inline struct proc_inode *PROC_I(const struct inode *inode)
+{
+	return container_of(inode, struct proc_inode, vfs_inode);
+}
+
+static inline struct proc_dir_entry *PDE(const struct inode *inode)
+{
+	return PROC_I(inode)->pde;
+}
+=======
 struct net;
+>>>>>>> android-3.18
 
 static inline struct proc_dir_entry *proc_net_mkdir(
 	struct net *net, const char *name, struct proc_dir_entry *parent)

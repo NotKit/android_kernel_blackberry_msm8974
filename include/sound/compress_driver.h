@@ -32,6 +32,7 @@
 #include <sound/pcm.h>
 
 struct snd_compr_ops;
+struct snd_pcm_substream;
 
 /**
  * struct snd_compr_runtime: runtime stream description
@@ -59,6 +60,10 @@ struct snd_compr_runtime {
 	u64 total_bytes_available;
 	u64 total_bytes_transferred;
 	wait_queue_head_t sleep;
+<<<<<<< HEAD
+	struct snd_pcm_substream *fe_substream;
+=======
+>>>>>>> android-3.18
 	void *private_data;
 };
 
@@ -71,7 +76,10 @@ struct snd_compr_runtime {
  * @direction: stream direction, playback/recording
  * @metadata_set: metadata set flag, true when set
  * @next_track: has userspace signall next track transistion, true when set
+<<<<<<< HEAD
+=======
  * @partial_drain: undergoing partial_drain for stream, true when set
+>>>>>>> android-3.18
  * @private_data: pointer to DSP private data
  */
 struct snd_compr_stream {
@@ -82,8 +90,12 @@ struct snd_compr_stream {
 	enum snd_compr_direction direction;
 	bool metadata_set;
 	bool next_track;
+<<<<<<< HEAD
+=======
 	bool partial_drain;
+>>>>>>> android-3.18
 	void *private_data;
+	struct snd_soc_pcm_runtime *be;
 };
 
 /**
@@ -118,6 +130,11 @@ struct snd_compr_ops {
 			struct snd_compr_metadata *metadata);
 	int (*get_metadata)(struct snd_compr_stream *stream,
 			struct snd_compr_metadata *metadata);
+<<<<<<< HEAD
+	int (*set_next_track_param)(struct snd_compr_stream *stream,
+			union snd_codec_options *codec_options);
+=======
+>>>>>>> android-3.18
 	int (*trigger)(struct snd_compr_stream *stream, int cmd);
 	int (*pointer)(struct snd_compr_stream *stream,
 			struct snd_compr_tstamp *tstamp);
@@ -159,6 +176,7 @@ int snd_compress_register(struct snd_compr *device);
 int snd_compress_deregister(struct snd_compr *device);
 int snd_compress_new(struct snd_card *card, int device,
 			int type, struct snd_compr *compr);
+void snd_compress_free(struct snd_card *card, struct snd_compr *compr);
 
 /* dsp driver callback apis
  * For playback: driver should call snd_compress_fragment_elapsed() to let the

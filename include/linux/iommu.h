@@ -19,10 +19,16 @@
 #ifndef __LINUX_IOMMU_H
 #define __LINUX_IOMMU_H
 
+#include <linux/types.h>
 #include <linux/errno.h>
+<<<<<<< HEAD
+#include <linux/scatterlist.h>
+#include <linux/err.h>
+=======
 #include <linux/err.h>
 #include <linux/types.h>
 #include <trace/events/iommu.h>
+>>>>>>> android-3.18
 
 #define IOMMU_READ	(1 << 0)
 #define IOMMU_WRITE	(1 << 1)
@@ -42,18 +48,23 @@ struct notifier_block;
 
 typedef int (*iommu_fault_handler_t)(struct iommu_domain *,
 			struct device *, unsigned long, int, void *);
+<<<<<<< HEAD
+=======
 
 struct iommu_domain_geometry {
 	dma_addr_t aperture_start; /* First address that can be mapped    */
 	dma_addr_t aperture_end;   /* Last address that can be mapped     */
 	bool force_aperture;       /* DMA only allowed in mappable range? */
 };
+>>>>>>> android-3.18
 
 struct iommu_domain {
 	const struct iommu_ops *ops;
 	void *priv;
 	iommu_fault_handler_t handler;
 	void *handler_token;
+<<<<<<< HEAD
+=======
 	struct iommu_domain_geometry geometry;
 };
 
@@ -61,6 +72,7 @@ enum iommu_cap {
 	IOMMU_CAP_CACHE_COHERENCY,	/* IOMMU can enforce cache coherent DMA
 					   transactions */
 	IOMMU_CAP_INTR_REMAP,		/* IOMMU supports interrupt isolation */
+>>>>>>> android-3.18
 };
 
 /*
@@ -98,6 +110,16 @@ enum iommu_attr {
  * @map: map a physically contiguous memory region to an iommu domain
  * @unmap: unmap a physically contiguous memory region from an iommu domain
  * @iova_to_phys: translate iova to physical address
+<<<<<<< HEAD
+ * @domain_has_cap: domain capabilities query
+ * @commit: commit iommu domain
+ * @add_device: add device to iommu grouping
+ * @remove_device: remove device from iommu grouping
+ * @pgsize_bitmap: bitmap of supported page sizes
+ */
+struct iommu_ops {
+	int (*domain_init)(struct iommu_domain *domain, int flags);
+=======
  * @add_device: add device to iommu grouping
  * @remove_device: remove device from iommu grouping
  * @domain_get_attr: Query domain attributes
@@ -107,6 +129,7 @@ enum iommu_attr {
 struct iommu_ops {
 	bool (*capable)(enum iommu_cap);
 	int (*domain_init)(struct iommu_domain *domain);
+>>>>>>> android-3.18
 	void (*domain_destroy)(struct iommu_domain *domain);
 	int (*attach_dev)(struct iommu_domain *domain, struct device *dev);
 	void (*detach_dev)(struct iommu_domain *domain, struct device *dev);
@@ -114,6 +137,19 @@ struct iommu_ops {
 		   phys_addr_t paddr, size_t size, int prot);
 	size_t (*unmap)(struct iommu_domain *domain, unsigned long iova,
 		     size_t size);
+<<<<<<< HEAD
+	int (*map_range)(struct iommu_domain *domain, unsigned int iova,
+		    struct scatterlist *sg, unsigned int len, int prot);
+	int (*unmap_range)(struct iommu_domain *domain, unsigned int iova,
+		      unsigned int len);
+	phys_addr_t (*iova_to_phys)(struct iommu_domain *domain,
+				    unsigned long iova);
+	int (*domain_has_cap)(struct iommu_domain *domain,
+			      unsigned long cap);
+	phys_addr_t (*get_pt_base_addr)(struct iommu_domain *domain);
+	int (*add_device)(struct device *dev);
+	void (*remove_device)(struct device *dev);
+=======
 	phys_addr_t (*iova_to_phys)(struct iommu_domain *domain, dma_addr_t iova);
 	int (*add_device)(struct device *dev);
 	void (*remove_device)(struct device *dev);
@@ -132,6 +168,7 @@ struct iommu_ops {
 	/* Get the numer of window per domain */
 	u32 (*domain_get_windows)(struct iommu_domain *domain);
 
+>>>>>>> android-3.18
 	unsigned long pgsize_bitmap;
 };
 
@@ -142,11 +179,17 @@ struct iommu_ops {
 #define IOMMU_GROUP_NOTIFY_UNBIND_DRIVER	5 /* Pre Driver unbind */
 #define IOMMU_GROUP_NOTIFY_UNBOUND_DRIVER	6 /* Post Driver unbind */
 
+<<<<<<< HEAD
+extern int bus_set_iommu(struct bus_type *bus, struct iommu_ops *ops);
+extern bool iommu_present(struct bus_type *bus);
+extern struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags);
+=======
 extern int bus_set_iommu(struct bus_type *bus, const struct iommu_ops *ops);
 extern bool iommu_present(struct bus_type *bus);
 extern bool iommu_capable(struct bus_type *bus, enum iommu_cap cap);
 extern struct iommu_domain *iommu_domain_alloc(struct bus_type *bus);
 extern struct iommu_group *iommu_group_get_by_id(int id);
+>>>>>>> android-3.18
 extern void iommu_domain_free(struct iommu_domain *domain);
 extern int iommu_attach_device(struct iommu_domain *domain,
 			       struct device *dev);
@@ -156,7 +199,19 @@ extern int iommu_map(struct iommu_domain *domain, unsigned long iova,
 		     phys_addr_t paddr, size_t size, int prot);
 extern size_t iommu_unmap(struct iommu_domain *domain, unsigned long iova,
 		       size_t size);
+<<<<<<< HEAD
+extern int iommu_map_range(struct iommu_domain *domain, unsigned int iova,
+		    struct scatterlist *sg, unsigned int len, int prot);
+extern int iommu_unmap_range(struct iommu_domain *domain, unsigned int iova,
+		      unsigned int len);
+extern phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
+				      unsigned long iova);
+extern int iommu_domain_has_cap(struct iommu_domain *domain,
+				unsigned long cap);
+extern phys_addr_t iommu_get_pt_base_addr(struct iommu_domain *domain);
+=======
 extern phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova);
+>>>>>>> android-3.18
 extern void iommu_set_fault_handler(struct iommu_domain *domain,
 			iommu_fault_handler_t handler, void *token);
 
@@ -176,13 +231,20 @@ extern void iommu_group_remove_device(struct device *dev);
 extern int iommu_group_for_each_dev(struct iommu_group *group, void *data,
 				    int (*fn)(struct device *, void *));
 extern struct iommu_group *iommu_group_get(struct device *dev);
+<<<<<<< HEAD
+extern struct iommu_group *iommu_group_find(const char *name);
+=======
+>>>>>>> android-3.18
 extern void iommu_group_put(struct iommu_group *group);
 extern int iommu_group_register_notifier(struct iommu_group *group,
 					 struct notifier_block *nb);
 extern int iommu_group_unregister_notifier(struct iommu_group *group,
 					   struct notifier_block *nb);
 extern int iommu_group_id(struct iommu_group *group);
+<<<<<<< HEAD
+=======
 extern struct iommu_group *iommu_group_get_for_dev(struct device *dev);
+>>>>>>> android-3.18
 
 extern int iommu_domain_get_attr(struct iommu_domain *domain, enum iommu_attr,
 				 void *data);
@@ -251,12 +313,16 @@ static inline bool iommu_present(struct bus_type *bus)
 	return false;
 }
 
+<<<<<<< HEAD
+static inline struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags)
+=======
 static inline bool iommu_capable(struct bus_type *bus, enum iommu_cap cap)
 {
 	return false;
 }
 
 static inline struct iommu_domain *iommu_domain_alloc(struct bus_type *bus)
+>>>>>>> android-3.18
 {
 	return NULL;
 }
@@ -293,9 +359,27 @@ static inline int iommu_unmap(struct iommu_domain *domain, unsigned long iova,
 	return -ENODEV;
 }
 
+<<<<<<< HEAD
+static inline int iommu_map_range(struct iommu_domain *domain,
+				  unsigned int iova, struct scatterlist *sg,
+				  unsigned int len, int prot)
+{
+	return -ENODEV;
+}
+
+static inline int iommu_unmap_range(struct iommu_domain *domain,
+				    unsigned int iova, unsigned int len)
+{
+	return -ENODEV;
+}
+
+static inline phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
+					     unsigned long iova)
+=======
 static inline int iommu_domain_window_enable(struct iommu_domain *domain,
 					     u32 wnd_nr, phys_addr_t paddr,
 					     u64 size, int prot)
+>>>>>>> android-3.18
 {
 	return -ENODEV;
 }
@@ -310,8 +394,14 @@ static inline phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain, dma_ad
 	return 0;
 }
 
+static inline phys_addr_t iommu_get_pt_base_addr(struct iommu_domain *domain)
+{
+	return 0;
+}
+
 static inline void iommu_set_fault_handler(struct iommu_domain *domain,
 				iommu_fault_handler_t handler, void *token)
+<<<<<<< HEAD
 {
 }
 
@@ -321,6 +411,81 @@ static inline int iommu_attach_group(struct iommu_domain *domain,
 	return -ENODEV;
 }
 
+static inline void iommu_detach_group(struct iommu_domain *domain,
+				      struct iommu_group *group)
+{
+}
+
+static inline struct iommu_group *iommu_group_alloc(void)
+{
+	return ERR_PTR(-ENODEV);
+}
+
+static inline void *iommu_group_get_iommudata(struct iommu_group *group)
+{
+	return NULL;
+}
+
+static inline void iommu_group_set_iommudata(struct iommu_group *group,
+					     void *iommu_data,
+					     void (*release)(void *iommu_data))
+{
+}
+
+static inline int iommu_group_set_name(struct iommu_group *group,
+				       const char *name)
+{
+	return -ENODEV;
+}
+
+static inline int iommu_group_add_device(struct iommu_group *group,
+					 struct device *dev)
+{
+	return -ENODEV;
+}
+
+static inline void iommu_group_remove_device(struct device *dev)
+{
+}
+
+static inline int iommu_group_for_each_dev(struct iommu_group *group,
+					   void *data,
+					   int (*fn)(struct device *, void *))
+{
+	return -ENODEV;
+}
+
+static inline struct iommu_group *iommu_group_get(struct device *dev)
+{
+	return NULL;
+}
+
+static inline struct iommu_group *iommu_group_find(const char *name)
+{
+	return NULL;
+}
+
+static inline void iommu_group_put(struct iommu_group *group)
+{
+}
+
+static inline int iommu_group_register_notifier(struct iommu_group *group,
+				  struct notifier_block *nb)
+=======
+{
+}
+
+static inline int iommu_attach_group(struct iommu_domain *domain,
+				     struct iommu_group *group)
+>>>>>>> android-3.18
+{
+	return -ENODEV;
+}
+
+<<<<<<< HEAD
+static inline int iommu_group_unregister_notifier(struct iommu_group *group,
+				    struct notifier_block *nb)
+=======
 static inline void iommu_detach_group(struct iommu_domain *domain,
 				      struct iommu_group *group)
 {
@@ -382,6 +547,7 @@ static inline int iommu_group_register_notifier(struct iommu_group *group,
 
 static inline int iommu_group_unregister_notifier(struct iommu_group *group,
 						  struct notifier_block *nb)
+>>>>>>> android-3.18
 {
 	return 0;
 }
@@ -390,6 +556,8 @@ static inline int iommu_group_id(struct iommu_group *group)
 {
 	return -ENODEV;
 }
+<<<<<<< HEAD
+=======
 
 static inline int iommu_domain_get_attr(struct iommu_domain *domain,
 					enum iommu_attr attr, void *data)
@@ -424,6 +592,7 @@ static inline void iommu_device_unlink(struct device *dev, struct device *link)
 {
 }
 
+>>>>>>> android-3.18
 #endif /* CONFIG_IOMMU_API */
 
 #endif /* __LINUX_IOMMU_H */

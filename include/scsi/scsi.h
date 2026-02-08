@@ -10,7 +10,11 @@
 
 #include <linux/types.h>
 #include <linux/scatterlist.h>
+<<<<<<< HEAD
+#include <linux/device.h>
+=======
 #include <linux/kernel.h>
+>>>>>>> android-3.18
 
 struct scsi_cmnd;
 
@@ -583,5 +587,7 @@ static inline __u32 scsi_to_u32(__u8 *ptr)
 {
 	return (ptr[0]<<24) + (ptr[1]<<16) + (ptr[2]<<8) + ptr[3];
 }
+
+struct scsi_disk *scsi_disk_get_from_dev(struct device *dev);
 
 #endif /* _SCSI_SCSI_H */

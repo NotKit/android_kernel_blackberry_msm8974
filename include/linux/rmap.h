@@ -47,7 +47,11 @@ struct anon_vma {
 	struct anon_vma *parent;	/* Parent of this anon_vma */
 
 	/*
+<<<<<<< HEAD
+	 * NOTE: the LSB of the head.next is set by
+=======
 	 * NOTE: the LSB of the rb_root.rb_node is set by
+>>>>>>> android-3.18
 	 * mm_take_all_locks() _after_ taking the above lock. So the
 	 * rb_root must only be read/written after taking the above lock
 	 * to be sure to see a valid next pointer. The LSB bit itself
@@ -85,6 +89,17 @@ enum ttu_flags {
 	TTU_UNMAP = 1,			/* unmap mode */
 	TTU_MIGRATION = 2,		/* migration mode */
 	TTU_MUNLOCK = 4,		/* munlock mode */
+
+	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
+	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
+	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
+};
+
+enum ttu_flags {
+	TTU_UNMAP = 0,			/* unmap mode */
+	TTU_MIGRATION = 1,		/* migration mode */
+	TTU_MUNLOCK = 2,		/* munlock mode */
+	TTU_ACTION_MASK = 0xff,
 
 	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
 	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
@@ -178,6 +193,11 @@ static inline void page_dup_rmap(struct page *page)
  */
 int page_referenced(struct page *, int is_locked,
 			struct mem_cgroup *memcg, unsigned long *vm_flags);
+<<<<<<< HEAD
+int page_referenced_one(struct page *, struct vm_area_struct *,
+	unsigned long address, unsigned int *mapcount, unsigned long *vm_flags);
+=======
+>>>>>>> android-3.18
 
 #define TTU_ACTION(x) ((x) & TTU_ACTION_MASK)
 

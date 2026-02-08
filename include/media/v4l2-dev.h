@@ -33,6 +33,12 @@
 #define VFL_DIR_TX		1
 #define VFL_DIR_M2M		2
 
+/* Is this a receiver, transmitter or mem-to-mem? */
+/* Ignored for VFL_TYPE_SUBDEV. */
+#define VFL_DIR_RX		0
+#define VFL_DIR_TX		1
+#define VFL_DIR_M2M		2
+
 struct v4l2_ioctl_callbacks;
 struct video_device;
 struct v4l2_device;

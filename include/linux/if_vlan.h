@@ -79,6 +79,8 @@ static inline bool is_vlan_dev(struct net_device *dev)
 }
 
 #define vlan_tx_tag_present(__skb)	((__skb)->vlan_tci & VLAN_TAG_PRESENT)
+#define vlan_tx_nonzero_tag_present(__skb) \
+	(vlan_tx_tag_present(__skb) && ((__skb)->vlan_tci & VLAN_VID_MASK))
 #define vlan_tx_tag_get(__skb)		((__skb)->vlan_tci & ~VLAN_TAG_PRESENT)
 #define vlan_tx_tag_get_id(__skb)	((__skb)->vlan_tci & VLAN_VID_MASK)
 
@@ -112,6 +114,10 @@ extern struct net_device *vlan_dev_real_dev(const struct net_device *dev);
 extern u16 vlan_dev_vlan_id(const struct net_device *dev);
 extern __be16 vlan_dev_vlan_proto(const struct net_device *dev);
 
+<<<<<<< HEAD
+extern bool vlan_do_receive(struct sk_buff **skb);
+extern struct sk_buff *vlan_untag(struct sk_buff *skb);
+=======
 /**
  *	struct vlan_priority_tci_mapping - vlan egress priority mappings
  *	@priority: skb priority
@@ -185,6 +191,7 @@ vlan_dev_get_egress_qos_mask(struct net_device *dev, u32 skprio)
 	}
 	return 0;
 }
+>>>>>>> android-3.18
 
 extern bool vlan_do_receive(struct sk_buff **skb);
 
@@ -223,10 +230,16 @@ static inline u16 vlan_dev_vlan_id(const struct net_device *dev)
 	return 0;
 }
 
+<<<<<<< HEAD
+static inline bool vlan_do_receive(struct sk_buff **skb)
+{
+	return false;
+=======
 static inline __be16 vlan_dev_vlan_proto(const struct net_device *dev)
 {
 	BUG();
 	return 0;
+>>>>>>> android-3.18
 }
 
 static inline u16 vlan_dev_get_egress_qos_mask(struct net_device *dev,
@@ -507,5 +520,8 @@ static inline void vlan_set_encap_proto(struct sk_buff *skb,
 		 */
 		skb->protocol = htons(ETH_P_802_2);
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> android-3.18
 #endif /* !(_LINUX_IF_VLAN_H_) */

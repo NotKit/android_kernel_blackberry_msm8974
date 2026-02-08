@@ -96,12 +96,15 @@ enum hrtimer_restart {
  * @function:	timer expiry callback function
  * @base:	pointer to the timer base (per cpu and per clock)
  * @state:	state information (See bit values above)
+<<<<<<< HEAD
+=======
  * @start_pid: timer statistics field to store the pid of the task which
  *		started the timer
  * @start_site:	timer statistics field to store the site where the timer
  *		was started
  * @start_comm: timer statistics field to store the name of the process which
  *		started the timer
+>>>>>>> android-3.18
  *
  * The hrtimer structure must be initialized by hrtimer_init()
  */
@@ -111,11 +114,6 @@ struct hrtimer {
 	enum hrtimer_restart		(*function)(struct hrtimer *);
 	struct hrtimer_clock_base	*base;
 	unsigned long			state;
-#ifdef CONFIG_TIMER_STATS
-	int				start_pid;
-	void				*start_site;
-	char				start_comm[16];
-#endif
 };
 
 /**
@@ -180,7 +178,10 @@ enum  hrtimer_base_type {
  */
 struct hrtimer_cpu_base {
 	raw_spinlock_t			lock;
+<<<<<<< HEAD
+=======
 	unsigned int			cpu;
+>>>>>>> android-3.18
 	unsigned int			active_bases;
 	unsigned int			clock_was_set;
 #ifdef CONFIG_HIGH_RES_TIMERS
@@ -326,6 +327,15 @@ static inline void timerfd_clock_was_set(void) { }
 #endif
 extern void hrtimers_resume(void);
 
+<<<<<<< HEAD
+extern ktime_t ktime_get(void);
+extern ktime_t ktime_get_real(void);
+extern ktime_t ktime_get_boottime(void);
+extern ktime_t ktime_get_monotonic_offset(void);
+extern ktime_t ktime_get_update_offsets(ktime_t *offs_real, ktime_t *offs_boot);
+
+=======
+>>>>>>> android-3.18
 DECLARE_PER_CPU(struct tick_device, tick_cpu_device);
 
 

@@ -84,6 +84,16 @@ struct bio {
 #endif
 	};
 
+<<<<<<< HEAD
+	/*
+	 * When using dircet-io (O_DIRECT), we can't get the inode from a bio
+	 * by walking bio->bi_io_vec->bv_page->mapping->host
+	 * since the page is anon.
+	 */
+	struct inode		*bi_dio_inode;
+
+	bio_destructor_t	*bi_destructor;	/* destructor */
+=======
 	unsigned short		bi_vcnt;	/* how many bio_vec's */
 
 	/*
@@ -97,6 +107,7 @@ struct bio {
 	struct bio_vec		*bi_io_vec;	/* the actual vec list */
 
 	struct bio_set		*bi_pool;
+>>>>>>> android-3.18
 
 	/*
 	 * We can inline a number of vecs at the end of the bio, to avoid
@@ -120,6 +131,17 @@ struct bio {
 #define BIO_USER_MAPPED 6	/* contains user pages */
 #define BIO_EOPNOTSUPP	7	/* not supported */
 #define BIO_NULL_MAPPED 8	/* contains invalid user pages */
+<<<<<<< HEAD
+#define BIO_FS_INTEGRITY 9	/* fs owns integrity data, not block layer */
+#define BIO_QUIET	10	/* Make BIO Quiet */
+#define BIO_MAPPED_INTEGRITY 11/* integrity metadata has been remapped */
+/*
+ * Added for Req based dm which need to perform post processing. This flag
+ * ensures blk_update_request does not free the bios or request, this is done
+ * at the dm level
+ */
+#define BIO_DONTFREE 12
+=======
 #define BIO_QUIET	9	/* Make BIO Quiet */
 #define BIO_SNAP_STABLE	10	/* bio data must be snapshotted during write */
 
@@ -130,6 +152,7 @@ struct bio {
 #define BIO_RESET_BITS	13
 #define BIO_OWNS_VEC	13	/* bio_free() should free bvec */
 
+>>>>>>> android-3.18
 #define bio_flagged(bio, flag)	((bio)->bi_flags & (1 << (flag)))
 
 /*
@@ -172,7 +195,7 @@ enum rq_flag_bits {
 				 * throttling rules. Don't do it again. */
 
 	/* request only flags */
-	__REQ_SORTED,		/* elevator knows about this request */
+	__REQ_SORTED = __REQ_RAHEAD, /* elevator knows about this request */
 	__REQ_SOFTBARRIER,	/* may not be passed by ioscheduler */
 	__REQ_NOMERGE,		/* don't touch this for merging */
 	__REQ_STARTED,		/* drive already may have started this one */
@@ -189,6 +212,25 @@ enum rq_flag_bits {
 	__REQ_FLUSH_SEQ,	/* request for flush sequence */
 	__REQ_IO_STAT,		/* account I/O stat */
 	__REQ_MIXED_MERGE,	/* merge of different types, fail separately */
+<<<<<<< HEAD
+	__REQ_SANITIZE,		/* sanitize */
+	__REQ_URGENT,		/* urgent request */
+	__REQ_PM,		/* runtime pm request */
+	__REQ_NR_BITS,		/* stops here */
+};
+
+#define REQ_WRITE		(1 << __REQ_WRITE)
+#define REQ_FAILFAST_DEV	(1 << __REQ_FAILFAST_DEV)
+#define REQ_FAILFAST_TRANSPORT	(1 << __REQ_FAILFAST_TRANSPORT)
+#define REQ_FAILFAST_DRIVER	(1 << __REQ_FAILFAST_DRIVER)
+#define REQ_SYNC		(1 << __REQ_SYNC)
+#define REQ_META		(1 << __REQ_META)
+#define REQ_PRIO		(1 << __REQ_PRIO)
+#define REQ_DISCARD		(1 << __REQ_DISCARD)
+#define REQ_SANITIZE		(1 << __REQ_SANITIZE)
+#define REQ_URGENT		(1 << __REQ_URGENT)
+#define REQ_NOIDLE		(1 << __REQ_NOIDLE)
+=======
 	__REQ_PM,		/* runtime pm request */
 	__REQ_HASHED,		/* on IO scheduler merge hash */
 	__REQ_MQ_INFLIGHT,	/* track inflight for MQ */
@@ -206,11 +248,42 @@ enum rq_flag_bits {
 #define REQ_WRITE_SAME		(1ULL << __REQ_WRITE_SAME)
 #define REQ_NOIDLE		(1ULL << __REQ_NOIDLE)
 #define REQ_INTEGRITY		(1ULL << __REQ_INTEGRITY)
+>>>>>>> android-3.18
 
 #define REQ_FAILFAST_MASK \
 	(REQ_FAILFAST_DEV | REQ_FAILFAST_TRANSPORT | REQ_FAILFAST_DRIVER)
 #define REQ_COMMON_MASK \
 	(REQ_WRITE | REQ_FAILFAST_MASK | REQ_SYNC | REQ_META | REQ_PRIO | \
+<<<<<<< HEAD
+	 REQ_DISCARD | REQ_NOIDLE | REQ_FLUSH | REQ_FUA | REQ_SECURE | \
+	 REQ_SANITIZE)
+#define REQ_CLONE_MASK		REQ_COMMON_MASK
+
+#define MMC_REQ_NOREINSERT_MASK (REQ_URGENT | REQ_FUA | REQ_FLUSH)
+
+#define REQ_RAHEAD		(1 << __REQ_RAHEAD)
+#define REQ_THROTTLED		(1 << __REQ_THROTTLED)
+
+#define REQ_SORTED		(1 << __REQ_SORTED)
+#define REQ_SOFTBARRIER		(1 << __REQ_SOFTBARRIER)
+#define REQ_FUA			(1 << __REQ_FUA)
+#define REQ_NOMERGE		(1 << __REQ_NOMERGE)
+#define REQ_STARTED		(1 << __REQ_STARTED)
+#define REQ_DONTPREP		(1 << __REQ_DONTPREP)
+#define REQ_QUEUED		(1 << __REQ_QUEUED)
+#define REQ_ELVPRIV		(1 << __REQ_ELVPRIV)
+#define REQ_FAILED		(1 << __REQ_FAILED)
+#define REQ_QUIET		(1 << __REQ_QUIET)
+#define REQ_PREEMPT		(1 << __REQ_PREEMPT)
+#define REQ_ALLOCED		(1 << __REQ_ALLOCED)
+#define REQ_COPY_USER		(1 << __REQ_COPY_USER)
+#define REQ_FLUSH		(1 << __REQ_FLUSH)
+#define REQ_FLUSH_SEQ		(1 << __REQ_FLUSH_SEQ)
+#define REQ_IO_STAT		(1 << __REQ_IO_STAT)
+#define REQ_MIXED_MERGE		(1 << __REQ_MIXED_MERGE)
+#define REQ_SECURE		(1 << __REQ_SECURE)
+#define REQ_PM                 (1 << __REQ_PM)
+=======
 	 REQ_DISCARD | REQ_WRITE_SAME | REQ_NOIDLE | REQ_FLUSH | REQ_FUA | \
 	 REQ_SECURE | REQ_INTEGRITY)
 #define REQ_CLONE_MASK		REQ_COMMON_MASK
@@ -245,5 +318,6 @@ enum rq_flag_bits {
 #define REQ_PM			(1ULL << __REQ_PM)
 #define REQ_HASHED		(1ULL << __REQ_HASHED)
 #define REQ_MQ_INFLIGHT		(1ULL << __REQ_MQ_INFLIGHT)
+>>>>>>> android-3.18
 
 #endif /* __LINUX_BLK_TYPES_H */

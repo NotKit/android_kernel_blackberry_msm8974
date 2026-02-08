@@ -460,6 +460,7 @@ struct fb_info {
 	struct fb_cmap cmap;		/* Current cmap */
 	struct list_head modelist;      /* mode list */
 	struct fb_videomode *mode;	/* current mode */
+	struct file *file;		/* current file node */
 
 #ifdef CONFIG_FB_BACKLIGHT
 	/* assigned backlight device */
@@ -793,6 +794,8 @@ extern int fb_find_mode(struct fb_var_screeninfo *var,
 			const struct fb_videomode *default_mode,
 			unsigned int default_bpp);
 
+<<<<<<< HEAD
+=======
 /* Convenience logging macros */
 #define fb_err(fb_info, fmt, ...)					\
 	pr_err("fb%d: " fmt, (fb_info)->node, ##__VA_ARGS__)
@@ -805,4 +808,5 @@ extern int fb_find_mode(struct fb_var_screeninfo *var,
 #define fb_dbg(fb_info, fmt, ...)					\
 	pr_debug("fb%d: " fmt, (fb_info)->node, ##__VA_ARGS__)
 
+>>>>>>> android-3.18
 #endif /* _LINUX_FB_H */

@@ -122,7 +122,7 @@ struct sp_node {
 
 struct shared_policy {
 	struct rb_root root;
-	spinlock_t lock;
+	struct mutex mutex;
 };
 
 int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst);
@@ -151,7 +151,11 @@ extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
 extern bool init_nodemask_of_mempolicy(nodemask_t *mask);
 extern bool mempolicy_nodemask_intersects(struct task_struct *tsk,
 				const nodemask_t *mask);
+<<<<<<< HEAD
+extern unsigned slab_node(void);
+=======
 extern unsigned int mempolicy_slab_node(void);
+>>>>>>> android-3.18
 
 extern enum zone_type policy_zone;
 

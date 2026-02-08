@@ -275,8 +275,11 @@ struct v4l2_ioctl_ops {
 				    struct v4l2_enum_dv_timings *timings);
 	int (*vidioc_dv_timings_cap) (struct file *file, void *fh,
 				    struct v4l2_dv_timings_cap *cap);
+<<<<<<< HEAD
+=======
 	int (*vidioc_g_edid) (struct file *file, void *fh, struct v4l2_edid *edid);
 	int (*vidioc_s_edid) (struct file *file, void *fh, struct v4l2_edid *edid);
+>>>>>>> android-3.18
 
 	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
 					const struct v4l2_event_subscription *sub);
@@ -295,6 +298,16 @@ struct v4l2_ioctl_ops {
 #define V4L2_DEBUG_IOCTL     0x01
 #define V4L2_DEBUG_IOCTL_ARG 0x02
 
+<<<<<<< HEAD
+/* Use this macro for non-I2C drivers. Pass the driver name as the first arg. */
+#define v4l_print_ioctl(name, cmd)  		 \
+	do {  					 \
+		printk(KERN_DEBUG "%s: ", name); \
+		v4l_printk_ioctl(cmd);		 \
+	} while (0)
+
+=======
+>>>>>>> android-3.18
 /*  Video standard functions  */
 extern const char *v4l2_norm_to_name(v4l2_std_id id);
 extern void v4l2_video_std_frame_period(int id, struct v4l2_fract *frameperiod);
@@ -302,7 +315,16 @@ extern int v4l2_video_std_construct(struct v4l2_standard *vs,
 				    int id, const char *name);
 /* Prints the ioctl in a human-readable format. If prefix != NULL,
    then do printk(KERN_DEBUG "%s: ", prefix) first. */
+<<<<<<< HEAD
+extern void v4l_printk_ioctl(unsigned int cmd);
+=======
 extern void v4l_printk_ioctl(const char *prefix, unsigned int cmd);
+
+/* Internal use only: get the mutex (if any) that we need to lock for the
+   given command. */
+struct video_device;
+extern struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev, unsigned cmd);
+>>>>>>> android-3.18
 
 /* Internal use only: get the mutex (if any) that we need to lock for the
    given command. */

@@ -216,6 +216,8 @@ struct irq_affinity_notify {
 
 #if defined(CONFIG_SMP)
 
+<<<<<<< HEAD
+=======
 extern cpumask_var_t irq_default_affinity;
 
 /* Internal implementation. Use the helpers below */
@@ -260,6 +262,7 @@ extern int irq_set_affinity_hint(unsigned int irq, const struct cpumask *m);
 extern int
 irq_set_affinity_notifier(unsigned int irq, struct irq_affinity_notify *notify);
 
+>>>>>>> android-3.18
 #else /* CONFIG_SMP */
 
 static inline int irq_set_affinity(unsigned int irq, const struct cpumask *m)
@@ -345,6 +348,7 @@ static inline void enable_irq_lockdep_irqrestore(unsigned int irq, unsigned long
 
 /* IRQ wakeup (PM) control: */
 extern int irq_set_irq_wake(unsigned int irq, unsigned int on);
+extern int irq_read_line(unsigned int irq);
 
 static inline int enable_irq_wake(unsigned int irq)
 {
@@ -655,5 +659,5 @@ int arch_show_interrupts(struct seq_file *p, int prec);
 extern int early_irq_init(void);
 extern int arch_probe_nr_irqs(void);
 extern int arch_early_irq_init(void);
-
+extern void irq_set_pending(unsigned int irq);
 #endif

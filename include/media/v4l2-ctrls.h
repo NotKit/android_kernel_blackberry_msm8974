@@ -73,6 +73,8 @@ struct v4l2_ctrl_ops {
 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
 };
 
+<<<<<<< HEAD
+=======
 /** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
   * @equal: return true if both values are equal.
   * @init: initialize the value.
@@ -90,6 +92,7 @@ struct v4l2_ctrl_type_ops {
 			union v4l2_ctrl_ptr ptr);
 };
 
+>>>>>>> android-3.18
 typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
 
 /** struct v4l2_ctrl - The control structure.
@@ -195,6 +198,19 @@ struct v4l2_ctrl {
 		u64 step;
 		u64 menu_skip_mask;
 	};
+<<<<<<< HEAD
+	union {
+		const char * const *qmenu;
+		const s64 *qmenu_int;
+	};
+	unsigned long flags;
+	union {
+		s32 val;
+		s64 val64;
+		char *string;
+	} cur;
+=======
+>>>>>>> android-3.18
 	union {
 		const char * const *qmenu;
 		const s64 *qmenu_int;
@@ -248,7 +264,11 @@ struct v4l2_ctrl_ref {
   */
 struct v4l2_ctrl_handler {
 	struct mutex _lock;
+<<<<<<< HEAD
+	struct mutex lock;
+=======
 	struct mutex *lock;
+>>>>>>> android-3.18
 	struct list_head ctrls;
 	struct list_head ctrl_refs;
 	struct v4l2_ctrl_ref *cached;
@@ -321,8 +341,12 @@ struct v4l2_ctrl_config {
 void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
 		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
 
+<<<<<<< HEAD
+/** v4l2_ctrl_handler_init() - Initialize the control handler.
+=======
 
 /** v4l2_ctrl_handler_init_class() - Initialize the control handler.
+>>>>>>> android-3.18
   * @hdl:	The control handler.
   * @nr_of_controls_hint: A hint of how many controls this handler is
   *		expected to refer to. This is the total number, so including
@@ -506,6 +530,46 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
 			const struct v4l2_ctrl_ops *ops,
 			u32 id, u8 max, u8 def, const s64 *qmenu_int);
 
+/** v4l2_ctrl_new_std_menu_items() - Create a new standard V4L2 menu control
+  * with driver specific menu.
+  * @hdl:	The control handler.
+  * @ops:	The control ops.
+  * @id:	The control ID.
+  * @max:	The control's maximum value.
+  * @mask:	The control's skip mask for menu controls. This makes it
+  *		easy to skip menu items that are not valid. If bit X is set,
+  *		then menu item X is skipped. Of course, this only works for
+  *		menus with <= 32 menu items. There are no menus that come
+  *		close to that number, so this is OK. Should we ever need more,
+  *		then this will have to be extended to a u64 or a bit array.
+  * @def:	The control's default value.
+  * @qmenu:	The new menu.
+  *
+  * Same as v4l2_ctrl_new_std_menu(), but @qmenu will be the driver specific
+  * menu of this control.
+  *
+  */
+struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+			const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
+			s32 mask, s32 def, const char * const *qmenu);
+
+/** v4l2_ctrl_new_int_menu() - Create a new standard V4L2 integer menu control.
+  * @hdl:	The control handler.
+  * @ops:	The control ops.
+  * @id:	The control ID.
+  * @max:	The control's maximum value.
+  * @def:	The control's default value.
+  * @qmenu_int:	The control's menu entries.
+  *
+  * Same as v4l2_ctrl_new_std_menu(), but @mask is set to 0 and it additionaly
+  * takes as an argument an array of integers determining the menu items.
+  *
+  * If @id refers to a non-integer-menu control, then this function will return NULL.
+  */
+struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+			const struct v4l2_ctrl_ops *ops,
+			u32 id, s32 max, s32 def, const s64 *qmenu_int);
+
 /** v4l2_ctrl_add_ctrl() - Add a control from another handler to this handler.
   * @hdl:	The control handler.
   * @ctrl:	The control to add.
@@ -622,11 +686,14 @@ void v4l2_ctrl_activate(struct v4l2_ctrl *ctrl, bool active);
   */
 void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
 
+<<<<<<< HEAD
+=======
 
 /** __v4l2_ctrl_modify_range() - Unlocked variant of v4l2_ctrl_modify_range() */
 int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
 			     s64 min, s64 max, u64 step, s64 def);
 
+>>>>>>> android-3.18
 /** v4l2_ctrl_modify_range() - Update the range of a control.
   * @ctrl:	The control to update.
   * @min:	The control's minimum value.
@@ -643,6 +710,16 @@ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
   *
   * This function assumes that the control handler is not locked and will
   * take the lock itself.
+<<<<<<< HEAD
+  */
+int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+			s32 min, s32 max, u32 step, s32 def);
+
+/** v4l2_ctrl_lock() - Helper function to lock the handler
+  * associated with the control.
+  * @ctrl:	The control to lock.
+=======
+>>>>>>> android-3.18
   */
 static inline int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
 					 s64 min, s64 max, u64 step, s64 def)
@@ -655,6 +732,20 @@ static inline int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
 
 	return rval;
 }
+
+/** v4l2_ctrl_notify() - Function to set a notify callback for a control.
+  * @ctrl:	The control.
+  * @notify:	The callback function.
+  * @priv:	The callback private handle, passed as argument to the callback.
+  *
+  * This function sets a callback function for the control. If @ctrl is NULL,
+  * then it will do nothing. If @notify is NULL, then the notify callback will
+  * be removed.
+  *
+  * There can be only one notify. If another already exists, then a WARN_ON
+  * will be issued and the function will do nothing.
+  */
+void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv);
 
 /** v4l2_ctrl_notify() - Function to set a notify callback for a control.
   * @ctrl:	The control.
@@ -763,10 +854,40 @@ static inline int v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
 	return rval;
 }
 
+/** v4l2_ctrl_g_ctrl_int64() - Helper function to get a 64-bit control's value from within a driver.
+  * @ctrl:	The control.
+  *
+  * This returns the control's value safely by going through the control
+  * framework. This function will lock the control's handler, so it cannot be
+  * used from within the &v4l2_ctrl_ops functions.
+  *
+  * This function is for 64-bit integer type controls only.
+  */
+s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
+
+/** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
+  * @ctrl:	The control.
+  * @val:	The new value.
+  *
+  * This set the control's new value safely by going through the control
+  * framework. This function will lock the control's handler, so it cannot be
+  * used from within the &v4l2_ctrl_ops functions.
+  *
+  * This function is for 64-bit integer type controls only.
+  */
+int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
+
 /* Internal helper functions that deal with control events. */
 extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
 void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
 void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new);
+<<<<<<< HEAD
+void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
+		struct v4l2_subscribed_event *sev);
+void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+		struct v4l2_subscribed_event *sev);
+=======
+>>>>>>> android-3.18
 
 /* Can be used as a vidioc_log_status function that just dumps all controls
    associated with the filehandle. */

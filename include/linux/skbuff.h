@@ -262,6 +262,8 @@ enum {
 
 	/* generate wifi status information (where possible) */
 	SKBTX_WIFI_STATUS = 1 << 4,
+<<<<<<< HEAD
+=======
 
 	/* This indicates at least one fragment might be overwritten
 	 * (as in vmsplice(), sendfile() ...)
@@ -275,6 +277,7 @@ enum {
 
 	/* generate software timestamp on peer data acknowledgment */
 	SKBTX_ACK_TSTAMP = 1 << 7,
+>>>>>>> android-3.18
 };
 
 #define SKBTX_ANY_SW_TSTAMP	(SKBTX_SW_TSTAMP    | \
@@ -640,11 +643,14 @@ struct sk_buff {
 		__u32		mark;
 		__u32		dropcount;
 		__u32		reserved_tailroom;
+<<<<<<< HEAD
+=======
 	};
 
 	union {
 		__be16		inner_protocol;
 		__u8		inner_ipproto;
+>>>>>>> android-3.18
 	};
 
 	__u16			inner_transport_header;
@@ -1590,6 +1596,11 @@ static inline int skb_pagelen(const struct sk_buff *skb)
 	return len + skb_headlen(skb);
 }
 
+static inline bool skb_has_frags(const struct sk_buff *skb)
+{
+	return skb_shinfo(skb)->nr_frags;
+}
+
 /**
  * __skb_fill_page_desc - initialise a paged fragment in an skb
  * @skb: buffer containing fragment to be initialised
@@ -2136,6 +2147,22 @@ static inline void skb_orphan(struct sk_buff *skb)
 	} else {
 		BUG_ON(skb->sk);
 	}
+}
+
+/**
+ *	skb_orphan_frags - orphan the frags contained in a buffer
+ *	@skb: buffer to orphan frags from
+ *	@gfp_mask: allocation mask for replacement pages
+ *
+ *	For each frag in the SKB which needs a destructor (i.e. has an
+ *	owner) create a copy of that frag and release the original
+ *	page by calling the destructor.
+ */
+static inline int skb_orphan_frags(struct sk_buff *skb, gfp_t gfp_mask)
+{
+	if (likely(!(skb_shinfo(skb)->tx_flags & SKBTX_DEV_ZEROCOPY)))
+		return 0;
+	return skb_copy_ubufs(skb, gfp_mask);
 }
 
 /**
@@ -2737,10 +2764,19 @@ struct skb_checksum_ops {
 	__wsum (*combine)(__wsum csum, __wsum csum2, int offset, int len);
 };
 
+<<<<<<< HEAD
+unsigned int skb_gso_transport_seglen(const struct sk_buff *skb);
+
+static inline void *skb_header_pointer(const struct sk_buff *skb, int offset,
+				       int len, void *buffer)
+{
+	int hlen = skb_headlen(skb);
+=======
 __wsum __skb_checksum(const struct sk_buff *skb, int offset, int len,
 		      __wsum csum, const struct skb_checksum_ops *ops);
 __wsum skb_checksum(const struct sk_buff *skb, int offset, int len,
 		    __wsum csum);
+>>>>>>> android-3.18
 
 static inline void *__skb_header_pointer(const struct sk_buff *skb, int offset,
 					 int len, void *data, int hlen, void *buffer)
@@ -3177,11 +3213,17 @@ static inline void nf_reset(struct sk_buff *skb)
 
 static inline void nf_reset_trace(struct sk_buff *skb)
 {
+<<<<<<< HEAD
+#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
+=======
 #if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE) || defined(CONFIG_NF_TABLES)
+>>>>>>> android-3.18
 	skb->nf_trace = 0;
 #endif
 }
 
+<<<<<<< HEAD
+=======
 static inline void ipvs_reset(struct sk_buff *skb)
 {
 #if IS_ENABLED(CONFIG_IP_VS)
@@ -3189,6 +3231,7 @@ static inline void ipvs_reset(struct sk_buff *skb)
 #endif
 }
 
+>>>>>>> android-3.18
 /* Note: This doesn't put any conntrack and bridge info in dst. */
 static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src,
 			     bool copy)
@@ -3403,9 +3446,18 @@ bool skb_partial_csum_set(struct sk_buff *skb, u16 start, u16 off);
 
 int skb_checksum_setup(struct sk_buff *skb, bool recalculate);
 
+<<<<<<< HEAD
+	if (skb_is_nonlinear(skb) || skb->fclone != SKB_FCLONE_UNAVAILABLE)
+		return false;
+
+	skb_size = SKB_DATA_ALIGN(skb_size + NET_SKB_PAD);
+	if (skb_end_offset(skb) < skb_size)
+		return false;
+=======
 u32 skb_get_poff(const struct sk_buff *skb);
 u32 __skb_get_poff(const struct sk_buff *skb, void *data,
 		   const struct flow_keys *keys, int hlen);
+>>>>>>> android-3.18
 
 /**
  * skb_head_is_locked - Determine if the skb->head is locked down

@@ -8,11 +8,15 @@
 
 #include <linux/clockchips.h>
 #include <linux/irqflags.h>
+<<<<<<< HEAD
+#include <linux/hrtimer.h>
+=======
 #include <linux/percpu.h>
 #include <linux/hrtimer.h>
 #include <linux/context_tracking_state.h>
 #include <linux/cpumask.h>
 #include <linux/sched.h>
+>>>>>>> android-3.18
 
 #ifdef CONFIG_GENERIC_CLOCKEVENTS
 
@@ -49,7 +53,6 @@ enum tick_nohz_mode {
  * @idle_exittime:	Time when the idle state was left
  * @idle_sleeptime:	Sum of the time slept in idle with sched tick stopped
  * @iowait_sleeptime:	Sum of the time slept in idle with sched tick stopped, with IO outstanding
- * @sleep_length:	Duration of the current idle sleep
  * @do_timer_lst:	CPU was the last one doing do_timer before going idle
  */
 struct tick_sched {
@@ -68,7 +71,6 @@ struct tick_sched {
 	ktime_t				idle_exittime;
 	ktime_t				idle_sleeptime;
 	ktime_t				iowait_sleeptime;
-	ktime_t				sleep_length;
 	unsigned long			last_jiffies;
 	unsigned long			next_jiffies;
 	ktime_t				idle_expires;
@@ -98,7 +100,16 @@ extern struct cpumask *tick_get_broadcast_mask(void);
 #  ifdef CONFIG_TICK_ONESHOT
 extern struct cpumask *tick_get_broadcast_oneshot_mask(void);
 #  endif
+#else
+static inline struct tick_device *tick_get_broadcast_device(void)
+{
+	return NULL;
+}
 
+static inline struct cpumask *tick_get_broadcast_mask(void)
+{
+	return NULL;
+}
 # endif /* BROADCAST */
 
 # ifdef CONFIG_TICK_ONESHOT
@@ -115,6 +126,10 @@ static inline void tick_clock_notify(void) { }
 static inline int tick_check_oneshot_change(int allow_nohz) { return 0; }
 static inline void tick_irq_enter(void) { }
 static inline int tick_oneshot_mode_active(void) { return 0; }
+static inline struct cpumask *tick_get_broadcast_oneshot_mask(void)
+{
+	return NULL;
+}
 # endif
 
 #else /* CONFIG_GENERIC_CLOCKEVENTS */

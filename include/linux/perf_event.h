@@ -192,7 +192,12 @@ struct pmu {
 	int * __percpu			pmu_disable_count;
 	struct perf_cpu_context * __percpu pmu_cpu_context;
 	int				task_ctx_nr;
+<<<<<<< HEAD
+	u32                             events_across_hotplug:1,
+					reserved:31;
+=======
 	int				hrtimer_interval_ms;
+>>>>>>> android-3.18
 
 	/*
 	 * Fully disable/enable this PMU, can be used to protect from the PMI
@@ -337,6 +342,12 @@ struct perf_event {
 	int				nr_siblings;
 	int				group_flags;
 	struct perf_event		*group_leader;
+
+	/*
+	 * Protect the pmu, attributes and context of a group leader.
+	 * Note: does not protect the pointer to the group_leader.
+	 */
+	struct mutex			group_leader_mutex;
 	struct pmu			*pmu;
 
 	enum perf_event_active_state	state;
@@ -525,6 +536,10 @@ struct perf_cpu_context {
 	struct hrtimer			hrtimer;
 	ktime_t				hrtimer_interval;
 	struct list_head		rotation_list;
+<<<<<<< HEAD
+	int				jiffies_interval;
+=======
+>>>>>>> android-3.18
 	struct pmu			*unique_pmu;
 	struct perf_cgroup		*cgrp;
 };
@@ -760,6 +775,11 @@ static inline bool perf_paranoid_any(void)
 	return sysctl_perf_event_paranoid > 2;
 }
 
+static inline bool perf_paranoid_any(void)
+{
+	return sysctl_perf_event_paranoid > 2;
+}
+
 static inline bool perf_paranoid_tracepoint_raw(void)
 {
 	return sysctl_perf_event_paranoid > -1;
@@ -852,12 +872,15 @@ static inline int __perf_event_disable(void *info)			{ return -1; }
 static inline void perf_event_task_tick(void)				{ }
 #endif
 
+<<<<<<< HEAD
+=======
 #if defined(CONFIG_PERF_EVENTS) && defined(CONFIG_NO_HZ_FULL)
 extern bool perf_event_can_stop_tick(void);
 #else
 static inline bool perf_event_can_stop_tick(void)			{ return true; }
 #endif
 
+>>>>>>> android-3.18
 #if defined(CONFIG_PERF_EVENTS) && defined(CONFIG_CPU_SUP_INTEL)
 extern void perf_restore_debug_store(void);
 #else
@@ -900,6 +923,8 @@ do {									\
 									\
 	__register_cpu_notifier(&fn##_nb);				\
 } while (0)
+<<<<<<< HEAD
+=======
 
 struct perf_pmu_events_attr {
 	struct device_attribute attr;
@@ -912,6 +937,7 @@ static struct perf_pmu_events_attr _var = {				\
 	.attr = __ATTR(_name, 0444, _show, NULL),			\
 	.id   =  _id,							\
 };
+>>>>>>> android-3.18
 
 #define PMU_FORMAT_ATTR(_name, _format)					\
 static ssize_t								\

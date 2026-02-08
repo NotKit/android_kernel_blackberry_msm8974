@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,10 +14,17 @@
 #define __GPIO_IR_RECV_H__
 
 struct gpio_ir_recv_platform_data {
+<<<<<<< HEAD
+	int gpio_nr;
+	bool active_low;
+	bool can_wakeup;
+	u32 swfi_latency;
+=======
 	int		gpio_nr;
 	bool		active_low;
 	u64		allowed_protos;
 	const char	*map_name;
+>>>>>>> android-3.18
 };
 
 #endif /* __GPIO_IR_RECV_H__ */

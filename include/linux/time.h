@@ -4,7 +4,11 @@
 # include <linux/cache.h>
 # include <linux/seqlock.h>
 # include <linux/math64.h>
+<<<<<<< HEAD
+#include <uapi/linux/time.h>
+=======
 # include <linux/time64.h>
+>>>>>>> android-3.18
 
 extern struct timezone sys_tz;
 
@@ -75,6 +79,13 @@ static inline struct timespec timespec_sub(struct timespec lhs,
 	return ts_delta;
 }
 
+#define KTIME_MAX			((s64)~((u64)1 << 63))
+#if (BITS_PER_LONG == 64)
+# define KTIME_SEC_MAX			(KTIME_MAX / NSEC_PER_SEC)
+#else
+# define KTIME_SEC_MAX			LONG_MAX
+#endif
+
 /*
  * Returns true if the timespec is norm, false if denorm:
  */
@@ -99,6 +110,21 @@ static inline bool timespec_valid_strict(const struct timespec *ts)
 	return true;
 }
 
+<<<<<<< HEAD
+extern void read_persistent_clock(struct timespec *ts);
+extern void read_boot_clock(struct timespec *ts);
+extern int update_persistent_clock(struct timespec now);
+void timekeeping_init(void);
+extern int timekeeping_suspended;
+
+unsigned long get_seconds(void);
+struct timespec current_kernel_time(void);
+struct timespec __current_kernel_time(void); /* does not take xtime_lock */
+struct timespec get_monotonic_coarse(void);
+void get_xtime_and_monotonic_and_sleep_offset(struct timespec *xtim,
+				struct timespec *wtom, struct timespec *sleep);
+void timekeeping_inject_sleeptime(struct timespec *delta);
+=======
 static inline bool timeval_valid(const struct timeval *tv)
 {
 	/* Dates before 1970 are bogus */
@@ -139,6 +165,7 @@ static inline bool timespec_inject_offset_valid(const struct timespec *ts)
 		return false;
 	return true;
 }
+>>>>>>> android-3.18
 
 #define CURRENT_TIME		(current_kernel_time())
 #define CURRENT_TIME_SEC	((struct timespec) { get_seconds(), 0 })
@@ -161,9 +188,30 @@ extern int do_setitimer(int which, struct itimerval *value,
 			struct itimerval *ovalue);
 extern int do_getitimer(int which, struct itimerval *value);
 
+<<<<<<< HEAD
+static inline bool timeval_valid(const struct timeval *tv)
+{
+	/* Dates before 1970 are bogus */
+	if (tv->tv_sec < 0)
+		return false;
+
+	/* Can't have more microseconds then a second */
+	if (tv->tv_usec < 0 || tv->tv_usec >= USEC_PER_SEC)
+		return false;
+
+	return true;
+}
+
+extern struct timespec timespec_trunc(struct timespec t, unsigned gran);
+extern int timekeeping_valid_for_hres(void);
+extern u64 timekeeping_max_deferment(void);
+extern void timekeeping_leap_insert(int leapsecond);
+extern int timekeeping_inject_offset(struct timespec *ts);
+=======
 extern unsigned int alarm_setitimer(unsigned int seconds);
 
 extern long do_utimes(int dfd, const char __user *filename, struct timespec *times, int flags);
+>>>>>>> android-3.18
 
 struct tms;
 extern void do_sys_times(struct tms *);

@@ -10,12 +10,22 @@
 struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
 
 /* bits in flags of vmalloc's vm_struct below */
+<<<<<<< HEAD
+#define VM_IOREMAP	0x00000001	/* ioremap() and friends */
+#define VM_ALLOC	0x00000002	/* vmalloc() */
+#define VM_MAP		0x00000004	/* vmap()ed pages */
+#define VM_USERMAP	0x00000008	/* suitable for remap_vmalloc_range */
+#define VM_VPAGES	0x00000010	/* buffer for pages was vmalloc'ed */
+#define VM_UNLIST	0x00000020	/* vm_struct is not listed in vmlist */
+#define VM_LOWMEM	0x00000040	/* Tracking of direct mapped lowmem */
+=======
 #define VM_IOREMAP		0x00000001	/* ioremap() and friends */
 #define VM_ALLOC		0x00000002	/* vmalloc() */
 #define VM_MAP			0x00000004	/* vmap()ed pages */
 #define VM_USERMAP		0x00000008	/* suitable for remap_vmalloc_range */
 #define VM_VPAGES		0x00000010	/* buffer for pages was vmalloc'ed */
 #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
+>>>>>>> android-3.18
 /* bits [20..32] reserved for arch specific ioremap internals */
 
 /*
@@ -35,6 +45,8 @@ struct vm_struct {
 	unsigned int		nr_pages;
 	phys_addr_t		phys_addr;
 	const void		*caller;
+<<<<<<< HEAD
+=======
 };
 
 struct vmap_area {
@@ -46,6 +58,7 @@ struct vmap_area {
 	struct list_head purge_list;    /* "lazy purge" list */
 	struct vm_struct *vm;
 	struct rcu_head rcu_head;
+>>>>>>> android-3.18
 };
 
 /*
@@ -151,6 +164,13 @@ extern long vwrite(char *buf, char *addr, unsigned long count);
 extern struct list_head vmap_area_list;
 extern __init void vm_area_add_early(struct vm_struct *vm);
 extern __init void vm_area_register_early(struct vm_struct *vm, size_t align);
+extern __init int vm_area_check_early(struct vm_struct *vm);
+#ifdef CONFIG_ENABLE_VMALLOC_SAVING
+extern void mark_vmalloc_reserved_area(void *addr, unsigned long size);
+#else
+static inline void mark_vmalloc_reserved_area(void *addr, unsigned long size)
+{ };
+#endif
 
 #ifdef CONFIG_SMP
 # ifdef CONFIG_MMU

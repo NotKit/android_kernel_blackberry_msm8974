@@ -65,6 +65,8 @@ struct snd_pcm_ops {
 	int (*close)(struct snd_pcm_substream *substream);
 	int (*ioctl)(struct snd_pcm_substream * substream,
 		     unsigned int cmd, void *arg);
+	int (*compat_ioctl)(struct snd_pcm_substream *substream,
+		     unsigned int cmd, void *arg);
 	int (*hw_params)(struct snd_pcm_substream *substream,
 			 struct snd_pcm_hw_params *params);
 	int (*hw_free)(struct snd_pcm_substream *substream);
@@ -82,6 +84,7 @@ struct snd_pcm_ops {
 			     unsigned long offset);
 	int (*mmap)(struct snd_pcm_substream *substream, struct vm_area_struct *vma);
 	int (*ack)(struct snd_pcm_substream *substream);
+	int (*restart)(struct snd_pcm_substream *substream);
 };
 
 /*
@@ -112,6 +115,12 @@ struct snd_pcm_ops {
 #define SNDRV_PCM_TRIGGER_DRAIN		7
 
 #define SNDRV_PCM_POS_XRUN		((snd_pcm_uframes_t)-1)
+
+#define SNDRV_DMA_MODE          (0)
+#define SNDRV_NON_DMA_MODE      (1 << 0)
+#define SNDRV_RENDER_STOPPED    (1 << 1)
+#define SNDRV_RENDER_RUNNING    (1 << 2)
+
 
 /* If you change this don't forget to change rates[] table in pcm_native.c */
 #define SNDRV_PCM_RATE_5512		(1<<0)		/* 5512Hz */
@@ -272,7 +281,7 @@ struct snd_pcm_hw_constraint_ratdens {
 
 struct snd_pcm_hw_constraint_list {
 	unsigned int count;
-	const unsigned int *list;
+	unsigned int *list;
 	unsigned int mask;
 };
 
@@ -308,6 +317,7 @@ struct snd_pcm_runtime {
 	unsigned int rate_num;
 	unsigned int rate_den;
 	unsigned int no_period_wakeup: 1;
+	unsigned int render_flag;
 
 	/* -- SW params -- */
 	int tstamp_mode;		/* mmap timestamp is updated */
@@ -418,6 +428,7 @@ struct snd_pcm_substream {
 #endif
 	/* misc flags */
 	unsigned int hw_opened: 1;
+	unsigned int hw_no_buffer: 1; /* substream may not have a buffer */
 };
 
 #define SUBSTREAM_BUSY(substream) ((substream)->ref_count > 0)
@@ -443,6 +454,10 @@ struct snd_pcm_str {
 #endif
 #endif
 	struct snd_kcontrol *chmap_kctl; /* channel-mapping controls */
+<<<<<<< HEAD
+	struct snd_kcontrol *vol_kctl; /* volume controls */
+=======
+>>>>>>> android-3.18
 };
 
 struct snd_pcm {
@@ -483,6 +498,9 @@ extern const struct file_operations snd_pcm_f_ops[2];
 int snd_pcm_new(struct snd_card *card, const char *id, int device,
 		int playback_count, int capture_count,
 		struct snd_pcm **rpcm);
+int snd_pcm_new_soc_be(struct snd_card *card, const char *id, int device,
+		int playback_count, int capture_count,
+		struct snd_pcm ** rpcm);
 int snd_pcm_new_internal(struct snd_card *card, const char *id, int device,
 		int playback_count, int capture_count,
 		struct snd_pcm **rpcm);
@@ -860,8 +878,7 @@ void snd_interval_muldivk(const struct snd_interval *a, const struct snd_interva
 			  unsigned int k, struct snd_interval *c);
 void snd_interval_mulkdiv(const struct snd_interval *a, unsigned int k,
 			  const struct snd_interval *b, struct snd_interval *c);
-int snd_interval_list(struct snd_interval *i, unsigned int count,
-		      const unsigned int *list, unsigned int mask);
+int snd_interval_list(struct snd_interval *i, unsigned int count, unsigned int *list, unsigned int mask);
 int snd_interval_ratnum(struct snd_interval *i,
 			unsigned int rats_count, struct snd_ratnum *rats,
 			unsigned int *nump, unsigned int *denp);
@@ -1197,6 +1214,8 @@ static inline void snd_pcm_limit_isa_dma_size(int dma, size_t *max)
 
 const char *snd_pcm_format_name(snd_pcm_format_t format);
 
+<<<<<<< HEAD
+=======
 /**
  * snd_pcm_stream_str - Get a string naming the direction of a stream
  * @substream: the pcm substream instance
@@ -1211,6 +1230,7 @@ static inline const char *snd_pcm_stream_str(struct snd_pcm_substream *substream
 		return "Capture";
 }
 
+>>>>>>> android-3.18
 /*
  * PCM channel-mapping control API
  */
@@ -1231,11 +1251,15 @@ struct snd_pcm_chmap {
 	void *private_data;	/* optional: private data pointer */
 };
 
+<<<<<<< HEAD
+/* get the PCM substream assigned to the given chmap info */
+=======
 /**
  * snd_pcm_chmap_substream - get the PCM substream assigned to the given chmap info
  * @info: chmap information
  * @idx: the substream number index
  */
+>>>>>>> android-3.18
 static inline struct snd_pcm_substream *
 snd_pcm_chmap_substream(struct snd_pcm_chmap *info, unsigned int idx)
 {
@@ -1262,6 +1286,31 @@ int snd_pcm_add_chmap_ctls(struct snd_pcm *pcm, int stream,
 			   unsigned long private_value,
 			   struct snd_pcm_chmap **info_ret);
 
+<<<<<<< HEAD
+/*
+ * PCM Volume control API
+ */
+/* array element of volume */
+struct snd_pcm_volume_elem {
+	int volume;
+};
+
+/* pp information; retrieved via snd_kcontrol_chip() */
+struct snd_pcm_volume {
+	struct snd_pcm *pcm;	/* assigned PCM instance */
+	int stream;		/* PLAYBACK or CAPTURE */
+	struct snd_kcontrol *kctl;
+	const struct snd_pcm_volume_elem *volume;
+	int max_length;
+	void *private_data;	/* optional: private data pointer */
+};
+
+int snd_pcm_add_volume_ctls(struct snd_pcm *pcm, int stream,
+			   const struct snd_pcm_volume_elem *volume,
+			   int max_length,
+			   unsigned long private_value,
+			   struct snd_pcm_volume **info_ret);
+=======
 /**
  * pcm_format_to_bits - Strong-typed conversion of pcm_format to bitwise
  * @pcm_format: PCM format
@@ -1278,5 +1327,6 @@ static inline u64 pcm_format_to_bits(snd_pcm_format_t pcm_format)
 	dev_warn((pcm)->card->dev, fmt, ##args)
 #define pcm_dbg(pcm, fmt, args...) \
 	dev_dbg((pcm)->card->dev, fmt, ##args)
+>>>>>>> android-3.18
 
 #endif /* __SOUND_PCM_H */

@@ -57,6 +57,26 @@ enum {
 	 */
 	MIGRATE_CMA,
 #endif
+<<<<<<< HEAD
+	MIGRATE_ISOLATE,	/* can't allocate from here */
+	MIGRATE_TYPES
+};
+
+/*
+ * Returns a list which contains the migrate types on to which
+ * an allocation falls back when the free list for the migrate
+ * type mtype is depleted.
+ * The end of the list is delimited by the type MIGRATE_RESERVE.
+ */
+extern int *get_migratetype_fallbacks(int mtype);
+
+#ifdef CONFIG_CMA
+bool is_cma_pageblock(struct page *page);
+#  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
+#else
+#  define is_cma_pageblock(page) false
+#  define is_migrate_cma(migratetype) false
+=======
 #ifdef CONFIG_MEMORY_ISOLATION
 	MIGRATE_ISOLATE,	/* can't allocate from here */
 #endif
@@ -69,6 +89,7 @@ enum {
 #else
 #  define is_migrate_cma(migratetype) false
 #  define is_migrate_cma_page(_page) false
+>>>>>>> android-3.18
 #endif
 
 #define for_each_migratetype_order(order, type) \
@@ -159,6 +180,10 @@ enum zone_stat_item {
 	WORKINGSET_NODERECLAIM,
 	NR_ANON_TRANSPARENT_HUGEPAGES,
 	NR_FREE_CMA_PAGES,
+<<<<<<< HEAD
+	NR_SWAPCACHE,
+=======
+>>>>>>> android-3.18
 	NR_VM_ZONE_STAT_ITEMS };
 
 /*
@@ -359,7 +384,27 @@ struct zone {
 	 * This is a per-zone reserve of pages that should not be
 	 * considered dirtyable memory.
 	 */
+<<<<<<< HEAD
+	spinlock_t		lock;
+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
+	/* Set to true when the PG_migrate_skip bits should be cleared */
+	bool			compact_blockskip_flush;
+
+	/* pfns where compaction scanners should start */
+	unsigned long		compact_cached_free_pfn;
+	unsigned long		compact_cached_migrate_pfn;
+#endif
+#ifdef CONFIG_MEMORY_HOTPLUG
+	/* see spanned/present_pages for more description */
+	seqlock_t		span_seqlock;
+#endif
+#ifdef CONFIG_CMA
+	bool			cma_alloc;
+#endif
+	struct free_area	free_area[MAX_ORDER];
+=======
 	unsigned long		dirty_balance_reserve;
+>>>>>>> android-3.18
 
 #ifndef CONFIG_SPARSEMEM
 	/*
@@ -750,9 +795,13 @@ typedef struct pglist_data {
 					     range, including holes */
 	int node_id;
 	wait_queue_head_t kswapd_wait;
+<<<<<<< HEAD
+	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
+=======
 	wait_queue_head_t pfmemalloc_wait;
 	struct task_struct *kswapd;	/* Protected by
 					   mem_hotplug_begin/end() */
+>>>>>>> android-3.18
 	int kswapd_max_order;
 	enum zone_type classzone_idx;
 #ifdef CONFIG_NUMA_BALANCING
@@ -1211,7 +1260,10 @@ static inline int pfn_present(unsigned long pfn)
 #define pfn_to_nid(pfn)		(0)
 #endif
 
+#ifndef early_pfn_valid
 #define early_pfn_valid(pfn)	pfn_valid(pfn)
+#endif
+
 void sparse_init(void);
 #else
 #define sparse_init()	do {} while (0)
