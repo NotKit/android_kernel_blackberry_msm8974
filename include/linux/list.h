@@ -376,44 +376,12 @@ static inline void list_splice_tail_init(struct list_head *list,
 	list_entry((ptr)->next, type, member)
 
 /**
-<<<<<<< HEAD
- * list_first_entry_or_null - get the first element from a list
-=======
  * list_last_entry - get the last element from a list
->>>>>>> android-3.18
  * @ptr:	the list head to take the element from.
  * @type:	the type of the struct this is embedded in.
  * @member:	the name of the list_struct within the struct.
  *
-<<<<<<< HEAD
- * Note that if the list is empty, it returns NULL.
- */
-#define list_first_entry_or_null(ptr, type, member) \
-	(!list_empty(ptr) ? list_first_entry(ptr, type, member) : NULL)
-
-/**
- * list_next_entry - get the next element in list
- * @pos:	the type * to cursor
- * @member:	the name of the list_struct within the struct.
- */
-#define list_next_entry(pos, member) \
-	list_entry((pos)->member.next, typeof(*(pos)), member)
-
-/**
- * list_prev_entry - get the prev element in list
- * @pos:	the type * to cursor
- * @member:	the name of the list_struct within the struct.
- */
-#define list_prev_entry(pos, member) \
-	list_entry((pos)->member.prev, typeof(*(pos)), member)
-
-/**
- * list_for_each	-	iterate over a list
- * @pos:	the &struct list_head to use as a loop cursor.
- * @head:	the head for your list.
-=======
  * Note, that list is expected to be not empty.
->>>>>>> android-3.18
  */
 #define list_last_entry(ptr, type, member) \
 	list_entry((ptr)->prev, type, member)

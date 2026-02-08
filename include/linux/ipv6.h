@@ -4,10 +4,7 @@
 #include <uapi/linux/ipv6.h>
 
 #define ipv6_optlen(p)  (((p)->hdrlen+1) << 3)
-<<<<<<< HEAD
-=======
 #define ipv6_authlen(p) (((p)->hdrlen+2) << 2)
->>>>>>> android-3.18
 /*
  * This structure contains configuration options per IPv6 link.
  */
@@ -24,11 +21,8 @@ struct ipv6_devconf {
 	__s32		rtr_solicit_max_interval;
 	__s32		rtr_solicit_delay;
 	__s32		force_mld_version;
-<<<<<<< HEAD
-=======
 	__s32		mldv1_unsolicited_report_interval;
 	__s32		mldv2_unsolicited_report_interval;
->>>>>>> android-3.18
 	__s32		use_tempaddr;
 	__s32		temp_valid_lft;
 	__s32		temp_prefered_lft;
@@ -60,16 +54,9 @@ struct ipv6_devconf {
 	__s32		drop_unicast_in_l2_multicast;
 	__s32		accept_dad;
 	__s32		force_tllao;
-<<<<<<< HEAD
-	__s32		accept_ra_prefix_route;
-	__s32		accept_ra_mtu;
-	__s32		use_oif_addrs_only;
-	__s32		drop_unsolicited_na;
-=======
 	__s32           ndisc_notify;
 	__s32		suppress_frag_ndisc;
 	__s32		use_oif_addrs_only;
->>>>>>> android-3.18
 	void		*sysctl;
 };
 
@@ -122,10 +109,7 @@ struct inet6_skb_parm {
 #define IP6SKB_XFRM_TRANSFORMED	1
 #define IP6SKB_FORWARDED	2
 #define IP6SKB_REROUTED		4
-<<<<<<< HEAD
-=======
 #define IP6SKB_ROUTERALERT	8
->>>>>>> android-3.18
 #define IP6SKB_FRAGMENTED      16
 };
 
@@ -339,23 +323,6 @@ static inline struct raw6_sock *raw6_sk(const struct sock *sk)
 #define inet_v6_ipv6only(__sk)		0
 #endif /* IS_ENABLED(CONFIG_IPV6) */
 
-<<<<<<< HEAD
-#define INET6_MATCH(__sk, __net, __hash, __saddr, __daddr, __ports, __dif)\
-	(((__sk)->sk_hash == (__hash)) && sock_net((__sk)) == (__net)	&& \
-	 ((*((__portpair *)&(inet_sk(__sk)->inet_dport))) == (__ports)) && \
-	 ((__sk)->sk_family		== AF_INET6)		&& \
-	 ipv6_addr_equal(&inet6_sk(__sk)->daddr, (__saddr))	&& \
-	 ipv6_addr_equal(&inet6_sk(__sk)->rcv_saddr, (__daddr))	&& \
-	 (!((__sk)->sk_bound_dev_if) || ((__sk)->sk_bound_dev_if == (__dif))))
-
-#define INET6_TW_MATCH(__sk, __net, __hash, __saddr, __daddr, __ports, __dif) \
-	(((__sk)->sk_hash == (__hash)) && sock_net((__sk)) == (__net)	&& \
-	 (*((__portpair *)&(inet_twsk(__sk)->tw_dport)) == (__ports))	&& \
-	 ((__sk)->sk_family	       == PF_INET6)			&& \
-	 (ipv6_addr_equal(&inet6_twsk(__sk)->tw_v6_daddr, (__saddr)))	&& \
-	 (ipv6_addr_equal(&inet6_twsk(__sk)->tw_v6_rcv_saddr, (__daddr))) && \
-	 (!((__sk)->sk_bound_dev_if) || ((__sk)->sk_bound_dev_if == (__dif))))
-=======
 #define INET6_MATCH(__sk, __net, __saddr, __daddr, __ports, __dif)	\
 	(((__sk)->sk_portpair == (__ports))			&&	\
 	 ((__sk)->sk_family == AF_INET6)			&&	\
@@ -364,6 +331,5 @@ static inline struct raw6_sock *raw6_sk(const struct sock *sk)
 	 (!(__sk)->sk_bound_dev_if	||				\
 	   ((__sk)->sk_bound_dev_if == (__dif))) 		&&	\
 	 net_eq(sock_net(__sk), (__net)))
->>>>>>> android-3.18
 
 #endif /* _IPV6_H */

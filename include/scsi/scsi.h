@@ -10,11 +10,7 @@
 
 #include <linux/types.h>
 #include <linux/scatterlist.h>
-<<<<<<< HEAD
-#include <linux/device.h>
-=======
 #include <linux/kernel.h>
->>>>>>> android-3.18
 
 struct scsi_cmnd;
 

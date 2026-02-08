@@ -13,15 +13,6 @@
 #ifndef LINUX_BMA150_MODULE_H
 #define LINUX_BMA150_MODULE_H
 
-<<<<<<< HEAD
-/**
- * struct bma150_platform_data - data to set up bma150 driver
- *
- * @setup: optional callback to activate the driver.
- * @teardown: optional callback to invalidate the driver.
- *
-**/
-=======
 #ifndef _BMA150_H_
 #define _BMA150_H_
 
@@ -54,7 +45,6 @@ struct bma150_cfg {
 	unsigned char range;		/* one of BMA0150_RANGE_xxx */
 	unsigned char bandwidth;	/* one of BMA0150_BW_xxx */
 };
->>>>>>> android-3.18
 
 struct bma150_platform_data {
 	int (*setup)(struct device *);

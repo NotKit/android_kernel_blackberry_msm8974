@@ -28,15 +28,10 @@ struct vfsmount;
 /* The hash is always the low bits of hash_len */
 #ifdef __LITTLE_ENDIAN
  #define HASH_LEN_DECLARE u32 hash; u32 len;
-<<<<<<< HEAD
-#else
- #define HASH_LEN_DECLARE u32 len; u32 hash;
-=======
  #define bytemask_from_count(cnt)	(~(~0ul << (cnt)*8))
 #else
  #define HASH_LEN_DECLARE u32 len; u32 hash;
  #define bytemask_from_count(cnt)	(~(~0ul >> (cnt)*8))
->>>>>>> android-3.18
 #endif
 
 /*
@@ -59,10 +54,7 @@ struct qstr {
 #define QSTR_INIT(n,l) { { { .len = l } }, .name = n }
 #define hashlen_hash(hashlen) ((u32) (hashlen))
 #define hashlen_len(hashlen)  ((u32)((hashlen) >> 32))
-<<<<<<< HEAD
-=======
 #define hashlen_create(hash,len) (((u64)(len)<<32)|(u32)(hash))
->>>>>>> android-3.18
 
 struct dentry_stat_t {
 	long nr_dentry;
@@ -138,11 +130,7 @@ struct dentry {
 	 * d_alias and d_rcu can share memory
 	 */
 	union {
-<<<<<<< HEAD
-		struct list_head d_alias;	/* inode alias list */
-=======
 		struct hlist_node d_alias;	/* inode alias list */
->>>>>>> android-3.18
 	 	struct rcu_head d_rcu;
 	} d_u;
 };
@@ -161,16 +149,9 @@ enum dentry_d_lock_class
 
 struct dentry_operations {
 	int (*d_revalidate)(struct dentry *, unsigned int);
-<<<<<<< HEAD
-	int (*d_hash)(const struct dentry *, const struct inode *,
-			struct qstr *);
-	int (*d_compare)(const struct dentry *, const struct inode *,
-			const struct dentry *, const struct inode *,
-=======
 	int (*d_weak_revalidate)(struct dentry *, unsigned int);
 	int (*d_hash)(const struct dentry *, struct qstr *);
 	int (*d_compare)(const struct dentry *, const struct dentry *,
->>>>>>> android-3.18
 			unsigned int, const char *, const struct qstr *);
 	int (*d_delete)(const struct dentry *);
 	void (*d_release)(struct dentry *);
@@ -180,10 +161,7 @@ struct dentry_operations {
 	struct vfsmount *(*d_automount)(struct path *);
 	int (*d_manage)(struct dentry *, bool);
 	void (*d_canonical_path)(const struct path *, struct path *);
-<<<<<<< HEAD
-=======
 	struct inode *(*d_select_inode)(struct dentry *, unsigned);
->>>>>>> android-3.18
 } ____cacheline_aligned;
 
 /*
@@ -236,18 +214,7 @@ struct dentry_operations {
 #define DCACHE_MANAGED_DENTRY \
 	(DCACHE_MOUNTED|DCACHE_NEED_AUTOMOUNT|DCACHE_MANAGE_TRANSIT)
 
-<<<<<<< HEAD
-#define DCACHE_DENTRY_KILLED	0x100000
-
-#define DCACHE_ENCRYPTED_WITH_KEY	0x04000000 /* dir is encrypted with a valid key */
-
-#define DCACHE_ENTRY_TYPE		0x00700000
-#define DCACHE_MISS_TYPE		0x00000000 /* Negative dentry */
-
-extern seqlock_t rename_lock;
-=======
 #define DCACHE_LRU_LIST			0x00080000
->>>>>>> android-3.18
 
 #define DCACHE_ENTRY_TYPE		0x00700000
 #define DCACHE_MISS_TYPE		0x00000000 /* Negative dentry */
@@ -352,12 +319,7 @@ extern struct dentry *d_lookup(const struct dentry *, const struct qstr *);
 extern struct dentry *d_hash_and_lookup(struct dentry *, struct qstr *);
 extern struct dentry *__d_lookup(const struct dentry *, const struct qstr *);
 extern struct dentry *__d_lookup_rcu(const struct dentry *parent,
-<<<<<<< HEAD
-				const struct qstr *name,
-				unsigned *seq, struct inode *inode);
-=======
 				const struct qstr *name, unsigned *seq);
->>>>>>> android-3.18
 
 static inline unsigned d_count(const struct dentry *dentry)
 {
@@ -544,25 +506,10 @@ static inline bool d_really_is_positive(const struct dentry *dentry)
 	return dentry->d_inode != NULL;
 }
 
-static inline unsigned __d_entry_type(const struct dentry *dentry)
-{
-	return dentry->d_flags & DCACHE_ENTRY_TYPE;
-}
 
-static inline bool d_is_negative(const struct dentry *dentry)
-{
-	return __d_entry_type(dentry) == DCACHE_MISS_TYPE;
-}
-
-static inline bool d_is_positive(const struct dentry *dentry)
-{
-	return !d_is_negative(dentry);
-}
 
 extern int sysctl_vfs_cache_pressure;
 
-<<<<<<< HEAD
-=======
 static inline unsigned long vfs_pressure_ratio(unsigned long val)
 {
 	return mult_frac(val, sysctl_vfs_cache_pressure, 100);
@@ -624,7 +571,6 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
 	return upper;
 }
 
->>>>>>> android-3.18
 struct name_snapshot {
 	const char *name;
 	char inline_name[DNAME_INLINE_LEN];
@@ -632,8 +578,6 @@ struct name_snapshot {
 void take_dentry_name_snapshot(struct name_snapshot *, struct dentry *);
 void release_dentry_name_snapshot(struct name_snapshot *);
 
-<<<<<<< HEAD
-=======
 static inline struct inode *vfs_select_inode(struct dentry *dentry,
 					     unsigned open_flags)
 {
@@ -646,5 +590,4 @@ static inline struct inode *vfs_select_inode(struct dentry *dentry,
 }
 
 
->>>>>>> android-3.18
 #endif	/* __LINUX_DCACHE_H */

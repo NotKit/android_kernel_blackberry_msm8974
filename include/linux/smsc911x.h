@@ -39,13 +39,7 @@ struct smsc911x_platform_config {
 	unsigned int flags;
 	unsigned int shift;
 	phy_interface_t phy_interface;
-<<<<<<< HEAD
-	unsigned char mac[6];
-	unsigned char has_reset_gpio;
-	unsigned int reset_gpio;
-=======
 	unsigned char mac[ETH_ALEN];
->>>>>>> android-3.18
 };
 
 /* Constants for platform_device irq polarity configuration */

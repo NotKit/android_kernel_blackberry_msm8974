@@ -73,8 +73,6 @@ struct v4l2_ctrl_ops {
 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
 };
 
-<<<<<<< HEAD
-=======
 /** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
   * @equal: return true if both values are equal.
   * @init: initialize the value.
@@ -92,7 +90,6 @@ struct v4l2_ctrl_type_ops {
 			union v4l2_ctrl_ptr ptr);
 };
 
->>>>>>> android-3.18
 typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
 
 /** struct v4l2_ctrl - The control structure.
@@ -198,19 +195,6 @@ struct v4l2_ctrl {
 		u64 step;
 		u64 menu_skip_mask;
 	};
-<<<<<<< HEAD
-	union {
-		const char * const *qmenu;
-		const s64 *qmenu_int;
-	};
-	unsigned long flags;
-	union {
-		s32 val;
-		s64 val64;
-		char *string;
-	} cur;
-=======
->>>>>>> android-3.18
 	union {
 		const char * const *qmenu;
 		const s64 *qmenu_int;
@@ -264,11 +248,7 @@ struct v4l2_ctrl_ref {
   */
 struct v4l2_ctrl_handler {
 	struct mutex _lock;
-<<<<<<< HEAD
-	struct mutex lock;
-=======
 	struct mutex *lock;
->>>>>>> android-3.18
 	struct list_head ctrls;
 	struct list_head ctrl_refs;
 	struct v4l2_ctrl_ref *cached;
@@ -341,12 +321,8 @@ struct v4l2_ctrl_config {
 void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
 		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
 
-<<<<<<< HEAD
-/** v4l2_ctrl_handler_init() - Initialize the control handler.
-=======
 
 /** v4l2_ctrl_handler_init_class() - Initialize the control handler.
->>>>>>> android-3.18
   * @hdl:	The control handler.
   * @nr_of_controls_hint: A hint of how many controls this handler is
   *		expected to refer to. This is the total number, so including
@@ -686,14 +662,11 @@ void v4l2_ctrl_activate(struct v4l2_ctrl *ctrl, bool active);
   */
 void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
 
-<<<<<<< HEAD
-=======
 
 /** __v4l2_ctrl_modify_range() - Unlocked variant of v4l2_ctrl_modify_range() */
 int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
 			     s64 min, s64 max, u64 step, s64 def);
 
->>>>>>> android-3.18
 /** v4l2_ctrl_modify_range() - Update the range of a control.
   * @ctrl:	The control to update.
   * @min:	The control's minimum value.
@@ -710,16 +683,6 @@ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
   *
   * This function assumes that the control handler is not locked and will
   * take the lock itself.
-<<<<<<< HEAD
-  */
-int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
-			s32 min, s32 max, u32 step, s32 def);
-
-/** v4l2_ctrl_lock() - Helper function to lock the handler
-  * associated with the control.
-  * @ctrl:	The control to lock.
-=======
->>>>>>> android-3.18
   */
 static inline int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
 					 s64 min, s64 max, u64 step, s64 def)
@@ -881,13 +844,6 @@ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
 extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
 void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
 void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new);
-<<<<<<< HEAD
-void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
-		struct v4l2_subscribed_event *sev);
-void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
-		struct v4l2_subscribed_event *sev);
-=======
->>>>>>> android-3.18
 
 /* Can be used as a vidioc_log_status function that just dumps all controls
    associated with the filehandle. */

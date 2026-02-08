@@ -98,15 +98,11 @@ struct mmc_command {
  *              actively failing requests
  */
 
-<<<<<<< HEAD
-	unsigned int		cmd_timeout_ms;	/* in milliseconds */
-	/* Set this flag only for commands which can be HPIed */
-	bool			ignore_timeout;
-=======
 	unsigned int		busy_timeout;	/* busy detect timeout in ms */
+	unsigned int		ignore_timeout;	/* ignore timeout */
+	unsigned int		cmd_timeout_ms;
 	/* Set this flag only for blocking sanitize request */
 	bool			sanitize_busy;
->>>>>>> android-3.18
 
 	struct mmc_data		*data;		/* data segment associated with cmd */
 	struct mmc_request	*mrq;		/* associated request */
@@ -145,13 +141,10 @@ struct mmc_request {
 	struct completion	completion;
 	void			(*done)(struct mmc_request *);/* completion function */
 	struct mmc_host		*host;
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_BLOCK
 	ktime_t			io_start;
 	int			lat_hist_enabled;
 #endif
->>>>>>> android-3.18
 };
 
 struct mmc_card;
@@ -159,10 +152,6 @@ struct mmc_async_req;
 
 extern int mmc_stop_bkops(struct mmc_card *);
 extern int mmc_read_bkops_status(struct mmc_card *);
-<<<<<<< HEAD
-extern bool mmc_card_is_prog_state(struct mmc_card *);
-=======
->>>>>>> android-3.18
 extern struct mmc_async_req *mmc_start_req(struct mmc_host *,
 					   struct mmc_async_req *, int *);
 extern int mmc_interrupt_hpi(struct mmc_card *);
@@ -172,20 +161,9 @@ extern int mmc_app_cmd(struct mmc_host *, struct mmc_card *);
 extern int mmc_wait_for_app_cmd(struct mmc_host *, struct mmc_card *,
 	struct mmc_command *, int);
 extern void mmc_start_bkops(struct mmc_card *card, bool from_exception);
-<<<<<<< HEAD
-extern void mmc_start_delayed_bkops(struct mmc_card *card);
-extern void mmc_start_idle_time_bkops(struct work_struct *work);
-extern void mmc_bkops_completion_polling(struct work_struct *work);
-extern int __mmc_switch(struct mmc_card *, u8, u8, u8, unsigned int, bool,
-			bool);
-extern int mmc_switch(struct mmc_card *, u8, u8, u8, unsigned int);
-extern int mmc_switch_ignore_timeout(struct mmc_card *, u8, u8, u8,
-				     unsigned int);
-=======
 extern int __mmc_switch(struct mmc_card *, u8, u8, u8, unsigned int, bool,
 			bool, bool);
 extern int mmc_switch(struct mmc_card *, u8, u8, u8, unsigned int);
->>>>>>> android-3.18
 extern int mmc_send_ext_csd(struct mmc_card *card, u8 *ext_csd);
 
 #define MMC_ERASE_ARG		0x00000000
@@ -221,15 +199,10 @@ extern unsigned int mmc_align_data_size(struct mmc_card *, unsigned int);
 
 extern int __mmc_claim_host(struct mmc_host *host, atomic_t *abort);
 extern void mmc_release_host(struct mmc_host *host);
-<<<<<<< HEAD
-extern int mmc_try_claim_host(struct mmc_host *host);
-extern void mmc_set_ios(struct mmc_host *host);
-=======
 
 extern void mmc_get_card(struct mmc_card *card);
 extern void mmc_put_card(struct mmc_card *card);
 
->>>>>>> android-3.18
 extern int mmc_flush_cache(struct mmc_card *);
 
 extern int mmc_detect_card_removed(struct mmc_host *host);

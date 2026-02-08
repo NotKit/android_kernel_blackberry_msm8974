@@ -322,11 +322,6 @@ int usb_add_config(struct usb_composite_dev *,
 		struct usb_configuration *,
 		int (*)(struct usb_configuration *));
 
-<<<<<<< HEAD
-int usb_remove_config(struct usb_composite_dev *,
-		struct usb_configuration *);
-
-=======
 void usb_remove_config(struct usb_composite_dev *,
 		struct usb_configuration *);
 
@@ -338,7 +333,6 @@ enum {
 	USB_GADGET_FIRST_AVAIL_IDX,
 };
 
->>>>>>> android-3.18
 /**
  * struct usb_composite_driver - groups configurations into a gadget
  * @name: For diagnostics, identifies the driver.
@@ -517,6 +511,8 @@ extern int usb_string_ids_n(struct usb_composite_dev *c, unsigned n);
 extern void composite_disconnect(struct usb_gadget *gadget);
 extern int composite_setup(struct usb_gadget *gadget,
 		const struct usb_ctrlrequest *ctrl);
+extern void composite_suspend(struct usb_gadget *gadget);
+extern void composite_resume(struct usb_gadget *gadget);
 
 /*
  * Some systems will need runtime overrides for the  product identifiers

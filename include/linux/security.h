@@ -26,11 +26,7 @@
 #include <linux/capability.h>
 #include <linux/slab.h>
 #include <linux/err.h>
-<<<<<<< HEAD
-#include <linux/bio.h>
-=======
 #include <linux/string.h>
->>>>>>> android-3.18
 
 struct linux_binprm;
 struct cred;
@@ -1445,17 +1441,10 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
 struct security_operations {
 	char name[SECURITY_NAME_MAX + 1];
 
-<<<<<<< HEAD
-	int (*binder_set_context_mgr) (const struct cred *mgr);
-	int (*binder_transaction) (const struct cred *from, const struct cred *to);
-	int (*binder_transfer_binder) (const struct cred *from, const struct cred *to);
-	int (*binder_transfer_file) (const struct cred *from, const struct cred *to, struct file *file);
-=======
 	int (*binder_set_context_mgr) (struct task_struct *mgr);
 	int (*binder_transaction) (struct task_struct *from, struct task_struct *to);
 	int (*binder_transfer_binder) (struct task_struct *from, struct task_struct *to);
 	int (*binder_transfer_file) (struct task_struct *from, struct task_struct *to, struct file *file);
->>>>>>> android-3.18
 
 	int (*ptrace_access_check) (struct task_struct *child, unsigned int mode);
 	int (*ptrace_traceme) (struct task_struct *parent);
@@ -1582,11 +1571,6 @@ struct security_operations {
 				    struct fown_struct *fown, int sig);
 	int (*file_receive) (struct file *file);
 	int (*file_open) (struct file *file, const struct cred *cred);
-<<<<<<< HEAD
-	int (*file_close) (struct file *file);
-	bool (*allow_merge_bio)(struct bio *bio1, struct bio *bio2);
-=======
->>>>>>> android-3.18
 
 	int (*task_create) (unsigned long clone_flags);
 	void (*task_free) (struct task_struct *task);
@@ -1763,20 +1747,10 @@ extern void __init security_fixup_ops(struct security_operations *ops);
 
 
 /* Security operations */
-<<<<<<< HEAD
-int security_binder_set_context_mgr(const struct cred *mgr);
-int security_binder_transaction(const struct cred *from,
-				const struct cred *to);
-int security_binder_transfer_binder(const struct cred *from,
-				    const struct cred *to);
-int security_binder_transfer_file(const struct cred *from,
-				  const struct cred *to, struct file *file);
-=======
 int security_binder_set_context_mgr(struct task_struct *mgr);
 int security_binder_transaction(struct task_struct *from, struct task_struct *to);
 int security_binder_transfer_binder(struct task_struct *from, struct task_struct *to);
 int security_binder_transfer_file(struct task_struct *from, struct task_struct *to, struct file *file);
->>>>>>> android-3.18
 int security_ptrace_access_check(struct task_struct *child, unsigned int mode);
 int security_ptrace_traceme(struct task_struct *parent);
 int security_capget(struct task_struct *target,
@@ -1868,13 +1842,8 @@ int security_file_permission(struct file *file, int mask);
 int security_file_alloc(struct file *file);
 void security_file_free(struct file *file);
 int security_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
-<<<<<<< HEAD
-int security_mmap_file(struct file *file, unsigned long reqprot,
-			unsigned long prot, unsigned long flags);
-=======
 int security_mmap_file(struct file *file, unsigned long prot,
 			unsigned long flags);
->>>>>>> android-3.18
 int security_mmap_addr(unsigned long addr);
 int security_file_mprotect(struct vm_area_struct *vma, unsigned long reqprot,
 			   unsigned long prot);
@@ -1885,12 +1854,6 @@ int security_file_send_sigiotask(struct task_struct *tsk,
 				 struct fown_struct *fown, int sig);
 int security_file_receive(struct file *file);
 int security_file_open(struct file *file, const struct cred *cred);
-<<<<<<< HEAD
-int security_file_close(struct file *file);
-bool security_allow_merge_bio(struct bio *bio1, struct bio *bio2);
-
-=======
->>>>>>> android-3.18
 int security_task_create(unsigned long clone_flags);
 void security_task_free(struct task_struct *task);
 int security_cred_alloc_blank(struct cred *cred, gfp_t gfp);
@@ -1980,38 +1943,22 @@ static inline int security_init(void)
 	return 0;
 }
 
-<<<<<<< HEAD
-static inline int security_binder_set_context_mgr(const struct cred *mgr)
-=======
 static inline int security_binder_set_context_mgr(struct task_struct *mgr)
->>>>>>> android-3.18
 {
 	return 0;
 }
 
-<<<<<<< HEAD
-static inline int security_binder_transaction(const struct cred *from, const struct cred *to)
-=======
 static inline int security_binder_transaction(struct task_struct *from, struct task_struct *to)
->>>>>>> android-3.18
 {
 	return 0;
 }
 
-<<<<<<< HEAD
-static inline int security_binder_transfer_binder(const struct cred *from, const struct cred *to)
-=======
 static inline int security_binder_transfer_binder(struct task_struct *from, struct task_struct *to)
->>>>>>> android-3.18
 {
 	return 0;
 }
 
-<<<<<<< HEAD
-static inline int security_binder_transfer_file(const struct cred *from, const struct cred *to, struct file *file)
-=======
 static inline int security_binder_transfer_file(struct task_struct *from, struct task_struct *to, struct file *file)
->>>>>>> android-3.18
 {
 	return 0;
 }
@@ -2379,12 +2326,7 @@ static inline int security_file_ioctl(struct file *file, unsigned int cmd,
 	return 0;
 }
 
-<<<<<<< HEAD
-static inline int security_mmap_file(struct file *file, unsigned long reqprot,
-				     unsigned long prot,
-=======
 static inline int security_mmap_file(struct file *file, unsigned long prot,
->>>>>>> android-3.18
 				     unsigned long flags)
 {
 	return 0;

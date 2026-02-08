@@ -216,8 +216,6 @@ struct irq_affinity_notify {
 
 #if defined(CONFIG_SMP)
 
-<<<<<<< HEAD
-=======
 extern cpumask_var_t irq_default_affinity;
 
 /* Internal implementation. Use the helpers below */
@@ -262,7 +260,6 @@ extern int irq_set_affinity_hint(unsigned int irq, const struct cpumask *m);
 extern int
 irq_set_affinity_notifier(unsigned int irq, struct irq_affinity_notify *notify);
 
->>>>>>> android-3.18
 #else /* CONFIG_SMP */
 
 static inline int irq_set_affinity(unsigned int irq, const struct cpumask *m)

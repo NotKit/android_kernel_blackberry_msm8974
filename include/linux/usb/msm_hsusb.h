@@ -22,12 +22,8 @@
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/otg.h>
-<<<<<<< HEAD
-#include <linux/wakelock.h>
-#include <linux/pm_qos.h>
-#include <linux/hrtimer.h>
-#include <linux/power_supply.h>
-#include <linux/cdev.h>
+#include <linux/clk.h>
+
 /*
  * The following are bit fields describing the usb_request.udc_priv word.
  * These bit fields are set by function drivers that wish to queue
@@ -42,38 +38,6 @@
 #define MSM_ETD_IOC			BIT(9)
 #define MSM_INTERNAL_MEM		BIT(10)
 #define MSM_VENDOR_ID			BIT(16)
-
-/**
- * Requested USB votes for BUS bandwidth
- *
- * USB_NO_PERF_VOTE     BUS Vote for inactive USB session or disconnect
- * USB_MAX_PERF_VOTE    Maximum BUS bandwidth vote
- * USB_MIN_PERF_VOTE    Minimum BUS bandwidth vote (for some hw same as NO_PERF)
- *
- */
-enum usb_bus_vote {
-	USB_NO_PERF_VOTE = 0,
-	USB_MAX_PERF_VOTE,
-	USB_MIN_PERF_VOTE,
-};
-
-/**
- * Supported USB modes
- *
- * USB_PERIPHERAL       Only peripheral mode is supported.
- * USB_HOST             Only host mode is supported.
- * USB_OTG              OTG mode is supported.
- *
- */
-enum usb_mode_type {
-	USB_NONE = 0,
-	USB_PERIPHERAL,
-	USB_HOST,
-	USB_OTG,
-};
-=======
-#include <linux/clk.h>
->>>>>>> android-3.18
 
 /**
  * OTG control
@@ -211,53 +175,6 @@ enum usb_ext_chg_status {
 /**
  * struct msm_otg_platform_data - platform device data
  *              for msm_otg driver.
-<<<<<<< HEAD
- * @phy_init_seq: PHY configuration sequence. val, reg pairs
- *              terminated by -1.
- * @vbus_power: VBUS power on/off routine.It should return result
- *		as success(zero value) or failure(non-zero value).
- * @power_budget: VBUS power budget in mA (0 will be treated as 500mA).
- * @mode: Supported mode (OTG/peripheral/host).
- * @otg_control: OTG switch controlled by user/Id pin
- * @default_mode: Default operational mode. Applicable only if
- *              OTG switch is controller by user.
- * @pmic_id_irq: IRQ number assigned for PMIC USB ID line.
- * @mpm_otgsessvld_int: MPM wakeup pin assigned for OTG SESSVLD
- *              interrupt. Used when .otg_control == OTG_PHY_CONTROL.
- * @mpm_dpshv_int: MPM wakeup pin assigned for DP SHV interrupt.
- *		Used during host bus suspend.
- * @mpm_dmshv_int: MPM wakeup pin assigned for DM SHV interrupt.
- *		Used during host bus suspend.
- * @mhl_enable: indicates MHL connector or not.
- * @disable_reset_on_disconnect: perform USB PHY and LINK reset
- *              on USB cable disconnection.
- * @pnoc_errata_fix: workaround needed for PNOC hardware bug that
- *              affects USB performance.
- * @enable_lpm_on_suspend: Enable the USB core to go into Low
- *              Power Mode, when USB bus is suspended but cable
- *              is connected.
- * @core_clk_always_on_workaround: Don't disable core_clk when
- *              USB enters LPM.
- * @delay_lpm_on_disconnect: Use a delay before entering LPM
- *              upon USB cable disconnection.
- * @enable_sec_phy: Use second HSPHY with USB2 core
- * @bus_scale_table: parameters for bus bandwidth requirements
- * @mhl_dev_name: MHL device name used to register with MHL driver.
- * @log2_itc: value of 2^(log2_itc-1) will be used as the
- *              interrupt threshold (ITC), when log2_itc is
- *              between 1 to 7.
- * @l1_supported: enable link power management support.
- * @dpdm_pulldown_added: Indicates whether pull down resistors are
- *		connected on data lines or not.
- * @enable_ahb2ahb_bypass: Indicates whether enable AHB2AHB BYPASS
- *		mode with controller in device mode.
- * @disable_retention_with_vdd_min: Indicates whether to enable allowing
- *		VDD min without putting PHY into retention
- */
-struct msm_otg_platform_data {
-	int *phy_init_seq;
-	int (*vbus_power)(bool on);
-=======
  * @phy_init_seq: PHY configuration sequence values. Value of -1 is reserved as
  *              "do not overwrite default vaule at this address".
  * @phy_init_sz: PHY configuration sequence size.
@@ -270,37 +187,13 @@ struct msm_otg_platform_data {
 	int *phy_init_seq;
 	int phy_init_sz;
 	void (*vbus_power)(bool on);
->>>>>>> android-3.18
 	unsigned power_budget;
 	enum usb_dr_mode mode;
 	enum otg_control_type otg_control;
 	enum msm_usb_phy_type phy_type;
 	void (*setup_gpio)(enum usb_otg_state state);
-<<<<<<< HEAD
-	int pmic_id_irq;
-	unsigned int mpm_otgsessvld_int;
-	unsigned int mpm_dpshv_int;
-	unsigned int mpm_dmshv_int;
-	bool mhl_enable;
-	bool disable_reset_on_disconnect;
-	bool pnoc_errata_fix;
-	bool enable_lpm_on_dev_suspend;
-	bool core_clk_always_on_workaround;
-	bool delay_lpm_on_disconnect;
-	bool delay_lpm_hndshk_on_disconnect;
-	bool dp_manual_pullup;
-	bool enable_sec_phy;
-	struct msm_bus_scale_pdata *bus_scale_table;
-	const char *mhl_dev_name;
-	int log2_itc;
-	bool l1_supported;
-	bool dpdm_pulldown_added;
-	bool enable_ahb2ahb_bypass;
-	bool disable_retention_with_vdd_min;
-=======
 	int (*link_clk_reset)(struct clk *link_clk, bool assert);
 	int (*phy_clk_reset)(struct clk *phy_clk);
->>>>>>> android-3.18
 };
 
 /* phy related flags */
@@ -352,19 +245,10 @@ struct msm_otg_platform_data {
  * @otg: USB OTG Transceiver structure.
  * @pdata: otg device platform data.
  * @irq: IRQ number assigned for HSUSB controller.
-<<<<<<< HEAD
- * @async_irq: IRQ number used by some controllers during low power state
- * @clk: clock struct of alt_core_clk.
- * @pclk: clock struct of iface_clk.
- * @core_clk: clock struct of core_bus_clk.
- * @sleep_clk: clock struct of sleep_clk for USB PHY.
- * @core_clk_rate: core clk max frequency
-=======
  * @clk: clock struct of usb_hs_clk.
  * @pclk: clock struct of usb_hs_pclk.
  * @phy_reset_clk: clock struct of usb_phy_clk.
  * @core_clk: clock struct of usb_hs_core_clk.
->>>>>>> android-3.18
  * @regs: ioremapped register base address.
  * @usb_phy_ctrl_reg: relevant PHY_CTRL_REG register base address.
  * @inputs: OTG state machine inputs(Id, SessValid etc).
@@ -408,10 +292,7 @@ struct msm_otg {
 	struct clk *xo_clk;
 	struct clk *clk;
 	struct clk *pclk;
-<<<<<<< HEAD
-=======
 	struct clk *phy_reset_clk;
->>>>>>> android-3.18
 	struct clk *core_clk;
 	struct clk *sleep_clk;
 	long core_clk_rate;
@@ -451,93 +332,6 @@ struct msm_otg {
 	struct delayed_work suspend_work;
 	enum usb_chg_state chg_state;
 	enum usb_chg_type chg_type;
-<<<<<<< HEAD
-	unsigned dcd_time;
-	struct wake_lock wlock;
-	struct notifier_block usbdev_nb;
-	unsigned mA_port;
-	struct timer_list id_timer;
-	unsigned long caps;
-	struct msm_xo_voter *xo_handle;
-	uint32_t bus_perf_client;
-	bool mhl_enabled;
-	bool host_bus_suspend;
-	struct timer_list chg_check_timer;
-	/*
-	 * Allowing PHY power collpase turns off the HSUSB 3.3v and 1.8v
-	 * analog regulators while going to low power mode.
-	 * Currently only 28nm PHY has the support to allowing PHY
-	 * power collapse since it doesn't have leakage currents while
-	 * turning off the power rails.
-	 */
-#define ALLOW_PHY_POWER_COLLAPSE	BIT(0)
-	/*
-	 * Allow PHY RETENTION mode before turning off the digital
-	 * voltage regulator(VDDCX).
-	 */
-#define ALLOW_PHY_RETENTION		BIT(1)
-	  /*
-	   * Allow putting the core in Low Power mode, when
-	   * USB bus is suspended but cable is connected.
-	   */
-#define ALLOW_LPM_ON_DEV_SUSPEND	BIT(2)
-	/*
-	 * Allowing PHY regulators LPM puts the HSUSB 3.3v and 1.8v
-	 * analog regulators into LPM while going to USB low power mode.
-	 */
-#define ALLOW_PHY_REGULATORS_LPM	BIT(3)
-	/*
-	 * Allow PHY RETENTION mode before turning off the digital
-	 * voltage regulator(VDDCX) during host mode.
-	 */
-#define ALLOW_HOST_PHY_RETENTION	BIT(4)
-	/*
-	* Allow VDD minimization without putting PHY into retention
-	* for fixing PHY current leakage issue when LDOs are turned off.
-	*/
-#define ALLOW_VDD_MIN_WITH_RETENTION_DISABLED BIT(5)
-	unsigned long lpm_flags;
-#define PHY_PWR_COLLAPSED		BIT(0)
-#define PHY_RETENTIONED			BIT(1)
-#define XO_SHUTDOWN			BIT(2)
-#define CLOCKS_DOWN			BIT(3)
-#define PHY_REGULATORS_LPM	BIT(4)
-	int reset_counter;
-	unsigned long b_last_se0_sess;
-	unsigned long tmouts;
-	u8 active_tmout;
-	struct hrtimer timer;
-	enum usb_vdd_type vdd_type;
-	struct power_supply usb_psy;
-	unsigned int online;
-	unsigned int host_mode;
-	unsigned int voltage_max;
-	unsigned int current_max;
-	unsigned int usbin_health;
-
-	dev_t ext_chg_dev;
-	struct cdev ext_chg_cdev;
-	struct class *ext_chg_class;
-	struct device *ext_chg_device;
-	bool ext_chg_opened;
-	enum usb_ext_chg_status ext_chg_active;
-	struct completion ext_chg_wait;
-	int ui_enabled;
-	bool pm_done;
-	struct qpnp_vadc_chip	*vadc_dev;
-};
-
-struct ci13xxx_platform_data {
-	u8 usb_core_id;
-	/*
-	 * value of 2^(log2_itc-1) will be used as the interrupt threshold
-	 * (ITC), when log2_itc is between 1 to 7.
-	 */
-	int log2_itc;
-	void *prv_data;
-	bool l1_supported;
-	bool enable_ahb2ahb_bypass;
-=======
 	u8 dcd_retries;
 	struct regulator *v3p3;
 	struct regulator *v1p8;
@@ -546,7 +340,6 @@ struct ci13xxx_platform_data {
 	struct reset_control *phy_rst;
 	struct reset_control *link_rst;
 	int vdd_levels[3];
->>>>>>> android-3.18
 };
 
 /**

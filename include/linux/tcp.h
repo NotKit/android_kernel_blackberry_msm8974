@@ -61,10 +61,6 @@ static inline unsigned int tcp_optlen(const struct sk_buff *skb)
 
 /* TCP Fast Open Cookie as stored in memory */
 struct tcp_fastopen_cookie {
-<<<<<<< HEAD
-	s8	len;
-	u8	val[TCP_FASTOPEN_COOKIE_MAX];
-=======
 	union {
 		u8	val[TCP_FASTOPEN_COOKIE_MAX];
 #if IS_ENABLED(CONFIG_IPV6)
@@ -72,7 +68,6 @@ struct tcp_fastopen_cookie {
 #endif
 	};
 	s8	len;
->>>>>>> android-3.18
 };
 
 /* This defines a selective acknowledgement block. */
@@ -126,10 +121,6 @@ struct tcp_request_sock_ops;
 struct tcp_request_sock {
 	struct inet_request_sock 	req;
 	const struct tcp_request_sock_ops *af_specific;
-<<<<<<< HEAD
-#endif
-=======
->>>>>>> android-3.18
 	struct sock			*listener; /* needed for TFO */
 	u32				rcv_isn;
 	u32				snt_isn;
@@ -187,11 +178,8 @@ struct tcp_sock {
 	u32	rcv_tstamp;	/* timestamp of last received ACK (for keepalives) */
 	u32	lsndtime;	/* timestamp of last sent data packet (for restart window) */
 
-<<<<<<< HEAD
-=======
 	u32	tsoffset;	/* timestamp offset */
 
->>>>>>> android-3.18
 	struct list_head tsq_node; /* anchor in tsq_tasklet.head list */
 	unsigned long	tsq_flags;
 
@@ -350,32 +338,18 @@ struct tcp_sock {
 	/* fastopen_rsk points to request_sock that resulted in this big
 	 * socket. Used to retransmit SYNACKs etc.
 	 */
-<<<<<<< HEAD
-	struct tcp_cookie_values  *cookie_values;
-
-/* TCP fastopen related information */
-	struct tcp_fastopen_request *fastopen_req;
-	/* fastopen_rsk points to request_sock that resulted in this big
-	 * socket. Used to retransmit SYNACKs etc.
-	 */
-=======
->>>>>>> android-3.18
 	struct request_sock *fastopen_rsk;
 };
 
 enum tsq_flags {
 	TSQ_THROTTLED,
 	TSQ_QUEUED,
-<<<<<<< HEAD
-	TSQ_OWNED, /* tcp_tasklet_func() found socket was locked */
-=======
 	TCP_TSQ_DEFERRED,	   /* tcp_tasklet_func() found socket was owned */
 	TCP_WRITE_TIMER_DEFERRED,  /* tcp_write_timer() found socket was owned */
 	TCP_DELACK_TIMER_DEFERRED, /* tcp_delack_timer() found socket was owned */
 	TCP_MTU_REDUCED_DEFERRED,  /* tcp_v{4|6}_err() could not call
 				    * tcp_v{4|6}_mtu_reduced()
 				    */
->>>>>>> android-3.18
 };
 
 static inline struct tcp_sock *tcp_sk(const struct sock *sk)
@@ -407,14 +381,6 @@ static inline bool tcp_passive_fastopen(const struct sock *sk)
 		tcp_sk(sk)->fastopen_rsk != NULL);
 }
 
-<<<<<<< HEAD
-static inline bool fastopen_cookie_present(struct tcp_fastopen_cookie *foc)
-{
-	return foc->len != -1;
-}
-
-=======
->>>>>>> android-3.18
 extern void tcp_sock_destruct(struct sock *sk);
 
 static inline int fastopen_init_queue(struct sock *sk, int backlog)
@@ -435,11 +401,8 @@ static inline int fastopen_init_queue(struct sock *sk, int backlog)
 	queue->fastopenq->max_qlen = backlog;
 	return 0;
 }
-<<<<<<< HEAD
-=======
 
 int tcp_skb_shift(struct sk_buff *to, struct sk_buff *from, int pcount,
 		  int shiftlen);
->>>>>>> android-3.18
 
 #endif	/* _LINUX_TCP_H */

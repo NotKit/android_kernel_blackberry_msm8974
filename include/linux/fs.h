@@ -10,15 +10,10 @@
 #include <linux/stat.h>
 #include <linux/cache.h>
 #include <linux/list.h>
-<<<<<<< HEAD
-#include <linux/radix-tree.h>
-#include <linux/prio_tree.h>
-=======
 #include <linux/list_lru.h>
 #include <linux/llist.h>
 #include <linux/radix-tree.h>
 #include <linux/rbtree.h>
->>>>>>> android-3.18
 #include <linux/init.h>
 #include <linux/pid.h>
 #include <linux/bug.h>
@@ -32,10 +27,7 @@
 #include <linux/migrate_mode.h>
 #include <linux/uidgid.h>
 #include <linux/lockdep.h>
-<<<<<<< HEAD
-=======
 #include <linux/percpu-rwsem.h>
->>>>>>> android-3.18
 #include <linux/blk_types.h>
 
 #include <asm/byteorder.h>
@@ -53,13 +45,10 @@ struct kstatfs;
 struct vm_area_struct;
 struct vfsmount;
 struct cred;
-<<<<<<< HEAD
-=======
 struct swap_info_struct;
 struct seq_file;
 struct workqueue_struct;
 struct iov_iter;
->>>>>>> android-3.18
 struct fscrypt_info;
 struct fscrypt_operations;
 
@@ -74,22 +63,14 @@ extern struct inodes_stat_t inodes_stat;
 extern int leases_enable, lease_break_time;
 extern int sysctl_protected_symlinks;
 extern int sysctl_protected_hardlinks;
-<<<<<<< HEAD
-=======
 extern int sysctl_protected_fifos;
 extern int sysctl_protected_regular;
->>>>>>> android-3.18
 
 struct buffer_head;
 typedef int (get_block_t)(struct inode *inode, sector_t iblock,
 			struct buffer_head *bh_result, int create);
 typedef void (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
-<<<<<<< HEAD
-			ssize_t bytes, void *private, int ret,
-			bool is_async);
-=======
 			ssize_t bytes, void *private);
->>>>>>> android-3.18
 
 #define MAY_EXEC		0x00000001
 #define MAY_WRITE		0x00000002
@@ -170,18 +151,6 @@ typedef void (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
  */
 #define CHECK_IOVEC_ONLY -1
 
-<<<<<<< HEAD
-#define SEL_IN		1
-#define SEL_OUT		2
-#define SEL_EX		4
-
-/* File can be read using splice */
-#define FMODE_SPLICE_READ       ((__force fmode_t)0x8000000)
-/* File can be written using splice */
-#define FMODE_SPLICE_WRITE      ((__force fmode_t)0x10000000)
-
-=======
->>>>>>> android-3.18
 /*
  * The below are the various read and write types that we support. Some of
  * them include behavioral modifiers that send information down to the
@@ -440,11 +409,7 @@ struct address_space {
 	struct radix_tree_root	page_tree;	/* radix tree of all pages */
 	spinlock_t		tree_lock;	/* and lock protecting it */
 	atomic_t		i_mmap_writable;/* count VM_SHARED mappings */
-<<<<<<< HEAD
-	struct prio_tree_root	i_mmap;		/* tree of private and shared mappings */
-=======
 	struct rb_root		i_mmap;		/* tree of private and shared mappings */
->>>>>>> android-3.18
 	struct list_head	i_mmap_nonlinear;/*list VM_NONLINEAR mappings */
 	struct mutex		i_mmap_mutex;	/* protect tree, count, list */
 	/* Protected by tree_lock together with the radix tree */
@@ -535,8 +500,6 @@ static inline int mapping_writably_mapped(struct address_space *mapping)
 	return atomic_read(&mapping->i_mmap_writable) > 0;
 }
 
-<<<<<<< HEAD
-=======
 static inline int mapping_map_writable(struct address_space *mapping)
 {
 	return atomic_inc_unless_negative(&mapping->i_mmap_writable) ?
@@ -548,7 +511,6 @@ static inline void mapping_unmap_writable(struct address_space *mapping)
 	atomic_dec(&mapping->i_mmap_writable);
 }
 
->>>>>>> android-3.18
 static inline int mapping_deny_writable(struct address_space *mapping)
 {
 	return atomic_dec_unless_positive(&mapping->i_mmap_writable) ?
@@ -676,13 +638,6 @@ struct inode {
 	struct fscrypt_info	*i_crypt_info;
 #endif
 
-<<<<<<< HEAD
-#if IS_ENABLED(CONFIG_FS_ENCRYPTION)
-	struct fscrypt_info	*i_crypt_info;
-#endif
-
-=======
->>>>>>> android-3.18
 	void			*i_private; /* fs or device private pointer */
 };
 
@@ -870,18 +825,11 @@ static inline int ra_has_index(struct file_ra_state *ra, pgoff_t index)
 
 struct file {
 	union {
-<<<<<<< HEAD
-=======
 		struct llist_node	fu_llist;
->>>>>>> android-3.18
 		struct rcu_head 	fu_rcuhead;
 	} f_u;
 	struct path		f_path;
 #define f_dentry	f_path.dentry
-<<<<<<< HEAD
-#define f_vfsmnt	f_path.mnt
-=======
->>>>>>> android-3.18
 	struct inode		*f_inode;	/* cached value */
 	const struct file_operations	*f_op;
 
@@ -921,17 +869,7 @@ struct file_handle {
 	unsigned char f_handle[];
 };
 
-<<<<<<< HEAD
-#define get_file(x)	atomic_long_inc(&(x)->f_count)
-#define get_file_rcu(x) atomic_long_inc_not_zero(&(x)->f_count)
-#define fput_atomic(x)	atomic_long_add_unless(&(x)->f_count, -1, 1)
-#define file_count(x)	atomic_long_read(&(x)->f_count)
-
-#ifdef CONFIG_DEBUG_WRITECOUNT
-static inline void file_take_write(struct file *f)
-=======
 static inline struct file *get_file(struct file *f)
->>>>>>> android-3.18
 {
 	atomic_long_inc(&f->f_count);
 	return f;
@@ -1319,17 +1257,6 @@ struct super_block {
 	const struct xattr_handler **s_xattr;
 
 	struct list_head	s_inodes;	/* all inodes */
-<<<<<<< HEAD
-
-	const struct fscrypt_operations	*s_cop;
-
-	struct hlist_bl_head	s_anon;		/* anonymous dentries for (nfs) exporting */
-	struct list_head	s_mounts;	/* list of mounts; _not_ for fs use */
-	/* s_dentry_lru, s_nr_dentry_unused protected by dcache.c lru locks */
-	struct list_head	s_dentry_lru;	/* unused dentry lru */
-	int			s_nr_dentry_unused;	/* # of dentry on lru */
-=======
->>>>>>> android-3.18
 
 	const struct fscrypt_operations	*s_cop;
 
@@ -1385,15 +1312,6 @@ struct super_block {
 
 	/* Being remounted read-only */
 	int s_readonly_remount;
-<<<<<<< HEAD
-
-	/*
-	 * Indicates how deep in a filesystem stack this SB is
-	 */
-	int s_stack_depth;
-};
-=======
->>>>>>> android-3.18
 
 	/* AIO completions deferred from interrupt context */
 	struct workqueue_struct *s_dio_done_wq;
@@ -1542,16 +1460,6 @@ extern int vfs_mkdir2(struct vfsmount *, struct inode *, struct dentry *, umode_
 extern int vfs_mknod(struct inode *, struct dentry *, umode_t, dev_t);
 extern int vfs_mknod2(struct vfsmount *, struct inode *, struct dentry *, umode_t, dev_t);
 extern int vfs_symlink(struct inode *, struct dentry *, const char *);
-<<<<<<< HEAD
-extern int vfs_link(struct dentry *, struct inode *, struct dentry *);
-extern int vfs_link2(struct vfsmount *, struct dentry *, struct inode *, struct dentry *);
-extern int vfs_rmdir(struct inode *, struct dentry *);
-extern int vfs_rmdir2(struct vfsmount *, struct inode *, struct dentry *);
-extern int vfs_unlink(struct inode *, struct dentry *);
-extern int vfs_unlink2(struct vfsmount *, struct inode *, struct dentry *);
-extern int vfs_rename(struct inode *, struct dentry *, struct inode *, struct dentry *);
-extern int vfs_rename2(struct vfsmount *, struct inode *, struct dentry *, struct inode *, struct dentry *);
-=======
 extern int vfs_symlink2(struct vfsmount *, struct inode *, struct dentry *, const char *);
 extern int vfs_link(struct dentry *, struct inode *, struct dentry *, struct inode **);
 extern int vfs_link2(struct vfsmount *, struct dentry *, struct inode *, struct dentry *, struct inode **);
@@ -1562,7 +1470,6 @@ extern int vfs_unlink2(struct vfsmount *, struct inode *, struct dentry *, struc
 extern int vfs_rename(struct inode *, struct dentry *, struct inode *, struct dentry *, struct inode **, unsigned int);
 extern int vfs_rename2(struct vfsmount *, struct inode *, struct dentry *, struct inode *, struct dentry *, struct inode **, unsigned int);
 extern int vfs_whiteout(struct inode *, struct dentry *);
->>>>>>> android-3.18
 
 /*
  * VFS dentry helper functions.
@@ -1694,12 +1601,9 @@ struct inode_operations {
 			   struct file *, unsigned open_flag,
 			   umode_t create_mode, int *opened);
 	int (*tmpfile) (struct inode *, struct dentry *, umode_t);
-<<<<<<< HEAD
-=======
 	int (*set_acl)(struct inode *, struct posix_acl *, int);
 
 	/* WARNING: probably going away soon, do not use! */
->>>>>>> android-3.18
 } ____cacheline_aligned;
 
 ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
@@ -1763,10 +1667,7 @@ struct super_operations {
 #define S_IMA		1024	/* Inode has an associated IMA struct */
 #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
 #define S_NOSEC		4096	/* no suid or xattr security attributes */
-<<<<<<< HEAD
-=======
 #define S_ENCRYPTED	16384	/* Encrypted file (using fs/crypto/) */
->>>>>>> android-3.18
 
 /*
  * Note that nosuid etc flags are inode-specific: setting some file-system
@@ -1804,13 +1705,10 @@ struct super_operations {
 #define IS_IMA(inode)		((inode)->i_flags & S_IMA)
 #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
 #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
-<<<<<<< HEAD
-=======
 #define IS_ENCRYPTED(inode)	((inode)->i_flags & S_ENCRYPTED)
 
 #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
 				 (inode)->i_rdev == WHITEOUT_DEV)
->>>>>>> android-3.18
 
 /*
  * Inode state bits.  Protected by inode->i_lock
@@ -1879,12 +1777,9 @@ struct super_operations {
 #define __I_DIO_WAKEUP		9
 #define I_DIO_WAKEUP		(1 << I_DIO_WAKEUP)
 #define I_LINKABLE		(1 << 10)
-<<<<<<< HEAD
-=======
 #define I_DIRTY_TIME		(1 << 11)
 #define __I_DIRTY_TIME_EXPIRED	12
 #define I_DIRTY_TIME_EXPIRED	(1 << __I_DIRTY_TIME_EXPIRED)
->>>>>>> android-3.18
 
 #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
 #define I_DIRTY_ALL (I_DIRTY | I_DIRTY_TIME)
@@ -1939,11 +1834,7 @@ enum file_time_flags {
 	S_VERSION = 8,
 };
 
-<<<<<<< HEAD
-extern void touch_atime(struct path *);
-=======
 extern void touch_atime(const struct path *);
->>>>>>> android-3.18
 static inline void file_accessed(struct file *file)
 {
 	if (!(file->f_flags & O_NOATIME))
@@ -1961,11 +1852,7 @@ struct file_system_type {
 #define FS_HAS_SUBTYPE		4
 #define FS_USERNS_MOUNT		8	/* Can be mounted by userns root */
 #define FS_USERNS_DEV_MOUNT	16 /* A userns mount does not imply MNT_NODEV */
-<<<<<<< HEAD
-#define FS_REVAL_DOT		16384	/* Check the paths ".", ".." for staleness */
-=======
 #define FS_USERNS_VISIBLE	32	/* FS must already be visible */
->>>>>>> android-3.18
 #define FS_RENAME_DOES_D_MOVE	32768	/* FS will handle d_move() during rename() internally. */
 	struct dentry *(*mount) (struct file_system_type *, int,
 		       const char *, void *);
@@ -2043,12 +1930,8 @@ extern struct vfsmount *kern_mount_data(struct file_system_type *, void *data);
 extern void kern_unmount(struct vfsmount *mnt);
 extern int may_umount_tree(struct vfsmount *);
 extern int may_umount(struct vfsmount *);
-<<<<<<< HEAD
-extern long do_mount(const char *, const char *, const char *, unsigned long, void *);
-=======
 extern long do_mount(const char *, const char __user *,
 		     const char *, unsigned long, void *);
->>>>>>> android-3.18
 extern struct vfsmount *collect_mounts(struct path *);
 extern void drop_collected_mounts(struct vfsmount *);
 extern int iterate_mounts(int (*)(struct vfsmount *, void *), void *,
@@ -2233,17 +2116,11 @@ static inline int break_deleg_wait(struct inode **delegated_inode)
 #endif /* CONFIG_FILE_LOCKING */
 
 /* fs/open.c */
-<<<<<<< HEAD
-struct filename {
-	const char		*name;	/* pointer to actual string */
-	const __user char	*uptr;	/* original userland pointer */
-=======
 struct audit_names;
 struct filename {
 	const char		*name;	/* pointer to actual string */
 	const __user char	*uptr;	/* original userland pointer */
 	struct audit_names	*aname;
->>>>>>> android-3.18
 	bool			separate; /* should "name" be freed? */
 };
 
@@ -2259,19 +2136,12 @@ extern long do_sys_open(int dfd, const char __user *filename, int flags,
 extern struct file *file_open_name(struct filename *, int, umode_t);
 extern struct file *filp_open(const char *, int, umode_t);
 extern struct file *file_open_root(struct dentry *, struct vfsmount *,
-<<<<<<< HEAD
-				   const char *, int);
-=======
 				   const char *, int, umode_t);
->>>>>>> android-3.18
 extern struct file * dentry_open(const struct path *, int, const struct cred *);
 extern int filp_close(struct file *, fl_owner_t id);
 
 extern struct filename *getname(const char __user *);
-<<<<<<< HEAD
-=======
 extern struct filename *getname_kernel(const char *);
->>>>>>> android-3.18
 
 enum {
 	FILE_CREATED = 1,
@@ -2478,19 +2348,12 @@ extern void emergency_remount(void);
 #ifdef CONFIG_BLOCK
 extern sector_t bmap(struct inode *, sector_t);
 #endif
-<<<<<<< HEAD
-extern int notify_change(struct dentry *, struct iattr *);
-extern int notify_change2(struct vfsmount *, struct dentry *, struct iattr *);
-extern int inode_permission(struct inode *, int);
-extern int inode_permission2(struct vfsmount *, struct inode *, int);
-=======
 extern int notify_change(struct dentry *, struct iattr *, struct inode **);
 extern int notify_change2(struct vfsmount *, struct dentry *, struct iattr *, struct inode **);
 extern int inode_permission(struct inode *, int);
 extern int inode_permission2(struct vfsmount *, struct inode *, int);
 extern int __inode_permission(struct inode *, int);
 extern int __inode_permission2(struct vfsmount *, struct inode *, int);
->>>>>>> android-3.18
 extern int generic_permission(struct inode *, int);
 extern int __check_sticky(struct inode *dir, struct inode *inode);
 
@@ -2499,11 +2362,6 @@ static inline bool execute_ok(struct inode *inode)
 	return (inode->i_mode & S_IXUGO) || S_ISDIR(inode->i_mode);
 }
 
-<<<<<<< HEAD
-static inline struct inode *file_inode(struct file *f)
-{
-	return f->f_inode;
-=======
 static inline void file_start_write(struct file *file)
 {
 	if (!S_ISREG(file_inode(file)->i_mode))
@@ -2523,7 +2381,6 @@ static inline void file_end_write(struct file *file)
 	if (!S_ISREG(file_inode(file)->i_mode))
 		return;
 	__sb_end_write(file_inode(file)->i_sb, SB_FREEZE_WRITE);
->>>>>>> android-3.18
 }
 
 /*
@@ -2672,10 +2529,6 @@ extern int generic_file_mmap(struct file *, struct vm_area_struct *);
 extern int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
 extern int generic_file_remap_pages(struct vm_area_struct *, unsigned long addr,
 		unsigned long size, pgoff_t pgoff);
-<<<<<<< HEAD
-extern int file_read_actor(read_descriptor_t * desc, struct page *page, unsigned long offset, unsigned long size);
-=======
->>>>>>> android-3.18
 int generic_write_checks(struct file *file, loff_t *pos, size_t *count, int isblk);
 extern ssize_t generic_file_read_iter(struct kiocb *, struct iov_iter *);
 extern ssize_t __generic_file_write_iter(struct kiocb *, struct iov_iter *);
@@ -2751,12 +2604,6 @@ enum {
 };
 
 void dio_end_io(struct bio *bio, int error);
-<<<<<<< HEAD
-void inode_dio_wait(struct inode *inode);
-void inode_dio_done(struct inode *inode);
-struct inode *dio_bio_get_inode(struct bio *bio);
-=======
->>>>>>> android-3.18
 
 ssize_t __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
 	struct block_device *bdev, struct iov_iter *iter, loff_t offset,
@@ -3012,8 +2859,6 @@ static inline void inode_has_no_xattr(struct inode *inode)
 		inode->i_flags |= S_NOSEC;
 }
 
-<<<<<<< HEAD
-=======
 static inline bool dir_emit(struct dir_context *ctx,
 			    const char *name, int namelen,
 			    u64 ino, unsigned type)
@@ -3055,5 +2900,4 @@ extern void inode_nohighmem(struct inode *inode);
 int vfs_ioc_setflags_prepare(struct inode *inode, unsigned int oldflags,
 			     unsigned int flags);
 
->>>>>>> android-3.18
 #endif /* _LINUX_FS_H */

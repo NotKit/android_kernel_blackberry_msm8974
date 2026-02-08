@@ -1204,6 +1204,7 @@ struct net_device_ops {
  *	change when it's running
  * @IFF_MACVLAN: Macvlan device
  */
+/*
 enum netdev_priv_flags {
 	IFF_802_1Q_VLAN			= 1<<0,
 	IFF_EBRIDGE			= 1<<1,
@@ -1229,30 +1230,77 @@ enum netdev_priv_flags {
 	IFF_MACVLAN			= 1<<21,
 	IFF_XMIT_DST_RELEASE_PERM	= 1<<22,
 };
+*/
 
-#define IFF_802_1Q_VLAN			IFF_802_1Q_VLAN
-#define IFF_EBRIDGE			IFF_EBRIDGE
-#define IFF_SLAVE_INACTIVE		IFF_SLAVE_INACTIVE
-#define IFF_MASTER_8023AD		IFF_MASTER_8023AD
-#define IFF_MASTER_ALB			IFF_MASTER_ALB
-#define IFF_BONDING			IFF_BONDING
-#define IFF_SLAVE_NEEDARP		IFF_SLAVE_NEEDARP
-#define IFF_ISATAP			IFF_ISATAP
-#define IFF_MASTER_ARPMON		IFF_MASTER_ARPMON
-#define IFF_WAN_HDLC			IFF_WAN_HDLC
-#define IFF_XMIT_DST_RELEASE		IFF_XMIT_DST_RELEASE
-#define IFF_DONT_BRIDGE			IFF_DONT_BRIDGE
-#define IFF_DISABLE_NETPOLL		IFF_DISABLE_NETPOLL
-#define IFF_MACVLAN_PORT		IFF_MACVLAN_PORT
-#define IFF_BRIDGE_PORT			IFF_BRIDGE_PORT
-#define IFF_OVS_DATAPATH		IFF_OVS_DATAPATH
-#define IFF_TX_SKB_SHARING		IFF_TX_SKB_SHARING
-#define IFF_UNICAST_FLT			IFF_UNICAST_FLT
-#define IFF_TEAM_PORT			IFF_TEAM_PORT
-#define IFF_SUPP_NOFCS			IFF_SUPP_NOFCS
-#define IFF_LIVE_ADDR_CHANGE		IFF_LIVE_ADDR_CHANGE
-#define IFF_MACVLAN			IFF_MACVLAN
-#define IFF_XMIT_DST_RELEASE_PERM	IFF_XMIT_DST_RELEASE_PERM
+#ifndef IFF_802_1Q_VLAN
+#define IFF_802_1Q_VLAN			(1<<0)
+#endif
+#ifndef IFF_EBRIDGE
+#define IFF_EBRIDGE			(1<<1)
+#endif
+#ifndef IFF_SLAVE_INACTIVE
+#define IFF_SLAVE_INACTIVE		(1<<2)
+#endif
+#ifndef IFF_MASTER_8023AD
+#define IFF_MASTER_8023AD		(1<<3)
+#endif
+#ifndef IFF_MASTER_ALB
+#define IFF_MASTER_ALB			(1<<4)
+#endif
+#ifndef IFF_BONDING
+#define IFF_BONDING			(1<<5)
+#endif
+#ifndef IFF_SLAVE_NEEDARP
+#define IFF_SLAVE_NEEDARP		(1<<6)
+#endif
+#ifndef IFF_ISATAP
+#define IFF_ISATAP			(1<<7)
+#endif
+#ifndef IFF_MASTER_ARPMON
+#define IFF_MASTER_ARPMON		(1<<8)
+#endif
+#ifndef IFF_WAN_HDLC
+#define IFF_WAN_HDLC			(1<<9)
+#endif
+#ifndef IFF_XMIT_DST_RELEASE
+#define IFF_XMIT_DST_RELEASE		(1<<10)
+#endif
+#ifndef IFF_DONT_BRIDGE
+#define IFF_DONT_BRIDGE			(1<<11)
+#endif
+#ifndef IFF_DISABLE_NETPOLL
+#define IFF_DISABLE_NETPOLL		(1<<12)
+#endif
+#ifndef IFF_MACVLAN_PORT
+#define IFF_MACVLAN_PORT		(1<<13)
+#endif
+#ifndef IFF_BRIDGE_PORT
+#define IFF_BRIDGE_PORT			(1<<14)
+#endif
+#ifndef IFF_OVS_DATAPATH
+#define IFF_OVS_DATAPATH		(1<<15)
+#endif
+#ifndef IFF_TX_SKB_SHARING
+#define IFF_TX_SKB_SHARING		(1<<16)
+#endif
+#ifndef IFF_UNICAST_FLT
+#define IFF_UNICAST_FLT			(1<<17)
+#endif
+#ifndef IFF_TEAM_PORT
+#define IFF_TEAM_PORT			(1<<18)
+#endif
+#ifndef IFF_SUPP_NOFCS
+#define IFF_SUPP_NOFCS			(1<<19)
+#endif
+#ifndef IFF_LIVE_ADDR_CHANGE
+#define IFF_LIVE_ADDR_CHANGE		(1<<20)
+#endif
+#ifndef IFF_MACVLAN
+#define IFF_MACVLAN			(1<<21)
+#endif
+#ifndef IFF_XMIT_DST_RELEASE_PERM
+#define IFF_XMIT_DST_RELEASE_PERM	(1<<22)
+#endif
 
 /**
  *	struct net_device - The DEVICE structure.

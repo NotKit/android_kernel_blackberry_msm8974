@@ -232,27 +232,18 @@ struct v4l2_subdev_audio_ops {
 
 /* Indicates the @length field specifies maximum data length. */
 #define V4L2_MBUS_FRAME_DESC_FL_LEN_MAX		(1U << 0)
-<<<<<<< HEAD
-/* Indicates user defined data format, i.e. non standard frame format. */
-=======
 /*
  * Indicates that the format does not have line offsets, i.e. the
  * receiver should use 1D DMA.
  */
->>>>>>> android-3.18
 #define V4L2_MBUS_FRAME_DESC_FL_BLOB		(1U << 1)
 
 /**
  * struct v4l2_mbus_frame_desc_entry - media bus frame description structure
  * @flags: V4L2_MBUS_FRAME_DESC_FL_* flags
  * @pixelcode: media bus pixel code, valid if FRAME_DESC_FL_BLOB is not set
-<<<<<<< HEAD
- * @length: number of octets per frame, valid for compressed or unspecified
- *          formats
-=======
  * @length: number of octets per frame, valid if V4L2_MBUS_FRAME_DESC_FL_BLOB
  *	    is set
->>>>>>> android-3.18
  */
 struct v4l2_mbus_frame_desc_entry {
 	u16 flags;
@@ -347,17 +338,8 @@ struct v4l2_subdev_video_ops {
 			struct v4l2_dv_timings *timings);
 	int (*g_dv_timings)(struct v4l2_subdev *sd,
 			struct v4l2_dv_timings *timings);
-<<<<<<< HEAD
-	int (*enum_dv_timings)(struct v4l2_subdev *sd,
-			struct v4l2_enum_dv_timings *timings);
 	int (*query_dv_timings)(struct v4l2_subdev *sd,
 			struct v4l2_dv_timings *timings);
-	int (*dv_timings_cap)(struct v4l2_subdev *sd,
-			struct v4l2_dv_timings_cap *cap);
-=======
-	int (*query_dv_timings)(struct v4l2_subdev *sd,
-			struct v4l2_dv_timings *timings);
->>>>>>> android-3.18
 	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
 			     enum v4l2_mbus_pixelcode *code);
 	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
@@ -529,17 +511,12 @@ struct v4l2_subdev_pad_ops {
 			     struct v4l2_subdev_selection *sel);
 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 			     struct v4l2_subdev_selection *sel);
-<<<<<<< HEAD
-	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
-	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
-=======
 	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_edid *edid);
 	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_edid *edid);
 	int (*dv_timings_cap)(struct v4l2_subdev *sd,
 			      struct v4l2_dv_timings_cap *cap);
 	int (*enum_dv_timings)(struct v4l2_subdev *sd,
 			       struct v4l2_enum_dv_timings *timings);
->>>>>>> android-3.18
 #ifdef CONFIG_MEDIA_CONTROLLER
 	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
 			     struct v4l2_subdev_format *source_fmt,
@@ -654,11 +631,6 @@ struct v4l2_subdev {
 struct v4l2_subdev_fh {
 	struct v4l2_fh vfh;
 #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-<<<<<<< HEAD
-	struct v4l2_mbus_framefmt *try_fmt;
-	struct v4l2_rect *try_crop;
-=======
->>>>>>> android-3.18
 	struct {
 		struct v4l2_mbus_framefmt try_fmt;
 		struct v4l2_rect try_crop;
@@ -676,22 +648,13 @@ struct v4l2_subdev_fh {
 	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
 				       unsigned int pad)		\
 	{								\
-<<<<<<< HEAD
-		BUG_ON(unlikely(pad >= vdev_to_v4l2_subdev(		\
-					fh->vfh.vdev)->entity.num_pads)); \
-=======
 		BUG_ON(pad >= vdev_to_v4l2_subdev(			\
 					fh->vfh.vdev)->entity.num_pads); \
->>>>>>> android-3.18
 		return &fh->pad[pad].field_name;			\
 	}
 
 __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
-<<<<<<< HEAD
-__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_compose)
-=======
 __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
->>>>>>> android-3.18
 __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
 #endif
 

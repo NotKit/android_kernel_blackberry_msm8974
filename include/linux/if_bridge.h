@@ -16,8 +16,6 @@
 #include <linux/netdevice.h>
 #include <uapi/linux/if_bridge.h>
 
-<<<<<<< HEAD
-=======
 struct br_ip {
 	union {
 		__be32	ip4;
@@ -34,7 +32,6 @@ struct br_ip_list {
 	struct br_ip addr;
 };
 
->>>>>>> android-3.18
 extern void brioctl_set(int (*ioctl_hook)(struct net *, unsigned int, void __user *));
 
 typedef int br_should_route_hook_t(struct sk_buff *skb);
@@ -61,4 +58,5 @@ static inline bool br_multicast_has_querier_adjacent(struct net_device *dev,
 {
 	return false;
 }
+#endif
 #endif

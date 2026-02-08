@@ -105,6 +105,29 @@ enum events {
 	THERMAL_DEV_FAULT,
 };
 
+/* MSM thermal sensor threshold support */
+struct sensor_threshold {
+	long temp;
+	enum thermal_trip_type trip;
+	int (*notify)(enum thermal_trip_type type, int temp, void *data);
+	void *data;
+	uint8_t active;
+	struct list_head list;
+};
+
+struct sensor_info {
+	uint32_t sensor_id;
+	struct thermal_zone_device *tz;
+	long threshold_min;
+	long threshold_max;
+	int max_idx;
+	int min_idx;
+	struct list_head sensor_list;
+	struct list_head threshold_list;
+	struct mutex lock;
+	struct work_struct work;
+};
+
 /* attributes of thermal_genl_family */
 enum {
 	THERMAL_GENL_ATTR_UNSPEC,
@@ -138,15 +161,11 @@ struct thermal_zone_device_ops {
 	int (*get_trip_temp) (struct thermal_zone_device *, int,
 			      unsigned long *);
 	int (*set_trip_temp) (struct thermal_zone_device *, int,
-<<<<<<< HEAD
-			      long);
-=======
 			      unsigned long);
 	int (*get_trip_hyst) (struct thermal_zone_device *, int,
 			      unsigned long *);
 	int (*set_trip_hyst) (struct thermal_zone_device *, int,
 			      unsigned long);
->>>>>>> android-3.18
 	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
 	int (*set_emul_temp) (struct thermal_zone_device *, unsigned long);
 	int (*get_trend) (struct thermal_zone_device *, int,
@@ -179,30 +198,6 @@ struct thermal_attr {
 	char name[THERMAL_NAME_LENGTH];
 };
 
-<<<<<<< HEAD
-struct sensor_threshold {
-	long temp;
-	enum thermal_trip_type trip;
-	int (*notify)(enum thermal_trip_type type, int temp, void *data);
-	void *data;
-	uint8_t active;
-	struct list_head list;
-};
-
-struct sensor_info {
-	uint32_t sensor_id;
-	struct thermal_zone_device *tz;
-	long threshold_min;
-	long threshold_max;
-	int max_idx;
-	int min_idx;
-	struct list_head sensor_list;
-	struct list_head threshold_list;
-	struct mutex lock;
-	struct work_struct work;
-};
-
-=======
 /**
  * struct thermal_zone_device - structure for a thermal zone
  * @id:		unique id number for each thermal zone
@@ -241,7 +236,6 @@ struct sensor_info {
  * @node:	node in thermal_tz_list (in thermal_core.c)
  * @poll_queue:	delayed work for polling
  */
->>>>>>> android-3.18
 struct thermal_zone_device {
 	int id;
 	char type[THERMAL_NAME_LENGTH];
@@ -271,13 +265,6 @@ struct thermal_zone_device {
 	struct sensor_threshold tz_threshold[2];
 	struct sensor_info sensor;
 };
-<<<<<<< HEAD
-/* Adding event notification support elements */
-#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
-#define THERMAL_GENL_VERSION                    0x01
-#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_grp"
-=======
->>>>>>> android-3.18
 
 /**
  * struct thermal_governor - structure that holds thermal governor information
