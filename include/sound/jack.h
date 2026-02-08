@@ -61,6 +61,9 @@ enum snd_jack_types {
 	SND_JACK_BTN_7		= 0x0080000,
 };
 
+/* Keep in sync with definitions above */
+#define SND_JACK_SWITCH_TYPES 6
+
 struct snd_jack {
 	struct input_dev *input_dev;
 	int registered;

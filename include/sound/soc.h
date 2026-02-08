@@ -21,11 +21,7 @@
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/regmap.h>
-<<<<<<< HEAD
-#include <linux/async.h>
-=======
 #include <linux/log2.h>
->>>>>>> android-3.18
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/compress_driver.h>
@@ -78,19 +74,6 @@
 	.tlv.p = (tlv_array), \
 	.info = snd_soc_info_volsw, .get = snd_soc_get_volsw,\
 	.put = snd_soc_put_volsw, \
-<<<<<<< HEAD
-	.private_value =  SOC_SINGLE_VALUE(reg, shift, max, invert) }
-#define SOC_SINGLE_S8_TLV(xname, xreg, xmin, xmax, tlv_array) \
-{	.iface  = SNDRV_CTL_ELEM_IFACE_MIXER, .name = (xname), \
-	.access = SNDRV_CTL_ELEM_ACCESS_TLV_READ | \
-		SNDRV_CTL_ELEM_ACCESS_READWRITE, \
-	.tlv.p  = (tlv_array), \
-	.info   = snd_soc_info_volsw_s8, .get = snd_soc_get_volsw_s8, \
-	.put    = snd_soc_put_volsw_s8, \
-	.private_value = (unsigned long)&(struct soc_mixer_control) \
-		{.reg = xreg, .min = xmin, .max = xmax, \
-		 .platform_max = xmax} }
-=======
 	.private_value = SOC_SINGLE_VALUE(reg, shift, max, invert, 0) }
 #define SOC_SINGLE_SX_TLV(xname, xreg, xshift, xmin, xmax, tlv_array) \
 {       .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
@@ -115,7 +98,6 @@
 		{.reg = xreg, .rreg = xreg, .shift = xshift, \
 		 .rshift = xshift, .min = xmin, .max = xmax, \
 		 .platform_max = xmax, .invert = xinvert} }
->>>>>>> android-3.18
 #define SOC_DOUBLE(xname, reg, shift_left, shift_right, max, invert) \
 {	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = (xname),\
 	.info = snd_soc_info_volsw, .get = snd_soc_get_volsw, \
@@ -226,19 +208,7 @@
 	.info = snd_soc_info_volsw, \
 	.get = xhandler_get, .put = xhandler_put, \
 	.private_value = \
-<<<<<<< HEAD
-		SOC_DOUBLE_VALUE(reg, shift_left, shift_right, max, invert) }
- #define SOC_SINGLE_MULTI_EXT(xname, xreg, xshift, xmax, xinvert, xcount,\
-	xhandler_get, xhandler_put) \
-{      .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
-	.info = snd_soc_info_multi_ext, \
-	.get = xhandler_get, .put = xhandler_put, \
-	.private_value = (unsigned long)&(struct soc_multi_mixer_control) \
-		{.reg = xreg, .shift = xshift, .rshift = xshift, .max = xmax, \
-		.count = xcount, .platform_max = xmax, .invert = xinvert} }
-=======
 		SOC_DOUBLE_VALUE(reg, shift_left, shift_right, max, invert, 0) }
->>>>>>> android-3.18
 #define SOC_SINGLE_EXT_TLV(xname, xreg, xshift, xmax, xinvert,\
 	 xhandler_get, xhandler_put, tlv_array) \
 {	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
@@ -278,40 +248,17 @@
 	.info = snd_soc_info_enum_double, \
 	.get = xhandler_get, .put = xhandler_put, \
 	.private_value = (unsigned long)&xenum }
-<<<<<<< HEAD
-
-#define SND_SOC_BYTES(xname, xbase, xregs)            \
-{   .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname,   \
-	.info = snd_soc_bytes_info, .get = snd_soc_bytes_get, \
-	.put = snd_soc_bytes_put, .private_value =        \
-		((unsigned long)&(struct soc_bytes)           \
-		{.base = xbase, .num_regs = xregs }) }
-
-#define SND_SOC_BYTES_MASK(xname, xbase, xregs, xmask)        \
-{   .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname,   \
-	.info = snd_soc_bytes_info, .get = snd_soc_bytes_get, \
-	.put = snd_soc_bytes_put, .private_value =        \
-		((unsigned long)&(struct soc_bytes)           \
-		{.base = xbase, .num_regs = xregs,        \
-		 .mask = xmask }) }
-
-#define SOC_DOUBLE_R_SX_TLV(xname, xreg_left, xreg_right, xshift,\
-		xmin, xmax, tlv_array) \
-{	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = (xname), \
-	.access = SNDRV_CTL_ELEM_ACCESS_TLV_READ | \
-		  SNDRV_CTL_ELEM_ACCESS_READWRITE, \
-	.tlv.p = (tlv_array), \
-	.info = snd_soc_info_volsw_2r_sx, \
-	.get = snd_soc_get_volsw_2r_sx, \
-	.put = snd_soc_put_volsw_2r_sx, \
-	.private_value = (unsigned long)&(struct soc_mixer_control) \
-		{.reg = xreg_left, \
-		 .rreg = xreg_right, .shift = xshift, \
-		 .min = xmin, .max = xmax} }
-=======
 #define SOC_VALUE_ENUM_EXT(xname, xenum, xhandler_get, xhandler_put) \
 	SOC_ENUM_EXT(xname, xenum, xhandler_get, xhandler_put)
->>>>>>> android-3.18
+
+#define SOC_SINGLE_MULTI_EXT(xname, xreg, xshift, xmax, xinvert, xcount,\
+	xhandler_get, xhandler_put) \
+{	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
+	.info = snd_soc_info_multi_ext, \
+	.get = xhandler_get, .put = xhandler_put, \
+	.private_value = (unsigned long)&(struct soc_multi_mixer_control) \
+		{.reg = xreg, .shift = xshift, .rshift = xshift, .max = xmax, \
+		.count = xcount, .platform_max = xmax, .invert = xinvert} }
 
 
 #define SND_SOC_BYTES_EXT(xname, xcount, xhandler_get, xhandler_put) \
@@ -416,11 +363,6 @@ struct soc_enum;
 struct snd_soc_jack;
 struct snd_soc_jack_zone;
 struct snd_soc_jack_pin;
-<<<<<<< HEAD
-struct snd_soc_cache_ops;
-struct snd_soc_dpcm_link;
-=======
->>>>>>> android-3.18
 #include <sound/soc-dapm.h>
 #include <sound/soc-dpcm.h>
 
@@ -435,44 +377,9 @@ enum snd_soc_pcm_subclass {
 	SND_SOC_PCM_CLASS_BE	= 1,
 };
 
-<<<<<<< HEAD
-/*
- * Dynamic PCM DAI link states.
- */
-enum snd_soc_dpcm_state {
-	SND_SOC_DPCM_STATE_NEW	= 0,
-	SND_SOC_DPCM_STATE_OPEN,
-	SND_SOC_DPCM_STATE_HW_PARAMS,
-	SND_SOC_DPCM_STATE_PREPARE,
-	SND_SOC_DPCM_STATE_START,
-	SND_SOC_DPCM_STATE_STOP,
-	SND_SOC_DPCM_STATE_PAUSED,
-	SND_SOC_DPCM_STATE_SUSPEND,
-	SND_SOC_DPCM_STATE_HW_FREE,
-	SND_SOC_DPCM_STATE_CLOSE,
-};
-
-/*
- * Dynamic PCM trigger ordering. Triggering flexibility is required as some
- * DSPs require triggering before/after their clients/hosts.
- *
- * i.e. some clients may want to manually order this call in their PCM
- * trigger() whilst others will just use the regular core ordering.
- */
-enum snd_soc_dpcm_trigger {
-	SND_SOC_DPCM_TRIGGER_PRE		= 0,
-	SND_SOC_DPCM_TRIGGER_POST,
-	SND_SOC_DPCM_TRIGGER_BESPOKE,
-};
-
-enum snd_soc_card_subclass {
-	SND_SOC_CARD_CLASS_INIT	= 0,
-	SND_SOC_CARD_CLASS_PCM	= 1,
-=======
 enum snd_soc_card_subclass {
 	SND_SOC_CARD_CLASS_INIT		= 0,
 	SND_SOC_CARD_CLASS_RUNTIME	= 1,
->>>>>>> android-3.18
 };
 
 int snd_soc_codec_set_sysclk(struct snd_soc_codec *codec, int clk_id,
@@ -524,13 +431,10 @@ struct snd_pcm_substream *snd_soc_get_dai_substream(struct snd_soc_card *card,
 		const char *dai_link, int stream);
 struct snd_soc_pcm_runtime *snd_soc_get_pcm_runtime(struct snd_soc_card *card,
 		const char *dai_link);
-<<<<<<< HEAD
-=======
 
 bool snd_soc_runtime_ignore_pmdown_time(struct snd_soc_pcm_runtime *rtd);
 void snd_soc_runtime_activate(struct snd_soc_pcm_runtime *rtd, int stream);
 void snd_soc_runtime_deactivate(struct snd_soc_pcm_runtime *rtd, int stream);
->>>>>>> android-3.18
 
 /* Utility functions to get clock rates from various things */
 int snd_soc_calc_frame_size(int sample_size, int channels, int tdm_slots);
@@ -606,20 +510,15 @@ int snd_soc_new_ac97_codec(struct snd_soc_codec *codec,
 	struct snd_ac97_bus_ops *ops, int num);
 void snd_soc_free_ac97_codec(struct snd_soc_codec *codec);
 
-<<<<<<< HEAD
-void snd_soc_card_change_online_state(struct snd_soc_card *soc_card,
-				      int online);
-=======
 int snd_soc_set_ac97_ops(struct snd_ac97_bus_ops *ops);
 int snd_soc_set_ac97_ops_of_reset(struct snd_ac97_bus_ops *ops,
 		struct platform_device *pdev);
->>>>>>> android-3.18
 
 /*
  *Controls
  */
 struct snd_kcontrol *snd_soc_cnew(const struct snd_kcontrol_new *_template,
-				  void *data, char *long_name,
+				  void *data, const char *long_name,
 				  const char *prefix);
 struct snd_kcontrol *snd_soc_card_get_kcontrol(struct snd_soc_card *soc_card,
 					       const char *name);
@@ -641,14 +540,9 @@ int snd_soc_put_enum_double(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
 int snd_soc_info_volsw(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_info *uinfo);
-<<<<<<< HEAD
+#define snd_soc_info_bool_ext		snd_ctl_boolean_mono_info
 int snd_soc_info_multi_ext(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_info *uinfo);
-int snd_soc_info_volsw_ext(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo);
-=======
->>>>>>> android-3.18
-#define snd_soc_info_bool_ext		snd_ctl_boolean_mono_info
 int snd_soc_get_volsw(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
 int snd_soc_put_volsw(struct snd_kcontrol *kcontrol,
@@ -671,24 +565,6 @@ int snd_soc_put_volsw_range(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
 int snd_soc_get_volsw_range(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
-<<<<<<< HEAD
-
-/**
- * struct snd_soc_reg_access - Describes whether a given register is
- * readable, writable or volatile.
- *
- * @reg: the register number
- * @read: whether this register is readable
- * @write: whether this register is writable
- * @vol: whether this register is volatile
- */
-struct snd_soc_reg_access {
-	u16 reg;
-	u16 read;
-	u16 write;
-	u16 vol;
-};
-=======
 int snd_soc_limit_volume(struct snd_soc_codec *codec,
 	const char *name, int max);
 int snd_soc_bytes_info(struct snd_kcontrol *kcontrol,
@@ -711,7 +587,6 @@ int snd_soc_get_strobe(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
 int snd_soc_put_strobe(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
->>>>>>> android-3.18
 
 /**
  * struct snd_soc_jack_pin - Describes a pin to update based on jack detection
@@ -820,13 +695,8 @@ struct snd_soc_compr_ops {
 	int (*trigger)(struct snd_compr_stream *);
 };
 
-<<<<<<< HEAD
-/* SoC cache ops */
-struct snd_soc_cache_ops {
-=======
 /* component interface */
 struct snd_soc_component_driver {
->>>>>>> android-3.18
 	const char *name;
 
 	/* Default control and setup, added after probe() is run */
@@ -991,16 +861,7 @@ struct snd_soc_codec_driver {
 	void (*seq_notifier)(struct snd_soc_dapm_context *,
 			     enum snd_soc_dapm_type, int);
 
-<<<<<<< HEAD
-	/* codec stream completion event */
-	int (*stream_event)(struct snd_soc_dapm_context *dapm, int event);
-
-	/* probe ordering - for components with runtime dependencies */
-	int probe_order;
-	int remove_order;
-=======
 	bool ignore_pmdown_time;  /* Doesn't benefit from pmdown delay */
->>>>>>> android-3.18
 };
 
 /* SoC platform interface */
@@ -1024,45 +885,23 @@ struct snd_soc_platform_driver {
 		struct snd_soc_dai *);
 
 	/* platform stream pcm ops */
-<<<<<<< HEAD
-	struct snd_pcm_ops *ops;
-
-	/* platform stream compress ops */
-	struct snd_compr_ops *compr_ops;
-
-	/* platform stream completion event */
-	int (*stream_event)(struct snd_soc_dapm_context *dapm, int event);
-=======
 	const struct snd_pcm_ops *ops;
 
 	/* platform stream compress ops */
 	const struct snd_compr_ops *compr_ops;
->>>>>>> android-3.18
 
 	int (*bespoke_trigger)(struct snd_pcm_substream *, int);
 };
 
-<<<<<<< HEAD
-	/* platform IO - used for platform DAPM */
-	unsigned int (*read)(struct snd_soc_platform *, unsigned int);
-	int (*write)(struct snd_soc_platform *, unsigned int, unsigned int);
-
-	int (*bespoke_trigger)(struct snd_pcm_substream *, int);
-=======
 struct snd_soc_dai_link_component {
 	const char *name;
 	const struct device_node *of_node;
 	const char *dai_name;
->>>>>>> android-3.18
 };
 
 struct snd_soc_platform {
 	struct device *dev;
-<<<<<<< HEAD
-	struct snd_soc_platform_driver *driver;
-=======
 	const struct snd_soc_platform_driver *driver;
->>>>>>> android-3.18
 
 	unsigned int suspended:1; /* platform is suspended */
 
@@ -1130,16 +969,6 @@ struct snd_soc_dai_link {
 
 	/* Symmetry requirements */
 	unsigned int symmetric_rates:1;
-<<<<<<< HEAD
-	/* No PCM created for this DAI link */
-	unsigned int no_pcm:1;
-	/* This DAI link can change CODEC and platform at runtime*/
-	unsigned int dynamic:1;
-	/* This DAI has a Backend ID */
-	unsigned int be_id;
-	/* This DAI can support no host IO (no pcm data is copied to from host) */
-	unsigned int no_host_mode:2;
-=======
 	unsigned int symmetric_channels:1;
 	unsigned int symmetric_samplebits:1;
 
@@ -1152,7 +981,6 @@ struct snd_soc_dai_link {
 	/* DPCM capture and Playback support */
 	unsigned int dpcm_capture:1;
 	unsigned int dpcm_playback:1;
->>>>>>> android-3.18
 
 	/* pmdown_time is ignored at stop */
 	unsigned int ignore_pmdown_time:1;
@@ -1160,29 +988,17 @@ struct snd_soc_dai_link {
 	/* codec/machine specific init - e.g. add machine controls */
 	int (*init)(struct snd_soc_pcm_runtime *rtd);
 
-<<<<<<< HEAD
-	/* hw_params re-writing for BE and FE sync */
-=======
 	/* optional hw_params re-writing for BE and FE sync */
->>>>>>> android-3.18
 	int (*be_hw_params_fixup)(struct snd_soc_pcm_runtime *rtd,
 			struct snd_pcm_hw_params *params);
 
 	/* machine stream operations */
-<<<<<<< HEAD
-	struct snd_soc_ops *ops;
-	struct snd_soc_compr_ops *compr_ops;
-
-	/* this value determines what all ops can be started asynchronously */
-	enum snd_soc_async_ops async_ops;
-=======
 	const struct snd_soc_ops *ops;
 	const struct snd_soc_compr_ops *compr_ops;
 
 	/* For unidirectional dai links */
 	bool playback_only;
 	bool capture_only;
->>>>>>> android-3.18
 };
 
 struct snd_soc_codec_conf {
@@ -1224,16 +1040,7 @@ struct snd_soc_card {
 	struct module *owner;
 
 	struct mutex mutex;
-<<<<<<< HEAD
-	struct mutex dpcm_mutex;
-
 	struct mutex dapm_mutex;
-	struct mutex dapm_power_mutex;
-	struct mutex dsp_mutex;
-	spinlock_t dsp_spinlock;
-=======
-	struct mutex dapm_mutex;
->>>>>>> android-3.18
 
 	bool instantiated;
 
@@ -1315,17 +1122,6 @@ struct snd_soc_card {
 	void *drvdata;
 };
 
-/* DSP runtime data */
-struct snd_soc_dpcm_runtime {
-	struct list_head be_clients;
-	struct list_head fe_clients;
-	int users;
-	struct snd_pcm_runtime *runtime;
-	struct snd_pcm_hw_params hw_params;
-	int runtime_update;
-	enum snd_soc_dpcm_state state;
-};
-
 /* SoC machine DAI configuration, glues a codec and cpu DAI together */
 struct snd_soc_pcm_runtime {
 	struct device *dev;
@@ -1343,12 +1139,6 @@ struct snd_soc_pcm_runtime {
 
 	long pmdown_time;
 	unsigned char pop_wait:1;
-<<<<<<< HEAD
-
-	/* err in case of ops failed */
-	int err_ops;
-=======
->>>>>>> android-3.18
 
 	/* runtime devices */
 	struct snd_pcm *pcm;
@@ -1363,10 +1153,6 @@ struct snd_soc_pcm_runtime {
 	unsigned int num_codecs;
 
 	struct delayed_work delayed_work;
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *debugfs_dpcm_root;
 	struct dentry *debugfs_dpcm_state;
@@ -1383,19 +1169,17 @@ struct soc_mixer_control {
 	unsigned int autodisable:1;
 };
 
+struct soc_multi_mixer_control {
+	int min, max, platform_max, count;
+	unsigned int reg, rreg, shift, rshift, invert;
+};
+
 struct soc_bytes {
 	int base;
 	int num_regs;
 	u32 mask;
 };
 
-<<<<<<< HEAD
-struct soc_multi_mixer_control {
-	int min, max, platform_max, count;
-	unsigned int reg, rreg, shift, rshift, invert;
-};
-
-=======
 struct soc_bytes_ext {
 	int max;
 	/* used for TLV byte control */
@@ -1408,7 +1192,6 @@ struct soc_mreg_control {
 	long min, max;
 	unsigned int regbase, regcount, nbits, invert;
 };
->>>>>>> android-3.18
 
 /* enumerated kcontrol */
 struct soc_enum {

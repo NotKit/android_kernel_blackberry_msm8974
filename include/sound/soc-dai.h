@@ -287,17 +287,6 @@ struct snd_soc_dai {
 	struct snd_soc_card *card;
 
 	struct list_head list;
-<<<<<<< HEAD
-	struct list_head card_list;
-
-	/* runtime AIF widget and channel mmap updates */
-	u64 playback_channel_map;
-	u64 capture_channel_map;
-	struct snd_soc_dapm_widget *playback_aif;
-	struct snd_soc_dapm_widget *capture_aif;
-	bool channel_map_instanciated;
-=======
->>>>>>> android-3.18
 };
 
 static inline void *snd_soc_dai_get_dma_data(const struct snd_soc_dai *dai,
