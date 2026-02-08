@@ -1,5 +1,9 @@
+<<<<<<< HEAD
+/* Copyright (c) 2009-2011, The Linux Foundation. All rights reserved.
+=======
 /*
  * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+>>>>>>> android-3.18
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,6 +17,8 @@
 
 #ifndef __ARCH_ARM_MACH_MSM_CLOCK_PCOM_H
 #define __ARCH_ARM_MACH_MSM_CLOCK_PCOM_H
+
+#include <mach/clk-provider.h>
 
 /* clock IDs used by the modem processor */
 
@@ -118,9 +124,56 @@
 #define P_GSBI_P_CLK		99
 #define P_CE_CLK		100 /* Crypto engine */
 #define P_CODEC_SSBI_CLK	101
+#define P_TCXO_DIV4_CLK		102
+#define P_GSBI1_QUP_CLK		103
+#define P_GSBI2_QUP_CLK		104
+#define P_GSBI1_QUP_P_CLK	105
+#define P_GSBI2_QUP_P_CLK	106
+#define P_DSI_CLK		107
+#define P_DSI_ESC_CLK		108
+#define P_DSI_PIXEL_CLK		109
+#define P_DSI_BYTE_CLK		110
+#define P_EBI1_FIXED_CLK	111 /* Not dropped during power-collapse */
+#define P_DSI_REF_CLK		112
+#define P_MDP_DSI_P_CLK		113
+#define P_AHB_M_CLK		114
+#define P_AHB_S_CLK		115
 
-#define P_NR_CLKS		102
+#define P_NR_CLKS		116
 
+extern int pc_clk_reset(unsigned id, enum clk_reset_action action);
+
+<<<<<<< HEAD
+struct clk_ops;
+extern struct clk_ops clk_ops_pcom;
+extern struct clk_ops clk_ops_pcom_div2;
+extern struct clk_ops clk_ops_pcom_ext_config;
+
+/*
+ * struct pcom_clk - proc_comm controlled clock
+ * @id: proc_comm identifier
+ * @c:
+ */
+struct pcom_clk {
+	unsigned id;
+	struct clk c;
+};
+
+static inline struct pcom_clk *to_pcom_clk(struct clk *clk)
+{
+	return container_of(clk, struct pcom_clk, c);
+}
+
+#define DEFINE_CLK_PCOM(clk_name, clk_id, clk_flags) \
+	struct pcom_clk clk_name = { \
+		.id = P_##clk_id, \
+		.c = { \
+			.ops = &clk_ops_pcom, \
+			.flags = clk_flags, \
+			.dbg_name = #clk_id, \
+			CLK_INIT(clk_name.c), \
+		}, \
+=======
 struct clk_pcom_desc {
 	unsigned id;
 	const char *name;
@@ -140,6 +193,7 @@ struct pcom_clk_pdata {
 	.con = clk_name,					\
 	.dev = clk_dev,						\
 	.flags = clk_flags,					\
+>>>>>>> android-3.18
 	}
 
 #endif
