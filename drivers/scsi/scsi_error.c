@@ -44,6 +44,11 @@
 #include <trace/events/scsi.h>
 
 static void scsi_eh_done(struct scsi_cmnd *scmd);
+<<<<<<< HEAD
+
+#define SENSE_TIMEOUT		(10*HZ)
+=======
+>>>>>>> android-3.18
 
 /*
  * These should *probably* be handled by the host itself.
@@ -459,7 +464,17 @@ static int scsi_check_sense(struct scsi_cmnd *scmd)
 	if (! scsi_command_normalize_sense(scmd, &sshdr))
 		return FAILED;	/* no valid sense data */
 
+<<<<<<< HEAD
+	if (scmd->cmnd[0] == TEST_UNIT_READY && scmd->scsi_done != scsi_eh_done)
+		/*
+		 * nasty: for mid-layer issued TURs, we need to return the
+		 * actual sense data without any recovery attempt.  For eh
+		 * issued ones, we need to try to recover and interpret
+		 */
+		return SUCCESS;
+=======
 	scsi_report_sense(sdev, &sshdr);
+>>>>>>> android-3.18
 
 	if (scsi_sense_is_deferred(&sshdr))
 		return NEEDS_RETRY;
@@ -1152,6 +1167,8 @@ int scsi_eh_get_sense(struct list_head *work_q,
 		    SCSI_SENSE_VALID(scmd))
 			continue;
 
+<<<<<<< HEAD
+=======
 		shost = scmd->device->host;
 		if (scsi_host_eh_past_deadline(shost)) {
 			SCSI_LOG_ERROR_RECOVERY(3,
@@ -1160,6 +1177,7 @@ int scsi_eh_get_sense(struct list_head *work_q,
 					     __func__));
 			break;
 		}
+>>>>>>> android-3.18
 		if (status_byte(scmd->result) != CHECK_CONDITION)
 			/*
 			 * don't request sense if there's no check condition
@@ -1962,6 +1980,8 @@ static void scsi_eh_lock_door(struct scsi_device *sdev)
 	req = blk_get_request(sdev->request_queue, READ, GFP_KERNEL);
 	if (IS_ERR(req))
 		return;
+
+	blk_rq_set_block_pc(req);
 
 	blk_rq_set_block_pc(req);
 

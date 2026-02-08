@@ -185,12 +185,19 @@ cache_type_store(struct device *dev, struct device_attribute *attr,
 	if (ct < 0)
 		return -EINVAL;
 	rcd = ct & 0x01 ? 1 : 0;
+<<<<<<< HEAD
+	wce = ct & 0x02 ? 1 : 0;
+=======
 	wce = (ct & 0x02) && !sdkp->write_prot ? 1 : 0;
+>>>>>>> android-3.18
 
 	if (sdkp->cache_override) {
 		sdkp->WCE = wce;
 		sdkp->RCD = rcd;
+<<<<<<< HEAD
+=======
 		sd_set_flush_flag(sdkp);
+>>>>>>> android-3.18
 		return count;
 	}
 
@@ -602,7 +609,7 @@ static struct scsi_disk *scsi_disk_get(struct gendisk *disk)
 	return sdkp;
 }
 
-static struct scsi_disk *scsi_disk_get_from_dev(struct device *dev)
+struct scsi_disk *scsi_disk_get_from_dev(struct device *dev)
 {
 	struct scsi_disk *sdkp;
 
@@ -817,6 +824,21 @@ static void sd_config_write_same(struct scsi_disk *sdkp)
 		goto out;
 	}
 
+<<<<<<< HEAD
+static void sd_unprep_fn(struct request_queue *q, struct request *rq)
+{
+	struct scsi_cmnd *SCpnt = rq->special;
+
+	if (rq->cmd_flags & REQ_DISCARD) {
+		free_page((unsigned long)rq->buffer);
+		rq->buffer = NULL;
+	}
+	if (SCpnt->cmnd != rq->cmd) {
+		mempool_free(SCpnt->cmnd, sd_cdb_pool);
+		SCpnt->cmnd = NULL;
+		SCpnt->cmd_len = 0;
+	}
+=======
 	/* Some devices can not handle block counts above 0xffff despite
 	 * supporting WRITE SAME(16). Consequently we default to 64k
 	 * blocks per I/O unless the device explicitly advertises a
@@ -836,6 +858,7 @@ static void sd_config_write_same(struct scsi_disk *sdkp)
 out:
 	blk_queue_max_write_same_sectors(q, sdkp->max_ws_blocks *
 					 (logical_block_size >> 9));
+>>>>>>> android-3.18
 }
 
 /**
@@ -1505,8 +1528,13 @@ static int sd_sync_cache(struct scsi_disk *sdkp)
 		 * flush everything.
 		 */
 		res = scsi_execute_req_flags(sdp, cmd, DMA_NONE, NULL, 0,
+<<<<<<< HEAD
+					     &sshdr, SD_FLUSH_TIMEOUT,
+					     SD_MAX_RETRIES, NULL, REQ_PM);
+=======
 					     &sshdr, timeout, SD_MAX_RETRIES,
 					     NULL, REQ_PM);
+>>>>>>> android-3.18
 		if (res == 0)
 			break;
 	}
@@ -1677,6 +1705,10 @@ static unsigned int sd_completed_bytes(struct scsi_cmnd *scmd)
 		return 0;
 
 	/* be careful ... don't want any overflows */
+<<<<<<< HEAD
+	factor = scmd->device->sector_size / 512;
+=======
+>>>>>>> android-3.18
 	do_div(start_lba, factor);
 	do_div(end_lba, factor);
 
@@ -2307,11 +2339,21 @@ got_data:
 		}
 	}
 
+<<<<<<< HEAD
+	/* Rescale capacity to 512-byte units */
+	if (sector_size == 4096)
+		sdkp->capacity <<= 3;
+	else if (sector_size == 2048)
+		sdkp->capacity <<= 2;
+	else if (sector_size == 1024)
+		sdkp->capacity <<= 1;
+=======
 	if (sdkp->capacity > 0xffffffff) {
 		sdp->use_16_for_rw = 1;
 		sdkp->max_xfer_blocks = SD_MAX_XFER_BLOCKS;
 	} else
 		sdkp->max_xfer_blocks = SD_DEF_XFER_BLOCKS;
+>>>>>>> android-3.18
 
 	blk_queue_physical_block_size(sdp->request_queue,
 				      sdkp->physical_block_size);
@@ -2504,7 +2546,11 @@ sd_read_cache_type(struct scsi_disk *sdkp, unsigned char *buffer)
 			}
 		}
 
+<<<<<<< HEAD
+		sd_printk(KERN_ERR, sdkp, "No Caching mode page found\n");
+=======
 		sd_first_printk(KERN_ERR, sdkp, "No Caching mode page found\n");
+>>>>>>> android-3.18
 		goto defaults;
 
 	Page_found:
@@ -2518,11 +2564,18 @@ sd_read_cache_type(struct scsi_disk *sdkp, unsigned char *buffer)
 
 		sdkp->DPOFUA = (data.device_specific & 0x10) != 0;
 		if (sdp->broken_fua) {
+<<<<<<< HEAD
+			sd_printk(KERN_NOTICE, sdkp, "Disabling FUA\n");
+			sdkp->DPOFUA = 0;
+		} else if (sdkp->DPOFUA && !sdkp->device->use_10_for_rw) {
+			sd_printk(KERN_NOTICE, sdkp,
+=======
 			sd_first_printk(KERN_NOTICE, sdkp, "Disabling FUA\n");
 			sdkp->DPOFUA = 0;
 		} else if (sdkp->DPOFUA && !sdkp->device->use_10_for_rw &&
 			   !sdkp->device->use_16_for_rw) {
 			sd_first_printk(KERN_NOTICE, sdkp,
+>>>>>>> android-3.18
 				  "Uses READ/WRITE(6), disabling FUA\n");
 			sdkp->DPOFUA = 0;
 		}
@@ -2968,6 +3021,12 @@ static void sd_probe_async(void *data, async_cookie_t cookie)
 	}
 
 	blk_pm_runtime_init(sdp->request_queue, dev);
+<<<<<<< HEAD
+	if (sdp->autosuspend_delay >= 0)
+		pm_runtime_set_autosuspend_delay(dev, sdp->autosuspend_delay);
+
+=======
+>>>>>>> android-3.18
 	add_disk(gd);
 	if (sdkp->capacity)
 		sd_dif_config_host(sdkp);
@@ -3107,8 +3166,14 @@ static int sd_remove(struct device *dev)
 	devt = disk_devt(sdkp->disk);
 	scsi_autopm_get_device(sdkp->device);
 
+<<<<<<< HEAD
+	async_synchronize_full_domain(&scsi_sd_probe_domain);
+	blk_queue_prep_rq(sdkp->device->request_queue, scsi_prep_fn);
+	blk_queue_unprep_rq(sdkp->device->request_queue, NULL);
+=======
 	async_synchronize_full_domain(&scsi_sd_pm_domain);
 	async_synchronize_full_domain(&scsi_sd_probe_domain);
+>>>>>>> android-3.18
 	device_del(&sdkp->dev);
 	del_gendisk(sdkp->disk);
 	sd_shutdown(dev);

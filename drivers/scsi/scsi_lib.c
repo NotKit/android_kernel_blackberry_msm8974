@@ -264,7 +264,11 @@ EXPORT_SYMBOL(scsi_execute);
 int scsi_execute_req_flags(struct scsi_device *sdev, const unsigned char *cmd,
 		     int data_direction, void *buffer, unsigned bufflen,
 		     struct scsi_sense_hdr *sshdr, int timeout, int retries,
+<<<<<<< HEAD
+		     int *resid, int flags)
+=======
 		     int *resid, u64 flags)
+>>>>>>> android-3.18
 {
 	char *sense = NULL;
 	int result;
@@ -416,6 +420,13 @@ static void scsi_starved_list_run(struct Scsi_Host *shost)
 	struct scsi_device *sdev;
 	unsigned long flags;
 
+<<<<<<< HEAD
+	shost = sdev->host;
+	if (scsi_target(sdev)->single_lun)
+		scsi_single_lun_run(sdev);
+
+=======
+>>>>>>> android-3.18
 	spin_lock_irqsave(shost->host_lock, flags);
 	list_splice_init(&shost->starved_list, &starved_list);
 
@@ -529,6 +540,14 @@ static void scsi_requeue_command(struct request_queue *q, struct scsi_cmnd *cmd)
 	struct scsi_device *sdev = cmd->device;
 	struct request *req = cmd->request;
 	unsigned long flags;
+
+	/*
+	 * We need to hold a reference on the device to avoid the queue being
+	 * killed after the unlock and before scsi_run_queue is invoked which
+	 * may happen because scsi_unprep_request() puts the command which
+	 * releases its reference on the device.
+	 */
+	get_device(&sdev->sdev_gendev);
 
 	spin_lock_irqsave(q->queue_lock, flags);
 	blk_unprep_request(req);
@@ -1553,7 +1572,11 @@ static int scsi_lld_busy(struct request_queue *q)
 	struct scsi_device *sdev = q->queuedata;
 	struct Scsi_Host *shost;
 
+<<<<<<< HEAD
+	if (blk_queue_dead(q))
+=======
 	if (blk_queue_dying(q))
+>>>>>>> android-3.18
 		return 0;
 
 	shost = sdev->host;
@@ -1680,6 +1703,13 @@ static void scsi_request_fn(struct request_queue *q)
 	struct scsi_cmnd *cmd;
 	struct request *req;
 
+<<<<<<< HEAD
+	if(!get_device(&sdev->sdev_gendev))
+		/* We must be tearing the block queue down already */
+		return;
+
+=======
+>>>>>>> android-3.18
 	/*
 	 * To start with, we keep looping until the queue is empty, or until
 	 * the host is no longer able to accept any more requests.
@@ -2065,6 +2095,8 @@ struct request_queue *scsi_alloc_queue(struct scsi_device *sdev)
 	return q;
 }
 
+<<<<<<< HEAD
+=======
 static struct blk_mq_ops scsi_mq_ops = {
 	.map_queue	= blk_mq_map_queue,
 	.queue_rq	= scsi_queue_rq,
@@ -2114,6 +2146,7 @@ void scsi_mq_destroy_tags(struct Scsi_Host *shost)
 	blk_mq_free_tag_set(&shost->tag_set);
 }
 
+>>>>>>> android-3.18
 /*
  * Function:    scsi_block_requests()
  *

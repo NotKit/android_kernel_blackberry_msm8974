@@ -99,10 +99,20 @@ static const struct pci_device_id hpsa_pci_device_id[] = {
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3354},
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3355},
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3356},
+<<<<<<< HEAD
+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1920},
+=======
+>>>>>>> android-3.18
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1921},
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1922},
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1923},
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1924},
+<<<<<<< HEAD
+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1925},
+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1926},
+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1928},
+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x334d},
+=======
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1926},
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1928},
 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1929},
@@ -129,6 +139,7 @@ static const struct pci_device_id hpsa_pci_device_id[] = {
 	{PCI_VENDOR_ID_HP_3PAR, 0x0075, 0x1590, 0x007D},
 	{PCI_VENDOR_ID_HP_3PAR, 0x0075, 0x1590, 0x0088},
 	{PCI_VENDOR_ID_HP, 0x333f, 0x103c, 0x333f},
+>>>>>>> android-3.18
 	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,	PCI_ANY_ID, PCI_ANY_ID,
 		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
 	{0,}
@@ -146,9 +157,14 @@ static struct board_type products[] = {
 	{0x3245103C, "Smart Array P410i", &SA5_access},
 	{0x3247103C, "Smart Array P411", &SA5_access},
 	{0x3249103C, "Smart Array P812", &SA5_access},
+<<<<<<< HEAD
+	{0x324a103C, "Smart Array P712m", &SA5_access},
+	{0x324b103C, "Smart Array P711m", &SA5_access},
+=======
 	{0x324A103C, "Smart Array P712m", &SA5_access},
 	{0x324B103C, "Smart Array P711m", &SA5_access},
 	{0x3233103C, "HP StorageWorks 1210m", &SA5_access}, /* alias of 333f */
+>>>>>>> android-3.18
 	{0x3350103C, "Smart Array P222", &SA5_access},
 	{0x3351103C, "Smart Array P420", &SA5_access},
 	{0x3352103C, "Smart Array P421", &SA5_access},
@@ -156,6 +172,17 @@ static struct board_type products[] = {
 	{0x3354103C, "Smart Array P420i", &SA5_access},
 	{0x3355103C, "Smart Array P220i", &SA5_access},
 	{0x3356103C, "Smart Array P721m", &SA5_access},
+<<<<<<< HEAD
+	{0x1920103C, "Smart Array", &SA5_access},
+	{0x1921103C, "Smart Array", &SA5_access},
+	{0x1922103C, "Smart Array", &SA5_access},
+	{0x1923103C, "Smart Array", &SA5_access},
+	{0x1924103C, "Smart Array", &SA5_access},
+	{0x1925103C, "Smart Array", &SA5_access},
+	{0x1926103C, "Smart Array", &SA5_access},
+	{0x1928103C, "Smart Array", &SA5_access},
+	{0x334d103C, "Smart Array P822se", &SA5_access},
+=======
 	{0x1921103C, "Smart Array P830i", &SA5_access},
 	{0x1922103C, "Smart Array P430", &SA5_access},
 	{0x1923103C, "Smart Array P431", &SA5_access},
@@ -186,6 +213,7 @@ static struct board_type products[] = {
 	{0x007D1590, "HP Storage P1228 Array Controller", &SA5_access},
 	{0x00881590, "HP Storage P1228e Array Controller", &SA5_access},
 	{0x333f103c, "HP StorageWorks 1210m Array Controller", &SA5_access},
+>>>>>>> android-3.18
 	{0xFFFF103C, "Unknown Smart Array", &SA5_access},
 };
 
@@ -827,11 +855,43 @@ static void dial_up_lockup_detection_on_fw_flash_complete(struct ctlr_info *h,
 		h->heartbeat_sample_interval = HEARTBEAT_SAMPLE_INTERVAL;
 }
 
+static int is_firmware_flash_cmd(u8 *cdb)
+{
+	return cdb[0] == BMIC_WRITE && cdb[6] == BMIC_FLASH_FIRMWARE;
+}
+
+/*
+ * During firmware flash, the heartbeat register may not update as frequently
+ * as it should.  So we dial down lockup detection during firmware flash. and
+ * dial it back up when firmware flash completes.
+ */
+#define HEARTBEAT_SAMPLE_INTERVAL_DURING_FLASH (240 * HZ)
+#define HEARTBEAT_SAMPLE_INTERVAL (30 * HZ)
+static void dial_down_lockup_detection_during_fw_flash(struct ctlr_info *h,
+		struct CommandList *c)
+{
+	if (!is_firmware_flash_cmd(c->Request.CDB))
+		return;
+	atomic_inc(&h->firmware_flash_in_progress);
+	h->heartbeat_sample_interval = HEARTBEAT_SAMPLE_INTERVAL_DURING_FLASH;
+}
+
+static void dial_up_lockup_detection_on_fw_flash_complete(struct ctlr_info *h,
+		struct CommandList *c)
+{
+	if (is_firmware_flash_cmd(c->Request.CDB) &&
+		atomic_dec_and_test(&h->firmware_flash_in_progress))
+		h->heartbeat_sample_interval = HEARTBEAT_SAMPLE_INTERVAL;
+}
+
 static void enqueue_cmd_and_start_io(struct ctlr_info *h,
 	struct CommandList *c)
 {
 	unsigned long flags;
 
+<<<<<<< HEAD
+	set_performant_mode(h, c);
+=======
 	switch (c->cmd_type) {
 	case CMD_IOACCEL1:
 		set_ioaccel1_performant_mode(h, c);
@@ -842,6 +902,7 @@ static void enqueue_cmd_and_start_io(struct ctlr_info *h,
 	default:
 		set_performant_mode(h, c);
 	}
+>>>>>>> android-3.18
 	dial_down_lockup_detection_during_fw_flash(h, c);
 	spin_lock_irqsave(&h->lock, flags);
 	addQ(&h->reqQ, c);
@@ -5533,6 +5594,10 @@ static inline void finish_cmd(struct CommandList *c)
 
 	spin_lock_irqsave(&h->lock, flags);
 	removeQ(c);
+<<<<<<< HEAD
+	dial_up_lockup_detection_on_fw_flash_complete(c->h, c);
+	if (likely(c->cmd_type == CMD_SCSI))
+=======
 
 	/*
 	 * Check for possibly stalled i/o.
@@ -5559,6 +5624,7 @@ static inline void finish_cmd(struct CommandList *c)
 	dial_up_lockup_detection_on_fw_flash_complete(c->h, c);
 	if (likely(c->cmd_type == CMD_IOACCEL1 || c->cmd_type == CMD_SCSI
 			|| c->cmd_type == CMD_IOACCEL2))
+>>>>>>> android-3.18
 		complete_scsi_command(c);
 	else if (c->cmd_type == CMD_IOCTL_PEND)
 		complete(c->waiting);
@@ -6003,7 +6069,7 @@ static int hpsa_kdump_hard_reset_controller(struct pci_dev *pdev)
 	}
 	rc = write_driver_ver_to_cfgtable(cfgtable);
 	if (rc)
-		goto unmap_vaddr;
+		goto unmap_cfgtable;
 
 	/* If reset via doorbell register is supported, use that.
 	 * There are two such methods.  Favor the newest method.
@@ -6533,6 +6599,7 @@ static void hpsa_hba_inquiry(struct ctlr_info *h)
 static int hpsa_init_reset_devices(struct pci_dev *pdev)
 {
 	int rc, i;
+	void __iomem *vaddr;
 
 	if (!reset_devices)
 		return 0;
@@ -6554,6 +6621,18 @@ static int hpsa_init_reset_devices(struct pci_dev *pdev)
 		return -ENODEV;
 	}
 	pci_set_master(pdev);
+<<<<<<< HEAD
+
+	vaddr = pci_ioremap_bar(pdev, 0);
+	if (vaddr == NULL) {
+		rc = -ENOMEM;
+		goto out_disable;
+	}
+	writel(SA5_INTR_OFF, vaddr + SA5_REPLY_INTR_MASK_OFFSET);
+	iounmap(vaddr);
+
+=======
+>>>>>>> android-3.18
 	/* Reset the controller with a PCI power-cycle or via doorbell */
 	rc = hpsa_kdump_hard_reset_controller(pdev);
 
@@ -6913,8 +6992,15 @@ static int hpsa_ctlr_needs_rescan(struct ctlr_info *h)
 	if (!(h->fw_support & MISC_FW_EVENT_NOTIFY))
 		return 0;
 
+<<<<<<< HEAD
+	h->heartbeat_sample_interval = HEARTBEAT_SAMPLE_INTERVAL;
+	spin_lock_irqsave(&lockup_detector_lock, flags);
+	list_add_tail(&h->lockup_list, &hpsa_ctlr_list);
+	spin_unlock_irqrestore(&lockup_detector_lock, flags);
+=======
 	h->events = readl(&(h->cfgtable->event_notify));
 	return h->events & RESCAN_REQUIRED_EVENT_BITS;
+>>>>>>> android-3.18
 }
 
 /*
@@ -7132,12 +7218,16 @@ reinit_after_soft_reset:
 
 	hpsa_hba_inquiry(h);
 	hpsa_register_scsi(h);	/* hook ourselves into SCSI subsystem */
+<<<<<<< HEAD
+	start_controller_lockup_detector(h);
+=======
 
 	/* Monitor the controller for firmware lockups */
 	h->heartbeat_sample_interval = HEARTBEAT_SAMPLE_INTERVAL;
 	INIT_DELAYED_WORK(&h->monitor_ctlr_work, hpsa_monitor_ctlr_worker);
 	schedule_delayed_work(&h->monitor_ctlr_work,
 				h->heartbeat_sample_interval);
+>>>>>>> android-3.18
 	return 0;
 
 clean4:

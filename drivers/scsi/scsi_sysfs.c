@@ -941,7 +941,7 @@ sdev_store_queue_ramp_up_period(struct device *dev,
 		return -EINVAL;
 
 	sdev->queue_ramp_up_period = msecs_to_jiffies(period);
-	return period;
+	return count;
 }
 
 static DEVICE_ATTR(queue_ramp_up_period, S_IRUGO | S_IWUSR,
@@ -1061,7 +1061,8 @@ int scsi_sysfs_add_sdev(struct scsi_device *sdev)
 	device_enable_async_suspend(&sdev->sdev_gendev);
 	scsi_autopm_get_target(starget);
 	pm_runtime_set_active(&sdev->sdev_gendev);
-	pm_runtime_forbid(&sdev->sdev_gendev);
+	if (!sdev->use_rpm_auto)
+		pm_runtime_forbid(&sdev->sdev_gendev);
 	pm_runtime_enable(&sdev->sdev_gendev);
 	scsi_autopm_put_target(starget);
 
@@ -1134,6 +1135,10 @@ void __scsi_remove_device(struct scsi_device *sdev)
 		sdev->host->hostt->slave_destroy(sdev);
 	transport_destroy_device(dev);
 
+<<<<<<< HEAD
+	/* Freeing the queue signals to block that we're done */
+	blk_cleanup_queue(sdev->request_queue);
+=======
 	/*
 	 * Paired with the kref_get() in scsi_sysfs_initialize().  We have
 	 * remoed sysfs visibility from the device, so make the target
@@ -1141,6 +1146,7 @@ void __scsi_remove_device(struct scsi_device *sdev)
 	 */
 	scsi_target_reap(scsi_target(sdev));
 
+>>>>>>> android-3.18
 	put_device(dev);
 }
 
@@ -1191,6 +1197,25 @@ static void __scsi_remove_target(struct scsi_target *starget)
 void scsi_remove_target(struct device *dev)
 {
 	struct Scsi_Host *shost = dev_to_shost(dev->parent);
+<<<<<<< HEAD
+	struct scsi_target *starget;
+	unsigned long flags;
+
+restart:
+	spin_lock_irqsave(shost->host_lock, flags);
+	list_for_each_entry(starget, &shost->__targets, siblings) {
+		if (starget->state == STARGET_DEL)
+			continue;
+		if (starget->dev.parent == dev || &starget->dev == dev) {
+			starget->reap_ref++;
+			spin_unlock_irqrestore(shost->host_lock, flags);
+			__scsi_remove_target(starget);
+			scsi_target_reap(starget);
+			goto restart;
+		}
+	}
+	spin_unlock_irqrestore(shost->host_lock, flags);
+=======
 	struct scsi_target *starget, *last = NULL;
 	unsigned long flags;
 
@@ -1222,6 +1247,7 @@ void scsi_remove_target(struct device *dev)
 
 	if (last)
 		scsi_target_reap(last);
+>>>>>>> android-3.18
 }
 EXPORT_SYMBOL(scsi_remove_target);
 
