@@ -813,10 +813,20 @@ static void cleanup_glue_dir(struct device *dev, struct kobject *glue_dir)
 		return;
 
 	mutex_lock(&gdp_mutex);
+<<<<<<< HEAD
+	kobject_put(glue_dir);
+	mutex_unlock(&gdp_mutex);
+}
+
+static void cleanup_device_parent(struct device *dev)
+{
+	cleanup_glue_dir(dev, dev->kobj.parent);
+=======
 	if (!kobject_has_children(glue_dir))
 		kobject_del(glue_dir);
 	kobject_put(glue_dir);
 	mutex_unlock(&gdp_mutex);
+>>>>>>> android-3.18
 }
 
 static int device_add_class_symlinks(struct device *dev)
@@ -1068,7 +1078,13 @@ int device_add(struct device *dev)
 	error = dpm_sysfs_add(dev);
 	if (error)
 		goto DPMError;
-	device_pm_add(dev);
+	if ((dev->pm_domain) || (dev->type && dev->type->pm)
+		|| (dev->class && (dev->class->pm || dev->class->resume))
+		|| (dev->bus && (dev->bus->pm || dev->bus->resume)) ||
+		(dev->driver && dev->driver->pm)) {
+		device_pm_add(dev);
+	}
+
 
 	/* Notify clients of device addition.  This call must come
 	 * after dpm_sysfs_add() and before kobject_uevent().
@@ -1758,7 +1774,11 @@ struct device *device_create_with_groups(struct class *class,
 }
 EXPORT_SYMBOL_GPL(device_create_with_groups);
 
+<<<<<<< HEAD
+static int __match_devt(struct device *dev, void *data)
+=======
 static int __match_devt(struct device *dev, const void *data)
+>>>>>>> android-3.18
 {
 	const dev_t *devt = data;
 

@@ -21,6 +21,9 @@
 #include <linux/firmware.h>
 #include <linux/slab.h>
 #include <linux/sched.h>
+<<<<<<< HEAD
+#include <linux/io.h>
+=======
 #include <linux/file.h>
 #include <linux/list.h>
 #include <linux/async.h>
@@ -29,6 +32,7 @@
 #include <linux/syscore_ops.h>
 #include <linux/reboot.h>
 #include <linux/security.h>
+>>>>>>> android-3.18
 
 #include <generated/utsrelease.h>
 
@@ -94,7 +98,8 @@ static int loading_timeout = 60;	/* In seconds */
 
 static inline long firmware_loading_timeout(void)
 {
-	return loading_timeout > 0 ? loading_timeout * HZ : MAX_SCHEDULE_TIMEOUT;
+	return loading_timeout > 0 ? msecs_to_jiffies(loading_timeout * 1000) :
+	        MAX_SCHEDULE_TIMEOUT;
 }
 
 /* firmware behavior options */
@@ -148,8 +153,16 @@ struct firmware_buf {
 	struct page **pages;
 	int nr_pages;
 	int page_array_size;
+<<<<<<< HEAD
+	phys_addr_t dest_addr;
+	size_t dest_size;
+	struct timer_list timeout;
+	struct device dev;
+	bool nowait;
+=======
 	struct list_head pending_list;
 #endif
+>>>>>>> android-3.18
 	char fw_id[];
 };
 
@@ -639,6 +652,37 @@ static ssize_t firmware_loading_store(struct device *dev,
 
 	switch (loading) {
 	case 1:
+<<<<<<< HEAD
+		if (fw_priv->dest_addr) {
+			set_bit(FW_STATUS_LOADING, &fw_priv->status);
+			break;
+		}
+		firmware_free_data(fw_priv->fw);
+		memset(fw_priv->fw, 0, sizeof(struct firmware));
+		/* If the pages are not owned by 'struct firmware' */
+		for (i = 0; i < fw_priv->nr_pages; i++)
+			__free_page(fw_priv->pages[i]);
+		kfree(fw_priv->pages);
+		fw_priv->pages = NULL;
+		fw_priv->page_array_size = 0;
+		fw_priv->nr_pages = 0;
+		set_bit(FW_STATUS_LOADING, &fw_priv->status);
+		break;
+	case 0:
+		if (test_bit(FW_STATUS_LOADING, &fw_priv->status)) {
+			if (fw_priv->dest_addr) {
+				complete(&fw_priv->completion);
+				clear_bit(FW_STATUS_LOADING, &fw_priv->status);
+				break;
+			}
+			vunmap(fw_priv->fw->data);
+			fw_priv->fw->data = vmap(fw_priv->pages,
+						 fw_priv->nr_pages,
+						 0, PAGE_KERNEL_RO);
+			if (!fw_priv->fw->data) {
+				dev_err(dev, "%s: vmap() failed\n", __func__);
+				goto err;
+=======
 		/* discarding any previous partial load */
 		if (!test_bit(FW_STATUS_DONE, &fw_buf->status)) {
 			for (i = 0; i < fw_buf->nr_pages; i++)
@@ -679,6 +723,7 @@ static ssize_t firmware_loading_store(struct device *dev,
 			if (rc) {
 				set_bit(FW_STATUS_ABORT, &fw_buf->status);
 				written = rc;
+>>>>>>> android-3.18
 			}
 			complete_all(&fw_buf->completion);
 			break;
@@ -697,6 +742,67 @@ out:
 }
 
 static DEVICE_ATTR(loading, 0644, firmware_loading_show, firmware_loading_store);
+
+static int __firmware_data_rw(struct firmware_priv *fw_priv, char *buffer,
+				loff_t *offset, size_t count, int read)
+{
+	u8 __iomem *fw_buf;
+	int retval = count;
+
+	if ((*offset + count) > fw_priv->dest_size) {
+		pr_debug("%s: Failed size check.\n", __func__);
+		retval = -EINVAL;
+		goto out;
+	}
+
+	fw_buf = ioremap(fw_priv->dest_addr + *offset, count);
+	if (!fw_buf) {
+		pr_debug("%s: Failed ioremap.\n", __func__);
+		retval = -ENOMEM;
+		goto out;
+	}
+
+	if (read)
+		memcpy(buffer, fw_buf, count);
+	else
+		memcpy(fw_buf, buffer, count);
+
+	*offset += count;
+	iounmap(fw_buf);
+
+out:
+	return retval;
+}
+
+static ssize_t firmware_direct_read(struct file *filp, struct kobject *kobj,
+				  struct bin_attribute *bin_attr,
+				  char *buffer, loff_t offset, size_t count)
+{
+	struct device *dev = to_dev(kobj);
+	struct firmware_priv *fw_priv = to_firmware_priv(dev);
+	struct firmware *fw;
+	ssize_t ret_count;
+
+	mutex_lock(&fw_lock);
+	fw = fw_priv->fw;
+
+	if (offset > fw->size) {
+		ret_count = 0;
+		goto out;
+	}
+	if (count > fw->size - offset)
+		count = fw->size - offset;
+
+	if (!fw || test_bit(FW_STATUS_DONE, &fw_priv->status)) {
+		ret_count = -ENODEV;
+		goto out;
+	}
+
+	ret_count = __firmware_data_rw(fw_priv, buffer, &offset, count, 1);
+out:
+	mutex_unlock(&fw_lock);
+	return ret_count;
+}
 
 static ssize_t firmware_data_read(struct file *filp, struct kobject *kobj,
 				  struct bin_attribute *bin_attr,
@@ -781,6 +887,35 @@ static int fw_realloc_buffer(struct firmware_priv *fw_priv, int min_size)
 	return 0;
 }
 
+static ssize_t firmware_direct_write(struct file *filp, struct kobject *kobj,
+				   struct bin_attribute *bin_attr,
+				   char *buffer, loff_t offset, size_t count)
+{
+	struct device *dev = to_dev(kobj);
+	struct firmware_priv *fw_priv = to_firmware_priv(dev);
+	struct firmware *fw;
+	ssize_t retval;
+
+	if (!capable(CAP_SYS_RAWIO))
+		return -EPERM;
+
+	mutex_lock(&fw_lock);
+	fw = fw_priv->fw;
+	if (!fw || test_bit(FW_STATUS_DONE, &fw_priv->status)) {
+		retval = -ENODEV;
+		goto out;
+	}
+
+	retval = __firmware_data_rw(fw_priv, buffer, &offset, count, 0);
+	if (retval < 0)
+		goto out;
+
+	fw->size = max_t(size_t, offset, fw->size);
+out:
+	mutex_unlock(&fw_lock);
+	return retval;
+}
+
 /**
  * firmware_data_write - write method for firmware
  * @filp: open sysfs file
@@ -847,7 +982,18 @@ static struct bin_attribute firmware_attr_data = {
 	.write = firmware_data_write,
 };
 
+<<<<<<< HEAD
+static struct bin_attribute firmware_direct_attr_data = {
+	.attr = { .name = "data", .mode = 0644 },
+	.size = 0,
+	.read = firmware_direct_read,
+	.write = firmware_direct_write,
+};
+
+static void firmware_class_timeout(u_long data)
+=======
 static void firmware_class_timeout_work(struct work_struct *work)
+>>>>>>> android-3.18
 {
 	struct firmware_priv *fw_priv = container_of(work,
 			struct firmware_priv, timeout_work.work);
@@ -892,7 +1038,12 @@ static int _request_firmware_load(struct firmware_priv *fw_priv,
 {
 	int retval = 0;
 	struct device *f_dev = &fw_priv->dev;
+<<<<<<< HEAD
+	struct bin_attribute *fw_attr_data = fw_priv->dest_addr ?
+			&firmware_direct_attr_data : &firmware_attr_data;
+=======
 	struct firmware_buf *buf = fw_priv->buf;
+>>>>>>> android-3.18
 
 	/* fall back on userspace loading */
 	buf->is_paged_buf = true;
@@ -905,7 +1056,7 @@ static int _request_firmware_load(struct firmware_priv *fw_priv,
 		goto err_put_dev;
 	}
 
-	retval = device_create_bin_file(f_dev, &firmware_attr_data);
+	retval = device_create_bin_file(f_dev, fw_attr_data);
 	if (retval) {
 		dev_err(f_dev, "%s: sysfs_create_bin_file failed\n", __func__);
 		goto err_del_dev;
@@ -945,7 +1096,7 @@ static int _request_firmware_load(struct firmware_priv *fw_priv,
 
 	device_remove_file(f_dev, &dev_attr_loading);
 err_del_bin_attr:
-	device_remove_bin_file(f_dev, &firmware_attr_data);
+	device_remove_bin_file(f_dev, fw_attr_data);
 err_del_dev:
 	device_del(f_dev);
 err_put_dev:
@@ -953,6 +1104,37 @@ err_put_dev:
 	return retval;
 }
 
+<<<<<<< HEAD
+static int
+__request_firmware(const struct firmware **firmware_p, const char *name,
+		   struct device *device, phys_addr_t dest_addr, size_t size)
+{
+	struct firmware_priv *fw_priv;
+	int ret;
+
+	if (!name || name[0] == '\0')
+		return -EINVAL;
+
+	fw_priv = _request_firmware_prepare(firmware_p, name, device, true,
+					    false);
+	if (IS_ERR_OR_NULL(fw_priv))
+		return PTR_RET(fw_priv);
+
+	fw_priv->dest_addr = dest_addr;
+	fw_priv->dest_size = size;
+
+	ret = usermodehelper_read_trylock();
+	if (WARN_ON(ret)) {
+		dev_err(device, "firmware: %s will not be loaded\n", name);
+	} else {
+		ret = _request_firmware_load(fw_priv, true,
+					firmware_loading_timeout());
+		usermodehelper_read_unlock();
+	}
+	if (ret)
+		_request_firmware_cleanup(firmware_p);
+
+=======
 static int fw_load_from_user_helper(struct firmware *firmware,
 				    const char *name, struct device *device,
 				    unsigned int opt_flags, long timeout)
@@ -1168,6 +1350,7 @@ _request_firmware(const struct firmware **firmware_p, const char *name,
 	}
 
 	*firmware_p = fw;
+>>>>>>> android-3.18
 	return ret;
 }
 
@@ -1193,8 +1376,35 @@ _request_firmware(const struct firmware **firmware_p, const char *name,
  **/
 int
 request_firmware(const struct firmware **firmware_p, const char *name,
-                 struct device *device)
+		 struct device *device)
 {
+<<<<<<< HEAD
+	return __request_firmware(firmware_p, name, device, 0, 0);
+}
+
+/**
+ * request_firmware_direct: - send firmware request and wait for it
+ * @name: name of firmware file
+ * @device: device for which firmware is being loaded
+ * @dest_addr: Destination address for the firmware
+ * @dest_size:
+ *
+ *      Similar to request_firmware, except takes in a buffer address and
+ *      copies firmware data directly to that buffer. Returns the size of
+ *      the firmware that was loaded at dest_addr.
+*/
+int request_firmware_direct(const char *name, struct device *device,
+			phys_addr_t dest_addr, size_t dest_size)
+{
+	const struct firmware *fp = NULL;
+	int ret;
+
+	ret = __request_firmware(&fp, name, device, dest_addr, dest_size);
+	if (ret)
+		return ret;
+	ret = fp->size;
+	release_firmware(fp);
+=======
 	int ret;
 
 	/* Need to pin this module until return */
@@ -1225,6 +1435,7 @@ int request_firmware_direct(const struct firmware **firmware_p,
 	ret = _request_firmware(firmware_p, name, device,
 				FW_OPT_UEVENT | FW_OPT_NO_WARN);
 	module_put(THIS_MODULE);
+>>>>>>> android-3.18
 	return ret;
 }
 EXPORT_SYMBOL_GPL(request_firmware_direct);
