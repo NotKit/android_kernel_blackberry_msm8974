@@ -42,6 +42,8 @@
 #include <linux/slimport.h>
 #include <linux/cdev.h>
 #include <linux/completion.h>
+#include <linux/irq.h>
+#include <linux/irqdesc.h>
 
 #include <mach/rpm-regulator.h>
 #include <mach/rpm-regulator-smd.h>
@@ -52,6 +54,80 @@
 #include "core.h"
 #include "gadget.h"
 #include "debug.h"
+
+/* Compatibility shims for 3.18 kernel API changes */
+
+/* system_nrt_wq was removed in kernel 3.8, use system_wq instead */
+#define system_nrt_wq system_wq
+
+/* flush_delayed_work_sync was renamed to flush_delayed_work */
+#define flush_delayed_work_sync(work) flush_delayed_work(work)
+
+/* usb_get_transceiver renamed to usb_get_phy with type param */
+#define usb_get_transceiver() usb_get_phy(USB_PHY_TYPE_USB3)
+
+/* usb_put_transceiver renamed to usb_put_phy */
+#define usb_put_transceiver(phy) usb_put_phy(phy)
+
+/* Missing DWC3 GFLADJ register macros from 3.4 kernel */
+#ifndef DWC3_GFLADJ_REFCLK_240MHZDECR_PLS1
+#define DWC3_GFLADJ_REFCLK_240MHZDECR_PLS1	(1 << 31)
+#endif
+#ifndef DWC3_GFLADJ_REFCLK_240MHZ_DECR
+#define DWC3_GFLADJ_REFCLK_240MHZ_DECR		(0x7F << 24)
+#endif
+#ifndef DWC3_GFLADJ_REFCLK_LPM_SEL
+#define DWC3_GFLADJ_REFCLK_LPM_SEL		(1 << 23)
+#endif
+#ifndef DWC3_GFLADJ_REFCLK_FLADJ
+#define DWC3_GFLADJ_REFCLK_FLADJ		(0x3FFF << 8)
+#endif
+
+/* Forward declaration for function defined in gadget.c */
+struct dwc3_ep;
+struct dwc3_trb;
+extern dma_addr_t dwc3_trb_dma_offset(struct dwc3_ep *dep, struct dwc3_trb *trb);
+
+/* Power supply API stubs - these functions were changed in 3.18 */
+static inline int power_supply_set_current_limit(struct power_supply *psy, int limit)
+{
+	return 0;
+}
+
+static inline int power_supply_set_online(struct power_supply *psy, int online)
+{
+	return 0;
+}
+
+static inline int power_supply_set_present(struct power_supply *psy, int present)
+{
+	return 0;
+}
+
+/* irq_read_line ported from kernel 3.4 kernel/irq/manage.c */
+int irq_read_line(unsigned int irq)
+{
+	struct irq_desc *desc = irq_to_desc(irq);
+	unsigned long flags;
+	int val;
+
+	if (!desc || !desc->irq_data.chip->irq_read_line)
+		return -EINVAL;
+
+	/* Handle bus lock */
+	if (desc->irq_data.chip->irq_bus_lock)
+		desc->irq_data.chip->irq_bus_lock(&desc->irq_data);
+
+	raw_spin_lock_irqsave(&desc->lock, flags);
+	val = desc->irq_data.chip->irq_read_line(&desc->irq_data);
+	raw_spin_unlock_irqrestore(&desc->lock, flags);
+
+	/* Handle bus unlock */
+	if (desc->irq_data.chip->irq_bus_sync_unlock)
+		desc->irq_data.chip->irq_bus_sync_unlock(&desc->irq_data);
+
+	return val;
+}
 
 /* ADC threshold values */
 static int adc_low_threshold = 700;
@@ -208,6 +284,7 @@ struct dwc3_msm {
 	int			hsphy_init_seq;
 	int			deemphasis_val;
 	bool			lpm_irq_seen;
+	bool			use_pwr_event_irq;
 	struct delayed_work	resume_work;
 	struct work_struct	restart_usb_work;
 	bool			in_restart;
@@ -3011,10 +3088,11 @@ static int  dwc3_msm_probe(struct platform_device *pdev)
 
 	mdwc->ref_clk = devm_clk_get(&pdev->dev, "ref_clk");
 	if (IS_ERR(mdwc->ref_clk)) {
-		dev_err(&pdev->dev, "failed to get ref_clk\n");
+		dev_err(&pdev->dev, "failed to get ref_clk: %ld\n", PTR_ERR(mdwc->ref_clk));
 		ret = PTR_ERR(mdwc->ref_clk);
 		goto disable_utmi_clk;
 	}
+	dev_err(&pdev->dev, "got ref_clk\n");
 	clk_prepare_enable(mdwc->ref_clk);
 
 	of_get_property(node, "qcom,vdd-voltage-level", &len);
@@ -3031,41 +3109,43 @@ static int  dwc3_msm_probe(struct platform_device *pdev)
 	}
 
 	/* SS PHY */
+	dev_err(&pdev->dev, "getting ssusb_vdd_dig\n");
 	mdwc->ssusb_vddcx = devm_regulator_get(&pdev->dev, "ssusb_vdd_dig");
 	if (IS_ERR(mdwc->ssusb_vddcx)) {
-		dev_err(&pdev->dev, "unable to get ssusb vddcx\n");
+		dev_err(&pdev->dev, "unable to get ssusb vddcx: %ld\n", PTR_ERR(mdwc->ssusb_vddcx));
 		ret = PTR_ERR(mdwc->ssusb_vddcx);
 		goto disable_ref_clk;
 	}
 
 	ret = dwc3_ssusb_config_vddcx(mdwc, 1);
 	if (ret) {
-		dev_err(&pdev->dev, "ssusb vddcx configuration failed\n");
+		dev_err(&pdev->dev, "ssusb vddcx configuration failed: %d\n", ret);
 		goto disable_ref_clk;
 	}
 
 	ret = regulator_enable(mdwc->ssusb_vddcx);
 	if (ret) {
-		dev_err(&pdev->dev, "unable to enable the ssusb vddcx\n");
+		dev_err(&pdev->dev, "unable to enable the ssusb vddcx: %d\n", ret);
 		goto unconfig_ss_vddcx;
 	}
 
 	ret = dwc3_ssusb_ldo_init(mdwc, 1);
 	if (ret) {
-		dev_err(&pdev->dev, "ssusb vreg configuration failed\n");
+		dev_err(&pdev->dev, "ssusb vreg configuration failed: %d\n", ret);
 		goto disable_ss_vddcx;
 	}
 
 	ret = dwc3_ssusb_ldo_enable(mdwc, 1);
 	if (ret) {
-		dev_err(&pdev->dev, "ssusb vreg enable failed\n");
+		dev_err(&pdev->dev, "ssusb vreg enable failed: %d\n", ret);
 		goto free_ss_ldo_init;
 	}
 
 	/* HS PHY */
+	dev_err(&pdev->dev, "getting hsusb_vdd_dig\n");
 	mdwc->hsusb_vddcx = devm_regulator_get(&pdev->dev, "hsusb_vdd_dig");
 	if (IS_ERR(mdwc->hsusb_vddcx)) {
-		dev_err(&pdev->dev, "unable to get hsusb vddcx\n");
+		dev_err(&pdev->dev, "unable to get hsusb vddcx: %ld\n", PTR_ERR(mdwc->hsusb_vddcx));
 		ret = PTR_ERR(mdwc->hsusb_vddcx);
 		goto disable_ss_ldo;
 	}
@@ -3107,6 +3187,7 @@ static int  dwc3_msm_probe(struct platform_device *pdev)
 	 * DP and DM linestate transitions during low power mode.
 	 */
 	mdwc->hs_phy_irq = platform_get_irq_byname(pdev, "hs_phy_irq");
+	dev_err(&pdev->dev, "got hs_phy_irq: %d\n", mdwc->hs_phy_irq);
 	if (mdwc->hs_phy_irq < 0) {
 		dev_dbg(&pdev->dev, "pget_irq for hs_phy_irq failed\n");
 		mdwc->hs_phy_irq = 0;
@@ -3115,24 +3196,20 @@ static int  dwc3_msm_probe(struct platform_device *pdev)
 				msm_dwc3_irq, IRQF_TRIGGER_RISING,
 			       "msm_dwc3", mdwc);
 		if (ret) {
-			dev_err(&pdev->dev, "irqreq HSPHYINT failed\n");
+			dev_err(&pdev->dev, "irqreq HSPHYINT failed: %d\n", ret);
 			goto disable_hs_ldo;
 		}
 	}
 
 	if (mdwc->ext_xceiv.otg_capability) {
+		dev_err(&pdev->dev, "getting pmic_id_irq\n");
 		mdwc->pmic_id_irq =
 			platform_get_irq_byname(pdev, "pmic_id_irq");
 		if (mdwc->pmic_id_irq > 0) {
 			/* check if PMIC ID IRQ is supported */
 			ret = qpnp_misc_irqs_available(&pdev->dev);
-
-			if (ret == -EPROBE_DEFER) {
-				/* qpnp hasn't probed yet; defer dwc probe */
-				goto disable_hs_ldo;
-			} else if (ret == 0) {
-				mdwc->pmic_id_irq = 0;
-			} else {
+			if (ret > 0) {
+				mdwc->use_pwr_event_irq = true;
 				ret = devm_request_irq(&pdev->dev,
 						       mdwc->pmic_id_irq,
 						       dwc3_pmic_id_irq,
@@ -3144,17 +3221,15 @@ static int  dwc3_msm_probe(struct platform_device *pdev)
 					dev_err(&pdev->dev, "irqreq IDINT failed\n");
 					goto disable_hs_ldo;
 				}
-
-				local_irq_save(flags);
-				/* Update initial ID state */
-				mdwc->id_state =
-					!!irq_read_line(mdwc->pmic_id_irq);
-				if (mdwc->id_state == DWC3_ID_GROUND)
-					queue_work(system_nrt_wq,
-							&mdwc->id_work);
-				local_irq_restore(flags);
-				enable_irq_wake(mdwc->pmic_id_irq);
 			}
+
+			local_irq_save(flags);
+			/* Update initial ID state */
+			mdwc->id_state = !!irq_read_line(mdwc->pmic_id_irq);
+			if (mdwc->id_state == DWC3_ID_GROUND)
+				queue_work(system_nrt_wq, &mdwc->id_work);
+			local_irq_restore(flags);
+			enable_irq_wake(mdwc->pmic_id_irq);
 		}
 
 		if (mdwc->pmic_id_irq <= 0) {
