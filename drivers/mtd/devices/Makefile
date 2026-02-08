@@ -7,6 +7,8 @@ obj-$(CONFIG_MTD_SLRAM)		+= slram.o
 obj-$(CONFIG_MTD_PHRAM)		+= phram.o
 obj-$(CONFIG_MTD_PMC551)	+= pmc551.o
 obj-$(CONFIG_MTD_MS02NV)	+= ms02-nv.o
+obj-$(CONFIG_MTD_MSM_NAND)	+= msm_nand.o
+obj-$(CONFIG_MTD_MSM_QPIC_NAND)	+= msm_qpic_nand.o
 obj-$(CONFIG_MTD_MTDRAM)	+= mtdram.o
 obj-$(CONFIG_MTD_LART)		+= lart.o
 obj-$(CONFIG_MTD_BLOCK2MTD)	+= block2mtd.o
@@ -17,5 +19,8 @@ obj-$(CONFIG_MTD_SST25L)	+= sst25l.o
 obj-$(CONFIG_MTD_BCM47XXSFLASH)	+= bcm47xxsflash.o
 obj-$(CONFIG_MTD_ST_SPI_FSM)    += st_spi_fsm.o
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> android-3.18
 CFLAGS_docg3.o			+= -I$(src)

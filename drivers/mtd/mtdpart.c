@@ -322,6 +322,21 @@ static inline void free_partition(struct mtd_part *p)
 	kfree(p);
 }
 
+void part_fill_badblockstats(struct mtd_info *mtd)
+{
+	struct mtd_part *part = PART(mtd);
+	if (part->master->_block_isbad) {
+		uint64_t offs = 0;
+		mtd->ecc_stats.badblocks = 0;
+		while (offs < mtd->size) {
+			if (mtd_block_isbad(part->master,
+						offs + part->offset))
+				mtd->ecc_stats.badblocks++;
+			offs += mtd->erasesize;
+		}
+	}
+}
+
 /*
  * This function unregisters and destroy all slave MTD objects which are
  * attached to the given master MTD object.
@@ -529,6 +544,12 @@ static struct mtd_part *allocate_partition(struct mtd_info *master,
 	slave->mtd.ecclayout = master->ecclayout;
 	slave->mtd.ecc_step_size = master->ecc_step_size;
 	slave->mtd.ecc_strength = master->ecc_strength;
+<<<<<<< HEAD
+
+#ifndef CONFIG_MTD_LAZYECCSTATS
+	part_fill_badblockstats(&(slave->mtd));
+#endif
+=======
 	slave->mtd.bitflip_threshold = master->bitflip_threshold;
 
 	if (master->_block_isbad) {
@@ -542,6 +563,7 @@ static struct mtd_part *allocate_partition(struct mtd_info *master,
 			offs += slave->mtd.erasesize;
 		}
 	}
+>>>>>>> android-3.18
 
 out_register:
 	return slave;
@@ -648,8 +670,10 @@ int add_mtd_partitions(struct mtd_info *master,
 
 	for (i = 0; i < nbparts; i++) {
 		slave = allocate_partition(master, parts + i, i, cur_offset);
-		if (IS_ERR(slave))
+		if (IS_ERR(slave)) {
+			del_mtd_partitions(master);
 			return PTR_ERR(slave);
+		}
 
 		mutex_lock(&mtd_partitions_mutex);
 		list_add(&slave->list, &mtd_partitions);
