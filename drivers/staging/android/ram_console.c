@@ -13,16 +13,19 @@
  *
  */
 
+#define pr_fmt(fmt) "ram_console: " fmt
+
 #include <linux/console.h>
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/persistent_ram.h>
 #include <linux/platform_device.h>
 #include <linux/proc_fs.h>
+#include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/io.h>
 #include <linux/kmsg_dump.h>
+#include "persistent_ram.h"
 #include "ram_console.h"
 
 static struct persistent_ram_zone *ram_console_zone;
@@ -80,7 +83,7 @@ void ram_console_enable_console(int enabled)
 		ram_console.flags &= ~CON_ENABLED;
 }
 
-static int __devinit ram_console_probe(struct platform_device *pdev)
+static int __init ram_console_probe(struct platform_device *pdev)
 {
 	struct ram_console_platform_data *pdata = pdev->dev.platform_data;
 	struct persistent_ram_zone *prz;
@@ -100,7 +103,7 @@ static int __devinit ram_console_probe(struct platform_device *pdev)
 	ram_console.data = prz;
 
 	register_console(&ram_console);
-	
+
 	kmsg_dump_register(&ram_console_kmsg_dumper);
 
 	return 0;
@@ -110,12 +113,11 @@ static struct platform_driver ram_console_driver = {
 	.driver		= {
 		.name	= "ram_console",
 	},
-	.probe = ram_console_probe,
 };
 
 static int __init ram_console_module_init(void)
 {
-	return platform_driver_register(&ram_console_driver);
+	return platform_driver_probe(&ram_console_driver, ram_console_probe);
 }
 
 #ifndef CONFIG_PRINTK
@@ -193,19 +195,34 @@ static int __init ram_console_late_init(void)
 	if (persistent_ram_old_size(prz) == 0)
 		return 0;
 
-	entry = create_proc_entry("last_kmsg", S_IFREG | S_IRUGO, NULL);
+	entry = proc_create("last_kmsg", S_IRUGO, NULL, &ram_console_file_ops);
 	if (!entry) {
-		printk(KERN_ERR "ram_console: failed to create proc entry\n");
+		pr_err("failed to create proc entry\n");
 		persistent_ram_free_old(prz);
 		return 0;
 	}
 
-	entry->proc_fops = &ram_console_file_ops;
-	entry->size = persistent_ram_old_size(prz) +
+	proc_set_size(entry, persistent_ram_old_size(prz) +
 		persistent_ram_ecc_string(prz, NULL, 0) +
-		bootinfo_size;
+		bootinfo_size);
 
 	return 0;
+}
+
+void __init ram_console_early_init(unsigned long start, unsigned long size)
+{
+	struct persistent_ram_zone *prz;
+
+	prz = persistent_ram_new(start, size, true);
+	if (IS_ERR(prz)) {
+		pr_err("failed to allocate persistent ram zone\n");
+		return;
+	}
+
+	ram_console_zone = prz;
+	ram_console.data = prz;
+	register_console(&ram_console);
+	kmsg_dump_register(&ram_console_kmsg_dumper);
 }
 
 late_initcall(ram_console_late_init);

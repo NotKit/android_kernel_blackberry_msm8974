@@ -51,21 +51,11 @@
  * Warning: Mappings do NOT pin this structure; It dies on close()
  */
 struct ashmem_area {
-<<<<<<< HEAD
-	char name[ASHMEM_FULL_NAME_LEN]; /* optional name in /proc/pid/maps */
-	struct list_head unpinned_list;	 /* list of all ashmem areas */
-	struct file *file;		 /* the shmem-based backing file */
-	size_t size;			 /* size of the mapping, in bytes */
-	unsigned long vm_start;		 /* Start address of vm_area
-					  * which maps this ashmem */
-	unsigned long prot_mask;	 /* allowed prot bits, as vm_flags */
-=======
 	char name[ASHMEM_FULL_NAME_LEN];
 	struct list_head unpinned_list;
 	struct file *file;
 	size_t size;
 	unsigned long prot_mask;
->>>>>>> android-3.18
 };
 
 /**
@@ -351,20 +341,12 @@ static loff_t ashmem_llseek(struct file *file, loff_t offset, int origin)
 
 	mutex_unlock(&ashmem_mutex);
 
-<<<<<<< HEAD
-	ret = asma->file->f_op->llseek(asma->file, offset, origin);
-=======
 	ret = vfs_llseek(asma->file, offset, origin);
->>>>>>> android-3.18
 	if (ret < 0)
 		return ret;
 
 	/** Copy f_pos from backing file, since f_ops->llseek() sets it */
 	file->f_pos = asma->file->f_pos;
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 	return ret;
 }
 
@@ -455,10 +437,6 @@ static int ashmem_mmap(struct file *file, struct vm_area_struct *vma)
 			fput(vma->vm_file);
 		vma->vm_file = asma->file;
 	}
-<<<<<<< HEAD
-	asma->vm_start = vma->vm_start;
-=======
->>>>>>> android-3.18
 
 out:
 	mutex_unlock(&ashmem_mutex);
@@ -492,12 +470,6 @@ ashmem_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
 	if (!mutex_trylock(&ashmem_mutex))
 		return -1;
 
-<<<<<<< HEAD
-	if (!mutex_trylock(&ashmem_mutex))
-		return -1;
-
-=======
->>>>>>> android-3.18
 	list_for_each_entry_safe(range, next, &ashmem_lru_list, lru) {
 		loff_t start = range->pgstart * PAGE_SIZE;
 		loff_t end = (range->pgend + 1) * PAGE_SIZE;
@@ -953,7 +925,7 @@ int get_ashmem_file(int fd, struct file **filp, struct file **vm_file,
 		pr_err("ashmem: %s: requested data from file "
 			"descriptor that doesn't exist.\n", __func__);
 	} else {
-		char currtask_name[FIELD_SIZEOF(struct task_struct, comm) + 1];
+		char currtask_name[TASK_COMM_LEN];
 		pr_debug("filp %p rdev %d pid %u(%s) file %p(%ld)"
 			" dev id: %d\n", filp,
 			file->f_dentry->d_inode->i_rdev,
@@ -978,7 +950,7 @@ EXPORT_SYMBOL(get_ashmem_file);
 
 void put_ashmem_file(struct file *file)
 {
-	char currtask_name[FIELD_SIZEOF(struct task_struct, comm) + 1];
+	char currtask_name[TASK_COMM_LEN];
 	pr_debug("rdev %d pid %u(%s) file %p(%ld)" " dev id: %d\n",
 		file->f_dentry->d_inode->i_rdev, current->pid,
 		get_task_comm(currtask_name, current), file,
