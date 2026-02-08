@@ -263,6 +263,10 @@ static ssize_t pyra_sysfs_write_settings(struct file *fp,
 	if (settings->startup_profile >= ARRAY_SIZE(pyra->profile_settings))
 		return -EINVAL;
 
+	settings = (struct pyra_settings const *)buf;
+	if (settings->startup_profile >= ARRAY_SIZE(pyra->profile_settings))
+		return -EINVAL;
+
 	mutex_lock(&pyra->pyra_lock);
 
 	retval = pyra_set_settings(usb_dev, settings);

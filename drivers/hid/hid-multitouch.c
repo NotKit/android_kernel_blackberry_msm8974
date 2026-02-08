@@ -97,17 +97,28 @@ struct mt_fields {
 	unsigned int length;
 };
 
+struct mt_fields {
+	unsigned usages[HID_MAX_FIELDS];
+	unsigned int length;
+};
+
 struct mt_device {
 	struct mt_slot curdata;	/* placeholder of incoming data */
 	struct mt_class mtclass;	/* our mt device class */
 	struct mt_fields *fields;	/* temporary placeholder for storing the
 					   multitouch fields */
+<<<<<<< HEAD
+	unsigned last_field_index;	/* last field index of the report */
+	unsigned last_slot_field;	/* the last field of a slot */
+	__s16 inputmode;		/* InputMode HID feature, -1 if non-existent */
+=======
 	int cc_index;	/* contact count field index in the report */
 	int cc_value_index;	/* contact count value index in the field */
 	unsigned last_slot_field;	/* the last field of a slot */
 	unsigned mt_report_id;	/* the report ID of the multitouch device */
 	__s16 inputmode;	/* InputMode HID feature, -1 if non-existent */
 	__s16 inputmode_index;	/* InputMode HID feature index in the report */
+>>>>>>> android-3.18
 	__s16 maxcontact_report_id;	/* Maximum Contact Number HID feature,
 				   -1 if non-existent */
 	__u8 inputmode_value;  /* InputMode HID feature value */
@@ -155,6 +166,9 @@ static void mt_post_parse(struct mt_device *td);
 
 #define MT_DEFAULT_MAXCONTACT	10
 #define MT_MAX_MAXCONTACT	250
+
+#define MT_USB_DEVICE(v, p)	HID_DEVICE(BUS_USB, HID_GROUP_MULTITOUCH, v, p)
+#define MT_BT_DEVICE(v, p)	HID_DEVICE(BUS_BLUETOOTH, HID_GROUP_MULTITOUCH, v, p)
 
 #define MT_USB_DEVICE(v, p)	HID_DEVICE(BUS_USB, HID_GROUP_MULTITOUCH, v, p)
 #define MT_BT_DEVICE(v, p)	HID_DEVICE(BUS_BLUETOOTH, HID_GROUP_MULTITOUCH, v, p)
@@ -398,6 +412,16 @@ static int mt_touch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 	if (usage->usage_index)
 		prev_usage = &field->usage[usage->usage_index - 1];
 
+	/* Only map fields from TouchScreen or TouchPad collections.
+         * We need to ignore fields that belong to other collections
+         * such as Mouse that might have the same GenericDesktop usages. */
+	if (field->application == HID_DG_TOUCHSCREEN)
+		set_bit(INPUT_PROP_DIRECT, hi->input->propbit);
+	else if (field->application == HID_DG_TOUCHPAD)
+		set_bit(INPUT_PROP_POINTER, hi->input->propbit);
+	else
+		return 0;
+
 	switch (usage->hid & HID_USAGE_PAGE) {
 
 	case HID_UP_GENDESK:
@@ -411,11 +435,20 @@ static int mt_touch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 			} else {
 				hid_map_usage(hi, usage, bit, max,
 					EV_ABS, ABS_MT_POSITION_X);
+<<<<<<< HEAD
+			set_abs(hi->input, ABS_MT_POSITION_X, field,
+				cls->sn_move);
+			/* touchscreen emulation */
+			set_abs(hi->input, ABS_X, field, cls->sn_move);
+			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+=======
 				set_abs(hi->input, ABS_MT_POSITION_X, field,
 					cls->sn_move);
 			}
 
 			mt_store_field(usage, td, hi);
+>>>>>>> android-3.18
 			return 1;
 		case HID_GD_Y:
 			if (prev_usage && (prev_usage->hid == usage->hid)) {
@@ -426,11 +459,20 @@ static int mt_touch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 			} else {
 				hid_map_usage(hi, usage, bit, max,
 					EV_ABS, ABS_MT_POSITION_Y);
+<<<<<<< HEAD
+			set_abs(hi->input, ABS_MT_POSITION_Y, field,
+				cls->sn_move);
+			/* touchscreen emulation */
+			set_abs(hi->input, ABS_Y, field, cls->sn_move);
+			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+=======
 				set_abs(hi->input, ABS_MT_POSITION_Y, field,
 					cls->sn_move);
 			}
 
 			mt_store_field(usage, td, hi);
+>>>>>>> android-3.18
 			return 1;
 		}
 		return 0;
@@ -438,6 +480,14 @@ static int mt_touch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 	case HID_UP_DIGITIZER:
 		switch (usage->hid) {
 		case HID_DG_INRANGE:
+<<<<<<< HEAD
+			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+			return 1;
+		case HID_DG_CONFIDENCE:
+			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+=======
 			if (cls->quirks & MT_QUIRK_HOVERING) {
 				hid_map_usage(hi, usage, bit, max,
 					EV_ABS, ABS_MT_DISTANCE);
@@ -451,24 +501,43 @@ static int mt_touch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 				field->application == HID_DG_TOUCHPAD)
 				cls->quirks |= MT_QUIRK_CONFIDENCE;
 			mt_store_field(usage, td, hi);
+>>>>>>> android-3.18
 			return 1;
 		case HID_DG_TIPSWITCH:
 			hid_map_usage(hi, usage, bit, max, EV_KEY, BTN_TOUCH);
 			input_set_capability(hi->input, EV_KEY, BTN_TOUCH);
 			mt_store_field(usage, td, hi);
+<<<<<<< HEAD
+			td->last_field_index = field->index;
+			return 1;
+		case HID_DG_CONTACTID:
+			if (!td->maxcontacts)
+				td->maxcontacts = MT_DEFAULT_MAXCONTACT;
+			input_mt_init_slots(hi->input, td->maxcontacts);
+			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+=======
 			return 1;
 		case HID_DG_CONTACTID:
 			mt_store_field(usage, td, hi);
+>>>>>>> android-3.18
 			td->touches_by_report++;
 			td->mt_report_id = field->report->id;
 			return 1;
 		case HID_DG_WIDTH:
 			hid_map_usage(hi, usage, bit, max,
 					EV_ABS, ABS_MT_TOUCH_MAJOR);
+<<<<<<< HEAD
+			set_abs(hi->input, ABS_MT_TOUCH_MAJOR, field,
+				cls->sn_width);
+			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+=======
 			if (!(cls->quirks & MT_QUIRK_NO_AREA))
 				set_abs(hi->input, ABS_MT_TOUCH_MAJOR, field,
 					cls->sn_width);
 			mt_store_field(usage, td, hi);
+>>>>>>> android-3.18
 			return 1;
 		case HID_DG_HEIGHT:
 			hid_map_usage(hi, usage, bit, max,
@@ -478,15 +547,28 @@ static int mt_touch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 					cls->sn_height);
 				input_set_abs_params(hi->input,
 					ABS_MT_ORIENTATION, 0, 1, 0, 0);
+<<<<<<< HEAD
+			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+=======
 			}
 			mt_store_field(usage, td, hi);
+>>>>>>> android-3.18
 			return 1;
 		case HID_DG_TIPPRESSURE:
 			hid_map_usage(hi, usage, bit, max,
 					EV_ABS, ABS_MT_PRESSURE);
 			set_abs(hi->input, ABS_MT_PRESSURE, field,
 				cls->sn_pressure);
+<<<<<<< HEAD
+			/* touchscreen emulation */
+			set_abs(hi->input, ABS_PRESSURE, field,
+				cls->sn_pressure);
 			mt_store_field(usage, td, hi);
+			td->last_field_index = field->index;
+=======
+			mt_store_field(usage, td, hi);
+>>>>>>> android-3.18
 			return 1;
 		case HID_DG_CONTACTCOUNT:
 			/* Ignore if indexes are out of bounds. */
@@ -896,7 +978,10 @@ static void mt_post_parse_default_settings(struct mt_device *td)
 		quirks &= ~MT_QUIRK_NOT_SEEN_MEANS_UP;
 		quirks &= ~MT_QUIRK_VALID_IS_INRANGE;
 		quirks &= ~MT_QUIRK_VALID_IS_CONFIDENCE;
+<<<<<<< HEAD
+=======
 		quirks &= ~MT_QUIRK_CONTACT_CNT_ACCURATE;
+>>>>>>> android-3.18
 	}
 
 	td->mtclass.quirks = quirks;
@@ -905,12 +990,17 @@ static void mt_post_parse_default_settings(struct mt_device *td)
 static void mt_post_parse(struct mt_device *td)
 {
 	struct mt_fields *f = td->fields;
+<<<<<<< HEAD
+=======
 	struct mt_class *cls = &td->mtclass;
+>>>>>>> android-3.18
 
 	if (td->touches_by_report > 0) {
 		int field_count_per_touch = f->length / td->touches_by_report;
 		td->last_slot_field = f->usages[field_count_per_touch - 1];
 	}
+<<<<<<< HEAD
+=======
 
 	if (td->cc_index < 0)
 		cls->quirks &= ~MT_QUIRK_CONTACT_CNT_ACCURATE;
@@ -981,6 +1071,7 @@ static int mt_input_configured(struct hid_device *hdev, struct hid_input *hi)
 	}
 
 	return 0;
+>>>>>>> android-3.18
 }
 
 static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
@@ -1034,6 +1125,15 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	td->mt_report_id = -1;
 	hid_set_drvdata(hdev, td);
 
+<<<<<<< HEAD
+	td->fields = kzalloc(sizeof(struct mt_fields), GFP_KERNEL);
+	if (!td->fields) {
+		dev_err(&hdev->dev, "cannot allocate multitouch fields data\n");
+		ret = -ENOMEM;
+		goto fail;
+	}
+
+=======
 	td->fields = devm_kzalloc(&hdev->dev, sizeof(struct mt_fields),
 				  GFP_KERNEL);
 	if (!td->fields) {
@@ -1044,24 +1144,55 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	if (id->vendor == HID_ANY_ID && id->product == HID_ANY_ID)
 		td->serial_maybe = true;
 
+>>>>>>> android-3.18
 	ret = hid_parse(hdev);
 	if (ret != 0)
 		return ret;
 
 	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
 	if (ret)
+<<<<<<< HEAD
+		goto fail;
+
+	mt_post_parse(td);
+
+	if (id->vendor == HID_ANY_ID && id->product == HID_ANY_ID)
+		mt_post_parse_default_settings(td);
+
+	td->slots = kzalloc(td->maxcontacts * sizeof(struct mt_slot),
+				GFP_KERNEL);
+	if (!td->slots) {
+		dev_err(&hdev->dev, "cannot allocate multitouch slots\n");
+		hid_hw_stop(hdev);
+		ret = -ENOMEM;
+		goto fail;
+	}
+=======
 		return ret;
+>>>>>>> android-3.18
 
 	ret = sysfs_create_group(&hdev->dev.kobj, &mt_attribute_group);
 
 	mt_set_maxcontacts(hdev);
 	mt_set_input_mode(hdev);
 
+<<<<<<< HEAD
+	kfree(td->fields);
+	td->fields = NULL;
+
+	return 0;
+
+fail:
+	kfree(td->fields);
+	kfree(td);
+	return ret;
+=======
 	/* release .fields memory as it is not used anymore */
 	devm_kfree(&hdev->dev, td->fields);
 	td->fields = NULL;
 
 	return 0;
+>>>>>>> android-3.18
 }
 
 #ifdef CONFIG_PM
@@ -1109,14 +1240,32 @@ static const struct hid_device_id mt_devices[] = {
 		MT_USB_DEVICE(USB_VENDOR_ID_3M,
 			USB_DEVICE_ID_3M3266) },
 
+<<<<<<< HEAD
+	/* ActionStar panels */
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_ACTIONSTAR,
+			USB_DEVICE_ID_ACTIONSTAR_1011) },
+=======
 	/* Anton devices */
 	{ .driver_data = MT_CLS_EXPORT_ALL_INPUTS,
 		MT_USB_DEVICE(USB_VENDOR_ID_ANTON,
 			USB_DEVICE_ID_ANTON_TOUCH_PAD) },
+>>>>>>> android-3.18
 
 	/* Atmel panels */
 	{ .driver_data = MT_CLS_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_ATMEL,
+<<<<<<< HEAD
+			USB_DEVICE_ID_ATMEL_MULTITOUCH) },
+	{ .driver_data = MT_CLS_SERIAL,
+		MT_USB_DEVICE(USB_VENDOR_ID_ATMEL,
+			USB_DEVICE_ID_ATMEL_MXT_DIGITIZER) },
+
+	/* Baanto multitouch devices */
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_BAANTO,
+			USB_DEVICE_ID_BAANTO_MT_190W2) },
+=======
 			USB_DEVICE_ID_ATMEL_MXT_DIGITIZER) },
 
 	/* Baanto multitouch devices */
@@ -1124,21 +1273,39 @@ static const struct hid_device_id mt_devices[] = {
 		MT_USB_DEVICE(USB_VENDOR_ID_BAANTO,
 			USB_DEVICE_ID_BAANTO_MT_190W2) },
 
+>>>>>>> android-3.18
 	/* Cando panels */
 	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTNUMBER,
 		MT_USB_DEVICE(USB_VENDOR_ID_CANDO,
 			USB_DEVICE_ID_CANDO_MULTI_TOUCH) },
 	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTNUMBER,
 		MT_USB_DEVICE(USB_VENDOR_ID_CANDO,
+<<<<<<< HEAD
+			USB_DEVICE_ID_CANDO_MULTI_TOUCH_10_1) },
+	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTNUMBER,
+		MT_USB_DEVICE(USB_VENDOR_ID_CANDO,
+			USB_DEVICE_ID_CANDO_MULTI_TOUCH_11_6) },
+	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTNUMBER,
+		MT_USB_DEVICE(USB_VENDOR_ID_CANDO,
+			USB_DEVICE_ID_CANDO_MULTI_TOUCH_15_6) },
+
+	/* Chunghwa Telecom touch panels */
+	{  .driver_data = MT_CLS_DEFAULT,
+=======
 			USB_DEVICE_ID_CANDO_MULTI_TOUCH_15_6) },
 
 	/* Chunghwa Telecom touch panels */
 	{  .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_CHUNGHWAT,
 			USB_DEVICE_ID_CHUNGHWAT_MULTITOUCH) },
 
 	/* CVTouch panels */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+=======
 	{ .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_CVTOUCH,
 			USB_DEVICE_ID_CVTOUCH_SCREEN) },
 
@@ -1151,6 +1318,12 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_480E) },
 
 	/* eGalax devices (capacitive) */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_EGALAX,
+		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_720C) },
+=======
+>>>>>>> android-3.18
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_7207) },
@@ -1159,10 +1332,26 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_720C) },
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+<<<<<<< HEAD
+			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_725E) },
+	{ .driver_data = MT_CLS_EGALAX_SERIAL,
+		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+=======
+>>>>>>> android-3.18
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_7224) },
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_722A) },
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_EGALAX,
+		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_726B) },
+	{ .driver_data = MT_CLS_EGALAX_SERIAL,
+		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_7262) },
+	{ .driver_data = MT_CLS_EGALAX,
+		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+=======
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_725E) },
@@ -1174,11 +1363,17 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_726B) },
 	{ .driver_data = MT_CLS_EGALAX,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+>>>>>>> android-3.18
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_72A1) },
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_72AA) },
 	{ .driver_data = MT_CLS_EGALAX,
+<<<<<<< HEAD
+		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_72FA) },
+	{ .driver_data = MT_CLS_EGALAX,
+=======
 		HID_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_72C4) },
 	{ .driver_data = MT_CLS_EGALAX,
@@ -1188,6 +1383,7 @@ static const struct hid_device_id mt_devices[] = {
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_72FA) },
 	{ .driver_data = MT_CLS_EGALAX,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_7302) },
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
@@ -1195,14 +1391,26 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_7349) },
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+<<<<<<< HEAD
+=======
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_73F7) },
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
+>>>>>>> android-3.18
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_A001) },
 	{ .driver_data = MT_CLS_EGALAX,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_C002) },
 
+<<<<<<< HEAD
+	/* Elo TouchSystems IntelliTouch Plus panel */
+	{ .driver_data = MT_CLS_DUAL_NSMU_CONTACTID,
+		MT_USB_DEVICE(USB_VENDOR_ID_ELO,
+			USB_DEVICE_ID_ELO_TS2515) },
+
+	/* GeneralTouch panel */
+	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTNUMBER,
+=======
 	/* Elitegroup panel */
 	{ .driver_data = MT_CLS_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_ELITEGROUP,
@@ -1220,6 +1428,7 @@ static const struct hid_device_id mt_devices[] = {
 
 	/* GeneralTouch panel */
 	{ .driver_data = MT_CLS_GENERALTOUCH_TWOFINGERS,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_GENERAL_TOUCH,
 			USB_DEVICE_ID_GENERAL_TOUCH_WIN7_TWOFINGERS) },
 	{ .driver_data = MT_CLS_GENERALTOUCH_PWT_TENFINGERS,
@@ -1242,12 +1451,20 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_GENERAL_TOUCH_WIN8_PIT_E100) },
 
 	/* Gametel game controller */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+=======
 	{ .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_BT_DEVICE(USB_VENDOR_ID_FRUCTEL,
 			USB_DEVICE_ID_GAMETEL_MT_MODE) },
 
 	/* GoodTouch panels */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+=======
 	{ .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_GOODTOUCH,
 			USB_DEVICE_ID_GOODTOUCH_000f) },
 
@@ -1256,11 +1473,45 @@ static const struct hid_device_id mt_devices[] = {
 		MT_USB_DEVICE(USB_VENDOR_ID_HANVON_ALT,
 			USB_DEVICE_ID_HANVON_ALT_MULTITOUCH) },
 
+<<<<<<< HEAD
+	/* Ideacom panel */
+	{ .driver_data = MT_CLS_SERIAL,
+		MT_USB_DEVICE(USB_VENDOR_ID_IDEACOM,
+			USB_DEVICE_ID_IDEACOM_IDC6650) },
+	{ .driver_data = MT_CLS_SERIAL,
+		MT_USB_DEVICE(USB_VENDOR_ID_IDEACOM,
+			USB_DEVICE_ID_IDEACOM_IDC6651) },
+
+	/* Ilitek dual touch panel */
+	{  .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_ILITEK,
+			USB_DEVICE_ID_ILITEK_MULTITOUCH) },
+
+	/* IRTOUCH panels */
+	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTID,
+		MT_USB_DEVICE(USB_VENDOR_ID_IRTOUCHSYSTEMS,
+			USB_DEVICE_ID_IRTOUCH_INFRARED_USB) },
+
+	/* LG Display panels */
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_LG,
+			USB_DEVICE_ID_LG_MULTITOUCH) },
+
+	/* Lumio panels */
+	{ .driver_data = MT_CLS_CONFIDENCE_MINUS_ONE,
+		MT_USB_DEVICE(USB_VENDOR_ID_LUMIO,
+			USB_DEVICE_ID_CRYSTALTOUCH) },
+	{ .driver_data = MT_CLS_CONFIDENCE_MINUS_ONE,
+		MT_USB_DEVICE(USB_VENDOR_ID_LUMIO,
+			USB_DEVICE_ID_CRYSTALTOUCH_DUAL) },
+
+=======
 	/* Ilitek dual touch panel */
 	{  .driver_data = MT_CLS_NSMU,
 		MT_USB_DEVICE(USB_VENDOR_ID_ILITEK,
 			USB_DEVICE_ID_ILITEK_MULTITOUCH) },
 
+>>>>>>> android-3.18
 	/* MosArt panels */
 	{ .driver_data = MT_CLS_CONFIDENCE_MINUS_ONE,
 		MT_USB_DEVICE(USB_VENDOR_ID_ASUS,
@@ -1281,9 +1532,20 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_PANABOARD_UBT880) },
 
 	/* Novatek Panel */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+		HID_USB_DEVICE(USB_VENDOR_ID_NOVATEK,
+			USB_DEVICE_ID_NOVATEK_PCT) },
+
+	/* PenMount panels */
+	{ .driver_data = MT_CLS_CONFIDENCE,
+		MT_USB_DEVICE(USB_VENDOR_ID_PENMOUNT,
+			USB_DEVICE_ID_PENMOUNT_PCI) },
+=======
 	{ .driver_data = MT_CLS_NSMU,
 		MT_USB_DEVICE(USB_VENDOR_ID_NOVATEK,
 			USB_DEVICE_ID_NOVATEK_PCT) },
+>>>>>>> android-3.18
 
 	/* PixArt optical touch screen */
 	{ .driver_data = MT_CLS_INRANGE_CONTACTNUMBER,
@@ -1298,18 +1560,45 @@ static const struct hid_device_id mt_devices[] = {
 
 	/* PixCir-based panels */
 	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTID,
+<<<<<<< HEAD
+		MT_USB_DEVICE(USB_VENDOR_ID_HANVON,
+			USB_DEVICE_ID_HANVON_MULTITOUCH) },
+	{ .driver_data = MT_CLS_DUAL_INRANGE_CONTACTID,
+=======
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_CANDO,
 			USB_DEVICE_ID_CANDO_PIXCIR_MULTI_TOUCH) },
 
 	/* Quanta-based panels */
 	{ .driver_data = MT_CLS_CONFIDENCE_CONTACT_ID,
 		MT_USB_DEVICE(USB_VENDOR_ID_QUANTA,
+<<<<<<< HEAD
+			USB_DEVICE_ID_QUANTA_OPTICAL_TOUCH) },
+	{ .driver_data = MT_CLS_CONFIDENCE_CONTACT_ID,
+		MT_USB_DEVICE(USB_VENDOR_ID_QUANTA,
+			USB_DEVICE_ID_QUANTA_OPTICAL_TOUCH_3001) },
+	{ .driver_data = MT_CLS_CONFIDENCE_CONTACT_ID,
+		MT_USB_DEVICE(USB_VENDOR_ID_QUANTA,
+			USB_DEVICE_ID_QUANTA_OPTICAL_TOUCH_3008) },
+
+	/* Stantum panels */
+	{ .driver_data = MT_CLS_CONFIDENCE,
+		MT_USB_DEVICE(USB_VENDOR_ID_STANTUM,
+			USB_DEVICE_ID_MTP)},
+	{ .driver_data = MT_CLS_CONFIDENCE,
+		MT_USB_DEVICE(USB_VENDOR_ID_STANTUM_STM,
+			USB_DEVICE_ID_MTP_STM)},
+	{ .driver_data = MT_CLS_CONFIDENCE,
+		MT_USB_DEVICE(USB_VENDOR_ID_STANTUM_SITRONIX,
+			USB_DEVICE_ID_MTP_SITRONIX)},
+=======
 			USB_DEVICE_ID_QUANTA_OPTICAL_TOUCH_3001) },
 
 	/* Stantum panels */
 	{ .driver_data = MT_CLS_CONFIDENCE,
 		MT_USB_DEVICE(USB_VENDOR_ID_STANTUM_STM,
 			USB_DEVICE_ID_MTP_STM)},
+>>>>>>> android-3.18
 
 	/* TopSeed panels */
 	{ .driver_data = MT_CLS_TOPSEED,
@@ -1317,15 +1606,26 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_TOPSEED2_PERIPAD_701) },
 
 	/* Touch International panels */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+=======
 	{ .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_TOUCH_INTL,
 			USB_DEVICE_ID_TOUCH_INTL_MULTI_TOUCH) },
 
 	/* Unitec panels */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_UNITEC,
+			USB_DEVICE_ID_UNITEC_USB_TOUCH_0709) },
+	{ .driver_data = MT_CLS_DEFAULT,
+=======
 	{ .driver_data = MT_CLS_NSMU,
 		MT_USB_DEVICE(USB_VENDOR_ID_UNITEC,
 			USB_DEVICE_ID_UNITEC_USB_TOUCH_0709) },
 	{ .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_UNITEC,
 			USB_DEVICE_ID_UNITEC_USB_TOUCH_0A19) },
 
@@ -1335,11 +1635,42 @@ static const struct hid_device_id mt_devices[] = {
 			USB_DEVICE_ID_WISTRON_OPTICAL_TOUCH) },
 
 	/* XAT */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+=======
 	{ .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_XAT,
 			USB_DEVICE_ID_XAT_CSR) },
 
 	/* Xiroku */
+<<<<<<< HEAD
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_SPX) },
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_MPX) },
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_CSR) },
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_SPX1) },
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_MPX1) },
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_CSR1) },
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_SPX2) },
+	{ .driver_data = MT_CLS_DEFAULT,
+		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
+			USB_DEVICE_ID_XIROKU_MPX2) },
+	{ .driver_data = MT_CLS_DEFAULT,
+=======
 	{ .driver_data = MT_CLS_NSMU,
 		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
 			USB_DEVICE_ID_XIROKU_SPX) },
@@ -1365,16 +1696,20 @@ static const struct hid_device_id mt_devices[] = {
 		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
 			USB_DEVICE_ID_XIROKU_MPX2) },
 	{ .driver_data = MT_CLS_NSMU,
+>>>>>>> android-3.18
 		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
 			USB_DEVICE_ID_XIROKU_CSR2) },
 
 	/* Generic MT device */
 	{ HID_DEVICE(HID_BUS_ANY, HID_GROUP_MULTITOUCH, HID_ANY_ID, HID_ANY_ID) },
+<<<<<<< HEAD
+=======
 
 	/* Generic Win 8 certified MT device */
 	{  .driver_data = MT_CLS_WIN_8,
 		HID_DEVICE(HID_BUS_ANY, HID_GROUP_MULTITOUCH_WIN_8,
 			HID_ANY_ID, HID_ANY_ID) },
+>>>>>>> android-3.18
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, mt_devices);

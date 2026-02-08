@@ -345,7 +345,11 @@ static __u8 *lg_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 	struct usb_device_descriptor *udesc;
 	__u16 bcdDevice, rev_maj, rev_min;
 
+<<<<<<< HEAD
+	if ((quirks & LG_RDESC) && *rsize >= 91 && rdesc[83] == 0x26 &&
+=======
 	if ((drv_data->quirks & LG_RDESC) && *rsize >= 91 && rdesc[83] == 0x26 &&
+>>>>>>> android-3.18
 			rdesc[84] == 0x8c && rdesc[85] == 0x02) {
 		hid_info(hdev,
 			 "fixing up Logitech keyboard report descriptor\n");
@@ -354,7 +358,7 @@ static __u8 *lg_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 	}
 	if ((drv_data->quirks & LG_RDESC_REL_ABS) && *rsize >= 51 &&
 			rdesc[32] == 0x81 && rdesc[33] == 0x06 &&
-			rdesc[49] == 0x81 && rdesc[50] == 0x06) {
+			rdesc[49] == 0x81 && rdesc[51] == 0x06) {
 		hid_info(hdev,
 			 "fixing up rel/abs in Logitech report descriptor\n");
 		rdesc[33] = rdesc[50] = 0x02;
