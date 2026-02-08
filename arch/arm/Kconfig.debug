@@ -75,6 +75,29 @@ config DEBUG_USER
 	      8 - SIGSEGV faults
 	     16 - SIGBUS faults
 
+config FORCE_PAGES
+	bool "Force lowmem to be mapped with 4K pages"
+        help
+          There are some advanced debug features that can only be done when
+          memory is mapped with pages instead of sections. Enable this option
+          to always map lowmem pages with pages. This may have a performance
+          cost due to increased TLB pressure.
+
+          If unsure say N.
+
+config FREE_PAGES_RDONLY
+	bool "Set pages as read only while on the buddy list"
+	select FORCE_PAGES
+	select PAGE_POISONING
+	help
+          Pages are always mapped in the kernel. This means that anyone
+          can write to the page if they have the address. Enable this option
+          to mark pages as read only to trigger a fault if any code attempts
+          to write to a page on the buddy list. This may have a performance
+          impact.
+
+          If unsure, say N.
+
 # These options are only for real kernel hackers who want to get their hands dirty.
 config DEBUG_LL
 	bool "Kernel low-level debugging functions (read help!)"
@@ -569,7 +592,6 @@ choice
 		help
 		  Say Y here if you want kernel low-level debugging support
 		  on PXA UART1.
-
 	config DEBUG_REALVIEW_STD_PORT
 		bool "RealView Default UART"
 		depends on ARCH_REALVIEW
@@ -1058,7 +1080,7 @@ config DEBUG_LL_INCLUDE
 				 DEBUG_IMX6Q_UART || \
 				 DEBUG_IMX6SL_UART || \
 				 DEBUG_IMX6SX_UART
-	default "debug/msm.S" if DEBUG_MSM_UART || DEBUG_QCOM_UARTDM
+	default "debug/msm.S" if DEBUG_QCOM_UARTDM
 	default "debug/omap2plus.S" if DEBUG_OMAP2PLUS_UART
 	default "debug/s3c24xx.S" if DEBUG_S3C24XX_UART
 	default "debug/s5pv210.S" if DEBUG_S5PV210_UART
