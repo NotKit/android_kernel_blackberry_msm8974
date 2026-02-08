@@ -11,9 +11,15 @@
  */
 
 #include <linux/errno.h>
+<<<<<<< HEAD
+#include <asm/cacheflush.h>
+#include <asm/cp15.h>
+#include <mach/common.h>
+=======
 #include <linux/jiffies.h>
 #include <asm/cp15.h>
 #include <asm/proc-fns.h>
+>>>>>>> android-3.18
 
 #include "common.h"
 
@@ -38,6 +44,28 @@ static inline void cpu_enter_lowpower(void)
 	  : "cc");
 }
 
+static inline void cpu_enter_lowpower(void)
+{
+	unsigned int v;
+
+	flush_cache_all();
+	asm volatile(
+		"mcr	p15, 0, %1, c7, c5, 0\n"
+	"	mcr	p15, 0, %1, c7, c10, 4\n"
+	/*
+	 * Turn off coherency
+	 */
+	"	mrc	p15, 0, %0, c1, c0, 1\n"
+	"	bic	%0, %0, %3\n"
+	"	mcr	p15, 0, %0, c1, c0, 1\n"
+	"	mrc	p15, 0, %0, c1, c0, 0\n"
+	"	bic	%0, %0, %2\n"
+	"	mcr	p15, 0, %0, c1, c0, 0\n"
+	  : "=&r" (v)
+	  : "r" (0), "Ir" (CR_C), "Ir" (0x40)
+	  : "cc");
+}
+
 /*
  * platform-specific code to shutdown a CPU
  *
@@ -45,6 +73,13 @@ static inline void cpu_enter_lowpower(void)
  */
 void imx_cpu_die(unsigned int cpu)
 {
+<<<<<<< HEAD
+	imx_enable_cpu(cpu, false);
+
+	/* spin here until hardware takes it down */
+	while (1)
+		;
+=======
 	cpu_enter_lowpower();
 	/*
 	 * We use the cpu jumping argument register to sync with
@@ -55,6 +90,7 @@ void imx_cpu_die(unsigned int cpu)
 
 	while (1)
 		cpu_do_idle();
+>>>>>>> android-3.18
 }
 
 int imx_cpu_kill(unsigned int cpu)
