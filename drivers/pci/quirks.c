@@ -415,15 +415,8 @@ static void quirk_io_region(struct pci_dev *dev, int port,
 	pci_read_config_word(dev, port, &region);
 	region &= ~(size - 1);
 
-<<<<<<< HEAD
-		/* Convert from PCI bus to resource space.  */
-		bus_region.start = res->start;
-		bus_region.end = res->end;
-		pcibios_bus_to_resource(dev->bus, res, &bus_region);
-=======
 	if (!region)
 		return;
->>>>>>> android-3.18
 
 	res->name = pci_name(dev);
 	res->flags = IORESOURCE_IO;
@@ -1924,16 +1917,6 @@ DECLARE_PCI_FIXUP_CLASS_HEADER(PCI_VENDOR_ID_NETMOS, PCI_ANY_ID,
 
 static void quirk_f0_vpd_link(struct pci_dev *dev)
 {
-<<<<<<< HEAD
-	if ((dev->class >> 8) != PCI_CLASS_NETWORK_ETHERNET ||
-	    !dev->multifunction || !PCI_FUNC(dev->devfn))
-		return;
-	dev->dev_flags |= PCI_DEV_FLAGS_VPD_REF_F0;
-}
-DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_ANY_ID, quirk_f0_vpd_link);
-
-static void __devinit quirk_e100_interrupt(struct pci_dev *dev)
-=======
 	if (!dev->multifunction || !PCI_FUNC(dev->devfn))
 		return;
 	dev->dev_flags |= PCI_DEV_FLAGS_VPD_REF_F0;
@@ -1942,7 +1925,6 @@ DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_INTEL, PCI_ANY_ID,
 			      PCI_CLASS_NETWORK_ETHERNET, 8, quirk_f0_vpd_link);
 
 static void quirk_e100_interrupt(struct pci_dev *dev)
->>>>>>> android-3.18
 {
 	u16 command, pmcsr;
 	u8 __iomem *csr;
@@ -3073,8 +3055,6 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0102, disable_igfx_irq);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0106, disable_igfx_irq);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x010a, disable_igfx_irq);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0152, disable_igfx_irq);
-<<<<<<< HEAD
-=======
 
 /*
  * PCI devices which are on Intel chips can skip the 10ms delay
@@ -3259,7 +3239,6 @@ DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_INTEL, 0x1547,
 DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_INTEL, 0x156d,
 			       quirk_apple_wait_for_thunderbolt);
 #endif
->>>>>>> android-3.18
 
 static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
 			  struct pci_fixup *end)

@@ -3,10 +3,7 @@
  *
  * This code is based on drivers/scsi/ufs/ufshcd.c
  * Copyright (C) 2011-2013 Samsung India Software Operations
-<<<<<<< HEAD
-=======
  * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
->>>>>>> android-3.18
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -35,13 +32,6 @@
  * circumstances will the contributor of this Program be liable for
  * any damages of any kind arising from your use or distribution of
  * this program.
-<<<<<<< HEAD
- */
-
-#include <linux/async.h>
-
-#include "ufshcd.h"
-=======
  *
  * The Linux Foundation chooses to take subject only to the GPLv2
  * license terms, and distributes only under these terms.
@@ -53,15 +43,12 @@
 
 #include "ufshcd.h"
 #include "unipro.h"
->>>>>>> android-3.18
 
 #define UFSHCD_ENABLE_INTRS	(UTP_TRANSFER_REQ_COMPL |\
 				 UTP_TASK_REQ_COMPL |\
 				 UFSHCD_ERROR_MASK)
 /* UIC command timeout, unit: ms */
 #define UIC_CMD_TIMEOUT	500
-<<<<<<< HEAD
-=======
 
 /* NOP OUT retries waiting for NOP IN response */
 #define NOP_OUT_RETRIES    10
@@ -110,7 +97,6 @@ static u32 ufs_query_desc_max_size[] = {
 	QUERY_DESC_POWER_MAX_SIZE,
 	QUERY_DESC_RFU_MAX_SIZE,
 };
->>>>>>> android-3.18
 
 enum {
 	UFSHCD_MAX_CHANNEL	= 0,
@@ -175,8 +161,6 @@ static struct ufs_pm_lvl_states ufs_pm_lvl_states[] = {
 	{UFS_POWERDOWN_PWR_MODE, UIC_LINK_OFF_STATE},
 };
 
-<<<<<<< HEAD
-=======
 static inline enum ufs_dev_pwr_mode
 ufs_get_pm_lvl_to_dev_pwr_mode(enum ufs_pm_level lvl)
 {
@@ -263,7 +247,6 @@ static int ufshcd_wait_for_register(struct ufs_hba *hba, u32 reg, u32 mask,
 	return err;
 }
 
->>>>>>> android-3.18
 /**
  * ufshcd_get_intr_mask - Get the interrupt bit mask
  * @hba - Pointer to adapter instance
@@ -298,12 +281,8 @@ static inline u32 ufshcd_get_ufs_version(struct ufs_hba *hba)
  */
 static inline int ufshcd_is_device_present(struct ufs_hba *hba)
 {
-<<<<<<< HEAD
-	return (DEVICE_PRESENT & reg_hcs) ? 1 : 0;
-=======
 	return (ufshcd_readl(hba, REG_CONTROLLER_STATUS) &
 						DEVICE_PRESENT) ? 1 : 0;
->>>>>>> android-3.18
 }
 
 /**
@@ -411,9 +390,6 @@ static inline int ufshcd_get_uic_cmd_result(struct ufs_hba *hba)
 }
 
 /**
-<<<<<<< HEAD
- * ufshcd_is_valid_req_rsp - checks if controller TR response is valid
-=======
  * ufshcd_get_dme_attr_val - Get the value of attribute returned by UIC command
  * @hba: Pointer to adapter instance
  *
@@ -427,7 +403,6 @@ static inline u32 ufshcd_get_dme_attr_val(struct ufs_hba *hba)
 
 /**
  * ufshcd_get_req_rsp - returns the TR response transaction type
->>>>>>> android-3.18
  * @ucd_rsp_ptr: pointer to response UPIU
  */
 static inline int
@@ -483,29 +458,11 @@ static inline bool ufshcd_is_exception_event(struct utp_upiu_rsp *ucd_rsp_ptr)
  * @hba: per adapter instance
  */
 static inline void
-<<<<<<< HEAD
-ufshcd_config_int_aggr(struct ufs_hba *hba, int option)
-{
-	switch (option) {
-	case INT_AGGR_RESET:
-		ufshcd_writel(hba, INT_AGGR_ENABLE |
-			      INT_AGGR_COUNTER_AND_TIMER_RESET,
-			      REG_UTP_TRANSFER_REQ_INT_AGG_CONTROL);
-		break;
-	case INT_AGGR_CONFIG:
-		ufshcd_writel(hba, INT_AGGR_ENABLE | INT_AGGR_PARAM_WRITE |
-			      INT_AGGR_COUNTER_THRESHOLD_VALUE |
-			      INT_AGGR_TIMEOUT_VALUE,
-			      REG_UTP_TRANSFER_REQ_INT_AGG_CONTROL);
-		break;
-	}
-=======
 ufshcd_reset_intr_aggr(struct ufs_hba *hba)
 {
 	ufshcd_writel(hba, INT_AGGR_ENABLE |
 		      INT_AGGR_COUNTER_AND_TIMER_RESET,
 		      REG_UTP_TRANSFER_REQ_INT_AGG_CONTROL);
->>>>>>> android-3.18
 }
 
 /**
@@ -517,8 +474,6 @@ ufshcd_reset_intr_aggr(struct ufs_hba *hba)
 static inline void
 ufshcd_config_intr_aggr(struct ufs_hba *hba, u8 cnt, u8 tmout)
 {
-<<<<<<< HEAD
-=======
 	ufshcd_writel(hba, INT_AGGR_ENABLE | INT_AGGR_PARAM_WRITE |
 		      INT_AGGR_COUNTER_THLD_VAL(cnt) |
 		      INT_AGGR_TIMEOUT_VAL(tmout),
@@ -533,7 +488,6 @@ ufshcd_config_intr_aggr(struct ufs_hba *hba, u8 cnt, u8 tmout)
  */
 static void ufshcd_enable_run_stop_reg(struct ufs_hba *hba)
 {
->>>>>>> android-3.18
 	ufshcd_writel(hba, UTP_TASK_REQ_LIST_RUN_STOP_BIT,
 		      REG_UTP_TASK_REQ_LIST_RUN_STOP);
 	ufshcd_writel(hba, UTP_TRANSFER_REQ_LIST_RUN_STOP_BIT,
@@ -558,8 +512,6 @@ static inline void ufshcd_hba_start(struct ufs_hba *hba)
 static inline int ufshcd_is_hba_active(struct ufs_hba *hba)
 {
 	return (ufshcd_readl(hba, REG_CONTROLLER_ENABLE) & 0x1) ? 0 : 1;
-<<<<<<< HEAD
-=======
 }
 
 static void ufshcd_ungate_work(struct work_struct *work)
@@ -830,7 +782,6 @@ static void ufshcd_clk_scaling_start_busy(struct ufs_hba *hba)
 		hba->clk_scaling.busy_start_t = ktime_get();
 		hba->clk_scaling.is_busy_started = true;
 	}
->>>>>>> android-3.18
 }
 
 static void ufshcd_clk_scaling_update_busy(struct ufs_hba *hba)
@@ -948,8 +899,6 @@ static inline bool ufshcd_ready_for_uic_cmd(struct ufs_hba *hba)
 }
 
 /**
-<<<<<<< HEAD
-=======
  * ufshcd_get_upmcrs - Get the power mode change request status
  * @hba: Pointer to adapter instance
  *
@@ -962,7 +911,6 @@ static inline u8 ufshcd_get_upmcrs(struct ufs_hba *hba)
 }
 
 /**
->>>>>>> android-3.18
  * ufshcd_dispatch_uic_cmd - Dispatch UIC commands to unipro layers
  * @hba: per adapter instance
  * @uic_cmd: UIC command
@@ -984,87 +932,6 @@ ufshcd_dispatch_uic_cmd(struct ufs_hba *hba, struct uic_command *uic_cmd)
 	/* Write UIC Cmd */
 	ufshcd_writel(hba, uic_cmd->command & COMMAND_OPCODE_MASK,
 		      REG_UIC_COMMAND);
-<<<<<<< HEAD
-}
-
-/**
- * ufshcd_wait_for_uic_cmd - Wait complectioin of UIC command
- * @hba: per adapter instance
- * @uic_command: UIC command
- *
- * Must be called with mutex held.
- * Returns 0 only if success.
- */
-static int
-ufshcd_wait_for_uic_cmd(struct ufs_hba *hba, struct uic_command *uic_cmd)
-{
-	int ret;
-	unsigned long flags;
-
-	if (wait_for_completion_timeout(&uic_cmd->done,
-					msecs_to_jiffies(UIC_CMD_TIMEOUT)))
-		ret = uic_cmd->argument2 & MASK_UIC_COMMAND_RESULT;
-	else
-		ret = -ETIMEDOUT;
-
-	spin_lock_irqsave(hba->host->host_lock, flags);
-	hba->active_uic_cmd = NULL;
-	spin_unlock_irqrestore(hba->host->host_lock, flags);
-
-	return ret;
-}
-
-/**
- * __ufshcd_send_uic_cmd - Send UIC commands and retrieve the result
- * @hba: per adapter instance
- * @uic_cmd: UIC command
- *
- * Identical to ufshcd_send_uic_cmd() expect mutex. Must be called
- * with mutex held.
- * Returns 0 only if success.
- */
-static int
-__ufshcd_send_uic_cmd(struct ufs_hba *hba, struct uic_command *uic_cmd)
-{
-	int ret;
-	unsigned long flags;
-
-	if (!ufshcd_ready_for_uic_cmd(hba)) {
-		dev_err(hba->dev,
-			"Controller not ready to accept UIC commands\n");
-		return -EIO;
-	}
-
-	init_completion(&uic_cmd->done);
-
-	spin_lock_irqsave(hba->host->host_lock, flags);
-	ufshcd_dispatch_uic_cmd(hba, uic_cmd);
-	spin_unlock_irqrestore(hba->host->host_lock, flags);
-
-	ret = ufshcd_wait_for_uic_cmd(hba, uic_cmd);
-
-	return ret;
-}
-
-/**
- * ufshcd_send_uic_cmd - Send UIC commands and retrieve the result
- * @hba: per adapter instance
- * @uic_cmd: UIC command
- *
- * Returns 0 only if success.
- */
-static int
-ufshcd_send_uic_cmd(struct ufs_hba *hba, struct uic_command *uic_cmd)
-{
-	int ret;
-
-	mutex_lock(&hba->uic_cmd_mutex);
-	ret = __ufshcd_send_uic_cmd(hba, uic_cmd);
-	mutex_unlock(&hba->uic_cmd_mutex);
-
-	return ret;
-=======
->>>>>>> android-3.18
 }
 
 /**
@@ -1223,11 +1090,6 @@ static void ufshcd_disable_intr(struct ufs_hba *hba, u32 intrs)
 
 	} else {
 		set &= ~intrs;
-<<<<<<< HEAD
-	}
-
-	ufshcd_writel(hba, set, REG_INTERRUPT_ENABLE);
-=======
 	}
 
 	ufshcd_writel(hba, set, REG_INTERRUPT_ENABLE);
@@ -1349,7 +1211,6 @@ static inline void ufshcd_prepare_utp_nop_upiu(struct ufshcd_lrb *lrbp)
 	ucd_req_ptr->header.dword_0 =
 		UPIU_HEADER_DWORD(
 			UPIU_TRANSACTION_NOP_OUT, 0, 0, lrbp->task_tag);
->>>>>>> android-3.18
 }
 
 /**
@@ -1371,46 +1232,6 @@ static int ufshcd_compose_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 		} else {
 			ret = -EINVAL;
 		}
-<<<<<<< HEAD
-
-		/* Transfer request descriptor header fields */
-		req_desc->header.dword_0 =
-			cpu_to_le32(data_direction | UTP_SCSI_COMMAND);
-
-		/*
-		 * assigning invalid value for command status. Controller
-		 * updates OCS on command completion, with the command
-		 * status
-		 */
-		req_desc->header.dword_2 =
-			cpu_to_le32(OCS_INVALID_COMMAND_STATUS);
-
-		/* command descriptor fields */
-		ucd_cmd_ptr->header.dword_0 =
-			cpu_to_be32(UPIU_HEADER_DWORD(UPIU_TRANSACTION_COMMAND,
-						      upiu_flags,
-						      lrbp->lun,
-						      lrbp->task_tag));
-		ucd_cmd_ptr->header.dword_1 =
-			cpu_to_be32(
-				UPIU_HEADER_DWORD(UPIU_COMMAND_SET_TYPE_SCSI,
-						  0,
-						  0,
-						  0));
-
-		/* Total EHS length and Data segment length will be zero */
-		ucd_cmd_ptr->header.dword_2 = 0;
-
-		ucd_cmd_ptr->exp_data_transfer_len =
-			cpu_to_be32(lrbp->cmd->sdb.length);
-
-		memcpy(ucd_cmd_ptr->cdb,
-		       lrbp->cmd->cmnd,
-		       (min_t(unsigned short,
-			      lrbp->cmd->cmd_len,
-			      MAX_CDB_SIZE)));
-=======
->>>>>>> android-3.18
 		break;
 	case UTP_CMD_TYPE_DEV_MANAGE:
 		ufshcd_prepare_req_desc_hdr(lrbp, &upiu_flags, DMA_NONE);
@@ -1575,43 +1396,6 @@ static int ufshcd_compose_dev_cmd(struct ufs_hba *hba,
 	lrbp->intr_cmd = true; /* No interrupt aggregation */
 	hba->dev_cmd.type = cmd_type;
 
-<<<<<<< HEAD
-	/* Allocate memory for UTP command descriptors */
-	ucdl_size = (sizeof(struct utp_transfer_cmd_desc) * hba->nutrs);
-	hba->ucdl_base_addr = dmam_alloc_coherent(hba->dev,
-						  ucdl_size,
-						  &hba->ucdl_dma_addr,
-						  GFP_KERNEL);
-
-	/*
-	 * UFSHCI requires UTP command descriptor to be 128 byte aligned.
-	 * make sure hba->ucdl_dma_addr is aligned to PAGE_SIZE
-	 * if hba->ucdl_dma_addr is aligned to PAGE_SIZE, then it will
-	 * be aligned to 128 bytes as well
-	 */
-	if (!hba->ucdl_base_addr ||
-	    WARN_ON(hba->ucdl_dma_addr & (PAGE_SIZE - 1))) {
-		dev_err(hba->dev,
-			"Command Descriptor Memory allocation failed\n");
-		goto out;
-	}
-
-	/*
-	 * Allocate memory for UTP Transfer descriptors
-	 * UFSHCI requires 1024 byte alignment of UTRD
-	 */
-	utrdl_size = (sizeof(struct utp_transfer_req_desc) * hba->nutrs);
-	hba->utrdl_base_addr = dmam_alloc_coherent(hba->dev,
-						   utrdl_size,
-						   &hba->utrdl_dma_addr,
-						   GFP_KERNEL);
-	if (!hba->utrdl_base_addr ||
-	    WARN_ON(hba->utrdl_dma_addr & (PAGE_SIZE - 1))) {
-		dev_err(hba->dev,
-			"Transfer Descriptor Memory allocation failed\n");
-		goto out;
-	}
-=======
 	return ufshcd_compose_upiu(hba, lrbp);
 }
 
@@ -1626,37 +1410,11 @@ ufshcd_clear_cmd(struct ufs_hba *hba, int tag)
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	ufshcd_utrl_clear(hba, tag);
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
->>>>>>> android-3.18
 
 	/*
 	 * wait for for h/w to clear corresponding bit in door-bell.
 	 * max. wait is 1 sec.
 	 */
-<<<<<<< HEAD
-	utmrdl_size = sizeof(struct utp_task_req_desc) * hba->nutmrs;
-	hba->utmrdl_base_addr = dmam_alloc_coherent(hba->dev,
-						    utmrdl_size,
-						    &hba->utmrdl_dma_addr,
-						    GFP_KERNEL);
-	if (!hba->utmrdl_base_addr ||
-	    WARN_ON(hba->utmrdl_dma_addr & (PAGE_SIZE - 1))) {
-		dev_err(hba->dev,
-		"Task Management Descriptor Memory allocation failed\n");
-		goto out;
-	}
-
-	/* Allocate memory for local reference block */
-	hba->lrb = devm_kzalloc(hba->dev,
-				hba->nutrs * sizeof(struct ufshcd_lrb),
-				GFP_KERNEL);
-	if (!hba->lrb) {
-		dev_err(hba->dev, "LRB Memory allocation failed\n");
-		goto out;
-	}
-	return 0;
-out:
-	return -ENOMEM;
-=======
 	err = ufshcd_wait_for_register(hba,
 			REG_UTP_TRANSFER_REQ_DOOR_BELL,
 			mask, ~mask, 1000, 1000);
@@ -1673,7 +1431,6 @@ ufshcd_check_query_response(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	query_res->response = ufshcd_get_rsp_upiu_result(lrbp->ucd_rsp_ptr) >>
 				UPIU_RSP_CODE_OFFSET;
 	return query_res->response;
->>>>>>> android-3.18
 }
 
 /**
@@ -1725,18 +1482,8 @@ static int ufshcd_wait_for_dev_cmd(struct ufs_hba *hba,
 	unsigned long time_left;
 	unsigned long flags;
 
-<<<<<<< HEAD
-		/* Response upiu and prdt offset should be in double words */
-		utrdlp[i].response_upiu_offset =
-				cpu_to_le16((response_offset >> 2));
-		utrdlp[i].prd_table_offset =
-				cpu_to_le16((prdt_offset >> 2));
-		utrdlp[i].response_upiu_length =
-				cpu_to_le16(ALIGNED_UPIU_SIZE >> 2);
-=======
 	time_left = wait_for_completion_timeout(hba->dev_cmd.complete,
 			msecs_to_jiffies(max_timeout));
->>>>>>> android-3.18
 
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	hba->dev_cmd.complete = NULL;
@@ -1770,30 +1517,6 @@ static int ufshcd_wait_for_dev_cmd(struct ufs_hba *hba,
  */
 static bool ufshcd_get_dev_cmd_tag(struct ufs_hba *hba, int *tag_out)
 {
-<<<<<<< HEAD
-	struct uic_command uic_cmd = {0};
-	int ret;
-
-	uic_cmd.command = UIC_CMD_DME_LINK_STARTUP;
-
-	ret = ufshcd_send_uic_cmd(hba, &uic_cmd);
-	if (ret)
-		dev_err(hba->dev,
-			"dme-link-startup: error code %d\n", ret);
-	return ret;
-}
-
-/**
- * ufshcd_make_hba_operational - Make UFS controller operational
- * @hba: per adapter instance
- *
- * To bring UFS host controller to operational state,
- * 1. Check if device is present
- * 2. Enable required interrupts
- * 3. Configure interrupt aggregation
- * 4. Program UTRL and UTMRL base addres
- * 5. Configure run-stop-registers
-=======
 	int tag;
 	bool ret = false;
 	unsigned long tmp;
@@ -1824,7 +1547,6 @@ static inline void ufshcd_put_dev_cmd_tag(struct ufs_hba *hba, int tag)
  * @hba - UFS hba
  * @cmd_type - specifies the type (NOP, Query...)
  * @timeout - time in seconds
->>>>>>> android-3.18
  *
  * NOTE: Since there is only one available tag for device management commands,
  * it is expected you hold the hba->dev_cmd.lock mutex.
@@ -1832,24 +1554,11 @@ static inline void ufshcd_put_dev_cmd_tag(struct ufs_hba *hba, int tag)
 static int ufshcd_exec_dev_cmd(struct ufs_hba *hba,
 		enum dev_cmd_type cmd_type, int timeout)
 {
-<<<<<<< HEAD
-	int err = 0;
-	u32 reg;
-
-	/* check if device present */
-	reg = ufshcd_readl(hba, REG_CONTROLLER_STATUS);
-	if (!ufshcd_is_device_present(reg)) {
-		dev_err(hba->dev, "cc: Device not present\n");
-		err = -ENXIO;
-		goto out;
-	}
-=======
 	struct ufshcd_lrb *lrbp;
 	int err;
 	int tag;
 	struct completion wait;
 	unsigned long flags;
->>>>>>> android-3.18
 
 	/* Enable required interrupts */
 	ufshcd_enable_intr(hba, UFSHCD_ENABLE_INTRS);
@@ -1872,23 +1581,6 @@ static int ufshcd_exec_dev_cmd(struct ufs_hba *hba,
 	 * Even though we use wait_event() which sleeps indefinitely,
 	 * the maximum wait time is bounded by SCSI request timeout.
 	 */
-<<<<<<< HEAD
-	if (!(ufshcd_get_lists_status(reg))) {
-		ufshcd_enable_run_stop_reg(hba);
-	} else {
-		dev_err(hba->dev,
-			"Host controller not ready to process requests");
-		err = -EIO;
-		goto out;
-	}
-
-	if (hba->ufshcd_state == UFSHCD_STATE_RESET)
-		scsi_unblock_requests(hba->host);
-
-	hba->ufshcd_state = UFSHCD_STATE_OPERATIONAL;
-
-out:
-=======
 	wait_event(hba->dev_cmd.tag_wq, ufshcd_get_dev_cmd_tag(hba, &tag));
 
 	init_completion(&wait);
@@ -1909,7 +1601,6 @@ out:
 out_put_tag:
 	ufshcd_put_dev_cmd_tag(hba, tag);
 	wake_up(&hba->dev_cmd.tag_wq);
->>>>>>> android-3.18
 	return err;
 }
 
@@ -1997,46 +1688,6 @@ static int ufshcd_query_flag(struct ufs_hba *hba, enum query_opcode opcode,
 		*flag_res = (be32_to_cpu(response->upiu_res.value) &
 				MASK_QUERY_UPIU_FLAG_LOC) & 0x1;
 
-<<<<<<< HEAD
-	/* wait for the host controller to complete initialization */
-	retry = 10;
-	while (ufshcd_is_hba_active(hba)) {
-		if (retry) {
-			retry--;
-		} else {
-			dev_err(hba->dev,
-				"Controller enable failed\n");
-			return -EIO;
-		}
-		msleep(5);
-	}
-	return 0;
-}
-
-/**
- * ufshcd_link_startup - Initialize unipro link startup
- * @hba: per adapter instance
- *
- * Returns 0 for success, non-zero in case of failure
- */
-static int ufshcd_link_startup(struct ufs_hba *hba)
-{
-	int ret;
-
-	/* enable UIC related interrupts */
-	ufshcd_enable_intr(hba, UIC_COMMAND_COMPL);
-
-	ret = ufshcd_dme_link_startup(hba);
-	if (ret)
-		goto out;
-
-	ret = ufshcd_make_hba_operational(hba);
-
-out:
-	if (ret)
-		dev_err(hba->dev, "link startup failed %d\n", ret);
-	return ret;
-=======
 out_unlock:
 	mutex_unlock(&hba->dev_cmd.lock);
 	ufshcd_release(hba);
@@ -2105,7 +1756,6 @@ out_unlock:
 out:
 	ufshcd_release(hba);
 	return err;
->>>>>>> android-3.18
 }
 
 /**
@@ -2170,22 +1820,6 @@ static int ufshcd_query_descriptor(struct ufs_hba *hba,
 
 	err = ufshcd_exec_dev_cmd(hba, DEV_CMD_TYPE_QUERY, QUERY_REQ_TIMEOUT);
 
-<<<<<<< HEAD
-	/* Host controller enable */
-	if (ufshcd_hba_enable(hba)) {
-		dev_err(hba->dev,
-			"Reset: Controller initialization failed\n");
-		return FAILED;
-	}
-
-	if (ufshcd_link_startup(hba)) {
-		dev_err(hba->dev,
-			"Reset: Link start-up failed\n");
-		return FAILED;
-	}
-
-	return SUCCESS;
-=======
 	if (err) {
 		dev_err(hba->dev, "%s: opcode 0x%.2x for idn %d failed, err = %d\n",
 				__func__, opcode, idn, err);
@@ -2200,7 +1834,6 @@ out_unlock:
 out:
 	ufshcd_release(hba);
 	return err;
->>>>>>> android-3.18
 }
 
 /**
@@ -4293,18 +3926,6 @@ static int ufshcd_host_reset_and_restore(struct ufs_hba *hba)
 	/* Establish the link again and restore the device */
 	err = ufshcd_probe_hba(hba);
 
-<<<<<<< HEAD
-		if (task_result != UPIU_TASK_MANAGEMENT_FUNC_COMPL &&
-		    task_result != UPIU_TASK_MANAGEMENT_FUNC_SUCCEEDED)
-			task_result = FAILED;
-		else
-			task_result = SUCCESS;
-	} else {
-		task_result = FAILED;
-		dev_err(hba->dev,
-			"trc: Invalid ocs = %x\n", ocs_value);
-	}
-=======
 	if (!err && (hba->ufshcd_state != UFSHCD_STATE_OPERATIONAL))
 		err = -EIO;
 out:
@@ -4340,7 +3961,6 @@ static int ufshcd_reset_and_restore(struct ufs_hba *hba)
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	ufshcd_transfer_req_compl(hba);
 	ufshcd_tmc_handler(hba);
->>>>>>> android-3.18
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
 	return err;
@@ -4894,90 +4514,29 @@ static int ufshcd_init_vreg(struct ufs_hba *hba)
 	if (ret)
 		goto out;
 
-<<<<<<< HEAD
-		/* check if the returned transfer response is valid */
-		result = ufshcd_is_valid_req_rsp(lrbp->ucd_rsp_ptr);
-		if (result) {
-			dev_err(hba->dev,
-				"Invalid response = %x\n", result);
-			break;
-		}
-=======
 	ret = ufshcd_get_vreg(dev, info->vccq2);
 out:
 	return ret;
 }
->>>>>>> android-3.18
 
 static int ufshcd_init_hba_vreg(struct ufs_hba *hba)
 {
 	struct ufs_vreg_info *info = &hba->vreg_info;
 
-<<<<<<< HEAD
-		/*
-		 * get the result based on SCSI status response
-		 * to notify the SCSI midlayer of the command status
-		 */
-		scsi_status = result & MASK_SCSI_STATUS;
-		result = ufshcd_scsi_cmd_status(lrbp, scsi_status);
-		break;
-	case OCS_ABORTED:
-		result |= DID_ABORT << 16;
-		break;
-	case OCS_INVALID_CMD_TABLE_ATTR:
-	case OCS_INVALID_PRDT_ATTR:
-	case OCS_MISMATCH_DATA_BUF_SIZE:
-	case OCS_MISMATCH_RESP_UPIU_SIZE:
-	case OCS_PEER_COMM_FAILURE:
-	case OCS_FATAL_ERROR:
-	default:
-		result |= DID_ERROR << 16;
-		dev_err(hba->dev,
-		"OCS error from controller = %x\n", ocs);
-		break;
-	} /* end of switch */
-=======
 	if (info)
 		return ufshcd_get_vreg(hba->dev, info->vdd_hba);
->>>>>>> android-3.18
 
 	return 0;
 }
 
-<<<<<<< HEAD
-/**
- * ufshcd_uic_cmd_compl - handle completion of uic command
- * @hba: per adapter instance
- */
-static void ufshcd_uic_cmd_compl(struct ufs_hba *hba)
-{
-	if (hba->active_uic_cmd) {
-		hba->active_uic_cmd->argument2 |=
-			ufshcd_get_uic_cmd_result(hba);
-		complete(&hba->active_uic_cmd->done);
-	}
-}
-
-/**
- * ufshcd_transfer_req_compl - handle SCSI and query command completion
- * @hba: per adapter instance
- */
-static void ufshcd_transfer_req_compl(struct ufs_hba *hba)
-=======
 static int __ufshcd_setup_clocks(struct ufs_hba *hba, bool on,
 					bool skip_ref_clk)
->>>>>>> android-3.18
 {
 	int ret = 0;
 	struct ufs_clk_info *clki;
 	struct list_head *head = &hba->clk_list_head;
 	unsigned long flags;
 
-<<<<<<< HEAD
-	lrb = hba->lrb;
-	tr_doorbell = ufshcd_readl(hba, REG_UTP_TRANSFER_REQ_DOOR_BELL);
-	completed_reqs = tr_doorbell ^ hba->outstanding_reqs;
-=======
 	if (!head || list_empty(head))
 		goto out;
 
@@ -5001,7 +4560,6 @@ static int __ufshcd_setup_clocks(struct ufs_hba *hba, bool on,
 					clki->name, on ? "en" : "dis");
 		}
 	}
->>>>>>> android-3.18
 
 	if (hba->vops && hba->vops->setup_clocks)
 		ret = hba->vops->setup_clocks(hba, on);
@@ -5063,13 +4621,6 @@ out:
 	return ret;
 }
 
-<<<<<<< HEAD
-/**
- * ufshcd_fatal_err_handler - handle fatal errors
- * @hba: per adapter instance
- */
-static void ufshcd_fatal_err_handler(struct work_struct *work)
-=======
 static int ufshcd_variant_hba_init(struct ufs_hba *hba)
 {
 	int err = 0;
@@ -5102,7 +4653,6 @@ out:
 }
 
 static void ufshcd_variant_hba_exit(struct ufs_hba *hba)
->>>>>>> android-3.18
 {
 	if (!hba->vops)
 		return;
@@ -5132,12 +4682,6 @@ static int ufshcd_hba_init(struct ufs_hba *hba)
 	if (err)
 		goto out;
 
-<<<<<<< HEAD
-	if (hba->errors & UIC_ERROR) {
-		reg = ufshcd_readl(hba, REG_UIC_ERROR_CODE_DATA_LINK_LAYER);
-		if (reg & UIC_DATA_LINK_LAYER_ERROR_PA_INIT)
-			goto fatal_eh;
-=======
 	err = ufshcd_setup_hba_vreg(hba, true);
 	if (err)
 		goto out;
@@ -5183,7 +4727,6 @@ static void ufshcd_hba_exit(struct ufs_hba *hba)
 		ufshcd_setup_clocks(hba, false);
 		ufshcd_setup_hba_vreg(hba, false);
 		hba->is_powered = false;
->>>>>>> android-3.18
 	}
 }
 
@@ -5205,11 +4748,6 @@ ufshcd_send_request_sense(struct ufs_hba *hba, struct scsi_device *sdp)
 		goto out;
 	}
 
-<<<<<<< HEAD
-	tm_doorbell = ufshcd_readl(hba, REG_UTP_TASK_REQ_DOOR_BELL);
-	hba->tm_condition = tm_doorbell ^ hba->outstanding_tasks;
-	wake_up_interruptible(&hba->ufshcd_tm_wait_queue);
-=======
 	ret = scsi_execute_req_flags(sdp, cmd, DMA_FROM_DEVICE, buffer,
 				SCSI_SENSE_BUFFERSIZE, NULL,
 				msecs_to_jiffies(1000), 3, NULL, REQ_PM);
@@ -5219,7 +4757,6 @@ ufshcd_send_request_sense(struct ufs_hba *hba, struct scsi_device *sdp)
 	kfree(buffer);
 out:
 	return ret;
->>>>>>> android-3.18
 }
 
 /**
@@ -5240,10 +4777,6 @@ static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
 	unsigned long flags;
 	int ret;
 
-<<<<<<< HEAD
-	if (intr_status & UIC_COMMAND_COMPL)
-		ufshcd_uic_cmd_compl(hba);
-=======
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	sdp = hba->sdev_ufs_device;
 	if (sdp) {
@@ -5256,7 +4789,6 @@ static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
 		ret = -ENODEV;
 	}
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
->>>>>>> android-3.18
 
 	if (ret)
 		return ret;
@@ -5309,15 +4841,6 @@ static int ufshcd_link_state_transition(struct ufs_hba *hba,
 {
 	int ret = 0;
 
-<<<<<<< HEAD
-	spin_lock(hba->host->host_lock);
-	intr_status = ufshcd_readl(hba, REG_INTERRUPT_STATUS);
-
-	if (intr_status) {
-		ufshcd_writel(hba, intr_status, REG_INTERRUPT_STATUS);
-		ufshcd_sl_intr(hba, intr_status);
-		retval = IRQ_HANDLED;
-=======
 	if (req_link_state == hba->uic_link_state)
 		return 0;
 
@@ -5374,7 +4897,6 @@ static void ufshcd_vreg_set_lpm(struct ufs_hba *hba)
 			ufshcd_config_vreg_lpm(hba, hba->vreg_info.vccq);
 			ufshcd_config_vreg_lpm(hba, hba->vreg_info.vccq2);
 		}
->>>>>>> android-3.18
 	}
 }
 
@@ -5459,19 +4981,9 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	ufshcd_hold(hba, false);
 	hba->clk_gating.is_suspended = true;
 
-<<<<<<< HEAD
-	/* If task management queue is full */
-	free_slot = ufshcd_get_tm_free_slot(hba);
-	if (free_slot >= hba->nutmrs) {
-		spin_unlock_irqrestore(host->host_lock, flags);
-		dev_err(hba->dev, "Task management queue full\n");
-		err = FAILED;
-		goto out;
-=======
 	if (req_dev_pwr_mode == UFS_ACTIVE_PWR_MODE &&
 			req_link_state == UIC_LINK_ACTIVE_STATE) {
 		goto disable_clks;
->>>>>>> android-3.18
 	}
 
 	if ((req_dev_pwr_mode == hba->curr_dev_pwr_mode) &&
@@ -5510,34 +5022,12 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 			goto enable_gating;
 	}
 
-<<<<<<< HEAD
-	/* send command to the controller */
-	__set_bit(free_slot, &hba->outstanding_tasks);
-	ufshcd_writel(hba, 1 << free_slot, REG_UTP_TASK_REQ_DOOR_BELL);
-=======
 	ret = ufshcd_link_state_transition(hba, req_link_state, 1);
 	if (ret)
 		goto set_dev_active;
->>>>>>> android-3.18
 
 	ufshcd_vreg_set_lpm(hba);
 
-<<<<<<< HEAD
-	/* wait until the task management command is completed */
-	err =
-	wait_event_interruptible_timeout(hba->ufshcd_tm_wait_queue,
-					 (test_bit(free_slot,
-					 &hba->tm_condition) != 0),
-					 60 * HZ);
-	if (!err) {
-		dev_err(hba->dev,
-			"Task management command timed-out\n");
-		err = FAILED;
-		goto out;
-	}
-	clear_bit(free_slot, &hba->tm_condition);
-	err = ufshcd_task_req_compl(hba, free_slot);
-=======
 disable_clks:
 	/*
 	 * The clock scaling needs access to controller registers. Hence, Wait
@@ -5596,7 +5086,6 @@ set_dev_active:
 enable_gating:
 	hba->clk_gating.is_suspended = false;
 	ufshcd_release(hba);
->>>>>>> android-3.18
 out:
 	hba->pm_op_in_progress = 0;
 	return ret;
@@ -5620,15 +5109,10 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	hba->pm_op_in_progress = 1;
 	old_link_state = hba->uic_link_state;
 
-<<<<<<< HEAD
-	err = ufshcd_issue_tm_cmd(hba, &hba->lrb[tag], UFS_LOGICAL_RESET);
-	if (err == FAILED)
-=======
 	ufshcd_hba_vreg_set_hpm(hba);
 	/* Make sure clocks are enabled before accessing controller */
 	ret = ufshcd_setup_clocks(hba, true);
 	if (ret)
->>>>>>> android-3.18
 		goto out;
 
 	/* enable the host irq as host controller would be active soon */
@@ -5745,15 +5229,11 @@ int ufshcd_system_suspend(struct ufs_hba *hba)
 			goto out;
 	}
 
-<<<<<<< HEAD
-	return ufshcd_do_reset(hba);
-=======
 	ret = ufshcd_suspend(hba, UFS_SYSTEM_PM);
 out:
 	if (!ret)
 		hba->is_sys_suspended = true;
 	return ret;
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL(ufshcd_system_suspend);
 
@@ -5793,14 +5273,8 @@ int ufshcd_runtime_suspend(struct ufs_hba *hba)
 	if (!hba)
 		return -EINVAL;
 
-<<<<<<< HEAD
-	err = ufshcd_issue_tm_cmd(hba, &hba->lrb[tag], UFS_ABORT_TASK);
-	if (err == FAILED)
-		goto out;
-=======
 	if (!hba->is_powered)
 		return 0;
->>>>>>> android-3.18
 
 	return ufshcd_suspend(hba, UFS_RUNTIME_PM);
 }
@@ -5839,43 +5313,6 @@ int ufshcd_runtime_resume(struct ufs_hba *hba)
 }
 EXPORT_SYMBOL(ufshcd_runtime_resume);
 
-<<<<<<< HEAD
-/**
- * ufshcd_async_scan - asynchronous execution for link startup
- * @data: data pointer to pass to this function
- * @cookie: cookie data
- */
-static void ufshcd_async_scan(void *data, async_cookie_t cookie)
-{
-	struct ufs_hba *hba = (struct ufs_hba *)data;
-	int ret;
-
-	ret = ufshcd_link_startup(hba);
-	if (!ret)
-		scsi_scan_host(hba->host);
-}
-
-static struct scsi_host_template ufshcd_driver_template = {
-	.module			= THIS_MODULE,
-	.name			= UFSHCD,
-	.proc_name		= UFSHCD,
-	.queuecommand		= ufshcd_queuecommand,
-	.slave_alloc		= ufshcd_slave_alloc,
-	.slave_destroy		= ufshcd_slave_destroy,
-	.eh_abort_handler	= ufshcd_abort,
-	.eh_device_reset_handler = ufshcd_device_reset,
-	.eh_host_reset_handler	= ufshcd_host_reset,
-	.this_id		= -1,
-	.sg_tablesize		= SG_ALL,
-	.cmd_per_lun		= UFSHCD_CMD_PER_LUN,
-	.can_queue		= UFSHCD_CAN_QUEUE,
-};
-
-/**
- * ufshcd_suspend - suspend power management function
- * @hba: per adapter instance
- * @state: power state
-=======
 int ufshcd_runtime_idle(struct ufs_hba *hba)
 {
 	return 0;
@@ -5887,15 +5324,10 @@ EXPORT_SYMBOL(ufshcd_runtime_idle);
  * @hba: per adapter instance
  *
  * This function would power off both UFS device and UFS link.
->>>>>>> android-3.18
  *
  * Returns 0 always to allow force shutdown even in case of errors.
  */
-<<<<<<< HEAD
-int ufshcd_suspend(struct ufs_hba *hba, pm_message_t state)
-=======
 int ufshcd_shutdown(struct ufs_hba *hba)
->>>>>>> android-3.18
 {
 	int ret = 0;
 
@@ -5914,17 +5346,6 @@ out:
 	/* allow force shutdown even in case of errors */
 	return 0;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL_GPL(ufshcd_suspend);
-
-/**
- * ufshcd_resume - resume power management function
- * @hba: per adapter instance
- *
- * Returns -ENOSYS
- */
-int ufshcd_resume(struct ufs_hba *hba)
-=======
 EXPORT_SYMBOL(ufshcd_shutdown);
 
 /*
@@ -5936,7 +5357,6 @@ EXPORT_SYMBOL(ufshcd_shutdown);
 static ssize_t
 latency_hist_store(struct device *dev, struct device_attribute *attr,
 		   const char *buf, size_t count)
->>>>>>> android-3.18
 {
 	struct ufs_hba *hba = dev_get_drvdata(dev);
 	long value;
@@ -5966,10 +5386,6 @@ latency_hist_show(struct device *dev, struct device_attribute *attr,
 
 	return written_bytes;
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL_GPL(ufshcd_resume);
-
-=======
 
 static DEVICE_ATTR(latency_hist, S_IRUGO | S_IWUSR,
 		   latency_hist_show, latency_hist_store);
@@ -5987,7 +5403,6 @@ ufshcd_exit_latency_hist(struct ufs_hba *hba)
 	device_create_file(hba->dev, &dev_attr_latency_hist);
 }
 
->>>>>>> android-3.18
 /**
  * ufshcd_remove - de-allocate SCSI host and host memory space
  *		data structure memory
@@ -5995,17 +5410,12 @@ ufshcd_exit_latency_hist(struct ufs_hba *hba)
  */
 void ufshcd_remove(struct ufs_hba *hba)
 {
-<<<<<<< HEAD
-=======
 	scsi_remove_host(hba->host);
->>>>>>> android-3.18
 	/* disable interrupts */
 	ufshcd_disable_intr(hba, hba->intr_mask);
 	ufshcd_hba_stop(hba);
 
 	scsi_host_put(hba->host);
-<<<<<<< HEAD
-=======
 
 	ufshcd_exit_clk_gating(hba);
 	ufshcd_exit_latency_hist(hba);
@@ -6029,29 +5439,16 @@ static int ufshcd_set_dma_mask(struct ufs_hba *hba)
 			return 0;
 	}
 	return dma_set_mask_and_coherent(hba->dev, DMA_BIT_MASK(32));
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(ufshcd_remove);
 
 /**
-<<<<<<< HEAD
- * ufshcd_init - Driver initialization routine
- * @dev: pointer to device handle
- * @hba_handle: driver private handle
- * @mmio_base: base register address
- * @irq: Interrupt line of device
- * Returns 0 on success, non-zero value on failure
- */
-int ufshcd_init(struct device *dev, struct ufs_hba **hba_handle,
-		 void __iomem *mmio_base, unsigned int irq)
-=======
  * ufshcd_alloc_host - allocate Host Bus Adapter (HBA)
  * @dev: pointer to device handle
  * @hba_handle: driver private handle
  * Returns 0 on success, non-zero value on failure
  */
 int ufshcd_alloc_host(struct device *dev, struct ufs_hba **hba_handle)
->>>>>>> android-3.18
 {
 	struct Scsi_Host *host;
 	struct ufs_hba *hba;
@@ -6064,16 +5461,6 @@ int ufshcd_alloc_host(struct device *dev, struct ufs_hba **hba_handle)
 		goto out_error;
 	}
 
-<<<<<<< HEAD
-	if (!mmio_base) {
-		dev_err(dev,
-		"Invalid memory reference for mmio_base is NULL\n");
-		err = -ENODEV;
-		goto out_error;
-	}
-
-=======
->>>>>>> android-3.18
 	host = scsi_host_alloc(&ufshcd_driver_template,
 				sizeof(struct ufs_hba));
 	if (!host) {
@@ -6084,10 +5471,6 @@ int ufshcd_alloc_host(struct device *dev, struct ufs_hba **hba_handle)
 	hba = shost_priv(host);
 	hba->host = host;
 	hba->dev = dev;
-<<<<<<< HEAD
-	hba->mmio_base = mmio_base;
-	hba->irq = irq;
-=======
 	*hba_handle = hba;
 
 out_error:
@@ -6259,7 +5642,6 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 	err = ufshcd_hba_init(hba);
 	if (err)
 		goto out_error;
->>>>>>> android-3.18
 
 	/* Read capabilities registers */
 	ufshcd_hba_capabilities(hba);
@@ -6269,15 +5651,12 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 
 	/* Get Interrupt bit mask per version */
 	hba->intr_mask = ufshcd_get_intr_mask(hba);
-<<<<<<< HEAD
-=======
 
 	err = ufshcd_set_dma_mask(hba);
 	if (err) {
 		dev_err(hba->dev, "set dma mask failed\n");
 		goto out_disable;
 	}
->>>>>>> android-3.18
 
 	/* Allocate memory for host memory space */
 	err = ufshcd_memory_alloc(hba);
@@ -6304,13 +5683,6 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 	init_waitqueue_head(&hba->tm_tag_wq);
 
 	/* Initialize work queues */
-<<<<<<< HEAD
-	INIT_WORK(&hba->feh_workq, ufshcd_fatal_err_handler);
-
-	/* Initialize UIC command mutex */
-	mutex_init(&hba->uic_cmd_mutex);
-
-=======
 	INIT_WORK(&hba->eh_work, ufshcd_err_handler);
 	INIT_WORK(&hba->eeh_work, ufshcd_exception_event_handler);
 
@@ -6324,39 +5696,26 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 	init_waitqueue_head(&hba->dev_cmd.tag_wq);
 
 	ufshcd_init_clk_gating(hba);
->>>>>>> android-3.18
 	/* IRQ registration */
 	err = devm_request_irq(dev, irq, ufshcd_intr, IRQF_SHARED, UFSHCD, hba);
 	if (err) {
 		dev_err(hba->dev, "request irq failed\n");
-<<<<<<< HEAD
-		goto out_disable;
-=======
 		goto exit_gating;
 	} else {
 		hba->is_irq_enabled = true;
->>>>>>> android-3.18
 	}
 
 	/* Enable SCSI tag mapping */
 	err = scsi_init_shared_tag_map(host, host->can_queue);
 	if (err) {
 		dev_err(hba->dev, "init shared queue failed\n");
-<<<<<<< HEAD
-		goto out_disable;
-=======
 		goto exit_gating;
->>>>>>> android-3.18
 	}
 
 	err = scsi_add_host(host, hba->dev);
 	if (err) {
 		dev_err(hba->dev, "scsi_add_host failed\n");
-<<<<<<< HEAD
-		goto out_disable;
-=======
 		goto exit_gating;
->>>>>>> android-3.18
 	}
 
 	/* Host controller enable */
@@ -6364,11 +5723,6 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 	if (err) {
 		dev_err(hba->dev, "Host controller enable failed\n");
 		goto out_remove_scsi_host;
-<<<<<<< HEAD
-	}
-
-	*hba_handle = hba;
-=======
 	}
 
 	if (ufshcd_is_clkscaling_enabled(hba)) {
@@ -6388,7 +5742,6 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 	pm_runtime_get_sync(dev);
 
 	ufshcd_init_latency_hist(hba);
->>>>>>> android-3.18
 
 	/*
 	 * The device-initialize-sequence hasn't been invoked yet.
@@ -6402,19 +5755,13 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 
 out_remove_scsi_host:
 	scsi_remove_host(hba->host);
-<<<<<<< HEAD
-=======
 exit_gating:
 	ufshcd_exit_clk_gating(hba);
 	ufshcd_exit_latency_hist(hba);
->>>>>>> android-3.18
 out_disable:
 	hba->is_irq_enabled = false;
 	scsi_host_put(host);
-<<<<<<< HEAD
-=======
 	ufshcd_hba_exit(hba);
->>>>>>> android-3.18
 out_error:
 	return err;
 }

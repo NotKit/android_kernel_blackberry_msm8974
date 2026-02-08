@@ -39,12 +39,9 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/dmi.h>
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_X86
 #include <asm/i8259.h>
 #endif
->>>>>>> android-3.18
 
 /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
 #include <asm-generic/rtc.h>

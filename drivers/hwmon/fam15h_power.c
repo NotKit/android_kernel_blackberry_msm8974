@@ -177,11 +177,7 @@ static int fam15h_power_resume(struct pci_dev *pdev)
 #define fam15h_power_resume NULL
 #endif
 
-<<<<<<< HEAD
-static void __devinit fam15h_power_init_data(struct pci_dev *f4,
-=======
 static void fam15h_power_init_data(struct pci_dev *f4,
->>>>>>> android-3.18
 					     struct fam15h_power_data *data)
 {
 	u32 val;
@@ -239,13 +235,9 @@ static int fam15h_power_probe(struct pci_dev *pdev,
 
 static const struct pci_device_id fam15h_power_id_table[] = {
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
-<<<<<<< HEAD
-	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F4) },
-=======
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M30H_NB_F4) },
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F4) },
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_M30H_NB_F4) },
->>>>>>> android-3.18
 	{}
 };
 MODULE_DEVICE_TABLE(pci, fam15h_power_id_table);
@@ -254,10 +246,6 @@ static struct pci_driver fam15h_power_driver = {
 	.name = "fam15h_power",
 	.id_table = fam15h_power_id_table,
 	.probe = fam15h_power_probe,
-<<<<<<< HEAD
-	.remove = __devexit_p(fam15h_power_remove),
-=======
->>>>>>> android-3.18
 	.resume = fam15h_power_resume,
 };
 

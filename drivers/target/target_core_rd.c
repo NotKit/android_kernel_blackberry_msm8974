@@ -219,8 +219,6 @@ static int rd_build_device_space(struct rd_dev *rd_dev)
 		 " %u pages in %u tables\n", rd_dev->rd_host->rd_host_id,
 		 rd_dev->rd_dev_id, rd_dev->rd_page_count,
 		 rd_dev->sg_table_count);
-<<<<<<< HEAD
-=======
 
 	return 0;
 }
@@ -281,7 +279,6 @@ static int rd_build_prot_space(struct rd_dev *rd_dev, int prot_length, int block
 	pr_debug("CORE_RD[%u] - Built Ramdisk Device ID: %u prot space of"
 		 " %u pages in %u tables\n", rd_dev->rd_host->rd_host_id,
 		 rd_dev->rd_dev_id, total_sg_needed, rd_dev->sg_prot_count);
->>>>>>> android-3.18
 
 	return 0;
 }

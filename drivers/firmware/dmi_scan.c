@@ -126,11 +126,7 @@ static int __init dmi_walk_early(void (*decode)(const struct dmi_header *,
 
 	add_device_randomness(buf, dmi_len);
 
-<<<<<<< HEAD
-	dmi_iounmap(buf, dmi_len);
-=======
 	dmi_early_unmap(buf, dmi_len);
->>>>>>> android-3.18
 	return 0;
 }
 
@@ -520,26 +516,6 @@ static int __init dmi_present(const u8 *buf)
 	return 1;
 }
 
-<<<<<<< HEAD
-	memcpy_fromio(buf, p, 15);
-	if (dmi_checksum(buf, 15)) {
-		dmi_num = (buf[13] << 8) | buf[12];
-		dmi_len = (buf[7] << 8) | buf[6];
-		dmi_base = (buf[11] << 24) | (buf[10] << 16) |
-			(buf[9] << 8) | buf[8];
-
-		if (dmi_walk_early(dmi_decode) == 0) {
-			if (dmi_ver)
-				pr_info("SMBIOS %d.%d present.\n",
-				       dmi_ver >> 8, dmi_ver & 0xFF);
-			else {
-				dmi_ver = (buf[14] & 0xF0) << 4 |
-					   (buf[14] & 0x0F);
-				pr_info("Legacy DMI %d.%d present.\n",
-				       dmi_ver >> 8, dmi_ver & 0xFF);
-			}
-			dmi_dump_ids();
-=======
 /*
  * Check for the SMBIOS 3.0 64-bit entry point signature. Unlike the legacy
  * 32-bit entry point, there is no embedded DMI header (_DMI_) in here.
@@ -569,7 +545,6 @@ static int __init dmi_smbios3_present(const u8 *buf)
 				dmi_ver >> 8, dmi_ver & 0xFF);
 			dmi_format_ids(dmi_ids_string, sizeof(dmi_ids_string));
 			pr_debug("DMI: %s\n", dmi_ids_string);
->>>>>>> android-3.18
 			return 0;
 		}
 	}
@@ -609,8 +584,6 @@ void __init dmi_scan_machine(void)
 	char buf[32];
 
 	if (efi_enabled(EFI_CONFIG_TABLES)) {
-<<<<<<< HEAD
-=======
 		/*
 		 * According to the DMTF SMBIOS reference spec v3.0.0, it is
 		 * allowed to define both the 64-bit entry point (smbios3) and
@@ -636,7 +609,6 @@ void __init dmi_scan_machine(void)
 				goto out;
 			}
 		}
->>>>>>> android-3.18
 		if (efi.smbios == EFI_INVALID_TABLE_ADDR)
 			goto error;
 
@@ -650,13 +622,7 @@ void __init dmi_scan_machine(void)
 		memcpy_fromio(buf, p, 32);
 		dmi_early_unmap(p, 32);
 
-<<<<<<< HEAD
-		rc = smbios_present(p);
-		dmi_iounmap(p, 32);
-		if (!rc) {
-=======
 		if (!dmi_present(buf)) {
->>>>>>> android-3.18
 			dmi_available = 1;
 			goto out;
 		}
@@ -674,18 +640,8 @@ void __init dmi_scan_machine(void)
 		 */
 		memset(buf, 0, 16);
 		for (q = p; q < p + 0x10000; q += 16) {
-<<<<<<< HEAD
-			if (memcmp(q, "_SM_", 4) == 0 && q - p <= 0xFFE0)
-				rc = smbios_present(q);
-			else if (memcmp(q, "_DMI_", 5) == 0)
-				rc = dmi_present(q);
-			else
-				continue;
-			if (!rc) {
-=======
 			memcpy_fromio(buf + 16, q, 16);
 			if (!dmi_smbios3_present(buf) || !dmi_present(buf)) {
->>>>>>> android-3.18
 				dmi_available = 1;
 				dmi_early_unmap(p, 0x10000);
 				goto out;

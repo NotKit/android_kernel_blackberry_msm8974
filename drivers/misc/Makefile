@@ -49,30 +49,6 @@ obj-y				+= lis3lv02d/
 obj-y				+= carma/
 obj-$(CONFIG_USB_SWITCH_FSA9480) += fsa9480.o
 obj-$(CONFIG_ALTERA_STAPL)	+=altera-stapl/
-<<<<<<< HEAD
-obj-$(CONFIG_MAX8997_MUIC)	+= max8997-muic.o
-obj-$(CONFIG_WL127X_RFKILL)	+= wl127x-rfkill.o
-obj-$(CONFIG_SENSORS_AK8975)	+= akm8975.o
-obj-$(CONFIG_TSIF) += msm_tsif.o
-msm_tsif-objs := tsif.o
-obj-$(CONFIG_TSIF_CHRDEV) += tsif_chrdev.o
-obj-$(CONFIG_TSPP) += tspp.o
-obj-$(CONFIG_CI_BRIDGE_SPI) += ci-bridge-spi.o
-obj-$(CONFIG_HAPTIC_ISA1200)		+= isa1200.o
-obj-$(CONFIG_PMIC8058_PWM) += pmic8058-pwm.o
-obj-$(CONFIG_PMIC8XXX_VIBRATOR) += pm8xxx-vibrator.o
-obj-$(CONFIG_PMIC8XXX_NFC) += pm8xxx-nfc.o
-obj-$(CONFIG_PMIC8XXX_UPL) += pm8xxx-upl.o
-obj-$(CONFIG_MSM_MEMORY_LOW_POWER_MODE_SUSPEND_DEEP_POWER_DOWN) \
-	+= msm_migrate_pages.o
-obj-$(CONFIG_PMIC8058_XOADC) += pmic8058-xoadc.o
-obj-$(CONFIG_QSEECOM) += qseecom.o
-obj-$(CONFIG_QFP_FUSE) += qfp_fuse.o
-obj-$(CONFIG_TI_DRV2667) += ti_drv2667.o
-obj-$(CONFIG_QPNP_MISC) += qpnp-misc.o
-obj-$(CONFIG_UID_CPUTIME) 	+= uid_cputime.o
-obj-$(CONFIG_MODEM_RFKILL) 	+= modem_rfkill.o
-=======
 obj-$(CONFIG_INTEL_MEI)		+= mei/
 obj-$(CONFIG_VMWARE_VMCI)	+= vmw_vmci/
 obj-$(CONFIG_LATTICE_ECP3_CONFIG)	+= lattice-ecp3-config.o
@@ -84,4 +60,3 @@ obj-$(CONFIG_VEXPRESS_SYSCFG)	+= vexpress-syscfg.o
 obj-$(CONFIG_CXL_BASE)		+= cxl/
 obj-$(CONFIG_UID_SYS_STATS) += uid_sys_stats.o
 obj-$(CONFIG_MEMORY_STATE_TIME) += memory_state_time.o
->>>>>>> android-3.18

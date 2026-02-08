@@ -120,22 +120,7 @@ static int fd_configure_device(struct se_device *dev)
 	 */
 	flags = O_RDWR | O_CREAT | O_LARGEFILE | O_DSYNC;
 
-<<<<<<< HEAD
-	if (IS_ERR(dev_p)) {
-		pr_err("getname(%s) failed: %lu\n",
-			fd_dev->fd_dev_name, IS_ERR(dev_p));
-		ret = PTR_ERR(dev_p);
-		goto fail;
-	}
 	/*
-	 * Use O_DSYNC by default instead of O_SYNC to forgo syncing
-	 * of pure timestamp updates.
-	 */
-	flags = O_RDWR | O_CREAT | O_LARGEFILE | O_DSYNC;
-	/*
-=======
-	/*
->>>>>>> android-3.18
 	 * Optionally allow fd_buffered_io=1 to be enabled for people
 	 * who want use the fs buffer cache as an WriteCache mechanism.
 	 *
@@ -354,14 +339,9 @@ static int fd_do_rw(struct se_cmd *cmd, struct scatterlist *sgl,
 
 	set_fs(old_fs);
 
-<<<<<<< HEAD
-	for_each_sg(task->task_sg, sg, task->task_sg_nents, i)
-		kunmap(sg_page(sg));
-=======
 	for_each_sg(sgl, sg, sgl_nents, i)
 		kunmap(sg_page(sg));
 
->>>>>>> android-3.18
 	kfree(iov);
 
 	if (is_write) {
@@ -396,52 +376,6 @@ static int fd_do_rw(struct se_cmd *cmd, struct scatterlist *sgl,
 static sense_reason_t
 fd_execute_sync_cache(struct se_cmd *cmd)
 {
-<<<<<<< HEAD
-	struct fd_request *req = FILE_REQ(task);
-	struct se_device *se_dev = req->fd_task.task_se_cmd->se_dev;
-	struct fd_dev *dev = se_dev->dev_ptr;
-	struct file *fd = dev->fd_file;
-	struct scatterlist *sg = task->task_sg;
-	struct iovec *iov;
-	mm_segment_t old_fs;
-	loff_t pos = (task->task_lba *
-		      se_dev->se_sub_dev->se_dev_attrib.block_size);
-	int ret, i = 0;
-
-	iov = kzalloc(sizeof(struct iovec) * task->task_sg_nents, GFP_KERNEL);
-	if (!iov) {
-		pr_err("Unable to allocate fd_do_writev iov[]\n");
-		return -ENOMEM;
-	}
-
-	for_each_sg(task->task_sg, sg, task->task_sg_nents, i) {
-		iov[i].iov_len = sg->length;
-		iov[i].iov_base = kmap(sg_page(sg)) + sg->offset;
-	}
-
-	old_fs = get_fs();
-	set_fs(get_ds());
-	ret = vfs_writev(fd, &iov[0], task->task_sg_nents, &pos);
-	set_fs(old_fs);
-
-	for_each_sg(task->task_sg, sg, task->task_sg_nents, i)
-		kunmap(sg_page(sg));
-
-	kfree(iov);
-
-	if (ret < 0 || ret != task->task_size) {
-		pr_err("vfs_writev() returned %d\n", ret);
-		return (ret < 0 ? ret : -EINVAL);
-	}
-
-	return 1;
-}
-
-static void fd_emulate_sync_cache(struct se_task *task)
-{
-	struct se_cmd *cmd = task->task_se_cmd;
-=======
->>>>>>> android-3.18
 	struct se_device *dev = cmd->se_dev;
 	struct fd_dev *fd_dev = FD_DEV(dev);
 	int immed = (cmd->t_task_cdb[1] & 0x2);
@@ -484,9 +418,6 @@ static void fd_emulate_sync_cache(struct se_task *task)
 	return 0;
 }
 
-<<<<<<< HEAD
-static int fd_do_task(struct se_task *task)
-=======
 static unsigned char *
 fd_setup_write_same_buf(struct se_cmd *cmd, struct scatterlist *sg,
 		    unsigned int len)
@@ -730,7 +661,6 @@ fd_execute_unmap(struct se_cmd *cmd)
 static sense_reason_t
 fd_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
 	      enum dma_data_direction data_direction)
->>>>>>> android-3.18
 {
 	struct se_device *dev = cmd->se_dev;
 	struct fd_prot fd_prot;
@@ -775,11 +705,6 @@ fd_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
 			kfree(fd_prot.prot_buf);
 		}
 	} else {
-<<<<<<< HEAD
-		ret = fd_do_writev(task);
-		/*
-		 * Perform implict vfs_fsync_range() for fd_do_writev() ops
-=======
 		memset(&fd_prot, 0, sizeof(struct fd_prot));
 
 		if (cmd->prot_type) {
@@ -801,21 +726,10 @@ fd_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
 		ret = fd_do_rw(cmd, sgl, sgl_nents, 1);
 		/*
 		 * Perform implicit vfs_fsync_range() for fd_do_writev() ops
->>>>>>> android-3.18
 		 * for SCSI WRITEs with Forced Unit Access (FUA) set.
 		 * Allow this to happen independent of WCE=0 setting.
 		 */
 		if (ret > 0 &&
-<<<<<<< HEAD
-		    dev->se_sub_dev->se_dev_attrib.emulate_fua_write > 0 &&
-		    (cmd->se_cmd_flags & SCF_FUA)) {
-			struct fd_dev *fd_dev = dev->dev_ptr;
-			loff_t start = task->task_lba *
-				dev->se_sub_dev->se_dev_attrib.block_size;
-			loff_t end = start + task->task_size;
-
-			vfs_fsync_range(fd_dev->fd_file, start, end, 1);
-=======
 		    dev->dev_attrib.emulate_fua_write > 0 &&
 		    (cmd->se_cmd_flags & SCF_FUA)) {
 			struct fd_dev *fd_dev = FD_DEV(dev);
@@ -835,7 +749,6 @@ fd_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
 			ret = fd_do_prot_rw(cmd, &fd_prot, true);
 			if (ret < 0)
 				return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
->>>>>>> android-3.18
 		}
 	}
 

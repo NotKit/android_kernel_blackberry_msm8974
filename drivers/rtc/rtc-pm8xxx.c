@@ -499,41 +499,9 @@ static int pm8xxx_rtc_probe(struct platform_device *pdev)
 	rtc_dd->regs = match->data;
 	rtc_dd->rtc_dev = &pdev->dev;
 
-<<<<<<< HEAD
-	/* Check if the RTC is on, else turn it on */
-	rc = pm8xxx_read_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base, 1);
-	if (rc < 0) {
-		dev_err(&pdev->dev, "RTC control register read failed!\n");
-		goto fail_rtc_enable;
-	}
-
-	if (!(ctrl_reg & PM8xxx_RTC_ENABLE)) {
-		ctrl_reg |= PM8xxx_RTC_ENABLE;
-		rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base,
-									1);
-		if (rc < 0) {
-			dev_err(&pdev->dev, "Write to RTC control register "
-								"failed\n");
-			goto fail_rtc_enable;
-		}
-	}
-
-	/* Enable abort enable feature */
-	ctrl_reg |= PM8xxx_RTC_ABORT_ENABLE;
-	rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base, 1);
-	if (rc < 0) {
-		dev_err(&pdev->dev, "PM8xxx write failed!\n");
-		goto fail_rtc_enable;
-	}
-
-	rtc_dd->ctrl_reg = ctrl_reg;
-	if (rtc_write_enable == true)
-		pm8xxx_rtc_ops.set_time = pm8xxx_rtc_set_time;
-=======
 	rc = pm8xxx_rtc_enable(rtc_dd);
 	if (rc)
 		return rc;
->>>>>>> android-3.18
 
 	platform_set_drvdata(pdev, rtc_dd);
 
@@ -629,11 +597,6 @@ fail_alarm_disable:
 
 static struct platform_driver pm8xxx_rtc_driver = {
 	.probe		= pm8xxx_rtc_probe,
-<<<<<<< HEAD
-	.remove		= __devexit_p(pm8xxx_rtc_remove),
-	.shutdown	= pm8xxx_rtc_shutdown,
-=======
->>>>>>> android-3.18
 	.driver	= {
 		.name		= "rtc-pm8xxx",
 		.owner		= THIS_MODULE,

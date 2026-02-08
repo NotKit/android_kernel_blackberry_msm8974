@@ -352,12 +352,7 @@ static int bpa10x_flush(struct hci_dev *hdev)
 
 static int bpa10x_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
-<<<<<<< HEAD
-	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
-	struct bpa10x_data *data = hdev->driver_data;
-=======
 	struct bpa10x_data *data = hci_get_drvdata(hdev);
->>>>>>> android-3.18
 	struct usb_ctrlrequest *dr;
 	struct urb *urb;
 	unsigned int pipe;
@@ -513,11 +508,8 @@ static void bpa10x_disconnect(struct usb_interface *intf)
 	hci_unregister_dev(data->hdev);
 
 	hci_free_dev(data->hdev);
-<<<<<<< HEAD
-=======
 	kfree_skb(data->rx_skb[0]);
 	kfree_skb(data->rx_skb[1]);
->>>>>>> android-3.18
 }
 
 static struct usb_driver bpa10x_driver = {

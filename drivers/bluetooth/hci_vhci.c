@@ -150,11 +150,7 @@ static int __vhci_create_device(struct vhci_data *data, __u8 opcode)
 		return -EBUSY;
 	}
 
-<<<<<<< HEAD
-	data = hdev->driver_data;
-=======
 	bt_cb(skb)->pkt_type = HCI_VENDOR_PKT;
->>>>>>> android-3.18
 
 	*skb_put(skb, 1) = 0xff;
 	*skb_put(skb, 1) = opcode;
@@ -165,11 +161,6 @@ static int __vhci_create_device(struct vhci_data *data, __u8 opcode)
 	return 0;
 }
 
-<<<<<<< HEAD
-static void vhci_destruct(struct hci_dev *hdev)
-{
-	kfree(hdev->driver_data);
-=======
 static int vhci_create_device(struct vhci_data *data, __u8 opcode)
 {
 	int err;
@@ -179,7 +170,6 @@ static int vhci_create_device(struct vhci_data *data, __u8 opcode)
 	mutex_unlock(&data->open_mutex);
 
 	return err;
->>>>>>> android-3.18
 }
 
 static inline ssize_t vhci_get_user(struct vhci_data *data,
@@ -346,36 +336,8 @@ static int vhci_open(struct inode *inode, struct file *file)
 	skb_queue_head_init(&data->readq);
 	init_waitqueue_head(&data->read_wait);
 
-<<<<<<< HEAD
-	hdev = hci_alloc_dev();
-	if (!hdev) {
-		kfree(data);
-		return -ENOMEM;
-	}
-
-	data->hdev = hdev;
-
-	hdev->bus = HCI_VIRTUAL;
-	hdev->driver_data = data;
-
-	hdev->open     = vhci_open_dev;
-	hdev->close    = vhci_close_dev;
-	hdev->flush    = vhci_flush;
-	hdev->send     = vhci_send_frame;
-	hdev->destruct = vhci_destruct;
-
-	hdev->owner = THIS_MODULE;
-
-	if (hci_register_dev(hdev) < 0) {
-		BT_ERR("Can't register HCI device");
-		kfree(data);
-		hci_free_dev(hdev);
-		return -EBUSY;
-	}
-=======
 	mutex_init(&data->open_mutex);
 	INIT_DELAYED_WORK(&data->open_timeout, vhci_open_timeout);
->>>>>>> android-3.18
 
 	file->private_data = data;
 	nonseekable_open(inode, file);
@@ -394,18 +356,10 @@ static int vhci_release(struct inode *inode, struct file *file)
 
 	hdev = data->hdev;
 
-<<<<<<< HEAD
-	if (hci_unregister_dev(hdev) < 0) {
-		BT_ERR("Can't unregister HCI device %s", hdev->name);
-	}
-
-	hci_free_dev(hdev);
-=======
 	if (hdev) {
 		hci_unregister_dev(hdev);
 		hci_free_dev(hdev);
 	}
->>>>>>> android-3.18
 
 	skb_queue_purge(&data->readq);
 	file->private_data = NULL;

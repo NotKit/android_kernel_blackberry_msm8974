@@ -122,21 +122,10 @@ static void hsuart_serial_clock_on(struct uart_port *port)
 		BT_INFO("Uart has not voted for Clock ON");
 }
 
-<<<<<<< HEAD
-static void hsuart_serial_clock_off(struct uart_port *port)
-{
-	BT_DBG("");
-	if (port)
-		msm_hs_request_clock_off(port);
-	else
-		BT_INFO("Uart has not voted for Clock OFF");
-}
-=======
 	/* Disable Automatic RTSCTS */
 	ktermios = tty->termios;
 	ktermios.c_cflag &= ~CRTSCTS;
 	tty_set_termios(tty, &ktermios);
->>>>>>> android-3.18
 
 static void modify_timer_task(void)
 {

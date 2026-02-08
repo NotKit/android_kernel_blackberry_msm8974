@@ -26,6 +26,33 @@
 #include <linux/workqueue.h>
 #include <linux/bif/driver.h>
 #include <linux/qpnp/qpnp-adc.h>
+#include <linux/of_address.h>
+#include <linux/of_irq.h>
+
+/* Helpers for SPMI APIs missing in this kernel version */
+static struct resource *spmi_get_resource_byname(struct spmi_device *sdev, void *unused, unsigned int type, const char *name)
+{
+	struct resource *r;
+	int index;
+	/* Only support MEM for now as used by driver */
+	if (type != IORESOURCE_MEM) return NULL;
+	r = devm_kzalloc(&sdev->dev, sizeof(*r), GFP_KERNEL);
+	if (!r) return NULL;
+	index = of_property_match_string(sdev->dev.of_node, "reg-names", name);
+	if (index < 0) return NULL;
+	if (of_address_to_resource(sdev->dev.of_node, index, r)) return NULL;
+	return r;
+}
+
+static int spmi_get_irq_byname(struct spmi_device *sdev, void *unused, const char *name)
+{
+	return of_irq_get_byname(sdev->dev.of_node, name);
+}
+
+static const char *spmi_get_primary_dev_name(struct spmi_device *sdev)
+{
+	return sdev->dev.of_node->name;
+}
 
 enum qpnp_bsi_irq {
 	QPNP_BSI_IRQ_ERR,
@@ -202,11 +229,11 @@ static inline int qpnp_bsi_read(struct qpnp_bsi_chip *chip, u16 addr, u8 *buf,
 {
 	int rc;
 
-	rc = spmi_ext_register_readl(chip->spmi_dev->ctrl,
-			chip->spmi_dev->sid, chip->base_addr + addr, buf, len);
+	rc = spmi_ext_register_readl(chip->spmi_dev,
+			chip->base_addr + addr, buf, len);
 	if (rc)
 		dev_err(&chip->spmi_dev->dev, "%s: spmi_ext_register_readl() failed. sid=%d, addr=%04X, len=%d, rc=%d\n",
-			__func__, chip->spmi_dev->sid, chip->base_addr + addr,
+			__func__, chip->spmi_dev->usid, chip->base_addr + addr,
 			len, rc);
 
 	return rc;
@@ -217,12 +244,12 @@ static inline int qpnp_bsi_write(struct qpnp_bsi_chip *chip, u16 addr, u8 *buf,
 {
 	int rc;
 
-	rc = spmi_ext_register_writel(chip->spmi_dev->ctrl,
-			chip->spmi_dev->sid, chip->base_addr + addr, buf, len);
+	rc = spmi_ext_register_writel(chip->spmi_dev,
+			chip->base_addr + addr, buf, len);
 
 	if (rc)
 		dev_err(&chip->spmi_dev->dev, "%s: spmi_ext_register_writel() failed. sid=%d, addr=%04X, len=%d, rc=%d\n",
-			__func__, chip->spmi_dev->sid, chip->base_addr + addr,
+			__func__, chip->spmi_dev->usid, chip->base_addr + addr,
 			len, rc);
 
 	return rc;
@@ -1402,7 +1429,7 @@ static int qpnp_bsi_get_battery_presence(struct bif_ctrl_dev *bdev)
 	u8 reg = 0x00;
 	int rc;
 
-	rc = spmi_ext_register_readl(chip->spmi_dev->ctrl, chip->spmi_dev->sid,
+	rc = spmi_ext_register_readl(chip->spmi_dev,
 		chip->batt_id_stat_addr, &reg, 1);
 	if (rc) {
 		dev_err(&chip->spmi_dev->dev, "%s: spmi_ext_register_readl() failed, rc=%d\n",
@@ -1428,7 +1455,7 @@ static struct bif_ctrl_ops qpnp_bsi_ops = {
 };
 
 /* Load all BSI properties from device tree. */
-static int __devinit qpnp_bsi_parse_dt(struct qpnp_bsi_chip *chip,
+static int qpnp_bsi_parse_dt(struct qpnp_bsi_chip *chip,
 			struct spmi_device *spmi)
 {
 	struct device *dev = &spmi->dev;
@@ -1554,7 +1581,7 @@ static int __devinit qpnp_bsi_parse_dt(struct qpnp_bsi_chip *chip,
 }
 
 /* Request all BSI and battery presence IRQs and set them as wakeable. */
-static int __devinit qpnp_bsi_init_irqs(struct qpnp_bsi_chip *chip,
+static int qpnp_bsi_init_irqs(struct qpnp_bsi_chip *chip,
 			struct device *dev)
 {
 	int rc;
@@ -1641,7 +1668,7 @@ static void qpnp_bsi_cleanup_irqs(struct qpnp_bsi_chip *chip)
 	irq_set_irq_wake(chip->batt_present_irq, 0);
 }
 
-static int __devinit qpnp_bsi_probe(struct spmi_device *spmi)
+static int qpnp_bsi_probe(struct spmi_device *spmi)
 {
 	struct device *dev = &spmi->dev;
 	struct qpnp_bsi_chip *chip;
@@ -1731,7 +1758,7 @@ cleanup_irqs:
 	return rc;
 }
 
-static int __devexit qpnp_bsi_remove(struct spmi_device *spmi)
+static void qpnp_bsi_remove(struct spmi_device *spmi)
 {
 	struct qpnp_bsi_chip *chip = dev_get_drvdata(&spmi->dev);
 	dev_set_drvdata(&spmi->dev, NULL);
@@ -1740,8 +1767,6 @@ static int __devexit qpnp_bsi_remove(struct spmi_device *spmi)
 		bif_ctrl_unregister(chip->bdev);
 		qpnp_bsi_cleanup_irqs(chip);
 	}
-
-	return 0;
 }
 
 static struct of_device_id spmi_match_table[] = {
@@ -1762,8 +1787,8 @@ static struct spmi_driver qpnp_bsi_driver = {
 		.owner		= THIS_MODULE,
 	},
 	.probe		= qpnp_bsi_probe,
-	.remove		= __devexit_p(qpnp_bsi_remove),
-	.id_table	= qpnp_bsi_id,
+	.remove		= qpnp_bsi_remove,
+	// .id_table	= qpnp_bsi_id,
 };
 
 static int __init qpnp_bsi_init(void)

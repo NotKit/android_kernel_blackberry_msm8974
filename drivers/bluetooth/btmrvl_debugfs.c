@@ -49,13 +49,9 @@ static ssize_t btmrvl_hscfgcmd_write(struct file *file,
 	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
 		return -EFAULT;
 
-<<<<<<< HEAD
-	ret = strict_strtol(buf, 10, &result);
-=======
 	ret = kstrtol(buf, 10, &result);
 	if (ret)
 		return ret;
->>>>>>> android-3.18
 
 	priv->btmrvl_dev.hscfgcmd = result;
 
@@ -87,48 +83,6 @@ static const struct file_operations btmrvl_hscfgcmd_fops = {
 	.llseek = default_llseek,
 };
 
-<<<<<<< HEAD
-static ssize_t btmrvl_psmode_write(struct file *file, const char __user *ubuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	long result, ret;
-
-	memset(buf, 0, sizeof(buf));
-
-	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
-		return -EFAULT;
-
-	ret = strict_strtol(buf, 10, &result);
-
-	priv->btmrvl_dev.psmode = result;
-
-	return count;
-}
-
-static ssize_t btmrvl_psmode_read(struct file *file, char __user *userbuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	int ret;
-
-	ret = snprintf(buf, sizeof(buf) - 1, "%d\n",
-						priv->btmrvl_dev.psmode);
-
-	return simple_read_from_buffer(userbuf, count, ppos, buf, ret);
-}
-
-static const struct file_operations btmrvl_psmode_fops = {
-	.read	= btmrvl_psmode_read,
-	.write	= btmrvl_psmode_write,
-	.open	= btmrvl_open_generic,
-	.llseek = default_llseek,
-};
-
-=======
->>>>>>> android-3.18
 static ssize_t btmrvl_pscmd_write(struct file *file, const char __user *ubuf,
 						size_t count, loff_t *ppos)
 {
@@ -141,13 +95,9 @@ static ssize_t btmrvl_pscmd_write(struct file *file, const char __user *ubuf,
 	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
 		return -EFAULT;
 
-<<<<<<< HEAD
-	ret = strict_strtol(buf, 10, &result);
-=======
 	ret = kstrtol(buf, 10, &result);
 	if (ret)
 		return ret;
->>>>>>> android-3.18
 
 	priv->btmrvl_dev.pscmd = result;
 
@@ -179,48 +129,6 @@ static const struct file_operations btmrvl_pscmd_fops = {
 	.llseek = default_llseek,
 };
 
-<<<<<<< HEAD
-static ssize_t btmrvl_gpiogap_write(struct file *file, const char __user *ubuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	long result, ret;
-
-	memset(buf, 0, sizeof(buf));
-
-	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
-		return -EFAULT;
-
-	ret = strict_strtol(buf, 16, &result);
-
-	priv->btmrvl_dev.gpio_gap = result;
-
-	return count;
-}
-
-static ssize_t btmrvl_gpiogap_read(struct file *file, char __user *userbuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	int ret;
-
-	ret = snprintf(buf, sizeof(buf) - 1, "0x%x\n",
-						priv->btmrvl_dev.gpio_gap);
-
-	return simple_read_from_buffer(userbuf, count, ppos, buf, ret);
-}
-
-static const struct file_operations btmrvl_gpiogap_fops = {
-	.read	= btmrvl_gpiogap_read,
-	.write	= btmrvl_gpiogap_write,
-	.open	= btmrvl_open_generic,
-	.llseek = default_llseek,
-};
-
-=======
->>>>>>> android-3.18
 static ssize_t btmrvl_hscmd_write(struct file *file, const char __user *ubuf,
 						size_t count, loff_t *ppos)
 {
@@ -233,13 +141,9 @@ static ssize_t btmrvl_hscmd_write(struct file *file, const char __user *ubuf,
 	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
 		return -EFAULT;
 
-<<<<<<< HEAD
-	ret = strict_strtol(buf, 10, &result);
-=======
 	ret = kstrtol(buf, 10, &result);
 	if (ret)
 		return ret;
->>>>>>> android-3.18
 
 	priv->btmrvl_dev.hscmd = result;
 	if (priv->btmrvl_dev.hscmd) {
@@ -269,120 +173,6 @@ static const struct file_operations btmrvl_hscmd_fops = {
 	.llseek = default_llseek,
 };
 
-<<<<<<< HEAD
-static ssize_t btmrvl_hsmode_write(struct file *file, const char __user *ubuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	long result, ret;
-
-	memset(buf, 0, sizeof(buf));
-
-	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
-		return -EFAULT;
-
-	ret = strict_strtol(buf, 10, &result);
-
-	priv->btmrvl_dev.hsmode = result;
-
-	return count;
-}
-
-static ssize_t btmrvl_hsmode_read(struct file *file, char __user * userbuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	int ret;
-
-	ret = snprintf(buf, sizeof(buf) - 1, "%d\n", priv->btmrvl_dev.hsmode);
-
-	return simple_read_from_buffer(userbuf, count, ppos, buf, ret);
-}
-
-static const struct file_operations btmrvl_hsmode_fops = {
-	.read	= btmrvl_hsmode_read,
-	.write	= btmrvl_hsmode_write,
-	.open	= btmrvl_open_generic,
-	.llseek = default_llseek,
-};
-
-static ssize_t btmrvl_curpsmode_read(struct file *file, char __user *userbuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	int ret;
-
-	ret = snprintf(buf, sizeof(buf) - 1, "%d\n", priv->adapter->psmode);
-
-	return simple_read_from_buffer(userbuf, count, ppos, buf, ret);
-}
-
-static const struct file_operations btmrvl_curpsmode_fops = {
-	.read	= btmrvl_curpsmode_read,
-	.open	= btmrvl_open_generic,
-	.llseek = default_llseek,
-};
-
-static ssize_t btmrvl_psstate_read(struct file *file, char __user * userbuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	int ret;
-
-	ret = snprintf(buf, sizeof(buf) - 1, "%d\n", priv->adapter->ps_state);
-
-	return simple_read_from_buffer(userbuf, count, ppos, buf, ret);
-}
-
-static const struct file_operations btmrvl_psstate_fops = {
-	.read	= btmrvl_psstate_read,
-	.open	= btmrvl_open_generic,
-	.llseek = default_llseek,
-};
-
-static ssize_t btmrvl_hsstate_read(struct file *file, char __user *userbuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	int ret;
-
-	ret = snprintf(buf, sizeof(buf) - 1, "%d\n", priv->adapter->hs_state);
-
-	return simple_read_from_buffer(userbuf, count, ppos, buf, ret);
-}
-
-static const struct file_operations btmrvl_hsstate_fops = {
-	.read	= btmrvl_hsstate_read,
-	.open	= btmrvl_open_generic,
-	.llseek = default_llseek,
-};
-
-static ssize_t btmrvl_txdnldready_read(struct file *file, char __user *userbuf,
-						size_t count, loff_t *ppos)
-{
-	struct btmrvl_private *priv = file->private_data;
-	char buf[16];
-	int ret;
-
-	ret = snprintf(buf, sizeof(buf) - 1, "%d\n",
-					priv->btmrvl_dev.tx_dnld_rdy);
-
-	return simple_read_from_buffer(userbuf, count, ppos, buf, ret);
-}
-
-static const struct file_operations btmrvl_txdnldready_fops = {
-	.read	= btmrvl_txdnldready_read,
-	.open	= btmrvl_open_generic,
-	.llseek = default_llseek,
-};
-
-=======
->>>>>>> android-3.18
 void btmrvl_debugfs_init(struct hci_dev *hdev)
 {
 	struct btmrvl_private *priv = hdev->driver_data;
@@ -401,34 +191,6 @@ void btmrvl_debugfs_init(struct hci_dev *hdev)
 
 	dbg->config_dir = debugfs_create_dir("config", hdev->debugfs);
 
-<<<<<<< HEAD
-	dbg->psmode = debugfs_create_file("psmode", 0644, dbg->config_dir,
-				hdev->driver_data, &btmrvl_psmode_fops);
-	dbg->pscmd = debugfs_create_file("pscmd", 0644, dbg->config_dir,
-				hdev->driver_data, &btmrvl_pscmd_fops);
-	dbg->gpiogap = debugfs_create_file("gpiogap", 0644, dbg->config_dir,
-				hdev->driver_data, &btmrvl_gpiogap_fops);
-	dbg->hsmode =  debugfs_create_file("hsmode", 0644, dbg->config_dir,
-				hdev->driver_data, &btmrvl_hsmode_fops);
-	dbg->hscmd = debugfs_create_file("hscmd", 0644, dbg->config_dir,
-				hdev->driver_data, &btmrvl_hscmd_fops);
-	dbg->hscfgcmd = debugfs_create_file("hscfgcmd", 0644, dbg->config_dir,
-				hdev->driver_data, &btmrvl_hscfgcmd_fops);
-
-	dbg->status_dir = debugfs_create_dir("status", hdev->debugfs);
-	dbg->curpsmode = debugfs_create_file("curpsmode", 0444,
-						dbg->status_dir,
-						hdev->driver_data,
-						&btmrvl_curpsmode_fops);
-	dbg->psstate = debugfs_create_file("psstate", 0444, dbg->status_dir,
-				hdev->driver_data, &btmrvl_psstate_fops);
-	dbg->hsstate = debugfs_create_file("hsstate", 0444, dbg->status_dir,
-				hdev->driver_data, &btmrvl_hsstate_fops);
-	dbg->txdnldready = debugfs_create_file("txdnldready", 0444,
-						dbg->status_dir,
-						hdev->driver_data,
-						&btmrvl_txdnldready_fops);
-=======
 	debugfs_create_u8("psmode", 0644, dbg->config_dir,
 			  &priv->btmrvl_dev.psmode);
 	debugfs_create_file("pscmd", 0644, dbg->config_dir,
@@ -451,7 +213,6 @@ void btmrvl_debugfs_init(struct hci_dev *hdev)
 			  &priv->adapter->hs_state);
 	debugfs_create_u8("txdnldready", 0444, dbg->status_dir,
 			  &priv->btmrvl_dev.tx_dnld_rdy);
->>>>>>> android-3.18
 }
 
 void btmrvl_debugfs_remove(struct hci_dev *hdev)

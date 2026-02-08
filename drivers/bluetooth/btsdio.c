@@ -258,12 +258,7 @@ static int btsdio_flush(struct hci_dev *hdev)
 
 static int btsdio_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
-<<<<<<< HEAD
-	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
-	struct btsdio_data *data = hdev->driver_data;
-=======
 	struct btsdio_data *data = hci_get_drvdata(hdev);
->>>>>>> android-3.18
 
 	BT_DBG("%s", hdev->name);
 

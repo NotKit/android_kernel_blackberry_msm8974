@@ -544,12 +544,6 @@ static struct mtd_part *allocate_partition(struct mtd_info *master,
 	slave->mtd.ecclayout = master->ecclayout;
 	slave->mtd.ecc_step_size = master->ecc_step_size;
 	slave->mtd.ecc_strength = master->ecc_strength;
-<<<<<<< HEAD
-
-#ifndef CONFIG_MTD_LAZYECCSTATS
-	part_fill_badblockstats(&(slave->mtd));
-#endif
-=======
 	slave->mtd.bitflip_threshold = master->bitflip_threshold;
 
 	if (master->_block_isbad) {
@@ -563,7 +557,6 @@ static struct mtd_part *allocate_partition(struct mtd_info *master,
 			offs += slave->mtd.erasesize;
 		}
 	}
->>>>>>> android-3.18
 
 out_register:
 	return slave;

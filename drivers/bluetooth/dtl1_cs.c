@@ -369,11 +369,7 @@ static int dtl1_hci_open(struct hci_dev *hdev)
 
 static int dtl1_hci_flush(struct hci_dev *hdev)
 {
-<<<<<<< HEAD
-	dtl1_info_t *info = (dtl1_info_t *)(hdev->driver_data);
-=======
 	struct dtl1_info *info = hci_get_drvdata(hdev);
->>>>>>> android-3.18
 
 	/* Drop TX queue */
 	skb_queue_purge(&(info->txq));
@@ -397,18 +393,7 @@ static int dtl1_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
 	struct dtl1_info *info = hci_get_drvdata(hdev);
 	struct sk_buff *s;
-<<<<<<< HEAD
-	nsh_t nsh;
-
-	if (!hdev) {
-		BT_ERR("Frame for unknown HCI device (hdev=NULL)");
-		return -ENODEV;
-	}
-
-	info = (dtl1_info_t *)(hdev->driver_data);
-=======
 	struct nsh nsh;
->>>>>>> android-3.18
 
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
@@ -451,20 +436,6 @@ static int dtl1_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 }
 
 
-<<<<<<< HEAD
-static void dtl1_hci_destruct(struct hci_dev *hdev)
-{
-}
-
-
-static int dtl1_hci_ioctl(struct hci_dev *hdev, unsigned int cmd,  unsigned long arg)
-{
-	return -ENOIOCTLCMD;
-}
-
-
-=======
->>>>>>> android-3.18
 
 /* ======================== Card services HCI interaction ======================== */
 
@@ -498,19 +469,10 @@ static int dtl1_open(struct dtl1_info *info)
 	hdev->driver_data = info;
 	SET_HCIDEV_DEV(hdev, &info->p_dev->dev);
 
-<<<<<<< HEAD
-	hdev->open     = dtl1_hci_open;
-	hdev->close    = dtl1_hci_close;
-	hdev->flush    = dtl1_hci_flush;
-	hdev->send     = dtl1_hci_send_frame;
-	hdev->destruct = dtl1_hci_destruct;
-	hdev->ioctl    = dtl1_hci_ioctl;
-=======
 	hdev->open  = dtl1_hci_open;
 	hdev->close = dtl1_hci_close;
 	hdev->flush = dtl1_hci_flush;
 	hdev->send  = dtl1_hci_send_frame;
->>>>>>> android-3.18
 
 	hdev->owner = THIS_MODULE;
 
@@ -600,14 +562,8 @@ static void dtl1_detach(struct pcmcia_device *link)
 {
 	struct dtl1_info *info = link->priv;
 
-<<<<<<< HEAD
-	dtl1_release(link);
-
-	kfree(info);
-=======
 	dtl1_close(info);
 	pcmcia_disable_device(link);
->>>>>>> android-3.18
 }
 
 static int dtl1_confcheck(struct pcmcia_device *p_dev, void *priv_data)
@@ -647,13 +603,8 @@ static int dtl1_config(struct pcmcia_device *link)
 	return 0;
 
 failed:
-<<<<<<< HEAD
-	dtl1_release(link);
-	return -ENODEV;
-=======
 	dtl1_detach(link);
 	return ret;
->>>>>>> android-3.18
 }
 
 

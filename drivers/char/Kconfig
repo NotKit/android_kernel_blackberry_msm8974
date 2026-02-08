@@ -52,6 +52,8 @@ config SGI_MBCS
 
 source "drivers/tty/serial/Kconfig"
 
+source "drivers/char/diag/Kconfig"
+
 config TTY_PRINTK
 	tristate "TTY driver to output user messages via printk"
 	depends on EXPERT && TTY
@@ -593,6 +595,10 @@ config DEVPORT
 	help
 	  Say Y here if you want to support the /dev/port device. The /dev/port
 	  device is similar to /dev/mem, but for I/O ports.
+
+config DCC_TTY
+	tristate "DCC tty driver"
+	depends on ARM
 
 source "drivers/s390/char/Kconfig"
 
