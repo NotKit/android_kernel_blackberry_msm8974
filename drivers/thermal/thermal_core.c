@@ -45,6 +45,8 @@
 #include "thermal_core.h"
 #include "thermal_hwmon.h"
 
+extern int sensor_init(struct thermal_zone_device *tz);
+
 MODULE_AUTHOR("Zhang Rui");
 MODULE_DESCRIPTION("Generic thermal management sysfs support");
 MODULE_LICENSE("GPL v2");
@@ -1615,6 +1617,7 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
 		thermal_zone_device_set_polling(tz, 0);
 
 	thermal_zone_device_reset(tz);
+	sensor_init(tz);
 	/* Update the new thermal zone and mark it as already updated. */
 	if (atomic_cmpxchg(&tz->need_update, 1, 0))
 		thermal_zone_device_update(tz);
