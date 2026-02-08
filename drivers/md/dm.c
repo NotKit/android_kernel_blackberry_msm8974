@@ -1024,7 +1024,7 @@ static void free_rq_clone(struct request *clone)
  * Complete the clone and the original request.
  * Must be called without queue lock.
  */
-static void dm_end_request(struct request *clone, int error)
+void dm_end_request(struct request *clone, int error)
 {
 	int rw = rq_data_dir(clone);
 	struct dm_rq_target_io *tio = clone->end_io_data;
@@ -1115,6 +1115,15 @@ static void dm_done(struct request *clone, int error, bool mapped)
 	int r = error;
 	struct dm_rq_target_io *tio = clone->end_io_data;
 	dm_request_endio_fn rq_end_io = NULL;
+<<<<<<< HEAD
+
+	if (tio->ti) {
+		rq_end_io = tio->ti->type->rq_end_io;
+
+		if (mapped && rq_end_io)
+			r = rq_end_io(tio->ti, clone, error, &tio->info);
+	}
+=======
 
 	if (tio->ti) {
 		rq_end_io = tio->ti->type->rq_end_io;
@@ -1126,6 +1135,7 @@ static void dm_done(struct request *clone, int error, bool mapped)
 	if (unlikely(r == -EREMOTEIO && (clone->cmd_flags & REQ_WRITE_SAME) &&
 		     !clone->q->limits.max_write_same_sectors))
 		disable_write_same(tio->md);
+>>>>>>> android-3.18
 
 	if (r <= 0)
 		/* The target wants to complete the I/O */
@@ -1966,7 +1976,11 @@ requeued:
 delay_and_out:
 	blk_delay_queue(q, 10);
 out:
+<<<<<<< HEAD
+	dm_table_put(map);
+=======
 	dm_put_live_table(md, srcu_idx);
+>>>>>>> android-3.18
 }
 
 int dm_underlying_device_busy(struct request_queue *q)
@@ -2594,22 +2608,31 @@ static void __dm_destroy(struct mapped_device *md, bool wait)
 	set_bit(DMF_FREEING, &md->flags);
 	spin_unlock(&_minor_lock);
 
+<<<<<<< HEAD
+=======
 	spin_lock_irq(q->queue_lock);
 	queue_flag_set(QUEUE_FLAG_DYING, q);
 	spin_unlock_irq(q->queue_lock);
 
+>>>>>>> android-3.18
 	/*
 	 * Take suspend_lock so that presuspend and postsuspend methods
 	 * do not race with internal suspend.
 	 */
 	mutex_lock(&md->suspend_lock);
+<<<<<<< HEAD
+=======
 	map = dm_get_live_table(md, &srcu_idx);
+>>>>>>> android-3.18
 	if (!dm_suspended_md(md)) {
 		dm_table_presuspend_targets(map);
 		dm_table_postsuspend_targets(map);
 	}
+<<<<<<< HEAD
+=======
 	/* dm_put_live_table must be before msleep, otherwise deadlock is possible */
 	dm_put_live_table(md, srcu_idx);
+>>>>>>> android-3.18
 	mutex_unlock(&md->suspend_lock);
 
 	/*
@@ -3037,6 +3060,13 @@ struct mapped_device *dm_get_from_kobject(struct kobject *kobj)
 	struct mapped_device *md;
 
 	md = container_of(kobj, struct mapped_device, kobj_holder.kobj);
+<<<<<<< HEAD
+
+	if (test_bit(DMF_FREEING, &md->flags) ||
+	    dm_deleting_md(md))
+		return NULL;
+=======
+>>>>>>> android-3.18
 
 	spin_lock(&_minor_lock);
 	if (test_bit(DMF_FREEING, &md->flags) || dm_deleting_md(md)) {

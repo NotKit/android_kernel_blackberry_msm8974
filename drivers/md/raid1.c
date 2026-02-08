@@ -975,7 +975,12 @@ static void freeze_array(struct r1conf *conf, int extra)
 {
 	/* stop syncio and normal IO and wait for everything to
 	 * go quite.
+<<<<<<< HEAD
+	 * We increment barrier and nr_waiting, and then
+	 * wait until nr_pending match nr_queued+extra
+=======
 	 * We wait until nr_pending match nr_queued+extra
+>>>>>>> android-3.18
 	 * This is called in the context of one normal IO request
 	 * that has failed. Thus any sync request that might be pending
 	 * will be blocked by nr_pending, and we need to wait for
@@ -985,11 +990,20 @@ static void freeze_array(struct r1conf *conf, int extra)
 	 * we continue.
 	 */
 	spin_lock_irq(&conf->resync_lock);
+<<<<<<< HEAD
+	conf->barrier++;
+	conf->nr_waiting++;
+	wait_event_lock_irq(conf->wait_barrier,
+			    conf->nr_pending == conf->nr_queued+extra,
+			    conf->resync_lock,
+			    flush_pending_writes(conf));
+=======
 	conf->array_frozen = 1;
 	wait_event_lock_irq_cmd(conf->wait_barrier,
 				conf->nr_pending == conf->nr_queued+extra,
 				conf->resync_lock,
 				flush_pending_writes(conf));
+>>>>>>> android-3.18
 	spin_unlock_irq(&conf->resync_lock);
 }
 static void unfreeze_array(struct r1conf *conf)
@@ -1501,6 +1515,15 @@ static void error(struct mddev *mddev, struct md_rdev *rdev)
 	if (test_and_clear_bit(In_sync, &rdev->flags)) {
 		mddev->degraded++;
 		set_bit(Faulty, &rdev->flags);
+<<<<<<< HEAD
+		/*
+		 * if recovery is running, make sure it aborts.
+		 */
+		set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+	} else
+		set_bit(Faulty, &rdev->flags);
+	spin_unlock_irqrestore(&conf->device_lock, flags);
+=======
 	} else
 		set_bit(Faulty, &rdev->flags);
 	spin_unlock_irqrestore(&conf->device_lock, flags);
@@ -1508,7 +1531,9 @@ static void error(struct mddev *mddev, struct md_rdev *rdev)
 	 * if recovery is running, make sure it aborts.
 	 */
 	set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+>>>>>>> android-3.18
 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+	set_bit(MD_CHANGE_PENDING, &mddev->flags);
 	printk(KERN_ALERT
 	       "md/raid1:%s: Disk failure on %s, disabling device.\n"
 	       "md/raid1:%s: Operation continuing on %d devices.\n",
@@ -1724,6 +1749,8 @@ static int raid1_remove_disk(struct mddev *mddev, struct md_rdev *rdev)
 			struct md_rdev *repl =
 				conf->mirrors[conf->raid_disks + number].rdev;
 			freeze_array(conf, 0);
+<<<<<<< HEAD
+=======
 			if (atomic_read(&repl->nr_pending)) {
 				/* It means that some queued IO of retry_list
 				 * hold repl. Thus, we cannot set replacement
@@ -1735,6 +1762,7 @@ static int raid1_remove_disk(struct mddev *mddev, struct md_rdev *rdev)
 				unfreeze_array(conf);
 				goto abort;
 			}
+>>>>>>> android-3.18
 			clear_bit(Replacement, &repl->flags);
 			p->rdev = repl;
 			conf->mirrors[conf->raid_disks + number].rdev = NULL;
@@ -2303,6 +2331,7 @@ static void handle_sync_write_finished(struct r1conf *conf, struct r1bio *r1_bio
 static void handle_write_finished(struct r1conf *conf, struct r1bio *r1_bio)
 {
 	int m;
+	bool fail = false;
 	for (m = 0; m < conf->raid_disks * 2 ; m++)
 		if (r1_bio->bios[m] == IO_MADE_GOOD) {
 			struct md_rdev *rdev = conf->mirrors[m].rdev;
@@ -2315,6 +2344,7 @@ static void handle_write_finished(struct r1conf *conf, struct r1bio *r1_bio)
 			 * narrow down and record precise write
 			 * errors.
 			 */
+			fail = true;
 			if (!narrow_write_error(r1_bio, m)) {
 				md_error(conf->mddev,
 					 conf->mirrors[m].rdev);
@@ -2324,9 +2354,17 @@ static void handle_write_finished(struct r1conf *conf, struct r1bio *r1_bio)
 			rdev_dec_pending(conf->mirrors[m].rdev,
 					 conf->mddev);
 		}
-	if (test_bit(R1BIO_WriteError, &r1_bio->state))
-		close_write(r1_bio);
-	raid_end_bio_io(r1_bio);
+	if (fail) {
+		spin_lock_irq(&conf->device_lock);
+		list_add(&r1_bio->retry_list, &conf->bio_end_io_list);
+		conf->nr_queued++;
+		spin_unlock_irq(&conf->device_lock);
+		md_wakeup_thread(conf->mddev->thread);
+	} else {
+		if (test_bit(R1BIO_WriteError, &r1_bio->state))
+			close_write(r1_bio);
+		raid_end_bio_io(r1_bio);
+	}
 }
 
 static void handle_read_error(struct r1conf *conf, struct r1bio *r1_bio)
@@ -2431,6 +2469,29 @@ static void raid1d(struct md_thread *thread)
 	struct blk_plug plug;
 
 	md_check_recovery(mddev);
+
+	if (!list_empty_careful(&conf->bio_end_io_list) &&
+	    !test_bit(MD_CHANGE_PENDING, &mddev->flags)) {
+		LIST_HEAD(tmp);
+		spin_lock_irqsave(&conf->device_lock, flags);
+		if (!test_bit(MD_CHANGE_PENDING, &mddev->flags)) {
+			while (!list_empty(&conf->bio_end_io_list)) {
+				list_move(conf->bio_end_io_list.prev, &tmp);
+				conf->nr_queued--;
+			}
+		}
+		spin_unlock_irqrestore(&conf->device_lock, flags);
+		while (!list_empty(&tmp)) {
+			r1_bio = list_first_entry(&conf->bio_end_io_list,
+						  struct r1bio, retry_list);
+			list_del(&r1_bio->retry_list);
+			if (mddev->degraded)
+				set_bit(R1BIO_Degraded, &r1_bio->state);
+			if (test_bit(R1BIO_WriteError, &r1_bio->state))
+				close_write(r1_bio);
+			raid_end_bio_io(r1_bio);
+		}
+	}
 
 	blk_start_plug(&plug);
 	for (;;) {
@@ -2840,6 +2901,7 @@ static struct r1conf *setup_conf(struct mddev *mddev)
 	conf->raid_disks = mddev->raid_disks;
 	conf->mddev = mddev;
 	INIT_LIST_HEAD(&conf->retry_list);
+	INIT_LIST_HEAD(&conf->bio_end_io_list);
 
 	spin_lock_init(&conf->resync_lock);
 	init_waitqueue_head(&conf->wait_barrier);
@@ -3150,6 +3212,10 @@ static int raid1_reshape(struct mddev *mddev)
 	conf->raid_disks = mddev->raid_disks = raid_disks;
 	mddev->delta_disks = 0;
 
+<<<<<<< HEAD
+	conf->last_used = 0; /* just make sure it is in-range */
+=======
+>>>>>>> android-3.18
 	unfreeze_array(conf);
 
 	set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);

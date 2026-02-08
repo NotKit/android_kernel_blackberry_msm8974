@@ -250,6 +250,16 @@ static void pop_frame(struct del_stack *s)
 	dm_tm_unlock(s->tm, f->b);
 }
 
+static void unlock_all_frames(struct del_stack *s)
+{
+	struct frame *f;
+
+	while (unprocessed_frames(s)) {
+		f = s->spine + s->top--;
+		dm_tm_unlock(s->tm, f->b);
+	}
+}
+
 int dm_btree_del(struct dm_btree_info *info, dm_block_t root)
 {
 	int r;
@@ -306,9 +316,13 @@ int dm_btree_del(struct dm_btree_info *info, dm_block_t root)
 			pop_frame(s);
 		}
 	}
-
 out:
+	if (r) {
+		/* cleanup all frames of del_stack */
+		unlock_all_frames(s);
+	}
 	kfree(s);
+
 	return r;
 }
 EXPORT_SYMBOL_GPL(dm_btree_del);
@@ -471,8 +485,10 @@ static int btree_split_sibling(struct shadow_spine *s, dm_block_t root,
 
 	r = insert_at(sizeof(__le64), pn, parent_index + 1,
 		      le64_to_cpu(rn->keys[0]), &location);
-	if (r)
+	if (r) {
+		unlock_block(s->info, right);
 		return r;
+	}
 
 	if (key < le64_to_cpu(rn->keys[0])) {
 		unlock_block(s->info, right);
@@ -526,6 +542,16 @@ static int btree_split_beneath(struct shadow_spine *s, uint64_t key)
 	if (r < 0)
 		return r;
 
+<<<<<<< HEAD
+	r = new_block(s->info, &right);
+	if (r < 0) {
+		unlock_block(s->info, left);
+		return r;
+	}
+
+	pn = dm_block_data(new_parent);
+=======
+>>>>>>> android-3.18
 	ln = dm_block_data(left);
 	nr_left = le32_to_cpu(pn->header.nr_entries) / 2;
 

@@ -718,12 +718,15 @@ static int raid10_mergeable_bvec(struct request_queue *q,
 		} on_stack;
 		struct r10bio *r10_bio = &on_stack.r10_bio;
 		int s;
+<<<<<<< HEAD
+=======
 		if (conf->reshape_progress != MaxSector) {
 			/* Cannot give any guidance during reshape */
 			if (max <= biovec->bv_len && bio_sectors == 0)
 				return biovec->bv_len;
 			return 0;
 		}
+>>>>>>> android-3.18
 		r10_bio->sector = sector;
 		raid10_find_phys(conf, r10_bio);
 		rcu_read_lock();
@@ -1079,10 +1082,17 @@ static void freeze_array(struct r10conf *conf, int extra)
 	spin_lock_irq(&conf->resync_lock);
 	conf->barrier++;
 	conf->nr_waiting++;
+<<<<<<< HEAD
+	wait_event_lock_irq(conf->wait_barrier,
+			    conf->nr_pending == conf->nr_queued+extra,
+			    conf->resync_lock,
+			    flush_pending_writes(conf));
+=======
 	wait_event_lock_irq_cmd(conf->wait_barrier,
 				conf->nr_pending == conf->nr_queued+extra,
 				conf->resync_lock,
 				flush_pending_writes(conf));
+>>>>>>> android-3.18
 
 	spin_unlock_irq(&conf->resync_lock);
 }
@@ -1265,7 +1275,11 @@ read_again:
 			 * need another r10_bio.
 			 */
 			sectors_handled = (r10_bio->sector + max_sectors
+<<<<<<< HEAD
+					   - bio->bi_sector);
+=======
 					   - bio->bi_iter.bi_sector);
+>>>>>>> android-3.18
 			r10_bio->sectors = max_sectors;
 			spin_lock_irq(&conf->device_lock);
 			if (bio->bi_phys_segments == 0)
@@ -1457,6 +1471,50 @@ retry_write:
 		if (r10_bio->devs[i].bio) {
 			struct md_rdev *rdev = conf->mirrors[d].rdev;
 			mbio = bio_clone_mddev(bio, GFP_NOIO, mddev);
+<<<<<<< HEAD
+			md_trim_bio(mbio, r10_bio->sector - bio->bi_sector,
+				    max_sectors);
+			r10_bio->devs[i].bio = mbio;
+
+			mbio->bi_sector	= (r10_bio->devs[i].addr+
+					   rdev->data_offset);
+			mbio->bi_bdev = rdev->bdev;
+			mbio->bi_end_io	= raid10_end_write_request;
+			mbio->bi_rw = WRITE | do_sync | do_fua;
+			mbio->bi_private = r10_bio;
+
+			atomic_inc(&r10_bio->remaining);
+			spin_lock_irqsave(&conf->device_lock, flags);
+			bio_list_add(&conf->pending_bio_list, mbio);
+			conf->pending_count++;
+			spin_unlock_irqrestore(&conf->device_lock, flags);
+		}
+
+		if (r10_bio->devs[i].repl_bio) {
+			struct md_rdev *rdev = conf->mirrors[d].replacement;
+			if (rdev == NULL) {
+				/* Replacement just got moved to main 'rdev' */
+				smp_mb();
+				rdev = conf->mirrors[d].rdev;
+			}
+			mbio = bio_clone_mddev(bio, GFP_NOIO, mddev);
+			md_trim_bio(mbio, r10_bio->sector - bio->bi_sector,
+				    max_sectors);
+			r10_bio->devs[i].repl_bio = mbio;
+
+			mbio->bi_sector	= (r10_bio->devs[i].addr+
+					   rdev->data_offset);
+			mbio->bi_bdev = rdev->bdev;
+			mbio->bi_end_io	= raid10_end_write_request;
+			mbio->bi_rw = WRITE | do_sync | do_fua;
+			mbio->bi_private = r10_bio;
+
+			atomic_inc(&r10_bio->remaining);
+			spin_lock_irqsave(&conf->device_lock, flags);
+			bio_list_add(&conf->pending_bio_list, mbio);
+			conf->pending_count++;
+			spin_unlock_irqrestore(&conf->device_lock, flags);
+=======
 			bio_trim(mbio, r10_bio->sector - bio->bi_iter.bi_sector,
 				 max_sectors);
 			r10_bio->devs[i].bio = mbio;
@@ -1533,6 +1591,7 @@ retry_write:
 			spin_unlock_irqrestore(&conf->device_lock, flags);
 			if (!plug)
 				md_wakeup_thread(mddev->thread);
+>>>>>>> android-3.18
 		}
 	}
 
@@ -1664,6 +1723,16 @@ static int _enough(struct r10conf *conf, int previous, int ignore)
 		int cnt = 0;
 		int this = first;
 		while (n--) {
+<<<<<<< HEAD
+			if (conf->mirrors[this].rdev &&
+			    this != ignore)
+				cnt++;
+			this = (this+1) % conf->raid_disks;
+		}
+		if (cnt == 0)
+			return 0;
+		first = (first + conf->near_copies) % conf->raid_disks;
+=======
 			struct md_rdev *rdev;
 			if (this != ignore &&
 			    (rdev = rcu_dereference(conf->mirrors[this].rdev)) &&
@@ -1674,6 +1743,7 @@ static int _enough(struct r10conf *conf, int previous, int ignore)
 		if (cnt == 0)
 			goto out;
 		first = (first + ncopies) % disks;
+>>>>>>> android-3.18
 	} while (first != 0);
 	has_enough = 1;
 out:
@@ -1722,7 +1792,11 @@ static void error(struct mddev *mddev, struct md_rdev *rdev)
 	set_bit(Blocked, &rdev->flags);
 	set_bit(Faulty, &rdev->flags);
 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+<<<<<<< HEAD
+	set_bit(MD_CHANGE_PENDING, &mddev->flags);
+=======
 	spin_unlock_irqrestore(&conf->device_lock, flags);
+>>>>>>> android-3.18
 	printk(KERN_ALERT
 	       "md/raid10:%s: Disk failure on %s, disabling device.\n"
 	       "md/raid10:%s: Operation continuing on %d devices.\n",
@@ -2792,6 +2866,7 @@ static void handle_write_completed(struct r10conf *conf, struct r10bio *r10_bio)
 		}
 		put_buf(r10_bio);
 	} else {
+		bool fail = false;
 		for (m = 0; m < conf->copies; m++) {
 			int dev = r10_bio->devs[m].devnum;
 			struct bio *bio = r10_bio->devs[m].bio;
@@ -2804,6 +2879,7 @@ static void handle_write_completed(struct r10conf *conf, struct r10bio *r10_bio)
 				rdev_dec_pending(rdev, conf->mddev);
 			} else if (bio != NULL &&
 				   !test_bit(BIO_UPTODATE, &bio->bi_flags)) {
+				fail = true;
 				if (!narrow_write_error(r10_bio, m)) {
 					md_error(conf->mddev, rdev);
 					set_bit(R10BIO_Degraded,
@@ -2821,10 +2897,17 @@ static void handle_write_completed(struct r10conf *conf, struct r10bio *r10_bio)
 				rdev_dec_pending(rdev, conf->mddev);
 			}
 		}
-		if (test_bit(R10BIO_WriteError,
-			     &r10_bio->state))
-			close_write(r10_bio);
-		raid_end_bio_io(r10_bio);
+		if (fail) {
+			spin_lock_irq(&conf->device_lock);
+			list_add(&r10_bio->retry_list, &conf->bio_end_io_list);
+			spin_unlock_irq(&conf->device_lock);
+			md_wakeup_thread(conf->mddev->thread);
+		} else {
+			if (test_bit(R10BIO_WriteError,
+				     &r10_bio->state))
+				close_write(r10_bio);
+			raid_end_bio_io(r10_bio);
+		}
 	}
 }
 
@@ -2838,6 +2921,29 @@ static void raid10d(struct md_thread *thread)
 	struct blk_plug plug;
 
 	md_check_recovery(mddev);
+
+	if (!list_empty_careful(&conf->bio_end_io_list) &&
+	    !test_bit(MD_CHANGE_PENDING, &mddev->flags)) {
+		LIST_HEAD(tmp);
+		spin_lock_irqsave(&conf->device_lock, flags);
+		if (!test_bit(MD_CHANGE_PENDING, &mddev->flags)) {
+			list_add(&tmp, &conf->bio_end_io_list);
+			list_del_init(&conf->bio_end_io_list);
+		}
+		spin_unlock_irqrestore(&conf->device_lock, flags);
+		while (!list_empty(&tmp)) {
+			r10_bio = list_first_entry(&conf->bio_end_io_list,
+						  struct r10bio, retry_list);
+			list_del(&r10_bio->retry_list);
+			if (mddev->degraded)
+				set_bit(R10BIO_Degraded, &r10_bio->state);
+
+			if (test_bit(R10BIO_WriteError,
+				     &r10_bio->state))
+				close_write(r10_bio);
+			raid_end_bio_io(r10_bio);
+		}
+	}
 
 	blk_start_plug(&plug);
 	for (;;) {
@@ -3619,6 +3725,7 @@ static struct r10conf *setup_conf(struct mddev *mddev)
 	conf->reshape_safe = conf->reshape_progress;
 	spin_lock_init(&conf->device_lock);
 	INIT_LIST_HEAD(&conf->retry_list);
+	INIT_LIST_HEAD(&conf->bio_end_io_list);
 
 	spin_lock_init(&conf->resync_lock);
 	init_waitqueue_head(&conf->wait_barrier);
@@ -3682,9 +3789,13 @@ static int run(struct mddev *mddev)
 	}
 
 	rdev_for_each(rdev, mddev) {
+<<<<<<< HEAD
+		struct request_queue *q;
+=======
 		long long diff;
 		struct request_queue *q;
 
+>>>>>>> android-3.18
 		disk_idx = rdev->raid_disk;
 		if (disk_idx < 0)
 			continue;
@@ -3705,6 +3816,11 @@ static int run(struct mddev *mddev)
 		q = bdev_get_queue(rdev->bdev);
 		if (q->merge_bvec_fn)
 			mddev->merge_check_needed = 1;
+<<<<<<< HEAD
+
+		disk_stack_limits(mddev->gendisk, rdev->bdev,
+				  rdev->data_offset << 9);
+=======
 		diff = (rdev->new_data_offset - rdev->data_offset);
 		if (!mddev->reshape_backwards)
 			diff = -diff;
@@ -3716,6 +3832,7 @@ static int run(struct mddev *mddev)
 		if (mddev->gendisk)
 			disk_stack_limits(mddev->gendisk, rdev->bdev,
 					  rdev->data_offset << 9);
+>>>>>>> android-3.18
 
 		disk->head_position = 0;
 
