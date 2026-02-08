@@ -87,8 +87,6 @@ int amd_iommu_max_glx_val = -1;
 
 static struct dma_map_ops amd_iommu_dma_ops;
 
-<<<<<<< HEAD
-=======
 /*
  * This struct contains device specific data for the IOMMU
  */
@@ -110,7 +108,6 @@ struct iommu_dev_data {
 	u32 errata;			  /* Bitmap for errata to apply */
 };
 
->>>>>>> android-3.18
 /*
  * general struct to manage commands send to an IOMMU
  */
@@ -658,14 +655,7 @@ retry:
 
 static void iommu_poll_events(struct amd_iommu *iommu)
 {
-<<<<<<< HEAD
-	u32 head, tail, status;
-	unsigned long flags;
-
-	spin_lock_irqsave(&iommu->lock, flags);
-=======
 	u32 head, tail;
->>>>>>> android-3.18
 
 	/* enable event interrupts again */
 	do {
@@ -712,33 +702,11 @@ static void iommu_handle_ppr_entry(struct amd_iommu *iommu, u64 *raw)
 
 static void iommu_poll_ppr_log(struct amd_iommu *iommu)
 {
-<<<<<<< HEAD
-	unsigned long flags;
-	u32 head, tail, status;
-=======
 	u32 head, tail;
->>>>>>> android-3.18
 
 	if (iommu->ppr_log == NULL)
 		return;
 
-<<<<<<< HEAD
-	spin_lock_irqsave(&iommu->lock, flags);
-
-	/* enable ppr interrupts again */
-	do {
-		/*
-		 * Workaround for Erratum ERBT1312
-		 * Clearing the PPR_INT bit may race in the hardware, so read
-		 * it again and make sure it was really cleared
-		 */
-		status = readl(iommu->mmio_base + MMIO_STATUS_OFFSET);
-		writel(MMIO_STATUS_PPR_INT_MASK,
-		       iommu->mmio_base + MMIO_STATUS_OFFSET);
-	} while (status & MMIO_STATUS_PPR_INT_MASK);
-
-=======
->>>>>>> android-3.18
 	head = readl(iommu->mmio_base + MMIO_PPR_HEAD_OFFSET);
 	tail = readl(iommu->mmio_base + MMIO_PPR_TAIL_OFFSET);
 
@@ -773,26 +741,6 @@ static void iommu_poll_ppr_log(struct amd_iommu *iommu)
 		/* Update head pointer of hardware ring-buffer */
 		head = (head + PPR_ENTRY_SIZE) % PPR_LOG_SIZE;
 		writel(head, iommu->mmio_base + MMIO_PPR_HEAD_OFFSET);
-<<<<<<< HEAD
-
-		/*
-		 * Release iommu->lock because ppr-handling might need to
-		 * re-aquire it
-		 */
-		spin_unlock_irqrestore(&iommu->lock, flags);
-
-		/* Handle PPR entry */
-		iommu_handle_ppr_entry(iommu, entry);
-
-		spin_lock_irqsave(&iommu->lock, flags);
-
-		/* Refresh ring-buffer information */
-		head = readl(iommu->mmio_base + MMIO_PPR_HEAD_OFFSET);
-		tail = readl(iommu->mmio_base + MMIO_PPR_TAIL_OFFSET);
-	}
-
-	spin_unlock_irqrestore(&iommu->lock, flags);
-=======
 
 		/* Handle PPR entry */
 		iommu_handle_ppr_entry(iommu, entry);
@@ -801,7 +749,6 @@ static void iommu_poll_ppr_log(struct amd_iommu *iommu)
 		head = readl(iommu->mmio_base + MMIO_PPR_HEAD_OFFSET);
 		tail = readl(iommu->mmio_base + MMIO_PPR_TAIL_OFFSET);
 	}
->>>>>>> android-3.18
 }
 
 irqreturn_t amd_iommu_int_thread(int irq, void *data)
@@ -3276,10 +3223,6 @@ static void cleanup_domain(struct protection_domain *domain)
 		entry = list_first_entry(&domain->dev_list,
 					 struct iommu_dev_data, list);
 		__detach_device(entry);
-<<<<<<< HEAD
-		atomic_set(&entry->bind, 0);
-=======
->>>>>>> android-3.18
 	}
 
 	write_unlock_irqrestore(&amd_iommu_devtable_lock, flags);
@@ -3515,18 +3458,11 @@ static bool amd_iommu_capable(enum iommu_cap cap)
 		return (irq_remapping_enabled == 1);
 	}
 
-<<<<<<< HEAD
-	return 0;
-}
-
-static struct iommu_ops amd_iommu_ops = {
-=======
 	return false;
 }
 
 static const struct iommu_ops amd_iommu_ops = {
 	.capable = amd_iommu_capable,
->>>>>>> android-3.18
 	.domain_init = amd_iommu_domain_init,
 	.domain_destroy = amd_iommu_domain_destroy,
 	.attach_dev = amd_iommu_attach_device,
@@ -3534,10 +3470,6 @@ static const struct iommu_ops amd_iommu_ops = {
 	.map = amd_iommu_map,
 	.unmap = amd_iommu_unmap,
 	.iova_to_phys = amd_iommu_iova_to_phys,
-<<<<<<< HEAD
-	.domain_has_cap = amd_iommu_domain_has_cap,
-=======
->>>>>>> android-3.18
 	.pgsize_bitmap	= AMD_IOMMU_PGSIZES,
 };
 

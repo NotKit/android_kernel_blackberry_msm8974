@@ -216,7 +216,7 @@ static int msm_iommu_probe(struct platform_device *pdev)
 	drvdata->pclk = iommu_pclk;
 	drvdata->clk = iommu_clk;
 	drvdata->base = regs_base;
-	drvdata->irq = irq;
+	/* drvdata->irq = irq; */
 	drvdata->ncb = iommu_dev->ncb;
 
 	pr_info("device %s mapped at %p, irq %d with %d ctx banks\n",

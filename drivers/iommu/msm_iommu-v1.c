@@ -30,8 +30,8 @@
 #include <asm/sizes.h>
 
 #include <mach/iommu_hw-v1.h>
-#include <mach/iommu.h>
-#include <mach/msm_iommu_priv.h>
+#include "msm_iommu.h"
+#include "msm_iommu_internal.h"
 #include <mach/iommu_perfmon.h>
 #include <mach/msm_bus.h>
 #include "msm_iommu_pagetable.h"
@@ -641,7 +641,7 @@ static void __program_context(struct msm_iommu_drvdata *iommu_drvdata,
 	mb();
 }
 
-static int msm_iommu_domain_init(struct iommu_domain *domain, int flags)
+static int msm_iommu_domain_init(struct iommu_domain *domain)
 {
 	struct msm_iommu_priv *priv;
 
@@ -650,7 +650,7 @@ static int msm_iommu_domain_init(struct iommu_domain *domain, int flags)
 		goto fail_nomem;
 
 #ifdef CONFIG_IOMMU_PGTABLES_L2
-	priv->pt.redirect = flags & MSM_IOMMU_DOMAIN_PT_CACHEABLE;
+	priv->pt.redirect = 0;
 #endif
 
 	INIT_LIST_HEAD(&priv->list_attached);
@@ -1179,8 +1179,6 @@ static struct iommu_ops msm_iommu_ops = {
 	.map_range = msm_iommu_map_range,
 	.unmap_range = msm_iommu_unmap_range,
 	.iova_to_phys = msm_iommu_iova_to_phys,
-	.domain_has_cap = msm_iommu_domain_has_cap,
-	.get_pt_base_addr = msm_iommu_get_pt_base_addr,
 	.pgsize_bitmap = MSM_IOMMU_PGSIZES,
 };
 
@@ -1197,3 +1195,8 @@ subsys_initcall(msm_iommu_init);
 
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("MSM SMMU v2 Driver");
+
+irqreturn_t msm_iommu_fault_handler(int irq, void *dev_id)
+{
+	return msm_iommu_fault_handler_v2(irq, dev_id);
+}

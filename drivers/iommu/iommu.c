@@ -26,22 +26,12 @@
 #include <linux/slab.h>
 #include <linux/errno.h>
 #include <linux/iommu.h>
-<<<<<<< HEAD
-#include <linux/scatterlist.h>
-#include <linux/idr.h>
-#include <linux/notifier.h>
-#include <linux/err.h>
-
-static struct kset *iommu_group_kset;
-static struct idr iommu_group_idr;
-static struct mutex iommu_group_mutex;
-
-=======
 #include <linux/idr.h>
 #include <linux/notifier.h>
 #include <linux/err.h>
 #include <linux/pci.h>
 #include <linux/bitops.h>
+#include <linux/scatterlist.h>
 #include <trace/events/iommu.h>
 
 static struct kset *iommu_group_kset;
@@ -52,7 +42,6 @@ struct iommu_callback_data {
 	const struct iommu_ops *ops;
 };
 
->>>>>>> android-3.18
 struct iommu_group {
 	struct kobject kobj;
 	struct kobject *devices_kobj;
@@ -64,7 +53,6 @@ struct iommu_group {
 	char *name;
 	int id;
 };
-<<<<<<< HEAD
 
 struct iommu_device {
 	struct list_head list;
@@ -88,31 +76,6 @@ struct iommu_group_attribute iommu_group_attr_##_name =		\
 #define to_iommu_group(_kobj)		\
 	container_of(_kobj, struct iommu_group, kobj)
 
-=======
-
-struct iommu_device {
-	struct list_head list;
-	struct device *dev;
-	char *name;
-};
-
-struct iommu_group_attribute {
-	struct attribute attr;
-	ssize_t (*show)(struct iommu_group *group, char *buf);
-	ssize_t (*store)(struct iommu_group *group,
-			 const char *buf, size_t count);
-};
-
-#define IOMMU_GROUP_ATTR(_name, _mode, _show, _store)		\
-struct iommu_group_attribute iommu_group_attr_##_name =		\
-	__ATTR(_name, _mode, _show, _store)
-
-#define to_iommu_group_attr(_attr)	\
-	container_of(_attr, struct iommu_group_attribute, attr)
-#define to_iommu_group(_kobj)		\
-	container_of(_kobj, struct iommu_group, kobj)
-
->>>>>>> android-3.18
 static ssize_t iommu_group_attr_show(struct kobject *kobj,
 				     struct attribute *__attr, char *buf)
 {
@@ -124,7 +87,6 @@ static ssize_t iommu_group_attr_show(struct kobject *kobj,
 		ret = attr->show(group, buf);
 	return ret;
 }
-<<<<<<< HEAD
 
 static ssize_t iommu_group_attr_store(struct kobject *kobj,
 				      struct attribute *__attr,
@@ -134,17 +96,6 @@ static ssize_t iommu_group_attr_store(struct kobject *kobj,
 	struct iommu_group *group = to_iommu_group(kobj);
 	ssize_t ret = -EIO;
 
-=======
-
-static ssize_t iommu_group_attr_store(struct kobject *kobj,
-				      struct attribute *__attr,
-				      const char *buf, size_t count)
-{
-	struct iommu_group_attribute *attr = to_iommu_group_attr(__attr);
-	struct iommu_group *group = to_iommu_group(kobj);
-	ssize_t ret = -EIO;
-
->>>>>>> android-3.18
 	if (attr->store)
 		ret = attr->store(group, buf, count);
 	return ret;
@@ -157,7 +108,6 @@ static const struct sysfs_ops iommu_group_sysfs_ops = {
 
 static int iommu_group_create_file(struct iommu_group *group,
 				   struct iommu_group_attribute *attr)
-<<<<<<< HEAD
 {
 	return sysfs_create_file(&group->kobj, &attr->attr);
 }
@@ -173,231 +123,7 @@ static ssize_t iommu_group_show_name(struct iommu_group *group, char *buf)
 	return sprintf(buf, "%s\n", group->name);
 }
 
-static IOMMU_GROUP_ATTR(name, S_IRUGO, iommu_group_show_name, NULL);
 
-static void iommu_group_release(struct kobject *kobj)
-{
-	struct iommu_group *group = to_iommu_group(kobj);
-
-	if (group->iommu_data_release)
-		group->iommu_data_release(group->iommu_data);
-
-	mutex_lock(&iommu_group_mutex);
-	idr_remove(&iommu_group_idr, group->id);
-	mutex_unlock(&iommu_group_mutex);
-
-	kfree(group->name);
-	kfree(group);
-}
-
-static struct kobj_type iommu_group_ktype = {
-	.sysfs_ops = &iommu_group_sysfs_ops,
-	.release = iommu_group_release,
-};
-
-/**
- * iommu_group_alloc - Allocate a new group
- * @name: Optional name to associate with group, visible in sysfs
- *
- * This function is called by an iommu driver to allocate a new iommu
- * group.  The iommu group represents the minimum granularity of the iommu.
- * Upon successful return, the caller holds a reference to the supplied
- * group in order to hold the group until devices are added.  Use
- * iommu_group_put() to release this extra reference count, allowing the
- * group to be automatically reclaimed once it has no devices or external
- * references.
- */
-struct iommu_group *iommu_group_alloc(void)
-{
-	struct iommu_group *group;
-	int ret;
-
-	group = kzalloc(sizeof(*group), GFP_KERNEL);
-	if (!group)
-		return ERR_PTR(-ENOMEM);
-
-	group->kobj.kset = iommu_group_kset;
-	mutex_init(&group->mutex);
-	INIT_LIST_HEAD(&group->devices);
-	BLOCKING_INIT_NOTIFIER_HEAD(&group->notifier);
-
-	mutex_lock(&iommu_group_mutex);
-
-again:
-	if (unlikely(0 == idr_pre_get(&iommu_group_idr, GFP_KERNEL))) {
-		kfree(group);
-		mutex_unlock(&iommu_group_mutex);
-		return ERR_PTR(-ENOMEM);
-	}
-
-	ret = idr_get_new_above(&iommu_group_idr, group, 1, &group->id);
-	if (ret == -EAGAIN)
-		goto again;
-	mutex_unlock(&iommu_group_mutex);
-
-	if (ret == -ENOSPC) {
-		kfree(group);
-		return ERR_PTR(ret);
-	}
-
-	ret = kobject_init_and_add(&group->kobj, &iommu_group_ktype,
-				   NULL, "%d", group->id);
-	if (ret) {
-		mutex_lock(&iommu_group_mutex);
-		idr_remove(&iommu_group_idr, group->id);
-		mutex_unlock(&iommu_group_mutex);
-		kfree(group);
-		return ERR_PTR(ret);
-	}
-
-	group->devices_kobj = kobject_create_and_add("devices", &group->kobj);
-	if (!group->devices_kobj) {
-		kobject_put(&group->kobj); /* triggers .release & free */
-		return ERR_PTR(-ENOMEM);
-	}
-
-	/*
-	 * The devices_kobj holds a reference on the group kobject, so
-	 * as long as that exists so will the group.  We can therefore
-	 * use the devices_kobj for reference counting.
-	 */
-	kobject_put(&group->kobj);
-
-	return group;
-}
-EXPORT_SYMBOL_GPL(iommu_group_alloc);
-
-/**
- * iommu_group_get_iommudata - retrieve iommu_data registered for a group
- * @group: the group
- *
- * iommu drivers can store data in the group for use when doing iommu
- * operations.  This function provides a way to retrieve it.  Caller
- * should hold a group reference.
- */
-void *iommu_group_get_iommudata(struct iommu_group *group)
-{
-	return group->iommu_data;
-}
-EXPORT_SYMBOL_GPL(iommu_group_get_iommudata);
-
-/**
- * iommu_group_set_iommudata - set iommu_data for a group
- * @group: the group
- * @iommu_data: new data
- * @release: release function for iommu_data
- *
- * iommu drivers can store data in the group for use when doing iommu
- * operations.  This function provides a way to set the data after
- * the group has been allocated.  Caller should hold a group reference.
- */
-void iommu_group_set_iommudata(struct iommu_group *group, void *iommu_data,
-			       void (*release)(void *iommu_data))
-{
-	group->iommu_data = iommu_data;
-	group->iommu_data_release = release;
-}
-EXPORT_SYMBOL_GPL(iommu_group_set_iommudata);
-
-/**
- * iommu_group_set_name - set name for a group
- * @group: the group
- * @name: name
- *
- * Allow iommu driver to set a name for a group.  When set it will
- * appear in a name attribute file under the group in sysfs.
- */
-int iommu_group_set_name(struct iommu_group *group, const char *name)
-{
-	int ret;
-
-	if (group->name) {
-		iommu_group_remove_file(group, &iommu_group_attr_name);
-		kfree(group->name);
-		group->name = NULL;
-		if (!name)
-			return 0;
-	}
-
-	group->name = kstrdup(name, GFP_KERNEL);
-	if (!group->name)
-		return -ENOMEM;
-
-	ret = iommu_group_create_file(group, &iommu_group_attr_name);
-	if (ret) {
-		kfree(group->name);
-		group->name = NULL;
-		return ret;
-	}
-=======
-{
-	return sysfs_create_file(&group->kobj, &attr->attr);
-}
-
-static void iommu_group_remove_file(struct iommu_group *group,
-				    struct iommu_group_attribute *attr)
-{
-	sysfs_remove_file(&group->kobj, &attr->attr);
-}
->>>>>>> android-3.18
-
-static ssize_t iommu_group_show_name(struct iommu_group *group, char *buf)
-{
-	return sprintf(buf, "%s\n", group->name);
-}
-EXPORT_SYMBOL_GPL(iommu_group_set_name);
-
-<<<<<<< HEAD
-/**
- * iommu_group_add_device - add a device to an iommu group
- * @group: the group into which to add the device (reference should be held)
- * @dev: the device
- *
- * This function is called by an iommu driver to add a device into a
- * group.  Adding a device increments the group reference count.
- */
-int iommu_group_add_device(struct iommu_group *group, struct device *dev)
-{
-	int ret, i = 0;
-	struct iommu_device *device;
-
-	device = kzalloc(sizeof(*device), GFP_KERNEL);
-	if (!device)
-		return -ENOMEM;
-
-	device->dev = dev;
-
-	ret = sysfs_create_link(&dev->kobj, &group->kobj, "iommu_group");
-	if (ret) {
-		kfree(device);
-		return ret;
-	}
-
-	device->name = kasprintf(GFP_KERNEL, "%s", kobject_name(&dev->kobj));
-rename:
-	if (!device->name) {
-		sysfs_remove_link(&dev->kobj, "iommu_group");
-		kfree(device);
-		return -ENOMEM;
-	}
-
-	ret = sysfs_create_link_nowarn(group->devices_kobj,
-				       &dev->kobj, device->name);
-	if (ret) {
-		kfree(device->name);
-		if (ret == -EEXIST && i >= 0) {
-			/*
-			 * Account for the slim chance of collision
-			 * and append an instance to the name.
-			 */
-			device->name = kasprintf(GFP_KERNEL, "%s.%d",
-						 kobject_name(&dev->kobj), i++);
-			goto rename;
-		}
-
-		sysfs_remove_link(&dev->kobj, "iommu_group");
-		kfree(device);
-=======
 static IOMMU_GROUP_ATTR(name, S_IRUGO, iommu_group_show_name, NULL);
 
 static void iommu_group_release(struct kobject *kobj)
@@ -576,264 +302,14 @@ int iommu_group_set_name(struct iommu_group *group, const char *name)
 	if (ret) {
 		kfree(group->name);
 		group->name = NULL;
->>>>>>> android-3.18
 		return ret;
 	}
 
 	kobject_get(group->devices_kobj);
 
-	dev->iommu_group = group;
-
-	mutex_lock(&group->mutex);
-	list_add_tail(&device->list, &group->devices);
-	mutex_unlock(&group->mutex);
-
-	/* Notify any listeners about change to group. */
-	blocking_notifier_call_chain(&group->notifier,
-				     IOMMU_GROUP_NOTIFY_ADD_DEVICE, dev);
-	return 0;
-}
-<<<<<<< HEAD
-EXPORT_SYMBOL_GPL(iommu_group_add_device);
-
-/**
- * iommu_group_remove_device - remove a device from it's current group
- * @dev: device to be removed
- *
- * This function is called by an iommu driver to remove the device from
- * it's current group.  This decrements the iommu group reference count.
- */
-void iommu_group_remove_device(struct device *dev)
-{
-	struct iommu_group *group = dev->iommu_group;
-	struct iommu_device *tmp_device, *device = NULL;
-
-	/* Pre-notify listeners that a device is being removed. */
-	blocking_notifier_call_chain(&group->notifier,
-				     IOMMU_GROUP_NOTIFY_DEL_DEVICE, dev);
-
-	mutex_lock(&group->mutex);
-	list_for_each_entry(tmp_device, &group->devices, list) {
-		if (tmp_device->dev == dev) {
-			device = tmp_device;
-			list_del(&device->list);
-			break;
-		}
-	}
-	mutex_unlock(&group->mutex);
-
-	if (!device)
-		return;
-
-	sysfs_remove_link(group->devices_kobj, device->name);
-	sysfs_remove_link(&dev->kobj, "iommu_group");
-
-	kfree(device->name);
-	kfree(device);
-	dev->iommu_group = NULL;
-	kobject_put(group->devices_kobj);
-}
-EXPORT_SYMBOL_GPL(iommu_group_remove_device);
-
-/**
- * iommu_group_for_each_dev - iterate over each device in the group
- * @group: the group
- * @data: caller opaque data to be passed to callback function
- * @fn: caller supplied callback function
- *
- * This function is called by group users to iterate over group devices.
- * Callers should hold a reference count to the group during callback.
- * The group->mutex is held across callbacks, which will block calls to
- * iommu_group_add/remove_device.
- */
-int iommu_group_for_each_dev(struct iommu_group *group, void *data,
-			     int (*fn)(struct device *, void *))
-{
-	struct iommu_device *device;
-	int ret = 0;
-
-	mutex_lock(&group->mutex);
-	list_for_each_entry(device, &group->devices, list) {
-		ret = fn(device->dev, data);
-		if (ret)
-			break;
-	}
-	mutex_unlock(&group->mutex);
-	return ret;
-}
-EXPORT_SYMBOL_GPL(iommu_group_for_each_dev);
-
-/**
- * iommu_group_get - Return the group for a device and increment reference
- * @dev: get the group that this device belongs to
- *
- * This function is called by iommu drivers and users to get the group
- * for the specified device.  If found, the group is returned and the group
- * reference in incremented, else NULL.
- */
-struct iommu_group *iommu_group_get(struct device *dev)
-{
-	struct iommu_group *group = dev->iommu_group;
-
-	if (group)
-		kobject_get(group->devices_kobj);
-
-	return group;
-}
-EXPORT_SYMBOL_GPL(iommu_group_get);
-
-/**
- * iommu_group_find - Find and return the group based on the group name.
- * Also increment the reference count.
- * @name: the name of the group
- *
- * This function is called by iommu drivers and clients to get the group
- * by the specified name.  If found, the group is returned and the group
- * reference is incremented, else NULL.
- */
-struct iommu_group *iommu_group_find(const char *name)
-{
-	struct iommu_group *group;
-	int next = 0;
-
-	mutex_lock(&iommu_group_mutex);
-	while ((group = idr_get_next(&iommu_group_idr, &next))) {
-		if (group->name) {
-			if (strcmp(group->name, name) == 0)
-				break;
-		}
-		++next;
-	}
-	mutex_unlock(&iommu_group_mutex);
-
-	if (group)
-		kobject_get(group->devices_kobj);
-
-	return group;
-}
-EXPORT_SYMBOL_GPL(iommu_group_find);
-
-/**
- * iommu_group_put - Decrement group reference
- * @group: the group to use
- *
- * This function is called by iommu drivers and users to release the
- * iommu group.  Once the reference count is zero, the group is released.
- */
-void iommu_group_put(struct iommu_group *group)
-{
-	if (group)
-		kobject_put(group->devices_kobj);
-}
-EXPORT_SYMBOL_GPL(iommu_group_put);
-
-/**
- * iommu_group_register_notifier - Register a notifier for group changes
- * @group: the group to watch
- * @nb: notifier block to signal
- *
- * This function allows iommu group users to track changes in a group.
- * See include/linux/iommu.h for actions sent via this notifier.  Caller
- * should hold a reference to the group throughout notifier registration.
- */
-int iommu_group_register_notifier(struct iommu_group *group,
-				  struct notifier_block *nb)
-{
-	return blocking_notifier_chain_register(&group->notifier, nb);
-}
-EXPORT_SYMBOL_GPL(iommu_group_register_notifier);
-
-/**
- * iommu_group_unregister_notifier - Unregister a notifier
- * @group: the group to watch
- * @nb: notifier block to signal
- *
- * Unregister a previously registered group notifier block.
- */
-int iommu_group_unregister_notifier(struct iommu_group *group,
-				    struct notifier_block *nb)
-{
-	return blocking_notifier_chain_unregister(&group->notifier, nb);
-}
-EXPORT_SYMBOL_GPL(iommu_group_unregister_notifier);
-
-/**
- * iommu_group_id - Return ID for a group
- * @group: the group to ID
- *
- * Return the unique ID for the group matching the sysfs group number.
- */
-int iommu_group_id(struct iommu_group *group)
-{
-	return group->id;
-}
-EXPORT_SYMBOL_GPL(iommu_group_id);
-
-static int add_iommu_group(struct device *dev, void *data)
-{
-	struct iommu_ops *ops = data;
-
-	if (!ops->add_device)
-		return -ENODEV;
-
-	WARN_ON(dev->iommu_group);
-
-	ops->add_device(dev);
 
 	return 0;
 }
-
-static int iommu_bus_notifier(struct notifier_block *nb,
-			      unsigned long action, void *data)
-{
-	struct device *dev = data;
-	struct iommu_ops *ops = dev->bus->iommu_ops;
-	struct iommu_group *group;
-	unsigned long group_action = 0;
-
-	/*
-	 * ADD/DEL call into iommu driver ops if provided, which may
-	 * result in ADD/DEL notifiers to group->notifier
-	 */
-	if (action == BUS_NOTIFY_ADD_DEVICE) {
-		if (ops->add_device)
-			return ops->add_device(dev);
-	} else if (action == BUS_NOTIFY_DEL_DEVICE) {
-		if (ops->remove_device && dev->iommu_group) {
-			ops->remove_device(dev);
-			return 0;
-		}
-	}
-
-	/*
-	 * Remaining BUS_NOTIFYs get filtered and republished to the
-	 * group, if anyone is listening
-	 */
-	group = iommu_group_get(dev);
-	if (!group)
-		return 0;
-
-	switch (action) {
-	case BUS_NOTIFY_BIND_DRIVER:
-		group_action = IOMMU_GROUP_NOTIFY_BIND_DRIVER;
-		break;
-	case BUS_NOTIFY_BOUND_DRIVER:
-		group_action = IOMMU_GROUP_NOTIFY_BOUND_DRIVER;
-		break;
-	case BUS_NOTIFY_UNBIND_DRIVER:
-		group_action = IOMMU_GROUP_NOTIFY_UNBIND_DRIVER;
-		break;
-	case BUS_NOTIFY_UNBOUND_DRIVER:
-		group_action = IOMMU_GROUP_NOTIFY_UNBOUND_DRIVER;
-		break;
-	}
-
-	if (group_action)
-		blocking_notifier_call_chain(&group->notifier,
-					     group_action, dev);
-
-	iommu_group_put(group);
-=======
 EXPORT_SYMBOL_GPL(iommu_group_set_name);
 
 /**
@@ -895,7 +371,6 @@ rename:
 				     IOMMU_GROUP_NOTIFY_ADD_DEVICE, dev);
 
 	trace_add_device_to_group(group->id, dev);
->>>>>>> android-3.18
 	return 0;
 
 err_free_name:
@@ -909,10 +384,6 @@ err_free_device:
 }
 EXPORT_SYMBOL_GPL(iommu_group_add_device);
 
-<<<<<<< HEAD
-static struct notifier_block iommu_bus_nb = {
-	.notifier_call = iommu_bus_notifier,
-=======
 /**
  * iommu_group_remove_device - remove a device from it's current group
  * @dev: device to be removed
@@ -1153,7 +624,6 @@ static struct iommu_group *get_pci_alias_group(struct pci_dev *pdev,
 struct group_for_pci_data {
 	struct pci_dev *pdev;
 	struct iommu_group *group;
->>>>>>> android-3.18
 };
 
 /*
@@ -1162,10 +632,6 @@ struct group_for_pci_data {
  */
 static int get_pci_alias_or_group(struct pci_dev *pdev, u16 alias, void *opaque)
 {
-<<<<<<< HEAD
-	bus_register_notifier(bus, &iommu_bus_nb);
-	bus_for_each_dev(bus, NULL, ops, add_iommu_group);
-=======
 	struct group_for_pci_data *data = opaque;
 
 	data->pdev = pdev;
@@ -1361,7 +827,6 @@ static int iommu_bus_init(struct bus_type *bus, const struct iommu_ops *ops)
 		return err;
 	}
 	return bus_for_each_dev(bus, NULL, &cb, add_iommu_group);
->>>>>>> android-3.18
 }
 
 /**
@@ -1427,7 +892,7 @@ void iommu_set_fault_handler(struct iommu_domain *domain,
 }
 EXPORT_SYMBOL_GPL(iommu_set_fault_handler);
 
-struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags)
+struct iommu_domain *iommu_domain_alloc(struct bus_type *bus)
 {
 	struct iommu_domain *domain;
 	int ret;
@@ -1441,7 +906,7 @@ struct iommu_domain *iommu_domain_alloc(struct bus_type *bus, int flags)
 
 	domain->ops = bus->iommu_ops;
 
-	ret = domain->ops->domain_init(domain, flags);
+	ret = domain->ops->domain_init(domain);
 	if (ret)
 		goto out_free;
 
@@ -1525,12 +990,7 @@ void iommu_detach_group(struct iommu_domain *domain, struct iommu_group *group)
 }
 EXPORT_SYMBOL_GPL(iommu_detach_group);
 
-<<<<<<< HEAD
-phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
-			       unsigned long iova)
-=======
 phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova)
->>>>>>> android-3.18
 {
 	if (unlikely(domain->ops->iova_to_phys == NULL))
 		return 0;
@@ -1672,14 +1132,11 @@ size_t iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
 }
 EXPORT_SYMBOL_GPL(iommu_unmap);
 
-<<<<<<< HEAD
 int iommu_map_range(struct iommu_domain *domain, unsigned int iova,
 		    struct scatterlist *sg, unsigned int len, int prot)
 {
 	if (unlikely(domain->ops->map_range == NULL))
 		return -ENODEV;
-
-	BUG_ON(iova & (~PAGE_MASK));
 
 	return domain->ops->map_range(domain, iova, sg, len, prot);
 }
@@ -1691,34 +1148,10 @@ int iommu_unmap_range(struct iommu_domain *domain, unsigned int iova,
 	if (unlikely(domain->ops->unmap_range == NULL))
 		return -ENODEV;
 
-	BUG_ON(iova & (~PAGE_MASK));
-
 	return domain->ops->unmap_range(domain, iova, len);
 }
 EXPORT_SYMBOL_GPL(iommu_unmap_range);
 
-phys_addr_t iommu_get_pt_base_addr(struct iommu_domain *domain)
-{
-	if (unlikely(domain->ops->get_pt_base_addr == NULL))
-		return 0;
-
-	return domain->ops->get_pt_base_addr(domain);
-}
-EXPORT_SYMBOL_GPL(iommu_get_pt_base_addr);
-
-static int __init iommu_init(void)
-{
-	iommu_group_kset = kset_create_and_add("iommu_groups",
-					       NULL, kernel_kobj);
-	idr_init(&iommu_group_idr);
-	mutex_init(&iommu_group_mutex);
-
-	BUG_ON(!iommu_group_kset);
-
-	return 0;
-}
-subsys_initcall(iommu_init);
-=======
 
 int iommu_domain_window_enable(struct iommu_domain *domain, u32 wnd_nr,
 			       phys_addr_t paddr, u64 size, int prot)
@@ -1817,4 +1250,3 @@ int iommu_domain_set_attr(struct iommu_domain *domain,
 	return ret;
 }
 EXPORT_SYMBOL_GPL(iommu_domain_set_attr);
->>>>>>> android-3.18
