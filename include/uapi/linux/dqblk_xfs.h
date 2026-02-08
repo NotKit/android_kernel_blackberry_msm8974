@@ -38,6 +38,7 @@
 #define Q_XGETQSTAT	XQM_CMD(5)	/* get quota subsystem status */
 #define Q_XQUOTARM	XQM_CMD(6)	/* free disk space used by dquots */
 #define Q_XQUOTASYNC	XQM_CMD(7)	/* delalloc flush, updates dquots */
+#define Q_XGETQSTATV	XQM_CMD(8)	/* get quota subsystem status (version 2) */
 
 /*
  * fs_disk_quota structure:
@@ -162,5 +163,23 @@ typedef struct fs_quota_stat {
 	__u16		qs_bwarnlimit;	/* limit for num warnings */
 	__u16		qs_iwarnlimit;	/* limit for num warnings */
 } fs_quota_stat_t;
+
+#define FS_QSTATV_VERSION1	1	/* fs_quota_statv.qs_version */
+
+struct fs_quota_statv {
+	__s8		qs_version;	/* version number for future changes */
+	__u8		qs_pad1;	/* pad for 16bit alignment */
+	__u16		qs_flags;	/* FS_QUOTA_{U,P,G}DQ_{ACCT,ENFD} */
+	__u32		qs_incoredqs;	/* number of dquots incore */
+	fs_qfilestat_t	qs_uquota;	/* user quota storage information */
+	fs_qfilestat_t	qs_gquota;	/* group quota storage information */
+	fs_qfilestat_t	qs_pquota;	/* project quota storage information */
+	__s32		qs_btimelimit;  /* limit for blks timer */	
+	__s32		qs_itimelimit;  /* limit for inodes timer */	
+	__s32		qs_rtbtimelimit;/* limit for rt blks timer */	
+	__u16		qs_bwarnlimit;	/* limit for num warnings */
+	__u16		qs_iwarnlimit;	/* limit for num warnings */
+	__u64		qs_pad2[8];	/* for future proofing */
+};
 
 #endif	/* _LINUX_DQBLK_XFS_H */

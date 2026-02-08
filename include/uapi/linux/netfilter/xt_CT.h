@@ -4,6 +4,8 @@
 #include <linux/types.h>
 
 #define XT_CT_NOTRACK	0x1
+#define XT_CT_NOTRACK_ALIAS	0x2
+#define XT_CT_MASK		0x3
 
 struct xt_ct_target_info {
 	__u16 flags;

@@ -29,6 +29,8 @@ struct sockaddr_ll {
 /* These ones are invisible by user level */
 #define PACKET_LOOPBACK		5		/* MC/BRD frame looped back */
 #define PACKET_FASTROUTE	6		/* Fastrouted frame	*/
+#define PACKET_KERNEL		7		/* To kernel space	*/
+#define PACKET_USER		8		/* To user space	*/
 
 /* Packet socket options */
 
@@ -54,7 +56,14 @@ struct sockaddr_ll {
 #define PACKET_FANOUT_HASH		0
 #define PACKET_FANOUT_LB		1
 #define PACKET_FANOUT_CPU		2
+#define PACKET_FANOUT_ROLLOVER		3
+#define PACKET_FANOUT_RND		4
+#define PACKET_FANOUT_QM		5
 #define PACKET_FANOUT_FLAG_DEFRAG	0x8000
+#define PACKET_FANOUT_FLAG_ROLLOVER	0x1000
+
+#define PACKET_TX_HAS_OFF		19
+#define PACKET_QDISC_BYPASS		20
 
 struct tpacket_stats {
 	unsigned int	tp_packets;
@@ -79,7 +88,7 @@ struct tpacket_auxdata {
 	__u16		tp_mac;
 	__u16		tp_net;
 	__u16		tp_vlan_tci;
-	__u16		tp_padding;
+	__u16		tp_vlan_tpid;
 };
 
 /* Rx ring - header status */
@@ -89,6 +98,7 @@ struct tpacket_auxdata {
 #define TP_STATUS_LOSING	0x4
 #define TP_STATUS_CSUMNOTREADY	0x8
 #define TP_STATUS_VLAN_VALID   0x10 /* auxdata has valid tp_vlan_tci */
+#define TP_STATUS_VLAN_TPID_VALID 0x20 /* auxdata has valid tp_vlan_tpid */
 #define TP_STATUS_BLK_TMO	0x20
 
 /* Tx ring - header status */
@@ -96,6 +106,8 @@ struct tpacket_auxdata {
 #define TP_STATUS_SEND_REQUEST	0x1
 #define TP_STATUS_SENDING	0x2
 #define TP_STATUS_WRONG_FORMAT	0x4
+#define TP_STATUS_TS_SOFTWARE		(1 << 29)
+#define TP_STATUS_TS_RAW_HARDWARE	(1 << 31)
 
 /* Rx ring - feature request bits */
 #define TP_FT_REQ_FILL_RXHASH	0x1
@@ -123,12 +135,15 @@ struct tpacket2_hdr {
 	__u32		tp_sec;
 	__u32		tp_nsec;
 	__u16		tp_vlan_tci;
-	__u16		tp_padding;
+	__u16		tp_vlan_tpid;
+	__u8		tp_padding[4];
 };
 
 struct tpacket_hdr_variant1 {
 	__u32	tp_rxhash;
 	__u32	tp_vlan_tci;
+	__u16	tp_vlan_tpid;
+	__u16	tp_padding;
 };
 
 struct tpacket3_hdr {
@@ -144,6 +159,7 @@ struct tpacket3_hdr {
 	union {
 		struct tpacket_hdr_variant1 hv1;
 	};
+	__u8		tp_padding[8];
 };
 
 struct tpacket_bd_ts {

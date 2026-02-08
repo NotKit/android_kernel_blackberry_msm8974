@@ -358,7 +358,23 @@ struct sadb_x_kmaddress {
 #define SADB_X_EXT_SEC_CTX		24
 /* Used with MIGRATE to pass @ to IKE for negotiation */
 #define SADB_X_EXT_KMADDRESS		25
-#define SADB_EXT_MAX			25
+#define SADB_X_EXT_FILTER		26
+#define SADB_EXT_MAX			26
+
+struct sadb_x_filter {
+	__u16	sadb_x_filter_len;
+	__u16	sadb_x_filter_exttype;
+	__u32	sadb_x_filter_resolution;
+	__u32	sadb_x_filter_reserved;
+	__u16	sadb_x_filter_splen;
+	__u16	sadb_x_filter_dplen;
+	__u16	sadb_x_filter_family;
+	__u8	sadb_x_filter_protocol;
+	__u8	sadb_x_filter_reserved2;
+	__u64	sadb_x_filter_saddr[2];
+	__u64	sadb_x_filter_daddr[2];
+} __attribute__((packed));
+/* sizeof(struct sadb_x_filter) == 48 */
 
 /* Identity Extension values */
 #define SADB_IDENTTYPE_RESERVED	0

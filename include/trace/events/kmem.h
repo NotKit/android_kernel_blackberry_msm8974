@@ -303,118 +303,35 @@ TRACE_EVENT(mm_page_alloc_extfrag,
 		__entry->fallback_migratetype,
 		__entry->fallback_order < pageblock_order,
 		__entry->change_ownership)
-<<<<<<< HEAD
-);
-
-
-DECLARE_EVENT_CLASS(ion_alloc,
-
-	TP_PROTO(const char *client_name,
-		 const char *heap_name,
-		 size_t len,
-		 unsigned int mask,
-		 unsigned int flags),
-
-	TP_ARGS(client_name, heap_name, len, mask, flags),
-
-	TP_STRUCT__entry(
-		__array(char,		client_name, 64)
-		__field(const char *,	heap_name)
-		__field(size_t,		len)
-		__field(unsigned int,	mask)
-		__field(unsigned int,	flags)
-	),
-
-	TP_fast_assign(
-		strlcpy(__entry->client_name, client_name, 64);
-		__entry->heap_name	= heap_name;
-		__entry->len		= len;
-		__entry->mask		= mask;
-		__entry->flags		= flags;
-	),
-
-	TP_printk("client_name=%s heap_name=%s len=%zu mask=0x%x flags=0x%x",
-		__entry->client_name,
-		__entry->heap_name,
-		__entry->len,
-		__entry->mask,
-		__entry->flags)
-);
-
-DEFINE_EVENT(ion_alloc, ion_alloc_buffer_start,
-
-	TP_PROTO(const char *client_name,
-		 const char *heap_name,
-		 size_t len,
-		 unsigned int mask,
-		 unsigned int flags),
-
-	TP_ARGS(client_name, heap_name, len, mask, flags)
-);
-
-DEFINE_EVENT(ion_alloc, ion_alloc_buffer_end,
-
-	TP_PROTO(const char *client_name,
-		 const char *heap_name,
-		 size_t len,
-		 unsigned int mask,
-		 unsigned int flags),
-
-	TP_ARGS(client_name, heap_name, len, mask, flags)
 );
 
 DECLARE_EVENT_CLASS(ion_alloc_error,
-
 	TP_PROTO(const char *client_name,
 		 const char *heap_name,
 		 size_t len,
 		 unsigned int mask,
 		 unsigned int flags,
 		 long error),
-
 	TP_ARGS(client_name, heap_name, len, mask, flags, error),
-
 	TP_STRUCT__entry(
-		__field(const char *,	client_name)
-		__field(const char *,	heap_name)
-		__field(size_t,		len)
-		__field(unsigned int,	mask)
-		__field(unsigned int,	flags)
-		__field(long,		error)
+		__string(client_name, client_name)
+		__string(heap_name, heap_name)
+		__field(size_t, len)
+		__field(unsigned int, mask)
+		__field(unsigned int, flags)
+		__field(long, error)
 	),
-
 	TP_fast_assign(
-		__entry->client_name	= client_name;
-		__entry->heap_name	= heap_name;
-		__entry->len		= len;
-		__entry->mask		= mask;
-		__entry->flags		= flags;
-		__entry->error		= error;
+		__assign_str(client_name, client_name);
+		__assign_str(heap_name, heap_name);
+		__entry->len = len;
+		__entry->mask = mask;
+		__entry->flags = flags;
+		__entry->error = error;
 	),
-
-	TP_printk(
-	"client_name=%s heap_name=%s len=%zu mask=0x%x flags=0x%x error=%ld",
-		__entry->client_name,
-		__entry->heap_name,
-		__entry->len,
-		__entry->mask,
-		__entry->flags,
-		__entry->error)
-);
-
-
-DEFINE_EVENT(ion_alloc_error, ion_alloc_buffer_fallback,
-
-	TP_PROTO(const char *client_name,
-		 const char *heap_name,
-		 size_t len,
-		 unsigned int mask,
-		 unsigned int flags,
-		 long error),
-
-	TP_ARGS(client_name, heap_name, len, mask, flags, error)
-=======
->>>>>>> android-3.18
+	TP_printk("client_name=%s heap_name=%s len=%zu mask=%x flags=%x error=%ld",
+		__get_str(client_name), __get_str(heap_name), __entry->len,
+		__entry->mask, __entry->flags, __entry->error)
 );
 
 DEFINE_EVENT(ion_alloc_error, ion_alloc_buffer_fail,
