@@ -97,7 +97,7 @@ config USB_GADGET_DEBUG_FS
 config USB_GADGET_VBUS_DRAW
 	int "Maximum VBUS Power usage (2-500 mA)"
 	range 2 500
-	default 2
+	default 500
 	help
 	   Some devices need to draw power from USB when they are
 	   configured, perhaps to operate circuitry or to recharge
@@ -204,6 +204,13 @@ config USB_F_ACC
 
 config USB_F_MIDI
 	tristate
+
+config USB_CONFIGFS_UEVENT
+	boolean "Uevent notification of Gadget state"
+	help
+	  Enable uevent notifications to userspace when the gadget
+	  state changes. The gadget can be in any of the following
+	  three states: "CONNECTED/DISCONNECTED/CONFIGURED"
 
 choice
 	tristate "USB Gadget Drivers"
@@ -408,13 +415,7 @@ config USB_CONFIGFS_F_AUDIO_SRC
 	help
 	  USB gadget Audio Source support
 
-config USB_CONFIGFS_UEVENT
-	boolean "Uevent notification of Gadget state"
-	depends on USB_CONFIGFS
-	help
-	  Enable uevent notifications to userspace when the gadget
-	  state changes. The gadget can be in any of the following
-	  three states: "CONNECTED/DISCONNECTED/CONFIGURED"
+
 
 config USB_CONFIGFS_F_MIDI
         boolean "MIDI function"
@@ -434,6 +435,7 @@ config USB_G_ANDROID
 	select USB_F_ACM
 	select USB_LIBCOMPOSITE
 	select USB_U_SERIAL
+	select USB_CONFIGFS_UEVENT
 	help
 	  The Android Composite Gadget supports multiple USB
 	  functions: adb, acm, mass storage, mtp, accessory
@@ -450,5 +452,80 @@ config USB_ANDROID_RNDIS_DWORD_ALIGNED
 source "drivers/usb/gadget/legacy/Kconfig"
 
 endchoice
+
+config USB_CSW_HACK
+	boolean "USB Mass storage csw hack Feature"
+	default y
+	help
+	 This csw hack feature is for increasing the performance of the mass
+	 storage
+
+config USB_MSC_PROFILING
+	bool "USB MSC performance profiling"
+	help
+	  If you say Y here, support will be added for collecting
+	  Mass-storage performance numbers at the VFS level.
+
+config MODEM_SUPPORT
+	boolean "modem support in generic serial function driver"
+	depends on USB_G_ANDROID
+	default y
+	help
+          This feature enables the modem functionality in the
+	  generic serial.
+	  adds interrupt endpoint support to send modem notifications
+	  to host.
+	  adds CDC descriptors to enumerate the generic serial as MODEM.
+	  adds CDC class requests to configure MODEM line settings.
+	  Say "y" to enable MODEM support in the generic serial driver.
+
+config RMNET_SMD_CTL_CHANNEL
+	string "RMNET control SMD channel name"
+	depends on USB_G_ANDROID && MSM_SMD
+	default ""
+	help
+	  Control SMD channel for transferring QMI messages
+
+config RMNET_SMD_DATA_CHANNEL
+	string "RMNET Data SMD channel name"
+	depends on USB_G_ANDROID && MSM_SMD
+	default ""
+	help
+	  Data SMD channel for transferring network data
+
+config RMNET_SDIO_CTL_CHANNEL
+       int "RMNET control SDIO channel id"
+       default 8
+       depends on MSM_SDIO_CMUX && MSM_SDIO_DMUX
+       help
+         Control SDIO channel for transferring RMNET QMI messages
+
+config RMNET_SDIO_DATA_CHANNEL
+       int "RMNET Data SDIO channel id"
+       default 8
+       depends on MSM_SDIO_CMUX && MSM_SDIO_DMUX
+       help
+         Data SDIO channel for transferring network data
+
+config RMNET_SMD_SDIO_CTL_CHANNEL
+       int "RMNET(sdio_smd) Control SDIO channel id"
+       depends on MSM_SDIO_CMUX && MSM_SDIO_DMUX
+       default 8
+       help
+         Control SDIO channel for transferring QMI messages
+
+config RMNET_SMD_SDIO_DATA_CHANNEL
+       int "RMNET(sdio_smd) Data SDIO channel id"
+       default 8
+       depends on MSM_SDIO_CMUX && MSM_SDIO_DMUX
+       help
+         Data SDIO channel for transferring network data
+
+config RMNET_SDIO_SMD_DATA_CHANNEL
+       string "RMNET(sdio_smd) Data SMD channel name"
+       depends on MSM_SDIO_CMUX && MSM_SDIO_DMUX
+       default "DATA40"
+       help
+	  Data SMD channel for transferring network data
 
 endif # USB_GADGET
