@@ -38,9 +38,6 @@ struct device_node *of_chosen;
 struct device_node *of_aliases;
 struct device_node *of_stdout;
 
-<<<<<<< HEAD
-DEFINE_MUTEX(of_aliases_mutex);
-=======
 struct kset *of_kset;
 
 /*
@@ -50,7 +47,6 @@ struct kset *of_kset;
  * of_{add,remove,update}_property() helpers make sure this happens.
  */
 DEFINE_MUTEX(of_mutex);
->>>>>>> android-3.18
 
 /* use when traversing tree through the allnext, child, sibling,
  * or parent members of struct device_node.
@@ -746,32 +742,7 @@ static struct device_node *__of_find_node_by_path(struct device_node *parent,
 	return NULL;
 }
 
-/**
- *	of_get_next_available_child - Find the next available child node
- *	@node:	parent node
- *	@prev:	previous child of the parent node, or NULL to get first
- *
- *      This function is like of_get_next_child(), except that it
- *      automatically skips any disabled nodes (i.e. status = "disabled").
- */
-struct device_node *of_get_next_available_child(const struct device_node *node,
-	struct device_node *prev)
-{
-	struct device_node *next;
 
-	read_lock(&devtree_lock);
-	next = prev ? prev->sibling : node->child;
-	for (; next; next = next->sibling) {
-		if (!of_device_is_available(next))
-			continue;
-		if (of_node_get(next))
-			break;
-	}
-	of_node_put(prev);
-	read_unlock(&devtree_lock);
-	return next;
-}
-EXPORT_SYMBOL(of_get_next_available_child);
 
 /**
  *	of_find_node_by_path - Find a node matching a full OF path
@@ -1094,8 +1065,6 @@ struct device_node *of_find_node_by_phandle(phandle handle)
 EXPORT_SYMBOL(of_find_node_by_phandle);
 
 /**
-<<<<<<< HEAD
-=======
  * of_property_count_elems_of_size - Count the number of elements in a property
  *
  * @np:		device node from which the property value is to be read.
@@ -1156,7 +1125,6 @@ static void *of_find_property_value_of_size(const struct device_node *np,
 }
 
 /**
->>>>>>> android-3.18
  * of_property_read_u32_index - Find and read a u32 from a multi-value property.
  *
  * @np:		device node from which the property value is to be read.
@@ -1175,18 +1143,6 @@ int of_property_read_u32_index(const struct device_node *np,
 				       const char *propname,
 				       u32 index, u32 *out_value)
 {
-<<<<<<< HEAD
-	struct property *prop = of_find_property(np, propname, NULL);
-
-	if (!prop)
-		return -EINVAL;
-	if (!prop->value)
-		return -ENODATA;
-	if (((index + 1) * sizeof(*out_value)) > prop->length)
-		return -EOVERFLOW;
-
-	*out_value = be32_to_cpup(((__be32 *)prop->value) + index);
-=======
 	const u32 *val = of_find_property_value_of_size(np, propname,
 					((index + 1) * sizeof(*out_value)));
 
@@ -1194,7 +1150,6 @@ int of_property_read_u32_index(const struct device_node *np,
 		return PTR_ERR(val);
 
 	*out_value = be32_to_cpup(((__be32 *)val) + index);
->>>>>>> android-3.18
 	return 0;
 }
 EXPORT_SYMBOL_GPL(of_property_read_u32_index);
@@ -1204,11 +1159,7 @@ EXPORT_SYMBOL_GPL(of_property_read_u32_index);
  *
  * @np:		device node from which the property value is to be read.
  * @propname:	name of the property to be searched.
-<<<<<<< HEAD
- * @out_value:	pointer to return value, modified only if return value is 0.
-=======
  * @out_values:	pointer to return value, modified only if return value is 0.
->>>>>>> android-3.18
  * @sz:		number of array elements to read
  *
  * Search for a property in a device node and read 8-bit value(s) from
@@ -1219,35 +1170,17 @@ EXPORT_SYMBOL_GPL(of_property_read_u32_index);
  * dts entry of array should be like:
  *	property = /bits/ 8 <0x50 0x60 0x70>;
  *
-<<<<<<< HEAD
- * The out_value is modified only if a valid u8 value can be decoded.
-=======
  * The out_values is modified only if a valid u8 value can be decoded.
->>>>>>> android-3.18
  */
 int of_property_read_u8_array(const struct device_node *np,
 			const char *propname, u8 *out_values, size_t sz)
 {
-<<<<<<< HEAD
-	struct property *prop = of_find_property(np, propname, NULL);
-	const u8 *val;
-
-	if (!prop)
-		return -EINVAL;
-	if (!prop->value)
-		return -ENODATA;
-	if ((sz * sizeof(*out_values)) > prop->length)
-		return -EOVERFLOW;
-
-	val = prop->value;
-=======
 	const u8 *val = of_find_property_value_of_size(np, propname,
 						(sz * sizeof(*out_values)));
 
 	if (IS_ERR(val))
 		return PTR_ERR(val);
 
->>>>>>> android-3.18
 	while (sz--)
 		*out_values++ = *val++;
 	return 0;
@@ -1259,11 +1192,7 @@ EXPORT_SYMBOL_GPL(of_property_read_u8_array);
  *
  * @np:		device node from which the property value is to be read.
  * @propname:	name of the property to be searched.
-<<<<<<< HEAD
- * @out_value:	pointer to return value, modified only if return value is 0.
-=======
  * @out_values:	pointer to return value, modified only if return value is 0.
->>>>>>> android-3.18
  * @sz:		number of array elements to read
  *
  * Search for a property in a device node and read 16-bit value(s) from
@@ -1274,35 +1203,17 @@ EXPORT_SYMBOL_GPL(of_property_read_u8_array);
  * dts entry of array should be like:
  *	property = /bits/ 16 <0x5000 0x6000 0x7000>;
  *
-<<<<<<< HEAD
- * The out_value is modified only if a valid u16 value can be decoded.
-=======
  * The out_values is modified only if a valid u16 value can be decoded.
->>>>>>> android-3.18
  */
 int of_property_read_u16_array(const struct device_node *np,
 			const char *propname, u16 *out_values, size_t sz)
 {
-<<<<<<< HEAD
-	struct property *prop = of_find_property(np, propname, NULL);
-	const __be16 *val;
-
-	if (!prop)
-		return -EINVAL;
-	if (!prop->value)
-		return -ENODATA;
-	if ((sz * sizeof(*out_values)) > prop->length)
-		return -EOVERFLOW;
-
-	val = prop->value;
-=======
 	const __be16 *val = of_find_property_value_of_size(np, propname,
 						(sz * sizeof(*out_values)));
 
 	if (IS_ERR(val))
 		return PTR_ERR(val);
 
->>>>>>> android-3.18
 	while (sz--)
 		*out_values++ = be16_to_cpup(val++);
 	return 0;
@@ -1315,11 +1226,7 @@ EXPORT_SYMBOL_GPL(of_property_read_u16_array);
  *
  * @np:		device node from which the property value is to be read.
  * @propname:	name of the property to be searched.
-<<<<<<< HEAD
- * @out_value:	pointer to return value, modified only if return value is 0.
-=======
  * @out_values:	pointer to return value, modified only if return value is 0.
->>>>>>> android-3.18
  * @sz:		number of array elements to read
  *
  * Search for a property in a device node and read 32-bit value(s) from
@@ -1406,8 +1313,6 @@ int of_property_read_u64_array(const struct device_node *np,
 }
 
 /**
-<<<<<<< HEAD
-=======
  * of_property_read_string - Find and read a string from a property
  * @np:		device node from which the property value is to be read.
  * @propname:	name of the property to be searched.
@@ -1438,7 +1343,6 @@ int of_property_read_string(struct device_node *np, const char *propname,
 EXPORT_SYMBOL_GPL(of_property_read_string);
 
 /**
->>>>>>> android-3.18
  * of_property_match_string() - Find string in a list and return index
  * @np: pointer to node containing string list property
  * @propname: string list property name
