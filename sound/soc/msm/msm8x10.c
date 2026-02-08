@@ -1076,7 +1076,7 @@ struct snd_soc_card snd_soc_card_msm8x10 = {
 };
 
 
-static __devinit int msm8x10_asoc_machine_probe(struct platform_device *pdev)
+static int msm8x10_asoc_machine_probe(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = &snd_soc_card_msm8x10;
 	const char *mbhc_audio_jack_type = NULL;
@@ -1168,7 +1168,7 @@ err:
 	return ret;
 }
 
-static int __devexit msm8x10_asoc_machine_remove(struct platform_device *pdev)
+static int msm8x10_asoc_machine_remove(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 
@@ -1195,7 +1195,7 @@ static struct platform_driver msm8x10_asoc_machine_driver = {
 		.of_match_table = msm8x10_asoc_machine_of_match,
 	},
 	.probe = msm8x10_asoc_machine_probe,
-	.remove = __devexit_p(msm8x10_asoc_machine_remove),
+	.remove = msm8x10_asoc_machine_remove,
 };
 module_platform_driver(msm8x10_asoc_machine_driver);
 

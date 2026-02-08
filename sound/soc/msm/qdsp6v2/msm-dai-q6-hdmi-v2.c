@@ -264,7 +264,6 @@ static int msm_dai_q6_hdmi_dai_remove(struct snd_soc_dai *dai)
 		clear_bit(STATUS_PORT_STARTED, dai_data->status_mask);
 	}
 	kfree(dai_data);
-	snd_soc_unregister_dai(dai->dev);
 
 	return 0;
 }
@@ -290,9 +289,13 @@ static struct snd_soc_dai_driver msm_dai_q6_hdmi_hdmi_rx_dai = {
 	.remove = msm_dai_q6_hdmi_dai_remove,
 };
 
+static const struct snd_soc_component_driver msm_dai_q6_hdmi_component = {
+	.name = "msm-dai-q6-hdmi",
+};
+
 
 /* To do: change to register DAIs as batch */
-static __devinit int msm_dai_q6_hdmi_dev_probe(struct platform_device *pdev)
+static int msm_dai_q6_hdmi_dev_probe(struct platform_device *pdev)
 {
 	int rc, id;
 	const char *q6_dev_id = "qcom,msm-dai-q6-dev-id";
@@ -312,8 +315,9 @@ static __devinit int msm_dai_q6_hdmi_dev_probe(struct platform_device *pdev)
 
 	switch (pdev->id) {
 	case HDMI_RX:
-		rc = snd_soc_register_dai(&pdev->dev,
-				&msm_dai_q6_hdmi_hdmi_rx_dai);
+		rc = snd_soc_register_component(&pdev->dev,
+				&msm_dai_q6_hdmi_component,
+				&msm_dai_q6_hdmi_hdmi_rx_dai, 1);
 		break;
 	default:
 		dev_err(&pdev->dev, "invalid device ID %d\n", pdev->id);
@@ -323,9 +327,9 @@ static __devinit int msm_dai_q6_hdmi_dev_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static __devexit int msm_dai_q6_hdmi_dev_remove(struct platform_device *pdev)
+static int msm_dai_q6_hdmi_dev_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_dai(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 	return 0;
 }
 

@@ -1094,7 +1094,7 @@ err:
 	return ret;
 }
 
-static __devinit int mdm9625_asoc_machine_probe(struct platform_device *pdev)
+static int mdm9625_asoc_machine_probe(struct platform_device *pdev)
 {
 	int ret;
 	struct snd_soc_card *card = &snd_soc_card_mdm9625;
@@ -1173,7 +1173,7 @@ err:
 	return ret;
 }
 
-static int __devexit mdm9625_asoc_machine_remove(struct platform_device *pdev)
+static int mdm9625_asoc_machine_remove(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	struct mdm9625_machine_data *pdata = snd_soc_card_get_drvdata(card);
@@ -1195,7 +1195,7 @@ static struct platform_driver msm9625_asoc_machine_driver = {
 		.of_match_table = msm9625_asoc_machine_of_match,
 	},
 	.probe = mdm9625_asoc_machine_probe,
-	.remove = __devexit_p(mdm9625_asoc_machine_remove),
+	.remove = mdm9625_asoc_machine_remove,
 };
 
 

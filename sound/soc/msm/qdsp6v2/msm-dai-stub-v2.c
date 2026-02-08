@@ -52,7 +52,11 @@ static struct snd_soc_dai_driver msm_dai_stub_dai = {
 	.ops = &msm_dai_stub_ops,
 };
 
-static __devinit int msm_dai_stub_dev_probe(struct platform_device *pdev)
+static const struct snd_soc_component_driver msm_dai_stub_component = {
+	.name = "msm-dai-stub",
+};
+
+static int msm_dai_stub_dev_probe(struct platform_device *pdev)
 {
 	int rc = 0;
 
@@ -62,16 +66,17 @@ static __devinit int msm_dai_stub_dev_probe(struct platform_device *pdev)
 			dev_set_name(&pdev->dev, "%s", "msm-dai-stub");
 	pr_debug("%s: dev name %s\n", __func__, dev_name(&pdev->dev));
 
-	rc = snd_soc_register_dai(&pdev->dev, &msm_dai_stub_dai);
+	rc = snd_soc_register_component(&pdev->dev, &msm_dai_stub_component,
+				&msm_dai_stub_dai, 1);
 
 	return rc;
 }
 
-static __devexit int msm_dai_stub_dev_remove(struct platform_device *pdev)
+static int msm_dai_stub_dev_remove(struct platform_device *pdev)
 {
 	pr_debug("%s:\n", __func__);
 
-	snd_soc_unregister_dai(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	return 0;
 }

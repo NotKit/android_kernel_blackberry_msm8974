@@ -301,7 +301,7 @@ static void apq8074_liquid_docking_irq_work(struct work_struct *work)
 	struct snd_soc_dapm_context *dapm = dock_dev->dapm;
 
 
-	mutex_lock(&dapm->codec->mutex);
+	mutex_lock(&dapm->component->codec->mutex);
 	dock_plug_det =
 		gpio_get_value(dock_dev->dock_plug_gpio);
 
@@ -320,7 +320,7 @@ static void apq8074_liquid_docking_irq_work(struct work_struct *work)
 			apq8074_liquid_ext_spk_power_amp_enable(0);
 	}
 
-	mutex_unlock(&dapm->codec->mutex);
+	mutex_unlock(&dapm->component->codec->mutex);
 
 }
 
@@ -457,7 +457,7 @@ static void apq8074_ext_control(struct snd_soc_codec *codec)
 {
 	struct snd_soc_dapm_context *dapm = &codec->dapm;
 
-	mutex_lock(&dapm->codec->mutex);
+	mutex_lock(&dapm->component->codec->mutex);
 
 	pr_debug("%s: apq8074_spk_control = %d", __func__, apq8074_spk_control);
 	if (apq8074_spk_control == APQ8074_SPK_ON) {
@@ -473,7 +473,7 @@ static void apq8074_ext_control(struct snd_soc_codec *codec)
 	}
 
 	snd_soc_dapm_sync(dapm);
-	mutex_unlock(&dapm->codec->mutex);
+	mutex_unlock(&dapm->component->codec->mutex);
 }
 
 static int apq8074_get_spk(struct snd_kcontrol *kcontrol,
@@ -1230,7 +1230,7 @@ static const struct snd_kcontrol_new msm_snd_controls[] = {
 
 static bool apq8074_swap_gnd_mic(struct snd_soc_codec *codec)
 {
-	struct snd_soc_card *card = codec->card;
+	struct snd_soc_card *card = codec->component.card;
 	struct apq8074_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	int value = gpio_get_value_cansleep(pdata->us_euro_gpio);
 	pr_debug("%s: swap select switch %d to %d\n", __func__, value, !value);
@@ -1722,7 +1722,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.codec_name = "snd-soc-dummy",
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1767,7 +1766,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1781,7 +1779,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1831,7 +1828,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1846,7 +1842,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1860,7 +1855,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1874,7 +1868,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1, /* dai link has playback support */
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1888,7 +1881,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			    SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		/* this dainlink has playback support */
 		.ignore_pmdown_time = 1,
@@ -1920,7 +1912,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 				 SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1935,7 +1926,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1950,7 +1940,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1965,7 +1954,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1980,7 +1968,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -1995,7 +1982,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2010,7 +1996,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2025,7 +2010,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = { SND_SOC_DPCM_TRIGGER_POST,
 			     SND_SOC_DPCM_TRIGGER_POST },
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2121,7 +2105,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.dynamic = 1,
 		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
 			SND_SOC_DPCM_TRIGGER_POST},
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -2266,7 +2249,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_4_TX,
 		.be_hw_params_fixup = msm_slim_0_tx_be_hw_params_fixup,
 		.ops = &apq8074_be_ops,
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ignore_suspend = 1,
 	},
 	/* Incall Record Uplink BACK END DAI Link */
@@ -2330,7 +2312,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name = "taiko_rx2",
 		.ignore_suspend = 1,
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ops = &apq8074_slimbus_2_be_ops,
 	},
 	/* Ultrasound TX Back End DAI Link */
@@ -2342,7 +2323,6 @@ static struct snd_soc_dai_link apq8074_common_dai_links[] = {
 		.codec_name = "taiko_codec",
 		.codec_dai_name = "taiko_tx2",
 		.ignore_suspend = 1,
-		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
 		.ops = &apq8074_slimbus_2_be_ops,
 	},
 };
@@ -2472,7 +2452,7 @@ static int apq8074_prepare_us_euro(struct snd_soc_card *card)
 	return 0;
 }
 
-static __devinit int apq8074_asoc_machine_probe(struct platform_device *pdev)
+static int apq8074_asoc_machine_probe(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = &snd_soc_card_apq8074;
 	struct apq8074_asoc_mach_data *pdata;
@@ -2638,7 +2618,7 @@ err:
 	return ret;
 }
 
-static int __devexit apq8074_asoc_machine_remove(struct platform_device *pdev)
+static int apq8074_asoc_machine_remove(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	struct apq8074_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
@@ -2685,7 +2665,7 @@ static struct platform_driver apq8074_asoc_machine_driver = {
 		.of_match_table = apq8074_asoc_machine_of_match,
 	},
 	.probe = apq8074_asoc_machine_probe,
-	.remove = __devexit_p(apq8074_asoc_machine_remove),
+	.remove = apq8074_asoc_machine_remove,
 };
 module_platform_driver(apq8074_asoc_machine_driver);
 

@@ -2255,7 +2255,7 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 	return card;
 }
 
-static __devinit int msm8226_asoc_machine_probe(struct platform_device *pdev)
+static int msm8226_asoc_machine_probe(struct platform_device *pdev)
 {
 	struct snd_soc_card *card;
 	struct msm8226_asoc_mach_data *pdata;
@@ -2464,7 +2464,7 @@ err1:
 	return ret;
 }
 
-static int __devexit msm8226_asoc_machine_remove(struct platform_device *pdev)
+static int msm8226_asoc_machine_remove(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	struct msm8226_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
@@ -2497,7 +2497,7 @@ static struct platform_driver msm8226_asoc_machine_driver = {
 		.of_match_table = msm8226_asoc_machine_of_match,
 	},
 	.probe = msm8226_asoc_machine_probe,
-	.remove = __devexit_p(msm8226_asoc_machine_remove),
+	.remove = msm8226_asoc_machine_remove,
 };
 module_platform_driver(msm8226_asoc_machine_driver);
 
