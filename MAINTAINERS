@@ -7698,7 +7698,11 @@ F:	Documentation/blockdev/ramdisk.txt
 F:	drivers/block/brd.c
 
 RANDOM NUMBER DRIVER
+<<<<<<< HEAD
+M:	Theodore Ts'o" <tytso@mit.edu>
+=======
 M:	"Theodore Ts'o" <tytso@mit.edu>
+>>>>>>> android-3.18
 S:	Maintained
 F:	drivers/char/random.c
 
@@ -8283,8 +8287,11 @@ F:	drivers/mmc/host/sdhci-pltfm.[ch]
 
 SECURE COMPUTING
 M:	Kees Cook <keescook@chromium.org>
+<<<<<<< HEAD
+=======
 R:	Andy Lutomirski <luto@amacapital.net>
 R:	Will Drewry <wad@chromium.org>
+>>>>>>> android-3.18
 T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git seccomp
 S:	Supported
 F:	kernel/seccomp.c
@@ -8524,6 +8531,13 @@ S:	Supported
 F:	arch/arm/mach-s3c24xx/mach-bast.c
 F:	arch/arm/mach-s3c24xx/bast-ide.c
 F:	arch/arm/mach-s3c24xx/bast-irq.c
+
+SIPHASH PRF ROUTINES
+M:	Jason A. Donenfeld <Jason@zx2c4.com>
+S:	Maintained
+F:	lib/siphash.c
+F:	lib/test_siphash.c
+F:	include/linux/siphash.h
 
 SIPHASH PRF ROUTINES
 M:	Jason A. Donenfeld <Jason@zx2c4.com>
@@ -9628,7 +9642,11 @@ M:	David Herrmann <dh.herrmann@googlemail.com>
 L:	linux-input@vger.kernel.org
 S:	Maintained
 F:	drivers/hid/uhid.c
+<<<<<<< HEAD
+F:	include/linux/uhid.h
+=======
 F:	include/uapi/linux/uhid.h
+>>>>>>> android-3.18
 
 ULTRA-WIDEBAND (UWB) SUBSYSTEM:
 L:	linux-usb@vger.kernel.org

@@ -380,6 +380,14 @@ USERINCLUDE    := \
 		-Iinclude/generated/uapi \
                 -include $(srctree)/include/linux/kconfig.h
 
+# Use USERINCLUDE when you must reference the UAPI directories only.
+USERINCLUDE    := \
+		-I$(srctree)/arch/$(hdr-arch)/include/uapi \
+		-Iarch/$(hdr-arch)/include/generated/uapi \
+		-I$(srctree)/include/uapi \
+		-Iinclude/generated/uapi \
+                -include $(srctree)/include/linux/kconfig.h
+
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
 LINUXINCLUDE    := \
@@ -402,7 +410,7 @@ KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__ $(call cc-option,-fno-PIE)
 KBUILD_AFLAGS_MODULE  := -DMODULE
-KBUILD_CFLAGS_MODULE  := -DMODULE
+KBUILD_CFLAGS_MODULE  := -DMODULE -fno-pic
 KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
@@ -555,6 +563,7 @@ scripts: scripts_basic include/config/auto.conf include/config/tristate.conf \
 	$(Q)$(MAKE) $(build)=$(@)
 
 # Objects we will link into vmlinux / subdirs we need to visit
+backports-y 	:= backports/
 init-y		:= init/
 drivers-y	:= drivers/ sound/ firmware/
 net-y		:= net/
@@ -938,11 +947,13 @@ core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
 
 vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
+		     $(backports-y) $(backports-m) \
 		     $(net-y) $(net-m) $(libs-y) $(libs-m)))
 
 vmlinux-alldirs	:= $(sort $(vmlinux-dirs) $(patsubst %/,%,$(filter %/, \
 		     $(init-) $(core-) $(drivers-) $(net-) $(libs-))))
 
+backports-y	:= $(patsubst %/, %/built-in.o, $(backports-y))
 init-y		:= $(patsubst %/, %/built-in.o, $(init-y))
 core-y		:= $(patsubst %/, %/built-in.o, $(core-y))
 drivers-y	:= $(patsubst %/, %/built-in.o, $(drivers-y))
