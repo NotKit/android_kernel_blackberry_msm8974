@@ -611,7 +611,9 @@ static void domain_update_iommu_coherency(struct dmar_domain *domain)
 	struct intel_iommu *iommu;
 	int i, found = 0;
 
-	domain->iommu_coherency = 1;
+	i = find_first_bit(domain->iommu_bmp, g_num_of_iommus);
+
+	domain->iommu_coherency = i < g_num_of_iommus ? 1 : 0;
 
 	for_each_set_bit(i, domain->iommu_bmp, g_num_of_iommus) {
 		found = 1;
@@ -856,7 +858,11 @@ static struct dma_pte *pfn_to_dma_pte(struct dmar_domain *domain,
 
 	BUG_ON(!domain->pgd);
 
+<<<<<<< HEAD
+	if (addr_width < BITS_PER_LONG && pfn >> addr_width)
+=======
 	if (!domain_pfn_supported(domain, pfn))
+>>>>>>> android-3.18
 		/* Address beyond IOMMU's addressing capabilities. */
 		return NULL;
 
@@ -999,13 +1005,53 @@ next:
 	} while (!first_pte_in_page(++pte) && pfn <= last_pfn);
 }
 
+static void dma_pte_free_level(struct dmar_domain *domain, int level,
+			       struct dma_pte *pte, unsigned long pfn,
+			       unsigned long start_pfn, unsigned long last_pfn)
+{
+	pfn = max(start_pfn, pfn);
+	pte = &pte[pfn_level_offset(pfn, level)];
+
+	do {
+		unsigned long level_pfn;
+		struct dma_pte *level_pte;
+
+		if (!dma_pte_present(pte) || dma_pte_superpage(pte))
+			goto next;
+
+		level_pfn = pfn & level_mask(level - 1);
+		level_pte = phys_to_virt(dma_pte_addr(pte));
+
+		if (level > 2)
+			dma_pte_free_level(domain, level - 1, level_pte,
+					   level_pfn, start_pfn, last_pfn);
+
+		/* If range covers entire pagetable, free it */
+		if (!(start_pfn > level_pfn ||
+		      last_pfn < level_pfn + level_size(level) - 1)) {
+			dma_clear_pte(pte);
+			domain_flush_cache(domain, pte, sizeof(*pte));
+			free_pgtable_page(level_pte);
+		}
+next:
+		pfn += level_size(level);
+	} while (!first_pte_in_page(++pte) && pfn <= last_pfn);
+}
+
 /* free page table pages. last level pte should already be cleared */
 static void dma_pte_free_pagetable(struct dmar_domain *domain,
 				   unsigned long start_pfn,
 				   unsigned long last_pfn)
 {
+<<<<<<< HEAD
+	int addr_width = agaw_to_width(domain->agaw) - VTD_PAGE_SHIFT;
+
+	BUG_ON(addr_width < BITS_PER_LONG && start_pfn >> addr_width);
+	BUG_ON(addr_width < BITS_PER_LONG && last_pfn >> addr_width);
+=======
 	BUG_ON(!domain_pfn_supported(domain, start_pfn));
 	BUG_ON(!domain_pfn_supported(domain, last_pfn));
+>>>>>>> android-3.18
 	BUG_ON(start_pfn > last_pfn);
 
 	dma_pte_clear_range(domain, start_pfn, last_pfn);
@@ -1013,6 +1059,9 @@ static void dma_pte_free_pagetable(struct dmar_domain *domain,
 	/* We don't need lock here; nobody else touches the iova range */
 	dma_pte_free_level(domain, agaw_to_level(domain->agaw),
 			   domain->pgd, 0, start_pfn, last_pfn);
+<<<<<<< HEAD
+
+=======
 
 	/* free pgd */
 	if (start_pfn == 0 && last_pfn == DOMAIN_MAX_PFN(domain->gaw)) {
@@ -1117,6 +1166,7 @@ struct page *domain_unmap(struct dmar_domain *domain,
 	freelist = dma_pte_clear_level(domain, agaw_to_level(domain->agaw),
 				       domain->pgd, 0, start_pfn, last_pfn, NULL);
 
+>>>>>>> android-3.18
 	/* free pgd */
 	if (start_pfn == 0 && last_pfn == DOMAIN_MAX_PFN(domain->gaw)) {
 		struct page *pgd_page = virt_to_page(domain->pgd);
@@ -2002,6 +2052,10 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 {
 	struct dma_pte *first_pte = NULL, *pte = NULL;
 	phys_addr_t uninitialized_var(pteval);
+<<<<<<< HEAD
+	int addr_width = agaw_to_width(domain->agaw) - VTD_PAGE_SHIFT;
+=======
+>>>>>>> android-3.18
 	unsigned long sg_res = 0;
 	unsigned int largepage_lvl = 0;
 	unsigned long lvl_pages = 0;
@@ -2039,6 +2093,22 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 				return -ENOMEM;
 			/* It is large page*/
 			if (largepage_lvl > 1) {
+<<<<<<< HEAD
+				unsigned long nr_superpages, end_pfn, lvl_pages;
+
+				pteval |= DMA_PTE_LARGE_PAGE;
+				lvl_pages = lvl_to_nr_pages(largepage_lvl);
+
+				nr_superpages = sg_res / lvl_pages;
+				end_pfn = iov_pfn + nr_superpages * lvl_pages - 1;
+
+				/*
+				 * Ensure that old small page tables are
+				 * removed to make room for superpage(s).
+				 */
+				dma_pte_clear_range(domain, iov_pfn, end_pfn);
+				dma_pte_free_pagetable(domain, iov_pfn, end_pfn);
+=======
 				pteval |= DMA_PTE_LARGE_PAGE;
 				lvl_pages = lvl_to_nr_pages(largepage_lvl);
 				/*
@@ -2048,6 +2118,7 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 				 */
 				dma_pte_free_pagetable(domain, iov_pfn,
 						       iov_pfn + lvl_pages - 1);
+>>>>>>> android-3.18
 			} else {
 				pteval &= ~(uint64_t)DMA_PTE_LARGE_PAGE;
 			}
@@ -2526,6 +2597,13 @@ static int domain_add_dev_info(struct dmar_domain *domain,
 	if (!iommu)
 		return -ENODEV;
 
+<<<<<<< HEAD
+	info->segment = pci_domain_nr(pdev->bus);
+	info->bus = pdev->bus->number;
+	info->devfn = pdev->devfn;
+	info->dev = pdev;
+	info->domain = domain;
+=======
 	ndomain = dmar_insert_dev_info(iommu, bus, devfn, dev, domain);
 	if (ndomain != domain)
 		return -EBUSY;
@@ -2538,6 +2616,7 @@ static int domain_add_dev_info(struct dmar_domain *domain,
 
 	return 0;
 }
+>>>>>>> android-3.18
 
 static bool device_has_rmrr(struct device *dev)
 {
@@ -2545,6 +2624,57 @@ static bool device_has_rmrr(struct device *dev)
 	struct device *tmp;
 	int i;
 
+<<<<<<< HEAD
+	ret = domain_context_mapping(domain, pdev, translation);
+	if (ret) {
+		spin_lock_irqsave(&device_domain_lock, flags);
+		list_del(&info->link);
+		list_del(&info->global);
+		pdev->dev.archdata.iommu = NULL;
+		spin_unlock_irqrestore(&device_domain_lock, flags);
+		free_devinfo_mem(info);
+		return ret;
+	}
+
+	return 0;
+}
+
+static bool device_has_rmrr(struct pci_dev *dev)
+{
+	struct dmar_rmrr_unit *rmrr;
+	int i;
+
+	for_each_rmrr_units(rmrr) {
+		for (i = 0; i < rmrr->devices_cnt; i++) {
+			/*
+			 * Return TRUE if this RMRR contains the device that
+			 * is passed in.
+			 */
+			if (rmrr->devices[i] == dev)
+				return true;
+		}
+	}
+	return false;
+}
+
+static int iommu_should_identity_map(struct pci_dev *pdev, int startup)
+{
+
+	/*
+	 * We want to prevent any device associated with an RMRR from
+	 * getting placed into the SI Domain. This is done because
+	 * problems exist when devices are moved in and out of domains
+	 * and their respective RMRR info is lost. We exempt USB devices
+	 * from this process due to their usage of RMRRs that are known
+	 * to not be needed after BIOS hand-off to OS.
+	 */
+	if (device_has_rmrr(pdev) &&
+	    (pdev->class >> 8) != PCI_CLASS_SERIAL_USB)
+		return 0;
+
+	if ((iommu_identity_mapping & IDENTMAP_AZALIA) && IS_AZALIA(pdev))
+		return 1;
+=======
 	rcu_read_lock();
 	for_each_rmrr_units(rmrr) {
 		/*
@@ -2588,6 +2718,7 @@ static bool device_is_rmrr_locked(struct device *dev)
 {
 	if (!device_has_rmrr(dev))
 		return false;
+>>>>>>> android-3.18
 
 	if (dev_is_pci(dev)) {
 		struct pci_dev *pdev = to_pci_dev(dev);
@@ -3794,11 +3925,29 @@ int dmar_find_matched_atsr_unit(struct pci_dev *dev)
 
 	dev = pci_physfn(dev);
 	for (bus = dev->bus; bus; bus = bus->parent) {
+<<<<<<< HEAD
+		struct pci_dev *bridge = bus->self;
+
+		/* If it's an integrated device, allow ATS */
+		if (!bridge)
+			return 1;
+		/* Connected via non-PCIe: no ATS */
+		if (!pci_is_pcie(bridge) ||
+		    bridge->pcie_type == PCI_EXP_TYPE_PCI_BRIDGE)
+			return 0;
+
+		/* If we found the root port, look it up in the ATSR */
+		if (bridge->pcie_type == PCI_EXP_TYPE_ROOT_PORT) {
+			for (i = 0; i < atsru->devices_cnt; i++)
+				if (atsru->devices[i] == bridge)
+					return 1;
+=======
 		bridge = bus->self;
 		if (!bridge || !pci_is_pcie(bridge) ||
 		    pci_pcie_type(bridge) == PCI_EXP_TYPE_PCI_BRIDGE)
 			return 0;
 		if (pci_pcie_type(bridge) == PCI_EXP_TYPE_ROOT_PORT)
+>>>>>>> android-3.18
 			break;
 	}
 	if (!bridge)
@@ -4045,9 +4194,14 @@ const struct attribute_group *intel_iommu_groups[] = {
 
 int __init intel_iommu_init(void)
 {
+<<<<<<< HEAD
+	int ret = 0;
+	struct dmar_drhd_unit *drhd;
+=======
 	int ret = -ENODEV;
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu;
+>>>>>>> android-3.18
 
 	/* VT-d is required for a TXT/tboot launch, so enforce that */
 	force_on = tboot_force_iommu();
@@ -4068,9 +4222,22 @@ int __init intel_iommu_init(void)
 	/*
 	 * Disable translation if already enabled prior to OS handover.
 	 */
+<<<<<<< HEAD
+	for_each_drhd_unit(drhd) {
+		struct intel_iommu *iommu;
+
+		if (drhd->ignored)
+			continue;
+
+		iommu = drhd->iommu;
+		if (iommu->gcmd & DMA_GCMD_TE)
+			iommu_disable_translation(iommu);
+	}
+=======
 	for_each_active_iommu(iommu, drhd)
 		if (iommu->gcmd & DMA_GCMD_TE)
 			iommu_disable_translation(iommu);
+>>>>>>> android-3.18
 
 	if (dmar_dev_scope_init() < 0) {
 		if (force_on)
@@ -4458,6 +4625,9 @@ static bool intel_iommu_capable(enum iommu_cap cap)
 	return false;
 }
 
+<<<<<<< HEAD
+static struct iommu_ops intel_iommu_ops = {
+=======
 static int intel_iommu_add_device(struct device *dev)
 {
 	struct intel_iommu *iommu;
@@ -4495,6 +4665,7 @@ static void intel_iommu_remove_device(struct device *dev)
 
 static const struct iommu_ops intel_iommu_ops = {
 	.capable	= intel_iommu_capable,
+>>>>>>> android-3.18
 	.domain_init	= intel_iommu_domain_init,
 	.domain_destroy = intel_iommu_domain_destroy,
 	.attach_dev	= intel_iommu_attach_device,
@@ -4502,12 +4673,20 @@ static const struct iommu_ops intel_iommu_ops = {
 	.map		= intel_iommu_map,
 	.unmap		= intel_iommu_unmap,
 	.iova_to_phys	= intel_iommu_iova_to_phys,
+<<<<<<< HEAD
+	.domain_has_cap = intel_iommu_domain_has_cap,
+	.pgsize_bitmap	= INTEL_IOMMU_PGSIZES,
+};
+
+static void __devinit quirk_iommu_g4x_gfx(struct pci_dev *dev)
+=======
 	.add_device	= intel_iommu_add_device,
 	.remove_device	= intel_iommu_remove_device,
 	.pgsize_bitmap	= INTEL_IOMMU_PGSIZES,
 };
 
 static void quirk_iommu_g4x_gfx(struct pci_dev *dev)
+>>>>>>> android-3.18
 {
 	/* G4x/GM45 integrated gfx dmar support is totally busted. */
 	printk(KERN_INFO "DMAR: Disabling IOMMU for graphics on this chipset\n");
@@ -4522,7 +4701,11 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e30, quirk_iommu_g4x_gfx);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e40, quirk_iommu_g4x_gfx);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e90, quirk_iommu_g4x_gfx);
 
+<<<<<<< HEAD
+static void __devinit quirk_iommu_rwbf(struct pci_dev *dev)
+=======
 static void quirk_iommu_rwbf(struct pci_dev *dev)
+>>>>>>> android-3.18
 {
 	/*
 	 * Mobile 4 Series Chipset neglects to set RWBF capability,

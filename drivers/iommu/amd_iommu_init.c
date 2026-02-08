@@ -1046,7 +1046,11 @@ static void __init free_iommu_all(void)
  *     BIOS should disable L2B micellaneous clock gating by setting
  *     L2_L2B_CK_GATE_CONTROL[CKGateL2BMiscDisable](D0F2xF4_x90[2]) = 1b
  */
+<<<<<<< HEAD
+static void __init amd_iommu_erratum_746_workaround(struct amd_iommu *iommu)
+=======
 static void amd_iommu_erratum_746_workaround(struct amd_iommu *iommu)
+>>>>>>> android-3.18
 {
 	u32 value;
 
@@ -1073,6 +1077,8 @@ static void amd_iommu_erratum_746_workaround(struct amd_iommu *iommu)
 }
 
 /*
+<<<<<<< HEAD
+=======
  * Family15h Model 30h-3fh (IOMMU Mishandles ATS Write Permission)
  * Workaround:
  *     BIOS should enable ATS write permission check by setting
@@ -1101,6 +1107,7 @@ static void amd_iommu_ats_write_check_workaround(struct amd_iommu *iommu)
 }
 
 /*
+>>>>>>> android-3.18
  * This function clues the initialization function for one IOMMU
  * together and also allocates the command buffer and programs the
  * hardware. It does NOT enable the IOMMU. This is done afterwards.
@@ -1126,7 +1133,17 @@ static int __init init_iommu_one(struct amd_iommu *iommu, struct ivhd_header *h)
 	/*
 	 * Copy data from ACPI table entry to the iommu struct
 	 */
+<<<<<<< HEAD
+	iommu->dev = pci_get_bus_and_slot(PCI_BUS(h->devid), h->devid & 0xff);
+	if (!iommu->dev)
+		return 1;
+
+	iommu->root_pdev = pci_get_bus_and_slot(iommu->dev->bus->number,
+						PCI_DEVFN(0, 0));
+
+=======
 	iommu->devid   = h->devid;
+>>>>>>> android-3.18
 	iommu->cap_ptr = h->cap_ptr;
 	iommu->pci_seg = h->pci_seg;
 	iommu->mmio_phys = h->mmio_phys;
@@ -1167,7 +1184,13 @@ static int __init init_iommu_one(struct amd_iommu *iommu, struct ivhd_header *h)
 
 	init_iommu_devices(iommu);
 
+<<<<<<< HEAD
+	amd_iommu_erratum_746_workaround(iommu);
+
+	return pci_enable_device(iommu->dev);
+=======
 	return 0;
+>>>>>>> android-3.18
 }
 
 /*
@@ -1953,7 +1976,12 @@ static int __init early_amd_iommu_init(void)
 					    GFP_KERNEL | __GFP_ZERO,
 					    get_order(MAX_DOMAIN_ID/8));
 	if (amd_iommu_pd_alloc_bitmap == NULL)
+<<<<<<< HEAD
+		goto free;
+
+=======
 		goto out;
+>>>>>>> android-3.18
 
 	/*
 	 * let all alias entries point to itself
@@ -2032,9 +2060,14 @@ out:
 
 static bool detect_ivrs(void)
 {
+<<<<<<< HEAD
+	struct amd_iommu *iommu;
+	int ret = 0;
+=======
 	struct acpi_table_header *ivrs_base;
 	acpi_size ivrs_size;
 	acpi_status status;
+>>>>>>> android-3.18
 
 	status = acpi_get_table_with_size("IVRS", 0, &ivrs_base, &ivrs_size);
 	if (status == AE_NOT_FOUND)
@@ -2074,13 +2107,29 @@ static int amd_iommu_init_dma(void)
 	for_each_iommu(iommu)
 		iommu_flush_all_caches(iommu);
 
+	/* init the device table */
+	init_device_table();
+
+	for_each_iommu(iommu)
+		iommu_flush_all_caches(iommu);
+
 	amd_iommu_init_api();
 
+<<<<<<< HEAD
+	x86_platform.iommu_shutdown = disable_iommus;
+
+	if (iommu_pass_through)
+		goto out;
+=======
 	amd_iommu_init_notifier();
+>>>>>>> android-3.18
 
 	return 0;
 }
 
+<<<<<<< HEAD
+out:
+=======
 /****************************************************************************
  *
  * AMD IOMMU Initialization State Machine
@@ -2139,6 +2188,7 @@ static int __init state_next(void)
 		BUG();
 	}
 
+>>>>>>> android-3.18
 	return ret;
 }
 
