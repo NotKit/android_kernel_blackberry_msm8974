@@ -270,6 +270,11 @@ void atombios_crtc_dpms(struct drm_crtc *crtc, int mode)
 	switch (mode) {
 	case DRM_MODE_DPMS_ON:
 		radeon_crtc->enabled = true;
+<<<<<<< HEAD
+		/* adjust pm to dpms changes BEFORE enabling crtcs */
+		radeon_pm_compute_clocks(rdev);
+=======
+>>>>>>> android-3.18
 		atombios_enable_crtc(crtc, ATOM_ENABLE);
 		if (ASIC_IS_DCE3(rdev) && !ASIC_IS_DCE6(rdev))
 			atombios_enable_crtc_memreq(crtc, ATOM_ENABLE);
@@ -289,6 +294,11 @@ void atombios_crtc_dpms(struct drm_crtc *crtc, int mode)
 			atombios_enable_crtc_memreq(crtc, ATOM_DISABLE);
 		atombios_enable_crtc(crtc, ATOM_DISABLE);
 		radeon_crtc->enabled = false;
+<<<<<<< HEAD
+		/* adjust pm to dpms changes AFTER disabling crtcs */
+		radeon_pm_compute_clocks(rdev);
+=======
+>>>>>>> android-3.18
 		break;
 	}
 	/* adjust pm to dpms */
@@ -447,6 +457,9 @@ static void atombios_crtc_program_ss(struct radeon_device *rdev,
 	int index = GetIndexIntoMasterTable(COMMAND, EnableSpreadSpectrumOnPPLL);
 	union atom_enable_ss args;
 
+<<<<<<< HEAD
+	if (!enable) {
+=======
 	if (enable) {
 		/* Don't mess with SS if percentage is 0 or external ss.
 		 * SS is already disabled previously, and disabling it
@@ -458,6 +471,7 @@ static void atombios_crtc_program_ss(struct radeon_device *rdev,
 		if (ss->type & ATOM_EXTERNAL_SS_MASK)
 			return;
 	} else {
+>>>>>>> android-3.18
 		for (i = 0; i < rdev->num_crtc; i++) {
 			if (rdev->mode_info.crtcs[i] &&
 			    rdev->mode_info.crtcs[i]->enabled &&
@@ -585,6 +599,15 @@ static u32 atombios_adjust_pll(struct drm_crtc *crtc,
 		if (rdev->family < CHIP_RV770)
 			radeon_crtc->pll_flags |= RADEON_PLL_PREFER_MINM_OVER_MAXP;
 		/* use frac fb div on APUs */
+<<<<<<< HEAD
+		if (ASIC_IS_DCE41(rdev) || ASIC_IS_DCE61(rdev))
+			pll->flags |= RADEON_PLL_USE_FRAC_FB_DIV;
+		/* use frac fb div on RS780/RS880 */
+		if ((rdev->family == CHIP_RS780) || (rdev->family == CHIP_RS880))
+			pll->flags |= RADEON_PLL_USE_FRAC_FB_DIV;
+		if (ASIC_IS_DCE32(rdev) && mode->clock > 165000)
+			pll->flags |= RADEON_PLL_USE_FRAC_FB_DIV;
+=======
 		if (ASIC_IS_DCE41(rdev) || ASIC_IS_DCE61(rdev) || ASIC_IS_DCE8(rdev))
 			radeon_crtc->pll_flags |= RADEON_PLL_USE_FRAC_FB_DIV;
 		/* use frac fb div on RS780/RS880 */
@@ -593,6 +616,7 @@ static u32 atombios_adjust_pll(struct drm_crtc *crtc,
 			radeon_crtc->pll_flags |= RADEON_PLL_USE_FRAC_FB_DIV;
 		if (ASIC_IS_DCE32(rdev) && mode->clock > 165000)
 			radeon_crtc->pll_flags |= RADEON_PLL_USE_FRAC_FB_DIV;
+>>>>>>> android-3.18
 	} else {
 		radeon_crtc->pll_flags |= RADEON_PLL_LEGACY;
 
@@ -893,11 +917,14 @@ static void atombios_crtc_program_pll(struct drm_crtc *crtc,
 					args.v5.ucMiscInfo |= PIXEL_CLOCK_V5_MISC_HDMI_24BPP;
 					break;
 				case 10:
+<<<<<<< HEAD
+=======
 					/* yes this is correct, the atom define is wrong */
 					args.v5.ucMiscInfo |= PIXEL_CLOCK_V5_MISC_HDMI_32BPP;
 					break;
 				case 12:
 					/* yes this is correct, the atom define is wrong */
+>>>>>>> android-3.18
 					args.v5.ucMiscInfo |= PIXEL_CLOCK_V5_MISC_HDMI_30BPP;
 					break;
 				}
@@ -922,10 +949,17 @@ static void atombios_crtc_program_pll(struct drm_crtc *crtc,
 					args.v6.ucMiscInfo |= PIXEL_CLOCK_V6_MISC_HDMI_24BPP;
 					break;
 				case 10:
+<<<<<<< HEAD
+					args.v6.ucMiscInfo |= PIXEL_CLOCK_V6_MISC_HDMI_30BPP;
+					break;
+				case 12:
+					args.v6.ucMiscInfo |= PIXEL_CLOCK_V6_MISC_HDMI_36BPP;
+=======
 					args.v6.ucMiscInfo |= PIXEL_CLOCK_V6_MISC_HDMI_30BPP_V6;
 					break;
 				case 12:
 					args.v6.ucMiscInfo |= PIXEL_CLOCK_V6_MISC_HDMI_36BPP_V6;
+>>>>>>> android-3.18
 					break;
 				case 16:
 					args.v6.ucMiscInfo |= PIXEL_CLOCK_V6_MISC_HDMI_48BPP;
@@ -1096,8 +1130,12 @@ static void atombios_crtc_set_pll(struct drm_crtc *crtc, struct drm_display_mode
 		radeon_compute_pll_legacy(pll, radeon_crtc->adjusted_clock, &pll_clock,
 					  &fb_div, &frac_fb_div, &ref_div, &post_div);
 
+<<<<<<< HEAD
+	atombios_crtc_program_ss(rdev, ATOM_DISABLE, radeon_crtc->pll_id, radeon_crtc->crtc_id, &ss);
+=======
 	atombios_crtc_program_ss(rdev, ATOM_DISABLE, radeon_crtc->pll_id,
 				 radeon_crtc->crtc_id, &radeon_crtc->ss);
+>>>>>>> android-3.18
 
 	atombios_crtc_program_pll(crtc, radeon_crtc->crtc_id, radeon_crtc->pll_id,
 				  encoder_mode, radeon_encoder->encoder_id, clock,
@@ -1123,8 +1161,12 @@ static void atombios_crtc_set_pll(struct drm_crtc *crtc, struct drm_display_mode
 			radeon_crtc->ss.step = step_size;
 		}
 
+<<<<<<< HEAD
+		atombios_crtc_program_ss(rdev, ATOM_ENABLE, radeon_crtc->pll_id, radeon_crtc->crtc_id, &ss);
+=======
 		atombios_crtc_program_ss(rdev, ATOM_ENABLE, radeon_crtc->pll_id,
 					 radeon_crtc->crtc_id, &radeon_crtc->ss);
+>>>>>>> android-3.18
 	}
 }
 
@@ -1943,6 +1985,27 @@ static int radeon_atom_pick_pll(struct drm_crtc *crtc)
 		DRM_ERROR("unable to allocate a PPLL\n");
 		return ATOM_PPLL_INVALID;
 	} else if (ASIC_IS_DCE4(rdev)) {
+<<<<<<< HEAD
+		list_for_each_entry(test_encoder, &dev->mode_config.encoder_list, head) {
+			if (test_encoder->crtc && (test_encoder->crtc == crtc)) {
+				/* in DP mode, the DP ref clock can come from PPLL, DCPLL, or ext clock,
+				 * depending on the asic:
+				 * DCE4: PPLL or ext clock
+				 * DCE5: DCPLL or ext clock
+				 *
+				 * Setting ATOM_PPLL_INVALID will cause SetPixelClock to skip
+				 * PPLL/DCPLL programming and only program the DP DTO for the
+				 * crtc virtual pixel clock.
+				 */
+				if (ENCODER_MODE_IS_DP(atombios_get_encoder_mode(test_encoder))) {
+					if (rdev->clock.dp_extclk)
+						return ATOM_PPLL_INVALID;
+					else if (ASIC_IS_DCE6(rdev))
+						return ATOM_PPLL0;
+					else if (ASIC_IS_DCE5(rdev))
+						return ATOM_DCPLL;
+				}
+=======
 		/* in DP mode, the DP ref clock can come from PPLL, DCPLL, or ext clock,
 		 * depending on the asic:
 		 * DCE4: PPLL or ext clock
@@ -1968,6 +2031,7 @@ static int radeon_atom_pick_pll(struct drm_crtc *crtc)
 				pll = radeon_get_shared_dp_ppll(crtc);
 				if (pll != ATOM_PPLL_INVALID)
 					return pll;
+>>>>>>> android-3.18
 			}
 		} else {
 			/* use the same PPLL for all monitors with the same clock */
@@ -2103,8 +2167,22 @@ static bool atombios_crtc_mode_fixup(struct drm_crtc *crtc,
 
 static void atombios_crtc_prepare(struct drm_crtc *crtc)
 {
+<<<<<<< HEAD
+	struct radeon_crtc *radeon_crtc = to_radeon_crtc(crtc);
 	struct drm_device *dev = crtc->dev;
 	struct radeon_device *rdev = dev->dev_private;
+
+	radeon_crtc->in_mode_set = true;
+	/* pick pll */
+	radeon_crtc->pll_id = radeon_atom_pick_pll(crtc);
+=======
+	struct drm_device *dev = crtc->dev;
+	struct radeon_device *rdev = dev->dev_private;
+
+	/* disable crtc pair power gating before programming */
+	if (ASIC_IS_DCE6(rdev))
+		atombios_powergate_crtc(crtc, ATOM_DISABLE);
+>>>>>>> android-3.18
 
 	/* disable crtc pair power gating before programming */
 	if (ASIC_IS_DCE6(rdev))
@@ -2116,8 +2194,11 @@ static void atombios_crtc_prepare(struct drm_crtc *crtc)
 
 static void atombios_crtc_commit(struct drm_crtc *crtc)
 {
+	struct radeon_crtc *radeon_crtc = to_radeon_crtc(crtc);
+
 	atombios_crtc_dpms(crtc, DRM_MODE_DPMS_ON);
 	atombios_lock_crtc(crtc, ATOM_DISABLE);
+	radeon_crtc->in_mode_set = false;
 }
 
 static void atombios_crtc_disable(struct drm_crtc *crtc)
@@ -2129,6 +2210,8 @@ static void atombios_crtc_disable(struct drm_crtc *crtc)
 	int i;
 
 	atombios_crtc_dpms(crtc, DRM_MODE_DPMS_OFF);
+<<<<<<< HEAD
+=======
 	if (crtc->primary->fb) {
 		int r;
 		struct radeon_framebuffer *radeon_fb;
@@ -2150,6 +2233,7 @@ static void atombios_crtc_disable(struct drm_crtc *crtc)
 	else if (ASIC_IS_AVIVO(rdev))
 		WREG32(AVIVO_D1GRPH_ENABLE + radeon_crtc->crtc_offset, 0);
 
+>>>>>>> android-3.18
 	if (ASIC_IS_DCE6(rdev))
 		atombios_powergate_crtc(crtc, ATOM_ENABLE);
 
@@ -2185,10 +2269,14 @@ static void atombios_crtc_disable(struct drm_crtc *crtc)
 		break;
 	}
 done:
+<<<<<<< HEAD
+	radeon_crtc->pll_id = -1;
+=======
 	radeon_crtc->pll_id = ATOM_PPLL_INVALID;
 	radeon_crtc->adjusted_clock = 0;
 	radeon_crtc->encoder = NULL;
 	radeon_crtc->connector = NULL;
+>>>>>>> android-3.18
 }
 
 static const struct drm_crtc_helper_funcs atombios_helper_funcs = {

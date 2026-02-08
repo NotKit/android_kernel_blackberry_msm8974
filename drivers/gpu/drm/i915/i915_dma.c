@@ -1572,6 +1572,27 @@ static void intel_device_info_runtime_init(struct drm_device *dev)
 	}
 }
 
+static void i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+{
+	struct apertures_struct *ap;
+	struct pci_dev *pdev = dev_priv->dev->pdev;
+	bool primary;
+
+	ap = alloc_apertures(1);
+	if (!ap)
+		return;
+
+	ap->ranges[0].base = dev_priv->dev->agp->base;
+	ap->ranges[0].size =
+		dev_priv->mm.gtt->gtt_mappable_entries << PAGE_SHIFT;
+	primary =
+		pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW;
+
+	remove_conflicting_framebuffers(ap, "inteldrmfb", primary);
+
+	kfree(ap);
+}
+
 /**
  * i915_driver_load - setup chip and create an initial config
  * @dev: DRM device
@@ -1643,6 +1664,16 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 		goto free_priv;
 	}
 
+<<<<<<< HEAD
+	dev_priv->mm.gtt = intel_gtt_get();
+	if (!dev_priv->mm.gtt) {
+		DRM_ERROR("Failed to initialize GTT\n");
+		ret = -ENODEV;
+		goto put_bridge;
+	}
+
+	i915_kick_out_firmware_fb(dev_priv);
+=======
 	mmio_bar = IS_GEN2(dev) ? 1 : 0;
 	/* Before gen4, the registers and the GTT are behind different BARs.
 	 * However, from gen4 onwards, the registers and the GTT are shared
@@ -1687,6 +1718,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 			goto out_gtt;
 		}
 	}
+>>>>>>> android-3.18
 
 	pci_set_master(dev->pdev);
 
@@ -1705,12 +1737,28 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 	if (IS_BROADWATER(dev) || IS_CRESTLINE(dev))
 		dma_set_coherent_mask(&dev->pdev->dev, DMA_BIT_MASK(32));
 
+<<<<<<< HEAD
+	mmio_bar = IS_GEN2(dev) ? 1 : 0;
+	dev_priv->regs = pci_iomap(dev->pdev, mmio_bar, 0);
+	if (!dev_priv->regs) {
+		DRM_ERROR("failed to map registers\n");
+		ret = -EIO;
+		goto put_bridge;
+	}
+
+	agp_size = dev_priv->mm.gtt->gtt_mappable_entries << PAGE_SHIFT;
+
+	dev_priv->mm.gtt_mapping =
+		io_mapping_create_wc(dev->agp->base, agp_size);
+	if (dev_priv->mm.gtt_mapping == NULL) {
+=======
 	aperture_size = dev_priv->gtt.mappable_end;
 
 	dev_priv->gtt.mappable =
 		io_mapping_create_wc(dev_priv->gtt.mappable_base,
 				     aperture_size);
 	if (dev_priv->gtt.mappable == NULL) {
+>>>>>>> android-3.18
 		ret = -EIO;
 		goto out_gtt;
 	}

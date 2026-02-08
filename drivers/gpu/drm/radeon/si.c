@@ -4283,6 +4283,14 @@ static int si_pcie_gart_enable(struct radeon_device *rdev)
 	WREG32(0x15DC, 0);
 
 	/* empty context1-15 */
+<<<<<<< HEAD
+	/* FIXME start with 4G, once using 2 level pt switch to full
+	 * vm size space
+	 */
+	/* set vm size, must be a multiple of 4 */
+	WREG32(VM_CONTEXT1_PAGE_TABLE_START_ADDR, 0);
+	WREG32(VM_CONTEXT1_PAGE_TABLE_END_ADDR, rdev->vm_manager.max_pfn - 1);
+=======
 	/* set vm size, must be a multiple of 4 */
 	WREG32(VM_CONTEXT1_PAGE_TABLE_START_ADDR, 0);
 	WREG32(VM_CONTEXT1_PAGE_TABLE_END_ADDR, rdev->vm_manager.max_pfn - 1);
@@ -4290,6 +4298,7 @@ static int si_pcie_gart_enable(struct radeon_device *rdev)
 	 * the VMs are determined by the application and setup and assigned
 	 * on the fly in the vm part of radeon_gart.c
 	 */
+>>>>>>> android-3.18
 	for (i = 1; i < 16; i++) {
 		if (i < 8)
 			WREG32(VM_CONTEXT0_PAGE_TABLE_BASE_ADDR + (i << 2),
@@ -6701,16 +6710,37 @@ static int si_startup(struct radeon_device *rdev)
 	struct radeon_ring *ring;
 	int r;
 
+<<<<<<< HEAD
+	si_mc_program(rdev);
+
+	if (!rdev->me_fw || !rdev->pfp_fw || !rdev->ce_fw ||
+	    !rdev->rlc_fw || !rdev->mc_fw) {
+		r = si_init_microcode(rdev);
+		if (r) {
+			DRM_ERROR("Failed to load firmware!\n");
+			return r;
+		}
+	}
+
+	r = si_mc_load_microcode(rdev);
+	if (r) {
+		DRM_ERROR("Failed to load MC firmware!\n");
+		return r;
+	}
+=======
 	/* enable pcie gen2/3 link */
 	si_pcie_gen3_enable(rdev);
 	/* enable aspm */
 	si_program_aspm(rdev);
+>>>>>>> android-3.18
 
 	/* scratch needs to be initialized before MC */
 	r = r600_vram_scratch_init(rdev);
 	if (r)
 		return r;
 
+<<<<<<< HEAD
+=======
 	si_mc_program(rdev);
 
 	if (!rdev->pm.dpm_enabled) {
@@ -6721,6 +6751,7 @@ static int si_startup(struct radeon_device *rdev)
 		}
 	}
 
+>>>>>>> android-3.18
 	r = si_pcie_gart_enable(rdev);
 	if (r)
 		return r;
@@ -6978,6 +7009,8 @@ int si_init(struct radeon_device *rdev)
 	if (r)
 		return r;
 
+<<<<<<< HEAD
+=======
 	if (!rdev->me_fw || !rdev->pfp_fw || !rdev->ce_fw ||
 	    !rdev->rlc_fw || !rdev->mc_fw) {
 		r = si_init_microcode(rdev);
@@ -6990,6 +7023,7 @@ int si_init(struct radeon_device *rdev)
 	/* Initialize power management */
 	radeon_pm_init(rdev);
 
+>>>>>>> android-3.18
 	ring = &rdev->ring[RADEON_RING_TYPE_GFX_INDEX];
 	ring->ring_obj = NULL;
 	r600_ring_init(rdev, ring, 1024 * 1024);
@@ -7050,6 +7084,9 @@ int si_init(struct radeon_device *rdev)
 		DRM_ERROR("radeon: MC ucode required for NI+.\n");
 		return -EINVAL;
 	}
+
+	/* posting read */
+	RREG32(SRBM_STATUS);
 
 	return 0;
 }

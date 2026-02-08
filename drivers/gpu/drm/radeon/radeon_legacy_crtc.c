@@ -446,7 +446,11 @@ retry:
 		 * We don't shutdown the display controller because new buffer
 		 * will end up in same spot.
 		 */
+<<<<<<< HEAD
+		if (!atomic && fb && fb != crtc->fb) {
+=======
 		if (!atomic && fb && fb != crtc->primary->fb) {
+>>>>>>> android-3.18
 			struct radeon_bo *old_rbo;
 			unsigned long nsize, osize;
 
@@ -1061,9 +1065,11 @@ static int radeon_crtc_mode_set(struct drm_crtc *crtc,
 
 static void radeon_crtc_prepare(struct drm_crtc *crtc)
 {
+	struct radeon_crtc *radeon_crtc = to_radeon_crtc(crtc);
 	struct drm_device *dev = crtc->dev;
 	struct drm_crtc *crtci;
 
+	radeon_crtc->in_mode_set = true;
 	/*
 	* The hardware wedges sometimes if you reconfigure one CRTC
 	* whilst another is running (see fdo bug #24611).
@@ -1074,6 +1080,7 @@ static void radeon_crtc_prepare(struct drm_crtc *crtc)
 
 static void radeon_crtc_commit(struct drm_crtc *crtc)
 {
+	struct radeon_crtc *radeon_crtc = to_radeon_crtc(crtc);
 	struct drm_device *dev = crtc->dev;
 	struct drm_crtc *crtci;
 
@@ -1084,6 +1091,7 @@ static void radeon_crtc_commit(struct drm_crtc *crtc)
 		if (crtci->enabled)
 			radeon_crtc_dpms(crtci, DRM_MODE_DPMS_ON);
 	}
+	radeon_crtc->in_mode_set = false;
 }
 
 static void radeon_crtc_disable(struct drm_crtc *crtc)

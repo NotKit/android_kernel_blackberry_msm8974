@@ -1051,9 +1051,27 @@ i915_gem_pwrite_ioctl(struct drm_device *dev, void *data,
 		goto out;
 	}
 
+<<<<<<< HEAD
+	if (obj->gtt_space &&
+	    obj->tiling_mode == I915_TILING_NONE &&
+	    obj->base.write_domain != I915_GEM_DOMAIN_CPU) {
+		ret = i915_gem_object_pin(obj, 0, true);
+		if (ret)
+			goto out;
+
+		ret = i915_gem_object_set_to_gtt_domain(obj, true);
+		if (ret)
+			goto out_unpin;
+
+		ret = i915_gem_object_put_fence(obj);
+		if (ret)
+			goto out_unpin;
+
+=======
 	if (obj->tiling_mode == I915_TILING_NONE &&
 	    obj->base.write_domain != I915_GEM_DOMAIN_CPU &&
 	    cpu_write_needs_clflush(obj)) {
+>>>>>>> android-3.18
 		ret = i915_gem_gtt_pwrite_fast(dev, obj, args, file);
 		/* Note that the gtt paths might fail with non-page-backed user
 		 * pointers (e.g. gtt mappings when moving data between
@@ -1619,8 +1637,12 @@ out:
 		 * EBUSY is ok: this just means that another thread
 		 * already did the job.
 		 */
+<<<<<<< HEAD
+		return VM_FAULT_NOPAGE;
+=======
 		ret = VM_FAULT_NOPAGE;
 		break;
+>>>>>>> android-3.18
 	case -ENOMEM:
 		ret = VM_FAULT_OOM;
 		break;
@@ -3034,6 +3056,38 @@ static void i965_write_fence_reg(struct drm_device *dev, int reg,
 
 	fence_reg += reg * 8;
 
+<<<<<<< HEAD
+static int sandybridge_write_fence_reg(struct drm_i915_gem_object *obj,
+				       struct intel_ring_buffer *pipelined)
+{
+	struct drm_device *dev = obj->base.dev;
+	drm_i915_private_t *dev_priv = dev->dev_private;
+	u32 size = obj->gtt_space->size;
+	int regnum = obj->fence_reg;
+	uint64_t val;
+
+	/* Adjust fence size to match tiled area */
+	if (obj->tiling_mode != I915_TILING_NONE) {
+		uint32_t row_size = obj->stride *
+			(obj->tiling_mode == I915_TILING_Y ? 32 : 8);
+		size = (size / row_size) * row_size;
+	}
+
+	val = (uint64_t)((obj->gtt_offset + size - 4096) &
+			 0xfffff000) << 32;
+	val |= obj->gtt_offset & 0xfffff000;
+	val |= (uint64_t)((obj->stride / 128) - 1) <<
+		SANDYBRIDGE_FENCE_PITCH_SHIFT;
+
+	if (obj->tiling_mode == I915_TILING_Y)
+		val |= 1 << I965_FENCE_TILING_Y_SHIFT;
+	val |= I965_FENCE_REG_VALID;
+
+	if (pipelined) {
+		int ret = intel_ring_begin(pipelined, 6);
+		if (ret)
+			return ret;
+=======
 	/* To w/a incoherency with non-atomic 64-bit register updates,
 	 * we split the 64-bit update into two 32-bit writes. In order
 	 * for a partial fence not to be evaluated between writes, we
@@ -3056,6 +3110,7 @@ static void i965_write_fence_reg(struct drm_device *dev, int reg,
 				(obj->tiling_mode == I915_TILING_Y ? 32 : 8);
 			size = (size / row_size) * row_size;
 		}
+>>>>>>> android-3.18
 
 		val = (uint64_t)((i915_gem_obj_ggtt_offset(obj) + size - 4096) &
 				 0xfffff000) << 32;
@@ -3079,8 +3134,36 @@ static void i965_write_fence_reg(struct drm_device *dev, int reg,
 static void i915_write_fence_reg(struct drm_device *dev, int reg,
 				 struct drm_i915_gem_object *obj)
 {
+<<<<<<< HEAD
+	struct drm_device *dev = obj->base.dev;
+	drm_i915_private_t *dev_priv = dev->dev_private;
+	u32 size = obj->gtt_space->size;
+	int regnum = obj->fence_reg;
+	uint64_t val;
+
+	/* Adjust fence size to match tiled area */
+	if (obj->tiling_mode != I915_TILING_NONE) {
+		uint32_t row_size = obj->stride *
+			(obj->tiling_mode == I915_TILING_Y ? 32 : 8);
+		size = (size / row_size) * row_size;
+	}
+
+	val = (uint64_t)((obj->gtt_offset + size - 4096) &
+		    0xfffff000) << 32;
+	val |= obj->gtt_offset & 0xfffff000;
+	val |= ((obj->stride / 128) - 1) << I965_FENCE_PITCH_SHIFT;
+	if (obj->tiling_mode == I915_TILING_Y)
+		val |= 1 << I965_FENCE_TILING_Y_SHIFT;
+	val |= I965_FENCE_REG_VALID;
+
+	if (pipelined) {
+		int ret = intel_ring_begin(pipelined, 6);
+		if (ret)
+			return ret;
+=======
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	u32 val;
+>>>>>>> android-3.18
 
 	if (obj) {
 		u32 size = i915_gem_obj_ggtt_size(obj);
@@ -3293,6 +3376,11 @@ deadlock:
 	return ERR_PTR(-EDEADLK);
 }
 
+static void i915_gem_write_fence__ipi(void *data)
+{
+	wbinvd();
+}
+
 /**
  * i915_gem_object_get_fence - set up fencing for an object
  * @obj: object to map through a fence reg
@@ -3358,11 +3446,43 @@ i915_gem_object_get_fence(struct drm_i915_gem_object *obj)
 	return 0;
 }
 
+<<<<<<< HEAD
+update:
+	obj->tiling_changed = false;
+	switch (INTEL_INFO(dev)->gen) {
+	case 7:
+	case 6:
+		/* In order to fully serialize access to the fenced region and
+		 * the update to the fence register we need to take extreme
+		 * measures on SNB+. In theory, the write to the fence register
+		 * flushes all memory transactions before, and coupled with the
+		 * mb() placed around the register write we serialise all memory
+		 * operations with respect to the changes in the tiler. Yet, on
+		 * SNB+ we need to take a step further and emit an explicit wbinvd()
+		 * on each processor in order to manually flush all memory
+		 * transactions before updating the fence register.
+		 */
+		on_each_cpu(i915_gem_write_fence__ipi, NULL, 1);
+		ret = sandybridge_write_fence_reg(obj, pipelined);
+		break;
+	case 5:
+	case 4:
+		ret = i965_write_fence_reg(obj, pipelined);
+		break;
+	case 3:
+		ret = i915_write_fence_reg(obj, pipelined);
+		break;
+	case 2:
+		ret = i830_write_fence_reg(obj, pipelined);
+		break;
+	}
+=======
 static bool i915_gem_valid_gtt_space(struct i915_vma *vma,
 				     unsigned long cache_level)
 {
 	struct drm_mm_node *gtt_space = &vma->node;
 	struct drm_mm_node *other;
+>>>>>>> android-3.18
 
 	/*
 	 * On some machines we have to be careful when putting differing types
@@ -4110,8 +4230,14 @@ i915_gem_object_pin(struct drm_i915_gem_object *obj,
 	struct i915_vma *vma;
 	int ret;
 
+<<<<<<< HEAD
+	if (WARN_ON(obj->pin_count == DRM_I915_GEM_OBJECT_MAX_PIN_COUNT))
+		return -EBUSY;
+	WARN_ON(i915_verify_lists(dev));
+=======
 	if (WARN_ON(vm == &dev_priv->mm.aliasing_ppgtt->base))
 		return -ENODEV;
+>>>>>>> android-3.18
 
 	if (WARN_ON(flags & (PIN_GLOBAL | PIN_MAPPABLE) && !i915_is_ggtt(vm)))
 		return -EINVAL;
@@ -4226,6 +4352,10 @@ i915_gem_pin_ioctl(struct drm_device *dev, void *data,
 		goto out;
 	}
 
+<<<<<<< HEAD
+	if (obj->user_pin_count == 0) {
+		ret = i915_gem_object_pin(obj, args->alignment, true);
+=======
 	if (obj->user_pin_count == ULONG_MAX) {
 		ret = -EBUSY;
 		goto out;
@@ -4233,6 +4363,7 @@ i915_gem_pin_ioctl(struct drm_device *dev, void *data,
 
 	if (obj->user_pin_count == 0) {
 		ret = i915_gem_obj_ggtt_pin(obj, args->alignment, PIN_MAPPABLE);
+>>>>>>> android-3.18
 		if (ret)
 			goto out;
 	}
@@ -4240,7 +4371,15 @@ i915_gem_pin_ioctl(struct drm_device *dev, void *data,
 	obj->user_pin_count++;
 	obj->pin_filp = file;
 
+<<<<<<< HEAD
+	/* XXX - flush the CPU caches for pinned objects
+	 * as the X server doesn't manage domains yet
+	 */
+	i915_gem_object_flush_cpu_write_domain(obj);
+	args->offset = obj->gtt_offset;
+=======
 	args->offset = i915_gem_obj_ggtt_offset(obj);
+>>>>>>> android-3.18
 out:
 	drm_gem_object_unreference(&obj->base);
 unlock:

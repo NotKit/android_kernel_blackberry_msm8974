@@ -131,6 +131,16 @@ static const u32 sumo_rlc_save_restore_register_list[] =
 	0x802c,
 };
 
+static const u32 crtc_offsets[6] =
+{
+	EVERGREEN_CRTC0_REGISTER_OFFSET,
+	EVERGREEN_CRTC1_REGISTER_OFFSET,
+	EVERGREEN_CRTC2_REGISTER_OFFSET,
+	EVERGREEN_CRTC3_REGISTER_OFFSET,
+	EVERGREEN_CRTC4_REGISTER_OFFSET,
+	EVERGREEN_CRTC5_REGISTER_OFFSET
+};
+
 static void evergreen_gpu_init(struct radeon_device *rdev);
 void evergreen_fini(struct radeon_device *rdev);
 void evergreen_pcie_gen2_enable(struct radeon_device *rdev);
@@ -1188,6 +1198,24 @@ void evergreen_fix_pci_max_read_req_size(struct radeon_device *rdev)
 
 void dce4_program_fmt(struct drm_encoder *encoder)
 {
+<<<<<<< HEAD
+	int i;
+
+	if (crtc >= rdev->num_crtc)
+		return;
+
+	if (RREG32(EVERGREEN_CRTC_CONTROL + crtc_offsets[crtc]) & EVERGREEN_CRTC_MASTER_EN) {
+		for (i = 0; i < rdev->usec_timeout; i++) {
+			if (!(RREG32(EVERGREEN_CRTC_STATUS + crtc_offsets[crtc]) & EVERGREEN_CRTC_V_BLANK))
+				break;
+			udelay(1);
+		}
+		for (i = 0; i < rdev->usec_timeout; i++) {
+			if (RREG32(EVERGREEN_CRTC_STATUS + crtc_offsets[crtc]) & EVERGREEN_CRTC_V_BLANK)
+				break;
+			udelay(1);
+		}
+=======
 	struct drm_device *dev = encoder->dev;
 	struct radeon_device *rdev = dev->dev_private;
 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
@@ -1237,6 +1265,7 @@ void dce4_program_fmt(struct drm_encoder *encoder)
 	default:
 		/* not needed */
 		break;
+>>>>>>> android-3.18
 	}
 
 	WREG32(FMT_BIT_DEPTH_CONTROL + radeon_crtc->crtc_offset, tmp);
@@ -2533,6 +2562,16 @@ static void evergreen_agp_enable(struct radeon_device *rdev)
 
 static const unsigned ni_dig_offsets[] =
 {
+<<<<<<< HEAD
+	u32 crtc_enabled, tmp, frame_count, blackout;
+	int i, j;
+
+	save->vga_render_control = RREG32(VGA_RENDER_CONTROL);
+	save->vga_hdp_control = RREG32(VGA_HDP_CONTROL);
+
+	/* disable VGA render */
+	WREG32(VGA_RENDER_CONTROL, 0);
+=======
 	NI_DIG0_REGISTER_OFFSET,
 	NI_DIG1_REGISTER_OFFSET,
 	NI_DIG2_REGISTER_OFFSET,
@@ -2685,6 +2724,7 @@ void evergreen_mc_stop(struct radeon_device *rdev, struct evergreen_mc_save *sav
 		/* disable VGA render */
 		WREG32(VGA_RENDER_CONTROL, 0);
 	}
+>>>>>>> android-3.18
 	/* blank the display controllers */
 	for (i = 0; i < rdev->num_crtc; i++) {
 		crtc_enabled = RREG32(EVERGREEN_CRTC_CONTROL + crtc_offsets[i]) & EVERGREEN_CRTC_MASTER_EN;
@@ -2716,6 +2756,9 @@ void evergreen_mc_stop(struct radeon_device *rdev, struct evergreen_mc_save *sav
 					break;
 				udelay(1);
 			}
+<<<<<<< HEAD
+
+=======
 			/*we should disable dig if it drives dp sst*/
 			/*but we are in radeon_device_init and the topology is unknown*/
 			/*and it is available after radeon_modeset_init*/
@@ -2727,6 +2770,7 @@ void evergreen_mc_stop(struct radeon_device *rdev, struct evergreen_mc_save *sav
 			    evergreen_is_dp_sst_stream_enabled(rdev, i ,&dig_fe))
 				evergreen_blank_dp_output(rdev, dig_fe);
 			/*we could remove 6 lines below*/
+>>>>>>> android-3.18
 			/* XXX this is a hack to avoid strange behavior with EFI on certain systems */
 			WREG32(EVERGREEN_CRTC_UPDATE_LOCK + crtc_offsets[i], 1);
 			tmp = RREG32(EVERGREEN_CRTC_CONTROL + crtc_offsets[i]);
@@ -2786,6 +2830,38 @@ void evergreen_mc_resume(struct radeon_device *rdev, struct evergreen_mc_save *s
 		WREG32(EVERGREEN_GRPH_SECONDARY_SURFACE_ADDRESS + crtc_offsets[i],
 		       (u32)rdev->mc.vram_start);
 	}
+<<<<<<< HEAD
+	WREG32(EVERGREEN_VGA_MEMORY_BASE_ADDRESS_HIGH, upper_32_bits(rdev->mc.vram_start));
+	WREG32(EVERGREEN_VGA_MEMORY_BASE_ADDRESS, (u32)rdev->mc.vram_start);
+
+	/* unlock regs and wait for update */
+	for (i = 0; i < rdev->num_crtc; i++) {
+		if (save->crtc_enabled[i]) {
+			tmp = RREG32(EVERGREEN_MASTER_UPDATE_MODE + crtc_offsets[i]);
+			if ((tmp & 0x3) != 0) {
+				tmp &= ~0x3;
+				WREG32(EVERGREEN_MASTER_UPDATE_MODE + crtc_offsets[i], tmp);
+			}
+			tmp = RREG32(EVERGREEN_GRPH_UPDATE + crtc_offsets[i]);
+			if (tmp & EVERGREEN_GRPH_UPDATE_LOCK) {
+				tmp &= ~EVERGREEN_GRPH_UPDATE_LOCK;
+				WREG32(EVERGREEN_GRPH_UPDATE + crtc_offsets[i], tmp);
+			}
+			tmp = RREG32(EVERGREEN_MASTER_UPDATE_LOCK + crtc_offsets[i]);
+			if (tmp & 1) {
+				tmp &= ~1;
+				WREG32(EVERGREEN_MASTER_UPDATE_LOCK + crtc_offsets[i], tmp);
+			}
+			for (j = 0; j < rdev->usec_timeout; j++) {
+				tmp = RREG32(EVERGREEN_GRPH_UPDATE + crtc_offsets[i]);
+				if ((tmp & EVERGREEN_GRPH_SURFACE_UPDATE_PENDING) == 0)
+					break;
+				udelay(1);
+			}
+		}
+	}
+
+=======
 
 	if (!ASIC_IS_NODCE(rdev)) {
 		WREG32(EVERGREEN_VGA_MEMORY_BASE_ADDRESS_HIGH, upper_32_bits(rdev->mc.vram_start));
@@ -2820,6 +2896,7 @@ void evergreen_mc_resume(struct radeon_device *rdev, struct evergreen_mc_save *s
 		}
 	}
 
+>>>>>>> android-3.18
 	/* unblackout the MC */
 	tmp = RREG32(MC_SHARED_BLACKOUT_CNTL);
 	tmp &= ~BLACKOUT_MODE_MASK;
@@ -2831,7 +2908,11 @@ void evergreen_mc_resume(struct radeon_device *rdev, struct evergreen_mc_save *s
 		if (save->crtc_enabled[i]) {
 			if (ASIC_IS_DCE6(rdev)) {
 				tmp = RREG32(EVERGREEN_CRTC_BLANK_CONTROL + crtc_offsets[i]);
+<<<<<<< HEAD
+				tmp |= EVERGREEN_CRTC_BLANK_DATA_EN;
+=======
 				tmp &= ~EVERGREEN_CRTC_BLANK_DATA_EN;
+>>>>>>> android-3.18
 				WREG32(EVERGREEN_CRTC_UPDATE_LOCK + crtc_offsets[i], 1);
 				WREG32(EVERGREEN_CRTC_BLANK_CONTROL + crtc_offsets[i], tmp);
 				WREG32(EVERGREEN_CRTC_UPDATE_LOCK + crtc_offsets[i], 0);
@@ -2851,12 +2932,19 @@ void evergreen_mc_resume(struct radeon_device *rdev, struct evergreen_mc_save *s
 			}
 		}
 	}
+<<<<<<< HEAD
+	/* Unlock vga access */
+	WREG32(VGA_HDP_CONTROL, save->vga_hdp_control);
+	mdelay(1);
+	WREG32(VGA_RENDER_CONTROL, save->vga_render_control);
+=======
 	if (!ASIC_IS_NODCE(rdev)) {
 		/* Unlock vga access */
 		WREG32(VGA_HDP_CONTROL, save->vga_hdp_control);
 		mdelay(1);
 		WREG32(VGA_RENDER_CONTROL, save->vga_render_control);
 	}
+>>>>>>> android-3.18
 }
 
 void evergreen_mc_program(struct radeon_device *rdev)
@@ -3455,7 +3543,12 @@ static void evergreen_gpu_init(struct radeon_device *rdev)
 			break;
 		}
 	}
+<<<<<<< HEAD
+	rdev->config.evergreen.tile_config |=
+		((mc_arb_ramcfg & BURSTLENGTH_MASK) >> BURSTLENGTH_SHIFT) << 8;
+=======
 	rdev->config.evergreen.tile_config |= 0 << 8;
+>>>>>>> android-3.18
 	rdev->config.evergreen.tile_config |=
 		((gb_addr_config & 0x30000000) >> 28) << 12;
 
@@ -3502,6 +3595,17 @@ static void evergreen_gpu_init(struct radeon_device *rdev)
 	}
 	rdev->config.evergreen.active_simds = hweight32(~tmp);
 
+<<<<<<< HEAD
+		WREG32(CC_RB_BACKEND_DISABLE, rb);
+		WREG32(CC_SYS_RB_BACKEND_DISABLE, rb);
+		WREG32(GC_USER_RB_BACKEND_DISABLE, rb);
+		WREG32(CC_GC_SHADER_PIPE_CONFIG, sp);
+	}
+
+	grbm_gfx_index = INSTANCE_BROADCAST_WRITES | SE_BROADCAST_WRITES;
+	WREG32(GRBM_GFX_INDEX, grbm_gfx_index);
+	WREG32(RLC_GFX_INDEX, grbm_gfx_index);
+=======
 	WREG32(GRBM_GFX_INDEX, INSTANCE_BROADCAST_WRITES | SE_BROADCAST_WRITES);
 	WREG32(RLC_GFX_INDEX, INSTANCE_BROADCAST_WRITES | SE_BROADCAST_WRITES);
 
@@ -3528,6 +3632,7 @@ static void evergreen_gpu_init(struct radeon_device *rdev)
 						EVERGREEN_MAX_BACKENDS, disabled_rb_mask);
 	}
 	WREG32(GB_BACKEND_MAP, tmp);
+>>>>>>> android-3.18
 
 	WREG32(CGTS_SYS_TCC_DISABLE, 0);
 	WREG32(CGTS_TCC_DISABLE, 0);
@@ -5322,6 +5427,18 @@ static int evergreen_startup(struct radeon_device *rdev)
 	/* enable aspm */
 	evergreen_program_aspm(rdev);
 
+<<<<<<< HEAD
+	evergreen_mc_program(rdev);
+
+	if (ASIC_IS_DCE5(rdev)) {
+		if (!rdev->me_fw || !rdev->pfp_fw || !rdev->rlc_fw || !rdev->mc_fw) {
+			r = ni_init_microcode(rdev);
+			if (r) {
+				DRM_ERROR("Failed to load firmware!\n");
+				return r;
+			}
+		}
+=======
 	/* scratch needs to be initialized before MC */
 	r = r600_vram_scratch_init(rdev);
 	if (r)
@@ -5330,6 +5447,7 @@ static int evergreen_startup(struct radeon_device *rdev)
 	evergreen_mc_program(rdev);
 
 	if (ASIC_IS_DCE5(rdev) && !rdev->pm.dpm_enabled) {
+>>>>>>> android-3.18
 		r = ni_mc_load_microcode(rdev);
 		if (r) {
 			DRM_ERROR("Failed to load MC firmware!\n");
@@ -5337,6 +5455,13 @@ static int evergreen_startup(struct radeon_device *rdev)
 		}
 	}
 
+<<<<<<< HEAD
+	r = r600_vram_scratch_init(rdev);
+	if (r)
+		return r;
+
+=======
+>>>>>>> android-3.18
 	if (rdev->flags & RADEON_IS_AGP) {
 		evergreen_agp_enable(rdev);
 	} else {
@@ -5563,6 +5688,8 @@ int evergreen_init(struct radeon_device *rdev)
 	if (r)
 		return r;
 
+<<<<<<< HEAD
+=======
 	if (ASIC_IS_DCE5(rdev)) {
 		if (!rdev->me_fw || !rdev->pfp_fw || !rdev->rlc_fw || !rdev->mc_fw) {
 			r = ni_init_microcode(rdev);
@@ -5584,6 +5711,7 @@ int evergreen_init(struct radeon_device *rdev)
 	/* Initialize power management */
 	radeon_pm_init(rdev);
 
+>>>>>>> android-3.18
 	rdev->ring[RADEON_RING_TYPE_GFX_INDEX].ring_obj = NULL;
 	r600_ring_init(rdev, &rdev->ring[RADEON_RING_TYPE_GFX_INDEX], 1024 * 1024);
 
@@ -5630,6 +5758,9 @@ int evergreen_init(struct radeon_device *rdev)
 			return -EINVAL;
 		}
 	}
+
+	/* posting read */
+	RREG32(SRBM_STATUS);
 
 	return 0;
 }
