@@ -27,6 +27,8 @@ extern const unsigned long sigreturn_codes[7];
 
 static unsigned long signal_return_offset;
 
+static unsigned long signal_return_offset;
+
 #ifdef CONFIG_CRUNCH
 static int preserve_crunch_context(struct crunch_sigframe __user *frame)
 {
