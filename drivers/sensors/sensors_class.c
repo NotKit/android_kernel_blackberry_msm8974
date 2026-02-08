@@ -194,6 +194,32 @@ static struct device_attribute sensors_class_attrs[] = {
 	__ATTR_NULL,
 };
 
+static struct attribute *sensors_class_attr_list[] = {
+	&sensors_class_attrs[0].attr,
+	&sensors_class_attrs[1].attr,
+	&sensors_class_attrs[2].attr,
+	&sensors_class_attrs[3].attr,
+	&sensors_class_attrs[4].attr,
+	&sensors_class_attrs[5].attr,
+	&sensors_class_attrs[6].attr,
+	&sensors_class_attrs[7].attr,
+	&sensors_class_attrs[8].attr,
+	&sensors_class_attrs[9].attr,
+	&sensors_class_attrs[10].attr,
+	&sensors_class_attrs[11].attr,
+	&sensors_class_attrs[12].attr,
+	NULL,
+};
+
+static const struct attribute_group sensors_class_attr_group = {
+	.attrs = sensors_class_attr_list,
+};
+
+static const struct attribute_group *sensors_class_attr_groups[] = {
+	&sensors_class_attr_group,
+	NULL,
+};
+
 /**
  * sensors_classdev_register - register a new object of sensors_classdev class.
  * @parent: The device to register.
@@ -236,7 +262,7 @@ static int __init sensors_init(void)
 	sensors_class = class_create(THIS_MODULE, "sensors");
 	if (IS_ERR(sensors_class))
 		return PTR_ERR(sensors_class);
-	sensors_class->dev_attrs = sensors_class_attrs;
+	sensors_class->dev_groups = sensors_class_attr_groups;
 	return 0;
 }
 
