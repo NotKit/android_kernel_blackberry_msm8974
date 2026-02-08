@@ -25,7 +25,10 @@
 #include <linux/input/mt.h>
 #include <linux/major.h>
 #include <linux/device.h>
+<<<<<<< HEAD
+=======
 #include <linux/cdev.h>
+>>>>>>> android-3.18
 #include <linux/wakelock.h>
 #include "input-compat.h"
 
@@ -40,6 +43,8 @@ struct evdev {
 	struct device dev;
 	struct cdev cdev;
 	bool exist;
+	int hw_ts_sec;
+	int hw_ts_nsec;
 };
 
 struct evdev_client {
@@ -208,8 +213,30 @@ static void evdev_events(struct input_handle *handle,
 	struct evdev_client *client;
 	ktime_t time_mono, time_real;
 
+<<<<<<< HEAD
+	if (type == EV_SYN && code == SYN_TIME_SEC) {
+		evdev->hw_ts_sec = value;
+		return;
+	}
+	if (type == EV_SYN && code == SYN_TIME_NSEC) {
+		evdev->hw_ts_nsec = value;
+		return;
+	}
+
+	if (evdev->hw_ts_sec != -1 && evdev->hw_ts_nsec != -1)
+		time_mono = ktime_set(evdev->hw_ts_sec, evdev->hw_ts_nsec);
+	else
+		time_mono = ktime_get();
+
+	time_real = ktime_sub(time_mono, ktime_get_monotonic_offset());
+
+	event.type = type;
+	event.code = code;
+	event.value = value;
+=======
 	time_mono = ktime_get();
 	time_real = ktime_mono_to_real(time_mono);
+>>>>>>> android-3.18
 
 	rcu_read_lock();
 
@@ -223,6 +250,15 @@ static void evdev_events(struct input_handle *handle,
 					  time_mono, time_real);
 
 	rcu_read_unlock();
+<<<<<<< HEAD
+
+	if (type == EV_SYN && code == SYN_REPORT) {
+		evdev->hw_ts_sec = -1;
+		evdev->hw_ts_nsec = -1;
+		wake_up_interruptible(&evdev->wait);
+	}
+=======
+>>>>>>> android-3.18
 }
 
 /*
@@ -363,6 +399,11 @@ static int evdev_release(struct inode *inode, struct file *file)
 	mutex_unlock(&evdev->mutex);
 
 	evdev_detach_client(evdev, client);
+<<<<<<< HEAD
+	if (client->use_wake_lock)
+		wake_lock_destroy(&client->wake_lock);
+	kfree(client);
+=======
 
 	if (client->use_wake_lock)
 		wake_lock_destroy(&client->wake_lock);
@@ -371,6 +412,7 @@ static int evdev_release(struct inode *inode, struct file *file)
 		vfree(client);
 	else
 		kfree(client);
+>>>>>>> android-3.18
 
 	evdev_close_device(evdev);
 
@@ -401,6 +443,7 @@ static int evdev_open(struct inode *inode, struct file *file)
 	if (!client)
 		return -ENOMEM;
 
+	client->clkid = CLOCK_MONOTONIC;
 	client->bufsize = bufsize;
 	spin_lock_init(&client->buffer_lock);
 	snprintf(client->name, sizeof(client->name), "%s-%d",
@@ -842,6 +885,35 @@ static int evdev_disable_suspend_block(struct evdev *evdev,
 	return 0;
 }
 
+static int evdev_enable_suspend_block(struct evdev *evdev,
+				      struct evdev_client *client)
+{
+	if (client->use_wake_lock)
+		return 0;
+
+	spin_lock_irq(&client->buffer_lock);
+	wake_lock_init(&client->wake_lock, WAKE_LOCK_SUSPEND, client->name);
+	client->use_wake_lock = true;
+	if (client->packet_head != client->tail)
+		wake_lock(&client->wake_lock);
+	spin_unlock_irq(&client->buffer_lock);
+	return 0;
+}
+
+static int evdev_disable_suspend_block(struct evdev *evdev,
+				       struct evdev_client *client)
+{
+	if (!client->use_wake_lock)
+		return 0;
+
+	spin_lock_irq(&client->buffer_lock);
+	client->use_wake_lock = false;
+	spin_unlock_irq(&client->buffer_lock);
+	wake_lock_destroy(&client->wake_lock);
+
+	return 0;
+}
+
 static long evdev_do_ioctl(struct file *file, unsigned int cmd,
 			   void __user *p, int compat_mode)
 {
@@ -1169,12 +1241,18 @@ static int evdev_connect(struct input_handler *handler, struct input_dev *dev,
 	mutex_init(&evdev->mutex);
 	init_waitqueue_head(&evdev->wait);
 	evdev->exist = true;
+<<<<<<< HEAD
+	evdev->minor = minor;
+	evdev->hw_ts_sec = -1;
+	evdev->hw_ts_nsec = -1;
+=======
 
 	dev_no = minor;
 	/* Normalize device number if it falls into legacy range */
 	if (dev_no < EVDEV_MINOR_BASE + EVDEV_MINORS)
 		dev_no -= EVDEV_MINOR_BASE;
 	dev_set_name(&evdev->dev, "event%d", dev_no);
+>>>>>>> android-3.18
 
 	evdev->handle.dev = input_get_device(dev);
 	evdev->handle.name = dev_name(&evdev->dev);

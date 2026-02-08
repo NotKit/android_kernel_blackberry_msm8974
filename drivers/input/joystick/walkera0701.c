@@ -196,8 +196,11 @@ static void walkera0701_close(struct input_dev *dev)
 
 	parport_disable_irq(w->parport);
 	hrtimer_cancel(&w->timer);
+<<<<<<< HEAD
+=======
 
 	parport_release(w->pardevice);
+>>>>>>> android-3.18
 }
 
 static int walkera0701_connect(struct walkera_dev *w, int parport)
@@ -231,6 +234,9 @@ static int walkera0701_connect(struct walkera_dev *w, int parport)
 		error = -EIO;
 		goto err_unregister_device;
 	}
+
+	hrtimer_init(&w->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	w->timer.function = timer_handler;
 
 	hrtimer_init(&w->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	w->timer.function = timer_handler;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -113,6 +113,46 @@ struct pmic8xxx_kp {
 	u8 ctrl_reg;
 };
 
+<<<<<<< HEAD
+static int pmic8xxx_kp_write_u8(struct pmic8xxx_kp *kp,
+				 u8 data, u16 reg)
+{
+	int rc;
+
+	rc = pm8xxx_writeb(kp->dev->parent, reg, data);
+	if (rc < 0)
+		dev_warn(kp->dev, "Error writing pmic8xxx: %X - ret %X\n",
+				reg, rc);
+	return rc;
+}
+
+static int pmic8xxx_kp_read(struct pmic8xxx_kp *kp,
+				 u8 *data, u16 reg, unsigned num_bytes)
+{
+	int rc;
+
+	rc = pm8xxx_read_buf(kp->dev->parent, reg, data, num_bytes);
+	if (rc < 0)
+		dev_warn(kp->dev, "Error reading pmic8xxx: %X - ret %X\n",
+				reg, rc);
+
+	return rc;
+}
+
+static int pmic8xxx_kp_read_u8(struct pmic8xxx_kp *kp,
+				 u8 *data, u16 reg)
+{
+	int rc;
+
+	rc = pmic8xxx_kp_read(kp, data, reg, 1);
+	if (rc < 0)
+		dev_warn(kp->dev, "Error reading pmic8xxx: %X - ret %X\n",
+				reg, rc);
+	return rc;
+}
+
+=======
+>>>>>>> android-3.18
 static u8 pmic8xxx_col_state(struct pmic8xxx_kp *kp, u8 col)
 {
 	/* all keys pressed on that particular row? */
@@ -455,6 +495,30 @@ static int pmic8xxx_kpd_init(struct pmic8xxx_kp *kp,
 
 }
 
+<<<<<<< HEAD
+static int  __devinit pmic8xxx_kp_config_gpio(int gpio_start, int num_gpios,
+			struct pmic8xxx_kp *kp, struct pm_gpio *gpio_config)
+{
+	int	rc, i;
+
+	if (gpio_start < 0 || num_gpios < 0)
+		return -EINVAL;
+
+	for (i = 0; i < num_gpios; i++) {
+		rc = pm8xxx_gpio_config(gpio_start + i, gpio_config);
+		if (rc) {
+			dev_err(kp->dev, "%s: FAIL pm8xxx_gpio_config():"
+					"for PM GPIO [%d] rc=%d.\n",
+					__func__, gpio_start + i, rc);
+			return rc;
+		}
+	}
+
+	return 0;
+}
+
+=======
+>>>>>>> android-3.18
 static int pmic8xxx_kp_enable(struct pmic8xxx_kp *kp)
 {
 	int rc;
@@ -512,7 +576,31 @@ static int pmic8xxx_kp_probe(struct platform_device *pdev)
 	bool wakeup;
 	struct pmic8xxx_kp *kp;
 	int rc;
+<<<<<<< HEAD
+	u8 ctrl_val;
+
+	struct pm_gpio kypd_drv = {
+		.direction	= PM_GPIO_DIR_OUT,
+		.output_buffer	= PM_GPIO_OUT_BUF_OPEN_DRAIN,
+		.output_value	= 0,
+		.pull		= PM_GPIO_PULL_NO,
+		.vin_sel	= PM_GPIO_VIN_S4,
+		.out_strength	= PM_GPIO_STRENGTH_LOW,
+		.function	= PM_GPIO_FUNC_1,
+		.inv_int_pol	= 1,
+	};
+
+	struct pm_gpio kypd_sns = {
+		.direction	= PM_GPIO_DIR_IN,
+		.pull		= PM_GPIO_PULL_UP_31P5,
+		.vin_sel	= PM_GPIO_VIN_S4,
+		.out_strength	= PM_GPIO_STRENGTH_NO,
+		.function	= PM_GPIO_FUNC_NORMAL,
+		.inv_int_pol	= 1,
+	};
+=======
 	unsigned int ctrl_val;
+>>>>>>> android-3.18
 
 	rc = matrix_keypad_parse_of_params(&pdev->dev, &rows, &cols);
 	if (rc)

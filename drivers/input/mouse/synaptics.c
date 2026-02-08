@@ -52,6 +52,24 @@
 /* Size in bits of absolute position values reported by the hardware */
 #define ABS_POS_BITS 13
 
+<<<<<<< HEAD
+/*
+ * These values should represent the absolute maximum value that will
+ * be reported for a positive position value. Some Synaptics firmware
+ * uses this value to indicate a finger near the edge of the touchpad
+ * whose precise position cannot be determined.
+ *
+ * At least one touchpad is known to report positions in excess of this
+ * value which are actually negative values truncated to the 13-bit
+ * reporting range. These values have never been observed to be lower
+ * than 8184 (i.e. -8), so we treat all values greater than 8176 as
+ * negative and any other value as positive.
+ */
+#define X_MAX_POSITIVE 8176
+#define Y_MAX_POSITIVE 8176
+
+=======
+>>>>>>> android-3.18
 /*
  * These values should represent the absolute maximum value that will
  * be reported for a positive position value. Some Synaptics firmware
@@ -357,10 +375,23 @@ static int synaptics_identify(struct psmouse *psmouse)
  * Resolution is left zero if touchpad does not support the query
  */
 
+<<<<<<< HEAD
+static const int *quirk_min_max;
+
+=======
+>>>>>>> android-3.18
 static int synaptics_resolution(struct psmouse *psmouse)
 {
 	struct synaptics_data *priv = psmouse->private;
 	unsigned char resp[3];
+
+	if (quirk_min_max) {
+		priv->x_min = quirk_min_max[0];
+		priv->x_max = quirk_min_max[1];
+		priv->y_min = quirk_min_max[2];
+		priv->y_max = quirk_min_max[3];
+		return 0;
+	}
 
 	if (SYN_ID_MAJOR(priv->identity) < 4)
 		return 0;
@@ -673,7 +704,11 @@ static void synaptics_parse_ext_buttons(const unsigned char buf[],
 {
 	unsigned int ext_bits =
 		(SYN_CAP_MULTI_BUTTON_NO(priv->ext_cap) + 1) >> 1;
+<<<<<<< HEAD
+	unsigned int ext_mask = (1U << ext_bits) - 1;
+=======
 	unsigned int ext_mask = GENMASK(ext_bits - 1, 0);
+>>>>>>> android-3.18
 
 	hw->ext_buttons = buf[4] & ext_mask;
 	hw->ext_buttons |= (buf[5] & ext_mask) << ext_bits;
@@ -840,9 +875,14 @@ static void synaptics_report_ext_buttons(struct psmouse *psmouse,
 	if (!SYN_CAP_MULTI_BUTTON_NO(priv->ext_cap))
 		return;
 
+<<<<<<< HEAD
+	/* Bug in FW 8.1, buttons are reported only when ExtBit is 1 */
+	if (SYN_ID_FULL(priv->identity) == 0x801 &&
+=======
 	/* Bug in FW 8.1 & 8.2, buttons are reported only when ExtBit is 1 */
 	if ((SYN_ID_FULL(priv->identity) == 0x801 ||
 	     SYN_ID_FULL(priv->identity) == 0x802) &&
+>>>>>>> android-3.18
 	    !((psmouse->packet[0] ^ psmouse->packet[3]) & 0x02))
 		return;
 
@@ -1732,6 +1772,41 @@ static const struct dmi_system_id olpc_dmi_table[] __initconst = {
 	{ }
 };
 
+<<<<<<< HEAD
+static const struct dmi_system_id min_max_dmi_table[] __initconst = {
+#if defined(CONFIG_DMI)
+	{
+		/* Lenovo ThinkPad Helix */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad Helix"),
+		},
+		.driver_data = (int []){1024, 5052, 2258, 4832},
+	},
+	{
+		/* Lenovo ThinkPad X240 */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X240"),
+		},
+		.driver_data = (int []){1232, 5710, 1156, 4696},
+	},
+	{
+		/* Lenovo ThinkPad T440s */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T440"),
+		},
+		.driver_data = (int []){1024, 5112, 2024, 4832},
+	},
+	{
+		/* Lenovo ThinkPad T540p */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T540"),
+		},
+		.driver_data = (int []){1024, 5056, 2058, 4832},
+=======
 static const struct dmi_system_id __initconst cr48_dmi_table[] = {
 #if defined(CONFIG_DMI) && defined(CONFIG_X86)
 	{
@@ -1740,6 +1815,7 @@ static const struct dmi_system_id __initconst cr48_dmi_table[] = {
 			DMI_MATCH(DMI_SYS_VENDOR, "IEC"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Mario"),
 		},
+>>>>>>> android-3.18
 	},
 #endif
 	{ }
@@ -1759,9 +1835,18 @@ static const struct dmi_system_id forcepad_dmi_table[] __initconst = {
 
 void __init synaptics_module_init(void)
 {
+	const struct dmi_system_id *min_max_dmi;
+
 	impaired_toshiba_kbc = dmi_check_system(toshiba_dmi_table);
 	broken_olpc_ec = dmi_check_system(olpc_dmi_table);
+<<<<<<< HEAD
+
+	min_max_dmi = dmi_first_match(min_max_dmi_table);
+	if (min_max_dmi)
+		quirk_min_max = min_max_dmi->driver_data;
+=======
 	cr48_profile_sensor = dmi_check_system(cr48_dmi_table);
+>>>>>>> android-3.18
 
 	/*
 	 * Unfortunately ForcePad capability is not exported over PS/2,
