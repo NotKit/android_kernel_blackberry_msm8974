@@ -27,6 +27,7 @@
 #include "bus.h"
 
 #define to_mmc_driver(d)	container_of(d, struct mmc_driver, drv)
+#define RUNTIME_SUSPEND_DELAY_MS 10000
 
 static ssize_t type_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
@@ -129,6 +130,21 @@ static void mmc_bus_shutdown(struct device *dev)
 {
 	struct mmc_driver *drv = to_mmc_driver(dev->driver);
 	struct mmc_card *card = mmc_dev_to_card(dev);
+<<<<<<< HEAD
+
+	if (!drv) {
+		pr_debug("%s: %s: drv is NULL\n", dev_name(dev), __func__);
+		return;
+	}
+
+	if (!card) {
+		pr_debug("%s: %s: card is NULL\n", dev_name(dev), __func__);
+		return;
+	}
+
+	if (drv->shutdown)
+		drv->shutdown(card);
+=======
 	struct mmc_host *host = card->host;
 	int ret;
 
@@ -141,6 +157,7 @@ static void mmc_bus_shutdown(struct device *dev)
 			pr_warn("%s: error %d during shutdown\n",
 				mmc_hostname(host), ret);
 	}
+>>>>>>> android-3.18
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -189,7 +206,22 @@ static int mmc_runtime_suspend(struct device *dev)
 	struct mmc_card *card = mmc_dev_to_card(dev);
 	struct mmc_host *host = card->host;
 
+<<<<<<< HEAD
+	if (mmc_use_core_runtime_pm(card->host)) {
+		/*
+		 * If idle time bkops is running on the card, let's not get
+		 * into suspend.
+		 */
+		if (mmc_card_doing_bkops(card) && mmc_card_is_prog_state(card))
+			return -EBUSY;
+		else
+			return 0;
+	} else {
+		return mmc_power_save_host(card->host);
+	}
+=======
 	return host->bus_ops->runtime_suspend(host);
+>>>>>>> android-3.18
 }
 
 static int mmc_runtime_resume(struct device *dev)
@@ -197,7 +229,34 @@ static int mmc_runtime_resume(struct device *dev)
 	struct mmc_card *card = mmc_dev_to_card(dev);
 	struct mmc_host *host = card->host;
 
+<<<<<<< HEAD
+	if (mmc_use_core_runtime_pm(card->host))
+		return 0;
+	else
+		return mmc_power_restore_host(card->host);
+}
+
+static int mmc_runtime_idle(struct device *dev)
+{
+	struct mmc_card *card = mmc_dev_to_card(dev);
+	struct mmc_host *host = card->host;
+	int ret = 0;
+
+	if (mmc_use_core_runtime_pm(card->host)) {
+		ret = pm_schedule_suspend(dev, card->idle_timeout);
+		if ((ret < 0) && (dev->power.runtime_error ||
+				  dev->power.disable_depth > 0)) {
+			pr_err("%s: %s: %s: pm_schedule_suspend failed: err: %d\n",
+			       mmc_hostname(host), __func__, dev_name(dev),
+			       ret);
+			return ret;
+		}
+	}
+
+	return ret;
+=======
 	return host->bus_ops->runtime_resume(host);
+>>>>>>> android-3.18
 }
 #endif /* !CONFIG_PM_RUNTIME */
 
@@ -206,6 +265,42 @@ static const struct dev_pm_ops mmc_bus_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(mmc_bus_suspend, mmc_bus_resume)
 };
 
+static ssize_t show_rpm_delay(struct device *dev, struct device_attribute *attr,
+			      char *buf)
+{
+	struct mmc_card *card = mmc_dev_to_card(dev);
+
+	if (!card) {
+		pr_err("%s: %s: card is NULL\n", dev_name(dev), __func__);
+		return -EINVAL;
+	}
+
+	return snprintf(buf, PAGE_SIZE, "%u\n", card->idle_timeout);
+}
+
+static ssize_t store_rpm_delay(struct device *dev, struct device_attribute
+			       *attr, const char *buf, size_t count)
+{
+	struct mmc_card *card = mmc_dev_to_card(dev);
+	unsigned int delay;
+
+	if (!card) {
+		pr_err("%s: %s: card is NULL\n", dev_name(dev), __func__);
+		return -EINVAL;
+	}
+
+	if (!kstrtou32(buf, 0, &delay)) {
+		if (delay < 2000) {
+			pr_err("%s: %s: less than 2 sec delay is unsupported\n",
+			       mmc_hostname(card->host), __func__);
+			return -EINVAL;
+		}
+		card->idle_timeout = delay;
+	}
+
+	return count;
+}
+
 static struct bus_type mmc_bus_type = {
 	.name		= "mmc",
 	.dev_groups	= mmc_dev_groups,
@@ -213,7 +308,11 @@ static struct bus_type mmc_bus_type = {
 	.uevent		= mmc_bus_uevent,
 	.probe		= mmc_bus_probe,
 	.remove		= mmc_bus_remove,
+<<<<<<< HEAD
+	.shutdown        = mmc_bus_shutdown,
+=======
 	.shutdown	= mmc_bus_shutdown,
+>>>>>>> android-3.18
 	.pm		= &mmc_bus_pm_ops,
 };
 
@@ -282,6 +381,9 @@ struct mmc_card *mmc_alloc_card(struct mmc_host *host, struct device_type *type)
 	card->dev.release = mmc_release_card;
 	card->dev.type = type;
 
+	spin_lock_init(&card->bkops_info.bkops_stats.lock);
+	spin_lock_init(&card->wr_pack_stats.lock);
+
 	return card;
 }
 
@@ -341,11 +443,16 @@ int mmc_add_card(struct mmc_card *card)
 			mmc_card_ddr52(card) ? "DDR " : "",
 			type);
 	} else {
-		pr_info("%s: new %s%s%s%s%s card at address %04x\n",
+		pr_info("%s: new %s%s%s%s%s%s card at address %04x\n",
 			mmc_hostname(card->host),
 			mmc_card_uhs(card) ? "ultra high speed " :
+<<<<<<< HEAD
+			(mmc_card_highspeed(card) ? "high speed " : ""),
+			(mmc_card_hs400(card) ? "HS400 " : ""),
+=======
 			(mmc_card_hs(card) ? "high speed " : ""),
 			mmc_card_hs400(card) ? "HS400 " :
+>>>>>>> android-3.18
 			(mmc_card_hs200(card) ? "HS200 " : ""),
 			mmc_card_ddr52(card) ? "DDR " : "",
 			uhs_bus_speed_mode, type, card->rca);
@@ -355,12 +462,44 @@ int mmc_add_card(struct mmc_card *card)
 	mmc_add_card_debugfs(card);
 #endif
 	mmc_init_context_info(card->host);
+<<<<<<< HEAD
+=======
 
 	card->dev.of_node = mmc_of_find_child_device(card->host, 0);
+>>>>>>> android-3.18
 
+	ret = pm_runtime_set_active(&card->dev);
+	if (ret)
+		pr_err("%s: %s: failed setting runtime active: ret: %d\n",
+		       mmc_hostname(card->host), __func__, ret);
+	else if (!mmc_card_sdio(card) && mmc_use_core_runtime_pm(card->host))
+		pm_runtime_enable(&card->dev);
+
+	if (mmc_card_sdio(card)) {
+		ret = device_init_wakeup(&card->dev, true);
+		if (ret)
+			pr_err("%s: %s: failed to init wakeup: %d\n",
+			       mmc_hostname(card->host), __func__, ret);
+	}
 	ret = device_add(&card->dev);
 	if (ret)
 		return ret;
+
+	device_enable_async_suspend(&card->dev);
+	if (mmc_use_core_runtime_pm(card->host) && !mmc_card_sdio(card)) {
+		card->rpm_attrib.show = show_rpm_delay;
+		card->rpm_attrib.store = store_rpm_delay;
+		sysfs_attr_init(&card->rpm_attrib.attr);
+		card->rpm_attrib.attr.name = "runtime_pm_timeout";
+		card->rpm_attrib.attr.mode = S_IRUGO | S_IWUSR;
+
+		ret = device_create_file(&card->dev, &card->rpm_attrib);
+		if (ret)
+			pr_err("%s: %s: creating runtime pm sysfs entry: failed: %d\n",
+			       mmc_hostname(card->host), __func__, ret);
+		/* Default timeout is 10 seconds */
+		card->idle_timeout = RUNTIME_SUSPEND_DELAY_MS;
+	}
 
 	mmc_card_set_present(card);
 
@@ -388,6 +527,9 @@ void mmc_remove_card(struct mmc_card *card)
 		device_del(&card->dev);
 		of_node_put(card->dev.of_node);
 	}
+
+	kfree(card->wr_pack_stats.packing_events);
+	kfree(card->cached_ext_csd);
 
 	put_device(&card->dev);
 }
