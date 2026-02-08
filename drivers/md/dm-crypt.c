@@ -40,19 +40,10 @@ struct convert_context {
 	struct completion restart;
 	struct bio *bio_in;
 	struct bio *bio_out;
-<<<<<<< HEAD
-	unsigned int offset_in;
-	unsigned int offset_out;
-	unsigned int idx_in;
-	unsigned int idx_out;
-	sector_t sector;
-	atomic_t pending;
-=======
 	struct bvec_iter iter_in;
 	struct bvec_iter iter_out;
 	sector_t cc_sector;
 	atomic_t cc_pending;
->>>>>>> android-3.18
 	struct ablkcipher_request *req;
 };
 
@@ -123,11 +114,7 @@ struct iv_tcw_private {
 enum flags { DM_CRYPT_SUSPENDED, DM_CRYPT_KEY_VALID };
 
 /*
-<<<<<<< HEAD
- * The fields in here must be read only after initialization,
-=======
  * The fields in here must be read only after initialization.
->>>>>>> android-3.18
  */
 struct crypt_config {
 	struct dm_dev *dev;
@@ -363,14 +350,8 @@ static void crypt_iv_essiv_dtr(struct crypt_config *cc)
 
 	if (essiv_tfm)
 		crypto_free_cipher(essiv_tfm);
-<<<<<<< HEAD
 
 	cc->iv_private = NULL;
-
-=======
-
-	cc->iv_private = NULL;
->>>>>>> android-3.18
 }
 
 static int crypt_iv_essiv_ctr(struct crypt_config *cc, struct dm_target *ti,
@@ -424,10 +405,6 @@ bad:
 static int crypt_iv_essiv_gen(struct crypt_config *cc, u8 *iv,
 			      struct dm_crypt_request *dmreq)
 {
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 	struct crypto_cipher *essiv_tfm = cc->iv_private;
 
 	memset(iv, 0, cc->iv_size);
@@ -907,11 +884,7 @@ static void kcryptd_async_done(struct crypto_async_request *async_req,
 static void crypt_alloc_req(struct crypt_config *cc,
 			    struct convert_context *ctx)
 {
-<<<<<<< HEAD
-	unsigned key_index = ctx->sector & (cc->tfms_count - 1);
-=======
 	unsigned key_index = ctx->cc_sector & (cc->tfms_count - 1);
->>>>>>> android-3.18
 
 	if (!ctx->req)
 		ctx->req = mempool_alloc(cc->req_pool, GFP_NOIO);
@@ -920,8 +893,6 @@ static void crypt_alloc_req(struct crypt_config *cc,
 	ablkcipher_request_set_callback(ctx->req,
 	    CRYPTO_TFM_REQ_MAY_BACKLOG | CRYPTO_TFM_REQ_MAY_SLEEP,
 	    kcryptd_async_done, dmreq_of_req(cc, ctx->req));
-<<<<<<< HEAD
-=======
 }
 
 static void crypt_free_req(struct crypt_config *cc,
@@ -931,7 +902,6 @@ static void crypt_free_req(struct crypt_config *cc,
 
 	if ((struct ablkcipher_request *)(io + 1) != req)
 		mempool_free(req, cc->req_pool);
->>>>>>> android-3.18
 }
 
 /*
@@ -957,17 +927,11 @@ static int crypt_convert(struct crypt_config *cc,
 		case -EINPROGRESS:
 		case -EBUSY:
 			wait_for_completion(&ctx->restart);
-<<<<<<< HEAD
-			INIT_COMPLETION(ctx->restart);
-			ctx->req = NULL;
-			ctx->sector++;
-=======
 			reinit_completion(&ctx->restart);
 			/* fall through*/
 		case -EINPROGRESS:
 			ctx->req = NULL;
 			ctx->cc_sector++;
->>>>>>> android-3.18
 			continue;
 
 		/* sync */
@@ -1074,16 +1038,8 @@ static void crypt_io_init(struct dm_crypt_io *io, struct crypt_config *cc,
 	io->base_bio = bio;
 	io->sector = sector;
 	io->error = 0;
-<<<<<<< HEAD
-	io->base_io = NULL;
-	io->ctx.req = NULL;
-	atomic_set(&io->pending, 0);
-
-	return io;
-=======
 	io->ctx.req = NULL;
 	atomic_set(&io->io_pending, 0);
->>>>>>> android-3.18
 }
 
 static void crypt_inc_pending(struct dm_crypt_io *io)
@@ -1105,12 +1061,7 @@ static void crypt_dec_pending(struct dm_crypt_io *io)
 		return;
 
 	if (io->ctx.req)
-<<<<<<< HEAD
-		mempool_free(io->ctx.req, cc->req_pool);
-	mempool_free(io, cc->io_pool);
-=======
 		crypt_free_req(cc, io->ctx.req, base_bio);
->>>>>>> android-3.18
 
 	bio_endio(base_bio, error);
 }
@@ -1401,13 +1352,8 @@ static void kcryptd_async_done(struct crypto_async_request *async_req,
 
 	crypt_free_req(cc, req_of_dmreq(cc, dmreq), io->base_bio);
 
-<<<<<<< HEAD
-	if (!atomic_dec_and_test(&ctx->pending))
-		goto done;
-=======
 	if (!atomic_dec_and_test(&ctx->cc_pending))
 		return;
->>>>>>> android-3.18
 
 	if (bio_data_dir(io->base_bio) == READ)
 		kcryptd_crypt_read_done(io);
@@ -1482,11 +1428,7 @@ static int crypt_alloc_tfms(struct crypt_config *cc, char *ciphermode)
 	unsigned i;
 	int err;
 
-<<<<<<< HEAD
-	cc->tfms = kmalloc(cc->tfms_count * sizeof(struct crypto_ablkcipher *),
-=======
 	cc->tfms = kzalloc(cc->tfms_count * sizeof(struct crypto_ablkcipher *),
->>>>>>> android-3.18
 			   GFP_KERNEL);
 	if (!cc->tfms)
 		return -ENOMEM;
@@ -1505,18 +1447,12 @@ static int crypt_alloc_tfms(struct crypt_config *cc, char *ciphermode)
 
 static int crypt_setkey_allcpus(struct crypt_config *cc)
 {
-<<<<<<< HEAD
-	unsigned subkey_size = cc->key_size >> ilog2(cc->tfms_count);
-	int err = 0, i, r;
-
-=======
 	unsigned subkey_size;
 	int err = 0, i, r;
 
 	/* Ignore extra keys (which are used for IV etc) */
 	subkey_size = (cc->key_size - cc->key_extra_size) >> ilog2(cc->tfms_count);
 
->>>>>>> android-3.18
 	for (i = 0; i < cc->tfms_count; i++) {
 		r = crypto_ablkcipher_setkey(cc->tfms[i],
 					     cc->key + (i * subkey_size),
@@ -1681,16 +1617,6 @@ static int crypt_ctr_cipher(struct dm_target *ti,
 
 	/* Allocate cipher */
 	ret = crypt_alloc_tfms(cc, cipher_api);
-<<<<<<< HEAD
-	if (ret < 0) {
-		ti->error = "Error allocating crypto tfm";
-		goto bad;
-	}
-
-	/* Initialize and set key */
-	ret = crypt_set_key(cc, key);
-=======
->>>>>>> android-3.18
 	if (ret < 0) {
 		ti->error = "Error allocating crypto tfm";
 		goto bad;
@@ -1818,22 +1744,6 @@ static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	cc->dmreq_start = sizeof(struct ablkcipher_request);
 	cc->dmreq_start += crypto_ablkcipher_reqsize(any_tfm(cc));
 	cc->dmreq_start = ALIGN(cc->dmreq_start, __alignof__(struct dm_crypt_request));
-<<<<<<< HEAD
-
-	if (crypto_ablkcipher_alignmask(any_tfm(cc)) < CRYPTO_MINALIGN) {
-		/* Allocate the padding exactly */
-		iv_size_padding = -(cc->dmreq_start + sizeof(struct dm_crypt_request))
-				& crypto_ablkcipher_alignmask(any_tfm(cc));
-	} else {
-		/*
-		 * If the cipher requires greater alignment than kmalloc
-		 * alignment, we don't know the exact position of the
-		 * initialization vector. We must assume worst case.
-		 */
-		iv_size_padding = crypto_ablkcipher_alignmask(any_tfm(cc));
-	}
-=======
->>>>>>> android-3.18
 
 	if (crypto_ablkcipher_alignmask(any_tfm(cc)) < CRYPTO_MINALIGN) {
 		/* Allocate the padding exactly */
@@ -1920,10 +1830,6 @@ static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	ret = -ENOMEM;
 	cc->io_queue = alloc_workqueue("kcryptd_io",
 				       WQ_HIGHPRI |
-<<<<<<< HEAD
-				       WQ_NON_REENTRANT|
-=======
->>>>>>> android-3.18
 				       WQ_MEM_RECLAIM,
 				       1);
 	if (!cc->io_queue) {
@@ -2001,11 +1907,7 @@ static int crypt_map(struct dm_target *ti, struct bio *bio)
 }
 
 static void crypt_status(struct dm_target *ti, status_type_t type,
-<<<<<<< HEAD
-			 char *result, unsigned int maxlen)
-=======
 			 unsigned status_flags, char *result, unsigned maxlen)
->>>>>>> android-3.18
 {
 	struct crypt_config *cc = ti->private;
 	unsigned i, sz = 0;

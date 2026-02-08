@@ -87,11 +87,7 @@ static int create_strip_zones(struct mddev *mddev, struct r0conf **private_conf)
 	char b[BDEVNAME_SIZE];
 	char b2[BDEVNAME_SIZE];
 	struct r0conf *conf = kzalloc(sizeof(*conf), GFP_KERNEL);
-<<<<<<< HEAD
-	unsigned short blksize = 512;
-=======
 	bool discard_supported = false;
->>>>>>> android-3.18
 
 	if (!conf)
 		return -ENOMEM;
@@ -282,8 +278,6 @@ static int create_strip_zones(struct mddev *mddev, struct r0conf **private_conf)
 	mddev->queue->backing_dev_info.congested_fn = raid0_congested;
 	mddev->queue->backing_dev_info.congested_data = mddev;
 
-<<<<<<< HEAD
-=======
 	/*
 	 * now since we have the hard sector sizes, we can make sure
 	 * chunk size is a multiple of that sector size
@@ -304,7 +298,6 @@ static int create_strip_zones(struct mddev *mddev, struct r0conf **private_conf)
 	else
 		queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, mddev->queue);
 
->>>>>>> android-3.18
 	pr_debug("md/raid0:%s: done.\n", mdname(mddev));
 	*private_conf = conf;
 

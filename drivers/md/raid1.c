@@ -975,12 +975,7 @@ static void freeze_array(struct r1conf *conf, int extra)
 {
 	/* stop syncio and normal IO and wait for everything to
 	 * go quite.
-<<<<<<< HEAD
-	 * We increment barrier and nr_waiting, and then
-	 * wait until nr_pending match nr_queued+extra
-=======
 	 * We wait until nr_pending match nr_queued+extra
->>>>>>> android-3.18
 	 * This is called in the context of one normal IO request
 	 * that has failed. Thus any sync request that might be pending
 	 * will be blocked by nr_pending, and we need to wait for
@@ -990,20 +985,11 @@ static void freeze_array(struct r1conf *conf, int extra)
 	 * we continue.
 	 */
 	spin_lock_irq(&conf->resync_lock);
-<<<<<<< HEAD
-	conf->barrier++;
-	conf->nr_waiting++;
-	wait_event_lock_irq(conf->wait_barrier,
-			    conf->nr_pending == conf->nr_queued+extra,
-			    conf->resync_lock,
-			    flush_pending_writes(conf));
-=======
 	conf->array_frozen = 1;
 	wait_event_lock_irq_cmd(conf->wait_barrier,
 				conf->nr_pending == conf->nr_queued+extra,
 				conf->resync_lock,
 				flush_pending_writes(conf));
->>>>>>> android-3.18
 	spin_unlock_irq(&conf->resync_lock);
 }
 static void unfreeze_array(struct r1conf *conf)
@@ -1515,15 +1501,6 @@ static void error(struct mddev *mddev, struct md_rdev *rdev)
 	if (test_and_clear_bit(In_sync, &rdev->flags)) {
 		mddev->degraded++;
 		set_bit(Faulty, &rdev->flags);
-<<<<<<< HEAD
-		/*
-		 * if recovery is running, make sure it aborts.
-		 */
-		set_bit(MD_RECOVERY_INTR, &mddev->recovery);
-	} else
-		set_bit(Faulty, &rdev->flags);
-	spin_unlock_irqrestore(&conf->device_lock, flags);
-=======
 	} else
 		set_bit(Faulty, &rdev->flags);
 	spin_unlock_irqrestore(&conf->device_lock, flags);
@@ -1531,7 +1508,6 @@ static void error(struct mddev *mddev, struct md_rdev *rdev)
 	 * if recovery is running, make sure it aborts.
 	 */
 	set_bit(MD_RECOVERY_INTR, &mddev->recovery);
->>>>>>> android-3.18
 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
 	set_bit(MD_CHANGE_PENDING, &mddev->flags);
 	printk(KERN_ALERT
@@ -1749,8 +1725,6 @@ static int raid1_remove_disk(struct mddev *mddev, struct md_rdev *rdev)
 			struct md_rdev *repl =
 				conf->mirrors[conf->raid_disks + number].rdev;
 			freeze_array(conf, 0);
-<<<<<<< HEAD
-=======
 			if (atomic_read(&repl->nr_pending)) {
 				/* It means that some queued IO of retry_list
 				 * hold repl. Thus, we cannot set replacement
@@ -1762,7 +1736,6 @@ static int raid1_remove_disk(struct mddev *mddev, struct md_rdev *rdev)
 				unfreeze_array(conf);
 				goto abort;
 			}
->>>>>>> android-3.18
 			clear_bit(Replacement, &repl->flags);
 			p->rdev = repl;
 			conf->mirrors[conf->raid_disks + number].rdev = NULL;
@@ -3212,10 +3185,6 @@ static int raid1_reshape(struct mddev *mddev)
 	conf->raid_disks = mddev->raid_disks = raid_disks;
 	mddev->delta_disks = 0;
 
-<<<<<<< HEAD
-	conf->last_used = 0; /* just make sure it is in-range */
-=======
->>>>>>> android-3.18
 	unfreeze_array(conf);
 
 	set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);

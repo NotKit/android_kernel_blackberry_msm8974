@@ -2096,7 +2096,7 @@ timeout_store(struct mddev *mddev, const char *buf, size_t len)
 {
 	/* timeout can be set at any time */
 	unsigned long timeout;
-	int rv = strict_strtoul_scaled(buf, &timeout, 4);
+	int rv = kstrtoul_scaled(buf, &timeout, 4);
 	if (rv)
 		return rv;
 

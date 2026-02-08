@@ -1026,14 +1026,9 @@ static int super_90_load(struct md_rdev *rdev, struct md_rdev *refdev, int minor
 	 * (not needed for Linear and RAID0 as metadata doesn't
 	 * record this size)
 	 */
-<<<<<<< HEAD
-	if (rdev->sectors >= (2ULL << 32) && sb->level >= 1)
-		rdev->sectors = (2ULL << 32) - 2;
-=======
 	if (IS_ENABLED(CONFIG_LBDAF) && (u64)rdev->sectors >= (2ULL << 32) &&
 	    sb->level >= 1)
 		rdev->sectors = (sector_t)(2ULL << 32) - 2;
->>>>>>> android-3.18
 
 	if (rdev->sectors < ((sector_t)sb->size) * 2 && sb->level >= 1)
 		/* "this cannot possibly happen" ... */
@@ -1326,14 +1321,9 @@ super_90_rdev_size_change(struct md_rdev *rdev, sector_t num_sectors)
 	/* Limit to 4TB as metadata cannot record more than that.
 	 * 4TB == 2^32 KB, or 2*2^32 sectors.
 	 */
-<<<<<<< HEAD
-	if (num_sectors >= (2ULL << 32) && rdev->mddev->level >= 1)
-		num_sectors = (2ULL << 32) - 2;
-=======
 	if (IS_ENABLED(CONFIG_LBDAF) && (u64)num_sectors >= (2ULL << 32) &&
 	    rdev->mddev->level >= 1)
 		num_sectors = (sector_t)(2ULL << 32) - 2;
->>>>>>> android-3.18
 	md_super_write(rdev->mddev, rdev, rdev->sb_start, rdev->sb_size,
 		       rdev->sb_page);
 	md_super_wait(rdev->mddev);
@@ -3202,7 +3192,7 @@ static void analyze_sbs(struct mddev *mddev)
  * multiplying that number by 10^'scale'.
  * all without any floating-point arithmetic.
  */
-int strict_strtoul_scaled(const char *cp, unsigned long *res, int scale)
+int kstrtoul_scaled(const char *cp, unsigned long *res, int scale)
 {
 	unsigned long result = 0;
 	long decimals = -1;
@@ -3245,7 +3235,7 @@ safe_delay_store(struct mddev *mddev, const char *cbuf, size_t len)
 {
 	unsigned long msec;
 
-	if (strict_strtoul_scaled(cbuf, &msec, 3) < 0)
+	if (kstrtoul_scaled(cbuf, &msec, 3) < 0)
 		return -EINVAL;
 	if (msec == 0)
 		mddev->safemode_delay = 0;
@@ -3707,15 +3697,9 @@ array_state_show(struct mddev *mddev, char *page)
 	return sprintf(page, "%s\n", array_states[st]);
 }
 
-<<<<<<< HEAD
-static int do_md_stop(struct mddev * mddev, int ro, struct block_device *bdev);
-static int md_set_readonly(struct mddev * mddev, struct block_device *bdev);
-static int do_md_run(struct mddev * mddev);
-=======
 static int do_md_stop(struct mddev *mddev, int ro, struct block_device *bdev);
 static int md_set_readonly(struct mddev *mddev, struct block_device *bdev);
 static int do_md_run(struct mddev *mddev);
->>>>>>> android-3.18
 static int restart_array(struct mddev *mddev);
 
 static ssize_t
@@ -3728,26 +3712,13 @@ array_state_store(struct mddev *mddev, const char *buf, size_t len)
 		break;
 	case clear:
 		/* stopping an active array */
-<<<<<<< HEAD
-		if (atomic_read(&mddev->openers) > 0)
-			return -EBUSY;
-=======
->>>>>>> android-3.18
 		err = do_md_stop(mddev, 0, NULL);
 		break;
 	case inactive:
 		/* stopping an active array */
-<<<<<<< HEAD
-		if (mddev->pers) {
-			if (atomic_read(&mddev->openers) > 0)
-				return -EBUSY;
-			err = do_md_stop(mddev, 2, NULL);
-		} else
-=======
 		if (mddev->pers)
 			err = do_md_stop(mddev, 2, NULL);
 		else
->>>>>>> android-3.18
 			err = 0; /* already inactive */
 		break;
 	case suspended:
@@ -5174,13 +5145,9 @@ static int md_set_readonly(struct mddev *mddev, struct block_device *bdev)
 	mddev_lock_nointr(mddev);
 
 	mutex_lock(&mddev->open_mutex);
-<<<<<<< HEAD
-	if (atomic_read(&mddev->openers) > !!bdev) {
-=======
 	if ((mddev->pers && atomic_read(&mddev->openers) > !!bdev) ||
 	    mddev->sync_thread ||
 	    (bdev && !test_bit(MD_STILL_CLOSED, &mddev->flags))) {
->>>>>>> android-3.18
 		printk("md: %s still in use.\n",mdname(mddev));
 		if (did_freeze) {
 			clear_bit(MD_RECOVERY_FROZEN, &mddev->recovery);
@@ -5215,11 +5182,7 @@ out:
  *   0 - completely stop and dis-assemble array
  *   2 - stop but do not disassemble array
  */
-<<<<<<< HEAD
-static int do_md_stop(struct mddev * mddev, int mode,
-=======
 static int do_md_stop(struct mddev *mddev, int mode,
->>>>>>> android-3.18
 		      struct block_device *bdev)
 {
 	struct gendisk *disk = mddev->gendisk;
@@ -5242,15 +5205,10 @@ static int do_md_stop(struct mddev *mddev, int mode,
 	mddev_lock_nointr(mddev);
 
 	mutex_lock(&mddev->open_mutex);
-<<<<<<< HEAD
-	if (atomic_read(&mddev->openers) > !!bdev ||
-	    mddev->sysfs_active) {
-=======
 	if ((mddev->pers && atomic_read(&mddev->openers) > !!bdev) ||
 	    mddev->sysfs_active ||
 	    mddev->sync_thread ||
 	    (bdev && !test_bit(MD_STILL_CLOSED, &mddev->flags))) {
->>>>>>> android-3.18
 		printk("md: %s still in use.\n",mdname(mddev));
 		mutex_unlock(&mddev->open_mutex);
 		if (did_freeze) {
@@ -5260,17 +5218,6 @@ static int do_md_stop(struct mddev *mddev, int mode,
 		}
 		return -EBUSY;
 	}
-<<<<<<< HEAD
-	if (bdev)
-		/* It is possible IO was issued on some other
-		 * open file which was closed before we took ->open_mutex.
-		 * As that was not the last close __blkdev_put will not
-		 * have called sync_blockdev, so we must.
-		 */
-		sync_blockdev(bdev);
-
-=======
->>>>>>> android-3.18
 	if (mddev->pers) {
 		if (mddev->ro)
 			set_disk_ro(disk, 0);
@@ -5517,15 +5464,7 @@ static int get_bitmap_file(struct mddev *mddev, void __user * arg)
 	char *ptr, *buf = NULL;
 	int err = -ENOMEM;
 
-<<<<<<< HEAD
-	if (md_allow_write(mddev))
-		file = kzalloc(sizeof(*file), GFP_NOIO);
-	else
-		file = kzalloc(sizeof(*file), GFP_KERNEL);
-
-=======
 	file = kzalloc(sizeof(*file), GFP_NOIO);
->>>>>>> android-3.18
 	if (!file)
 		goto out;
 
@@ -6439,15 +6378,6 @@ static int md_ioctl(struct block_device *bdev, fmode_t mode,
 		err = do_md_stop(mddev, 0, bdev);
 		goto unlock;
 
-<<<<<<< HEAD
-		case STOP_ARRAY:
-			err = do_md_stop(mddev, 0, bdev);
-			goto done_unlock;
-
-		case STOP_ARRAY_RO:
-			err = md_set_readonly(mddev, bdev);
-			goto done_unlock;
-=======
 	case STOP_ARRAY_RO:
 		err = md_set_readonly(mddev, bdev);
 		goto unlock;
@@ -6455,7 +6385,6 @@ static int md_ioctl(struct block_device *bdev, fmode_t mode,
 	case HOT_REMOVE_DISK:
 		err = hot_remove_disk(mddev, new_decode_dev(arg));
 		goto unlock;
->>>>>>> android-3.18
 
 	case ADD_NEW_DISK:
 		/* We can support ADD_NEW_DISK on read-only arrays
@@ -7691,10 +7620,7 @@ static int remove_and_add_spares(struct mddev *mddev,
 			set_bit(MD_CHANGE_DEVS, &mddev->flags);
 		}
 	}
-<<<<<<< HEAD
-=======
 no_add:
->>>>>>> android-3.18
 	if (removed)
 		set_bit(MD_CHANGE_DEVS, &mddev->flags);
 	return spares;
@@ -7702,38 +7628,7 @@ no_add:
 
 static void md_start_sync(struct work_struct *ws)
 {
-<<<<<<< HEAD
-	struct md_rdev *rdev;
-
-	/* resync has finished, collect result */
-	md_unregister_thread(&mddev->sync_thread);
-	if (!test_bit(MD_RECOVERY_INTR, &mddev->recovery) &&
-	    !test_bit(MD_RECOVERY_REQUESTED, &mddev->recovery)) {
-		/* success...*/
-		/* activate any spares */
-		if (mddev->pers->spare_active(mddev)) {
-			sysfs_notify(&mddev->kobj, NULL,
-				     "degraded");
-			set_bit(MD_CHANGE_DEVS, &mddev->flags);
-		}
-	}
-	if (test_bit(MD_RECOVERY_RESHAPE, &mddev->recovery) &&
-	    mddev->pers->finish_reshape)
-		mddev->pers->finish_reshape(mddev);
-
-	/* If array is no-longer degraded, then any saved_raid_disk
-	 * information must be scrapped.  Also if any device is now
-	 * In_sync we must scrape the saved_raid_disk for that device
-	 * do the superblock for an incrementally recovered device
-	 * written out.
-	 */
-	rdev_for_each(rdev, mddev)
-		if (!mddev->degraded ||
-		    test_bit(In_sync, &rdev->flags))
-			rdev->saved_raid_disk = -1;
-=======
 	struct mddev *mddev = container_of(ws, struct mddev, del_work);
->>>>>>> android-3.18
 
 	mddev->sync_thread = md_register_thread(md_do_sync,
 						mddev,
