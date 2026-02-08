@@ -30,6 +30,7 @@
 
 #include <mach/msm_iomap.h>
 #include <mach/gpiomux.h>
+#include <mach/gpio.h>
 #include <mach/mpm.h>
 #include "gpio-msm-common.h"
 
@@ -426,7 +427,7 @@ static inline void msm_gpio_set_irq_handler(struct device *dev)
 	}
 }
 
-static int __devinit msm_gpio_probe(struct platform_device *pdev)
+static int msm_gpio_probe(struct platform_device *pdev)
 {
 	int ret, ngpio = 0;
 	struct msm_gpio_pdata *pdata = pdev->dev.platform_data;
@@ -495,19 +496,15 @@ static int __devinit msm_gpio_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static struct of_device_id msm_gpio_of_match[] __devinitdata = {
+static struct of_device_id msm_gpio_of_match[] = {
 	{.compatible = "qcom,msm-gpio", },
 	{ },
 };
 #endif
 
-static int __devexit msm_gpio_remove(struct platform_device *pdev)
+static int msm_gpio_remove(struct platform_device *pdev)
 {
-	int ret;
-
-	ret = gpiochip_remove(&msm_gpio.gpio_chip);
-	if (ret < 0)
-		return ret;
+	gpiochip_remove(&msm_gpio.gpio_chip);
 	irq_set_handler(tlmm_msm_summary_irq, NULL);
 
 	return 0;
@@ -515,7 +512,7 @@ static int __devexit msm_gpio_remove(struct platform_device *pdev)
 
 static struct platform_driver msm_gpio_driver = {
 	.probe = msm_gpio_probe,
-	.remove = __devexit_p(msm_gpio_remove),
+	.remove = msm_gpio_remove,
 	.driver = {
 		.name = "msmgpio",
 		.owner = THIS_MODULE,
@@ -577,20 +574,26 @@ int __init msm_gpio_of_init(struct device_node *node,
 {
 	int ngpio, ret;
 
+	pr_info("DEBUG: msm_gpio_of_init: called for %s\n", node->full_name);
+
 	ret = of_property_read_u32(node, "ngpio", &ngpio);
 	if (ret) {
 		WARN(1, "Cannot get numgpios from device tree\n");
 		return ret;
 	}
+	pr_info("DEBUG: msm_gpio_of_init: ngpio=%d\n", ngpio);
+
 	msm_gpio.domain = irq_domain_add_linear(node, ngpio,
 			&msm_gpio_irq_domain_ops, &msm_gpio);
 	if (!msm_gpio.domain) {
 		WARN(1, "Cannot allocate irq_domain\n");
 		return -ENOMEM;
 	}
+	pr_info("DEBUG: msm_gpio_of_init: irq_domain registered successfully\n");
 
 	return 0;
 }
+
 #endif
 
 MODULE_AUTHOR("Gregory Bean <gbean@codeaurora.org>");
