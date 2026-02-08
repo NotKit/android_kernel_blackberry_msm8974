@@ -35,7 +35,7 @@
 #include <linux/mmc/mmc.h>
 #include <linux/pm.h>
 #include <linux/pm_runtime.h>
-#include <linux/mmc/cd-gpio.h>
+#include <linux/mmc/slot-gpio.h>
 #include <linux/dma-mapping.h>
 #include <mach/gpio.h>
 #include <mach/msm_bus.h>
@@ -1808,7 +1808,7 @@ static void sdhci_msm_bus_queue_work(struct sdhci_host *host)
 	spin_lock_irqsave(&host->lock, flags);
 	if (msm_host->msm_bus_vote.min_bw_vote !=
 		msm_host->msm_bus_vote.curr_vote)
-		queue_delayed_work(system_nrt_wq,
+		queue_delayed_work(system_wq,
 				   &msm_host->msm_bus_vote.vote_work,
 				   msecs_to_jiffies(MSM_MMC_BUS_VOTING_DELAY));
 	spin_unlock_irqrestore(&host->lock, flags);
@@ -2780,7 +2780,7 @@ static void sdhci_msm_set_clock(struct sdhci_host *host, unsigned int clock)
 	}
 }
 
-static int sdhci_msm_set_uhs_signaling(struct sdhci_host *host,
+static void sdhci_msm_set_uhs_signaling(struct sdhci_host *host,
 					unsigned int uhs)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -2842,7 +2842,7 @@ static int sdhci_msm_set_uhs_signaling(struct sdhci_host *host,
 		mmc_hostname(host->mmc), __func__, host->clock, uhs, ctrl_2);
 	sdhci_writew(host, ctrl_2, SDHCI_HOST_CONTROL2);
 
-	return 0;
+
 }
 
 /*
@@ -3032,7 +3032,7 @@ static void sdhci_set_default_hw_caps(struct sdhci_msm_host *msm_host,
 
 extern int bcm_wifi_mmc_host_register(struct mmc_host *host);
 
-static int __devinit sdhci_msm_probe(struct platform_device *pdev)
+static int sdhci_msm_probe(struct platform_device *pdev)
 {
 	struct sdhci_host *host;
 	struct sdhci_pltfm_host *pltfm_host;
@@ -3053,7 +3053,7 @@ static int __devinit sdhci_msm_probe(struct platform_device *pdev)
 	}
 
 	msm_host->sdhci_msm_pdata.ops = &sdhci_msm_ops;
-	host = sdhci_pltfm_init(pdev, &msm_host->sdhci_msm_pdata);
+	host = sdhci_pltfm_init(pdev, &msm_host->sdhci_msm_pdata, 0);
 	if (IS_ERR(host)) {
 		ret = PTR_ERR(host);
 		goto out;
@@ -3332,8 +3332,7 @@ static int __devinit sdhci_msm_probe(struct platform_device *pdev)
 	}
 
 	if (gpio_is_valid(msm_host->pdata->status_gpio)) {
-		ret = mmc_cd_gpio_request(msm_host->mmc,
-				msm_host->pdata->status_gpio);
+		ret = mmc_gpio_request_cd(msm_host->mmc, msm_host->pdata->status_gpio, 0);
 		if (ret) {
 			dev_err(&pdev->dev, "%s: Failed to request card detection IRQ %d\n",
 					__func__, ret);
@@ -3444,7 +3443,7 @@ remove_host:
 	sdhci_remove_host(host, dead);
 free_cd_gpio:
 	if (gpio_is_valid(msm_host->pdata->status_gpio))
-		mmc_cd_gpio_free(msm_host->mmc);
+		mmc_gpio_free_cd(msm_host->mmc);
 	if (sdhci_is_valid_gpio_wakeup_int(msm_host))
 		free_irq(msm_host->pdata->sdiowakeup_irq, host);
 vreg_deinit:
@@ -3475,7 +3474,7 @@ out:
 	return ret;
 }
 
-static int __devexit sdhci_msm_remove(struct platform_device *pdev)
+static int sdhci_msm_remove(struct platform_device *pdev)
 {
 	struct sdhci_host *host = platform_get_drvdata(pdev);
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -3499,7 +3498,7 @@ static int __devexit sdhci_msm_remove(struct platform_device *pdev)
 		free_irq(msm_host->pdata->sdiowakeup_irq, host);
 
 	if (gpio_is_valid(msm_host->pdata->status_gpio))
-		mmc_cd_gpio_free(msm_host->mmc);
+		mmc_gpio_free_cd(msm_host->mmc);
 
 	sdhci_msm_vreg_init(&pdev->dev, msm_host->pdata, false);
 
@@ -3626,7 +3625,7 @@ static int sdhci_msm_suspend(struct device *dev)
 	int ret = 0;
 
 	if (gpio_is_valid(msm_host->pdata->status_gpio))
-		mmc_cd_gpio_free(msm_host->mmc);
+		mmc_gpio_free_cd(msm_host->mmc);
 
 	if (pm_runtime_suspended(dev)) {
 		pr_debug("%s: %s: already runtime suspended\n",
@@ -3647,8 +3646,8 @@ static int sdhci_msm_resume(struct device *dev)
 	int ret = 0;
 
 	if (gpio_is_valid(msm_host->pdata->status_gpio)) {
-		ret = mmc_cd_gpio_request(msm_host->mmc,
-				msm_host->pdata->status_gpio);
+		ret = mmc_gpio_request_cd(msm_host->mmc,
+				msm_host->pdata->status_gpio, 0);
 		if (ret)
 			pr_err("%s: %s: Failed to request card detection IRQ %d\n",
 					mmc_hostname(host->mmc), __func__, ret);
@@ -3707,7 +3706,7 @@ MODULE_DEVICE_TABLE(of, sdhci_msm_dt_match);
 
 static struct platform_driver sdhci_msm_driver = {
 	.probe		= sdhci_msm_probe,
-	.remove		= __devexit_p(sdhci_msm_remove),
+	.remove		= sdhci_msm_remove,
 	.driver		= {
 		.name	= "sdhci_msm",
 		.owner	= THIS_MODULE,

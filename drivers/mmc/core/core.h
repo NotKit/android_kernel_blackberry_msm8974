@@ -26,11 +26,8 @@ struct mmc_bus_ops {
 	int (*power_save)(struct mmc_host *);
 	int (*power_restore)(struct mmc_host *);
 	int (*alive)(struct mmc_host *);
-<<<<<<< HEAD
-	int (*change_bus_speed)(struct mmc_host *, unsigned long *);
-=======
 	int (*shutdown)(struct mmc_host *);
->>>>>>> android-3.18
+	int (*change_bus_speed)(struct mmc_host *host, unsigned long *freq);
 };
 
 void mmc_attach_bus(struct mmc_host *host, const struct mmc_bus_ops *ops);
@@ -41,8 +38,7 @@ struct device_node *mmc_of_find_child_device(struct mmc_host *host,
 
 void mmc_init_erase(struct mmc_card *card);
 
-void mmc_power_up(struct mmc_host *host);
-void mmc_power_off(struct mmc_host *host);
+
 void mmc_set_chip_select(struct mmc_host *host, int mode);
 void mmc_set_clock(struct mmc_host *host, unsigned int hz);
 void mmc_gate_clock(struct mmc_host *host);
@@ -57,11 +53,7 @@ void mmc_set_timing(struct mmc_host *host, unsigned int timing);
 void mmc_set_driver_type(struct mmc_host *host, unsigned int drv_type);
 void mmc_power_up(struct mmc_host *host, u32 ocr);
 void mmc_power_off(struct mmc_host *host);
-<<<<<<< HEAD
-void mmc_power_cycle(struct mmc_host *host);
-=======
 void mmc_power_cycle(struct mmc_host *host, u32 ocr);
->>>>>>> android-3.18
 
 static inline void mmc_delay(unsigned int ms)
 {
@@ -95,18 +87,8 @@ void mmc_remove_host_debugfs(struct mmc_host *host);
 void mmc_add_card_debugfs(struct mmc_card *card);
 void mmc_remove_card_debugfs(struct mmc_card *card);
 
-<<<<<<< HEAD
-extern void mmc_disable_clk_scaling(struct mmc_host *host);
-extern bool mmc_can_scale_clk(struct mmc_host *host);
-extern void mmc_init_clk_scaling(struct mmc_host *host);
-extern void mmc_exit_clk_scaling(struct mmc_host *host);
-extern void mmc_reset_clk_scale_stats(struct mmc_host *host);
-extern unsigned long mmc_get_max_frequency(struct mmc_host *host);
-void mmc_init_context_info(struct mmc_host *host);
-=======
 void mmc_init_context_info(struct mmc_host *host);
 
 int mmc_execute_tuning(struct mmc_card *card);
 
->>>>>>> android-3.18
 #endif

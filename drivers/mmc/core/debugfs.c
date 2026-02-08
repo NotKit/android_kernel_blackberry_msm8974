@@ -313,23 +313,13 @@ static int mmc_dbg_card_status_get(void *data, u64 *val)
 	u32		status;
 	int		ret;
 
-<<<<<<< HEAD
-	mmc_rpm_hold(card->host, &card->dev);
-	mmc_claim_host(card->host);
-=======
 	mmc_get_card(card);
->>>>>>> android-3.18
 
 	ret = mmc_send_status(data, &status);
 	if (!ret)
 		*val = status;
 
-<<<<<<< HEAD
-	mmc_release_host(card->host);
-	mmc_rpm_release(card->host, &card->dev);
-=======
 	mmc_put_card(card);
->>>>>>> android-3.18
 
 	return ret;
 }
@@ -356,17 +346,9 @@ static int mmc_ext_csd_open(struct inode *inode, struct file *filp)
 		goto out_free;
 	}
 
-<<<<<<< HEAD
-	mmc_rpm_hold(card->host, &card->dev);
-	mmc_claim_host(card->host);
-	err = mmc_send_ext_csd(card, ext_csd);
-	mmc_release_host(card->host);
-	mmc_rpm_release(card->host, &card->dev);
-=======
 	mmc_get_card(card);
 	err = mmc_send_ext_csd(card, ext_csd);
 	mmc_put_card(card);
->>>>>>> android-3.18
 	if (err)
 		goto out_free;
 
