@@ -37,6 +37,11 @@
 #include "pinmux.h"
 #include "pinconf.h"
 
+<<<<<<< HEAD
+
+static bool pinctrl_dummy_state;
+=======
+>>>>>>> android-3.18
 
 static bool pinctrl_dummy_state;
 
@@ -50,7 +55,7 @@ DEFINE_MUTEX(pinctrl_maps_mutex);
 static DEFINE_MUTEX(pinctrldev_list_mutex);
 
 /* Global list of pin control devices (struct pinctrl_dev) */
-static LIST_HEAD(pinctrldev_list);
+LIST_HEAD(pinctrldev_list);
 
 /* List of pin controller handles (struct pinctrl) */
 static LIST_HEAD(pinctrl_list);
@@ -408,8 +413,11 @@ static int pinctrl_get_device_gpio_range(unsigned gpio,
 		}
 	}
 
+<<<<<<< HEAD
+=======
 	mutex_unlock(&pinctrldev_list_mutex);
 
+>>>>>>> android-3.18
 	return -EPROBE_DEFER;
 }
 
@@ -444,24 +452,37 @@ EXPORT_SYMBOL_GPL(pinctrl_add_gpio_ranges);
 struct pinctrl_dev *pinctrl_find_and_add_gpio_range(const char *devname,
 		struct pinctrl_gpio_range *range)
 {
+<<<<<<< HEAD
+	struct pinctrl_dev *pctldev = get_pinctrl_dev_from_devname(devname);
+=======
 	struct pinctrl_dev *pctldev;
 
 	pctldev = get_pinctrl_dev_from_devname(devname);
+>>>>>>> android-3.18
 
 	/*
 	 * If we can't find this device, let's assume that is because
 	 * it has not probed yet, so the driver trying to register this
 	 * range need to defer probing.
 	 */
+<<<<<<< HEAD
+	if (!pctldev)
+		return ERR_PTR(-EPROBE_DEFER);
+
+	pinctrl_add_gpio_range(pctldev, range);
+=======
 	if (!pctldev) {
 		return ERR_PTR(-EPROBE_DEFER);
 	}
 	pinctrl_add_gpio_range(pctldev, range);
 
+>>>>>>> android-3.18
 	return pctldev;
 }
 EXPORT_SYMBOL_GPL(pinctrl_find_and_add_gpio_range);
 
+<<<<<<< HEAD
+=======
 int pinctrl_get_group_pins(struct pinctrl_dev *pctldev, const char *pin_group,
 				const unsigned **pins, unsigned *num_pins)
 {
@@ -479,6 +500,7 @@ int pinctrl_get_group_pins(struct pinctrl_dev *pctldev, const char *pin_group,
 }
 EXPORT_SYMBOL_GPL(pinctrl_get_group_pins);
 
+>>>>>>> android-3.18
 /**
  * pinctrl_find_gpio_range_from_pin() - locate the GPIO range for a pin
  * @pctldev: the pin controller device to look in
@@ -488,6 +510,20 @@ struct pinctrl_gpio_range *
 pinctrl_find_gpio_range_from_pin(struct pinctrl_dev *pctldev,
 				 unsigned int pin)
 {
+<<<<<<< HEAD
+	struct pinctrl_gpio_range *range = NULL;
+
+	/* Loop over the ranges */
+	list_for_each_entry(range, &pctldev->gpio_ranges, node) {
+		/* Check if we're in the valid range */
+		if (pin >= range->pin_base &&
+		    pin < range->pin_base + range->npins) {
+			return range;
+		}
+	}
+
+	return NULL;
+=======
 	struct pinctrl_gpio_range *range;
 
 	mutex_lock(&pctldev->mutex);
@@ -508,6 +544,7 @@ pinctrl_find_gpio_range_from_pin(struct pinctrl_dev *pctldev,
 out:
 	mutex_unlock(&pctldev->mutex);
 	return range;
+>>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(pinctrl_find_gpio_range_from_pin);
 
@@ -574,8 +611,12 @@ int pinctrl_request_gpio(unsigned gpio)
 
 	ret = pinctrl_get_device_gpio_range(gpio, &pctldev, &range);
 	if (ret) {
+<<<<<<< HEAD
+		mutex_unlock(&pinctrl_mutex);
+=======
 		if (pinctrl_ready_for_gpio_range(gpio))
 			ret = 0;
+>>>>>>> android-3.18
 		return ret;
 	}
 
@@ -838,6 +879,21 @@ static struct pinctrl *create_pinctrl(struct device *dev)
 		 * an -EPROBE_DEFER later, as that is the worst case.
 		 */
 		if (ret == -EPROBE_DEFER) {
+<<<<<<< HEAD
+			pinctrl_put_locked(p, false);
+			return ERR_PTR(ret);
+		}
+	}
+	if (ret < 0) {
+		/* If some other error than deferral occured, return here */
+		pinctrl_put_locked(p, false);
+		return ERR_PTR(ret);
+	}
+
+	kref_init(&p->users);
+
+	/* Add the pinctrl handle to the global list */
+=======
 			pinctrl_free(p, false);
 			mutex_unlock(&pinctrl_maps_mutex);
 			return ERR_PTR(ret);
@@ -855,6 +911,7 @@ static struct pinctrl *create_pinctrl(struct device *dev)
 
 	/* Add the pinctrl handle to the global list */
 	mutex_lock(&pinctrl_list_mutex);
+>>>>>>> android-3.18
 	list_add_tail(&p->node, &pinctrl_list);
 	mutex_unlock(&pinctrl_list_mutex);
 
@@ -933,12 +990,32 @@ static void pinctrl_free(struct pinctrl *p, bool inlist)
 /**
  * pinctrl_release() - release the pinctrl handle
  * @kref: the kref in the pinctrl being released
+<<<<<<< HEAD
  */
 static void pinctrl_release(struct kref *kref)
 {
 	struct pinctrl *p = container_of(kref, struct pinctrl, users);
 
+	pinctrl_put_locked(p, true);
+}
+
+/**
+ * pinctrl_put() - decrease use count on a previously claimed pinctrl handle
+ * @p: the pinctrl handle to release
+=======
+>>>>>>> android-3.18
+ */
+static void pinctrl_release(struct kref *kref)
+{
+<<<<<<< HEAD
+	mutex_lock(&pinctrl_mutex);
+	kref_put(&p->users, pinctrl_release);
+	mutex_unlock(&pinctrl_mutex);
+=======
+	struct pinctrl *p = container_of(kref, struct pinctrl, users);
+
 	pinctrl_free(p, true);
+>>>>>>> android-3.18
 }
 
 /**
@@ -947,7 +1024,24 @@ static void pinctrl_release(struct kref *kref)
  */
 void pinctrl_put(struct pinctrl *p)
 {
+<<<<<<< HEAD
+	struct pinctrl_state *state;
+
+	state = find_state(p, name);
+	if (!state) {
+		if (pinctrl_dummy_state) {
+			/* create dummy state */
+			dev_dbg(p->dev, "using pinctrl dummy state (%s)\n",
+				name);
+			state = create_state(p, name);
+		} else
+			state = ERR_PTR(-ENODEV);
+	}
+
+	return state;
+=======
 	kref_put(&p->users, pinctrl_release);
+>>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(pinctrl_put);
 
@@ -1114,13 +1208,23 @@ static int devm_pinctrl_match(struct device *dev, void *res, void *data)
  */
 void devm_pinctrl_put(struct pinctrl *p)
 {
+<<<<<<< HEAD
+	WARN_ON(devres_destroy(p->dev, devm_pinctrl_release,
+			       devm_pinctrl_match, p));
+	pinctrl_put(p);
+=======
 	WARN_ON(devres_release(p->dev, devm_pinctrl_release,
 			       devm_pinctrl_match, p));
+>>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(devm_pinctrl_put);
 
 int pinctrl_register_map(struct pinctrl_map const *maps, unsigned num_maps,
+<<<<<<< HEAD
+			 bool dup, bool locked)
+=======
 			 bool dup)
+>>>>>>> android-3.18
 {
 	int i, ret;
 	struct pinctrl_maps *maps_node;
@@ -1188,9 +1292,17 @@ int pinctrl_register_map(struct pinctrl_map const *maps, unsigned num_maps,
 		maps_node->maps = maps;
 	}
 
+<<<<<<< HEAD
+	if (!locked)
+		mutex_lock(&pinctrl_mutex);
+	list_add_tail(&maps_node->node, &pinctrl_maps);
+	if (!locked)
+		mutex_unlock(&pinctrl_mutex);
+=======
 	mutex_lock(&pinctrl_maps_mutex);
 	list_add_tail(&maps_node->node, &pinctrl_maps);
 	mutex_unlock(&pinctrl_maps_mutex);
+>>>>>>> android-3.18
 
 	return 0;
 }
@@ -1205,13 +1317,25 @@ int pinctrl_register_map(struct pinctrl_map const *maps, unsigned num_maps,
 int pinctrl_register_mappings(struct pinctrl_map const *maps,
 			      unsigned num_maps)
 {
+<<<<<<< HEAD
+	return pinctrl_register_map(maps, num_maps, true, false);
+=======
 	return pinctrl_register_map(maps, num_maps, true);
+>>>>>>> android-3.18
 }
 
 void pinctrl_unregister_map(struct pinctrl_map const *map)
 {
 	struct pinctrl_maps *maps_node;
 
+<<<<<<< HEAD
+	list_for_each_entry(maps_node, &pinctrl_maps, node) {
+		if (maps_node->maps == map) {
+			list_del(&maps_node->node);
+			return;
+		}
+	}
+=======
 	mutex_lock(&pinctrl_maps_mutex);
 	list_for_each_entry(maps_node, &pinctrl_maps, node) {
 		if (maps_node->maps == map) {
@@ -1222,6 +1346,7 @@ void pinctrl_unregister_map(struct pinctrl_map const *map)
 		}
 	}
 	mutex_unlock(&pinctrl_maps_mutex);
+>>>>>>> android-3.18
 }
 
 /**
@@ -1231,7 +1356,11 @@ void pinctrl_unregister_map(struct pinctrl_map const *map)
 int pinctrl_force_sleep(struct pinctrl_dev *pctldev)
 {
 	if (!IS_ERR(pctldev->p) && !IS_ERR(pctldev->hog_sleep))
+<<<<<<< HEAD
+		return pinctrl_select_state(pctldev->p, pctldev->hog_sleep);
+=======
 		return pinctrl_commit_state(pctldev->p, pctldev->hog_sleep);
+>>>>>>> android-3.18
 	return 0;
 }
 EXPORT_SYMBOL_GPL(pinctrl_force_sleep);
@@ -1243,11 +1372,17 @@ EXPORT_SYMBOL_GPL(pinctrl_force_sleep);
 int pinctrl_force_default(struct pinctrl_dev *pctldev)
 {
 	if (!IS_ERR(pctldev->p) && !IS_ERR(pctldev->hog_default))
+<<<<<<< HEAD
+		return pinctrl_select_state(pctldev->p, pctldev->hog_default);
+=======
 		return pinctrl_commit_state(pctldev->p, pctldev->hog_default);
+>>>>>>> android-3.18
 	return 0;
 }
 EXPORT_SYMBOL_GPL(pinctrl_force_default);
 
+<<<<<<< HEAD
+=======
 #ifdef CONFIG_PM
 
 /**
@@ -1310,6 +1445,7 @@ int pinctrl_pm_select_idle_state(struct device *dev)
 EXPORT_SYMBOL_GPL(pinctrl_pm_select_idle_state);
 #endif
 
+>>>>>>> android-3.18
 #ifdef CONFIG_DEBUG_FS
 
 static int pinctrl_pins_show(struct seq_file *s, void *what)
@@ -1352,6 +1488,19 @@ static int pinctrl_groups_show(struct seq_file *s, void *what)
 	struct pinctrl_dev *pctldev = s->private;
 	const struct pinctrl_ops *ops = pctldev->desc->pctlops;
 	unsigned ngroups, selector = 0;
+<<<<<<< HEAD
+
+	ngroups = ops->get_groups_count(pctldev);
+	mutex_lock(&pinctrl_mutex);
+
+	seq_puts(s, "registered pin groups:\n");
+	while (selector < ngroups) {
+		const unsigned *pins;
+		unsigned num_pins;
+		const char *gname = ops->get_group_name(pctldev, selector);
+		const char *pname;
+		int ret;
+=======
 
 	mutex_lock(&pctldev->mutex);
 
@@ -1364,6 +1513,7 @@ static int pinctrl_groups_show(struct seq_file *s, void *what)
 		const char *gname = ops->get_group_name(pctldev, selector);
 		const char *pname;
 		int ret = 0;
+>>>>>>> android-3.18
 		int i;
 
 		if (ops->get_group_pins)
@@ -1377,7 +1527,11 @@ static int pinctrl_groups_show(struct seq_file *s, void *what)
 			for (i = 0; i < num_pins; i++) {
 				pname = pin_get_name(pctldev, pins[i]);
 				if (WARN_ON(!pname)) {
+<<<<<<< HEAD
+					mutex_unlock(&pinctrl_mutex);
+=======
 					mutex_unlock(&pctldev->mutex);
+>>>>>>> android-3.18
 					return -EINVAL;
 				}
 				seq_printf(s, "pin %d (%s)\n", pins[i], pname);
@@ -1692,7 +1846,15 @@ static int pinctrl_check_ops(struct pinctrl_dev *pctldev)
 
 	if (!ops ||
 	    !ops->get_groups_count ||
+<<<<<<< HEAD
+	    !ops->get_group_name ||
+	    !ops->get_group_pins)
+=======
 	    !ops->get_group_name)
+		return -EINVAL;
+
+	if (ops->dt_node_to_map && !ops->dt_free_map)
+>>>>>>> android-3.18
 		return -EINVAL;
 
 	if (ops->dt_node_to_map && !ops->dt_free_map)
@@ -1769,15 +1931,34 @@ struct pinctrl_dev *pinctrl_register(struct pinctrl_desc *pctldesc,
 
 	if (!IS_ERR(pctldev->p)) {
 		pctldev->hog_default =
+<<<<<<< HEAD
+			pinctrl_lookup_state_locked(pctldev->p,
+						    PINCTRL_STATE_DEFAULT);
+		if (IS_ERR(pctldev->hog_default)) {
+			dev_dbg(dev, "failed to lookup the default state\n");
+		} else {
+			if (pinctrl_select_state_locked(pctldev->p,
+=======
 			pinctrl_lookup_state(pctldev->p, PINCTRL_STATE_DEFAULT);
 		if (IS_ERR(pctldev->hog_default)) {
 			dev_dbg(dev, "failed to lookup the default state\n");
 		} else {
 			if (pinctrl_select_state(pctldev->p,
+>>>>>>> android-3.18
 						pctldev->hog_default))
 				dev_err(dev,
 					"failed to select default state\n");
 		}
+<<<<<<< HEAD
+
+		pctldev->hog_sleep =
+			pinctrl_lookup_state_locked(pctldev->p,
+						    PINCTRL_STATE_SLEEP);
+		if (IS_ERR(pctldev->hog_sleep))
+			dev_dbg(dev, "failed to lookup the sleep state\n");
+	}
+=======
+>>>>>>> android-3.18
 
 		pctldev->hog_sleep =
 			pinctrl_lookup_state(pctldev->p,
@@ -1826,6 +2007,11 @@ void pinctrl_unregister(struct pinctrl_dev *pctldev)
 	/* remove gpio ranges map */
 	list_for_each_entry_safe(range, n, &pctldev->gpio_ranges, node)
 		list_del(&range->node);
+<<<<<<< HEAD
+
+	kfree(pctldev);
+=======
+>>>>>>> android-3.18
 
 	mutex_unlock(&pctldev->mutex);
 	mutex_destroy(&pctldev->mutex);

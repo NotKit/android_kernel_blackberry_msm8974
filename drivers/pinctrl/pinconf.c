@@ -28,6 +28,15 @@ int pinconf_check_ops(struct pinctrl_dev *pctldev)
 {
 	const struct pinconf_ops *ops = pctldev->desc->confops;
 
+<<<<<<< HEAD
+	/* We must be able to read out pin status */
+	if (!ops->pin_config_get && !ops->pin_config_group_get) {
+		dev_err(pctldev->dev,
+			"pinconf must be able to read out pin status\n");
+		return -EINVAL;
+	}
+=======
+>>>>>>> android-3.18
 	/* We have to be able to config the pins in SOME way */
 	if (!ops->pin_config_set && !ops->pin_config_group_set) {
 		dev_err(pctldev->dev,
@@ -296,7 +305,11 @@ static void pinconf_dump_pin(struct pinctrl_dev *pctldev,
 static int pinconf_pins_show(struct seq_file *s, void *what)
 {
 	struct pinctrl_dev *pctldev = s->private;
+	const struct pinconf_ops *ops = pctldev->desc->confops;
 	unsigned i, pin;
+
+	if (!ops || !ops->pin_config_get)
+		return 0;
 
 	seq_puts(s, "Pin config settings per pin\n");
 	seq_puts(s, "Format: pin (name): configs\n");
@@ -342,6 +355,10 @@ static int pinconf_groups_show(struct seq_file *s, void *what)
 {
 	struct pinctrl_dev *pctldev = s->private;
 	const struct pinctrl_ops *pctlops = pctldev->desc->pctlops;
+<<<<<<< HEAD
+	const struct pinconf_ops *ops = pctldev->desc->confops;
+=======
+>>>>>>> android-3.18
 	unsigned ngroups = pctlops->get_groups_count(pctldev);
 	unsigned selector = 0;
 
@@ -385,6 +402,97 @@ static const struct file_operations pinconf_groups_ops = {
 	.release	= single_release,
 };
 
+<<<<<<< HEAD
+/* 32bit read/write ressources */
+#define MAX_NAME_LEN 16
+char dbg_pinname[MAX_NAME_LEN]; /* shared: name of the state of the pin*/
+char dbg_state_name[MAX_NAME_LEN]; /* shared: state of the pin*/
+static u32 dbg_config; /* shared: config to be read/set for the pin & state*/
+
+static int pinconf_dbg_pinname_print(struct seq_file *s, void *d)
+{
+	if (strlen(dbg_pinname))
+		seq_printf(s, "%s\n", dbg_pinname);
+	else
+		seq_printf(s, "No pin name set\n");
+	return 0;
+}
+
+static int pinconf_dbg_pinname_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, pinconf_dbg_pinname_print, inode->i_private);
+}
+
+static int pinconf_dbg_pinname_write(struct file *file,
+	const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	int err;
+
+	if (count > MAX_NAME_LEN)
+		return -EINVAL;
+
+	err = sscanf(user_buf, "%15s", dbg_pinname);
+
+	if (err != 1)
+		return -EINVAL;
+
+	return count;
+}
+
+static const struct file_operations pinconf_dbg_pinname_fops = {
+	.open = pinconf_dbg_pinname_open,
+	.write = pinconf_dbg_pinname_write,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+	.owner = THIS_MODULE,
+};
+
+static int pinconf_dbg_state_print(struct seq_file *s, void *d)
+{
+	if (strlen(dbg_state_name))
+		seq_printf(s, "%s\n", dbg_state_name);
+	else
+		seq_printf(s, "No pin state set\n");
+	return 0;
+}
+
+static int pinconf_dbg_state_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, pinconf_dbg_state_print, inode->i_private);
+}
+
+static int pinconf_dbg_state_write(struct file *file,
+	const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	int err;
+
+	if (count > MAX_NAME_LEN)
+		return -EINVAL;
+
+	err = sscanf(user_buf, "%15s", dbg_state_name);
+
+	if (err != 1)
+		return -EINVAL;
+
+	return count;
+}
+
+static const struct file_operations pinconf_dbg_pinstate_fops = {
+	.open = pinconf_dbg_state_open,
+	.write = pinconf_dbg_state_write,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+	.owner = THIS_MODULE,
+};
+
+/**
+ * pinconf_dbg_config_print() - display the pinctrl config from the pinctrl
+ * map, of a pin/state pair based on pinname and state that have been
+ * selected with the debugfs entries pinconf-name and pinconf-state
+ * @s: contains the 32bits config to be written
+=======
 #define MAX_NAME_LEN 15
 
 struct dbg_cfg {
@@ -404,11 +512,39 @@ static struct dbg_cfg pinconf_dbg_conf;
  * pinconf_dbg_config_print() - display the pinctrl config from the pinctrl
  * map, of the dev/pin/state that was last written to pinconf-config file.
  * @s: string filled in  with config description
+>>>>>>> android-3.18
  * @d: not used
  */
 static int pinconf_dbg_config_print(struct seq_file *s, void *d)
 {
 	struct pinctrl_maps *maps_node;
+<<<<<<< HEAD
+	struct pinctrl_map const *map;
+	struct pinctrl_dev *pctldev = NULL;
+	struct pinconf_ops *confops = NULL;
+	int i, j;
+	bool found = false;
+
+	mutex_lock(&pinctrl_mutex);
+
+	/* Parse the pinctrl map and look for the elected pin/state */
+	for_each_maps(maps_node, i, map) {
+		if (map->type != PIN_MAP_TYPE_CONFIGS_PIN)
+			continue;
+
+		if (strncmp(map->name, dbg_state_name, MAX_NAME_LEN) > 0)
+			continue;
+
+		for (j = 0; j < map->data.configs.num_configs; j++) {
+			if (0 == strncmp(map->data.configs.group_or_pin,
+						dbg_pinname, MAX_NAME_LEN)) {
+				/* We found the right pin / state, read the
+				 * config and store the pctldev */
+				dbg_config = map->data.configs.configs[j];
+				pctldev = get_pinctrl_dev_from_devname
+					(map->ctrl_dev_name);
+				found = true;
+=======
 	const struct pinctrl_map *map;
 	const struct pinctrl_map *found = NULL;
 	struct pinctrl_dev *pctldev;
@@ -433,11 +569,78 @@ static int pinconf_dbg_config_print(struct seq_file *s, void *d)
 					dbg->pin_name)) {
 				/* We found the right pin / state */
 				found = map;
+>>>>>>> android-3.18
 				break;
 			}
 		}
 	}
 
+<<<<<<< HEAD
+	mutex_unlock(&pinctrl_mutex);
+
+	if (found) {
+		seq_printf(s, "Config of %s in state %s: 0x%08X\n", dbg_pinname,
+				 dbg_state_name, dbg_config);
+
+		if (pctldev)
+			confops = pctldev->desc->confops;
+
+		if (confops && confops->pin_config_config_dbg_show)
+			confops->pin_config_config_dbg_show(pctldev,
+					s, dbg_config);
+	} else {
+		seq_printf(s, "No pin found for defined name/state\n");
+	}
+
+	return 0;
+}
+
+static int pinconf_dbg_config_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, pinconf_dbg_config_print, inode->i_private);
+}
+
+/**
+ * pinconf_dbg_config_write() - overwrite the pinctrl config in thepinctrl
+ * map, of a pin/state pair based on pinname and state that have been
+ * selected with the debugfs entries pinconf-name and pinconf-state
+ */
+static int pinconf_dbg_config_write(struct file *file,
+	const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	int err;
+	unsigned long config;
+	struct pinctrl_maps *maps_node;
+	struct pinctrl_map const *map;
+	int i, j;
+
+	err = kstrtoul_from_user(user_buf, count, 0, &config);
+
+	if (err)
+		return err;
+
+	dbg_config = config;
+
+	mutex_lock(&pinctrl_mutex);
+
+	/* Parse the pinctrl map and look for the selected pin/state */
+	for_each_maps(maps_node, i, map) {
+		if (map->type != PIN_MAP_TYPE_CONFIGS_PIN)
+			continue;
+
+		if (strncmp(map->name, dbg_state_name, MAX_NAME_LEN) > 0)
+			continue;
+
+		/*  we found the right pin / state, so overwrite config */
+		for (j = 0; j < map->data.configs.num_configs; j++) {
+			if (strncmp(map->data.configs.group_or_pin, dbg_pinname,
+						MAX_NAME_LEN) == 0)
+				map->data.configs.configs[j] = dbg_config;
+		}
+	}
+
+	mutex_unlock(&pinctrl_mutex);
+=======
 	if (!found) {
 		seq_printf(s, "No config found for dev/state/pin, expected:\n");
 		seq_printf(s, "Searched dev:%s\n", dbg->dev_name);
@@ -589,15 +792,19 @@ static ssize_t pinconf_dbg_config_write(struct file *file,
 
 exit:
 	mutex_unlock(&pinctrl_maps_mutex);
+>>>>>>> android-3.18
 
 	return count;
 }
 
+<<<<<<< HEAD
+=======
 static int pinconf_dbg_config_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, pinconf_dbg_config_print, inode->i_private);
 }
 
+>>>>>>> android-3.18
 static const struct file_operations pinconf_dbg_pinconfig_fops = {
 	.open = pinconf_dbg_config_open,
 	.write = pinconf_dbg_config_write,
@@ -614,6 +821,13 @@ void pinconf_init_device_debugfs(struct dentry *devroot,
 			    devroot, pctldev, &pinconf_pins_ops);
 	debugfs_create_file("pinconf-groups", S_IFREG | S_IRUGO,
 			    devroot, pctldev, &pinconf_groups_ops);
+<<<<<<< HEAD
+	debugfs_create_file("pinconf-name", (S_IRUGO | S_IWUSR | S_IWGRP),
+			    devroot, pctldev, &pinconf_dbg_pinname_fops);
+	debugfs_create_file("pinconf-state",  (S_IRUGO | S_IWUSR | S_IWGRP),
+			    devroot, pctldev, &pinconf_dbg_pinstate_fops);
+=======
+>>>>>>> android-3.18
 	debugfs_create_file("pinconf-config",  (S_IRUGO | S_IWUSR | S_IWGRP),
 			    devroot, pctldev, &pinconf_dbg_pinconfig_fops);
 }
