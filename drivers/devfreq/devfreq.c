@@ -69,11 +69,41 @@ static struct devfreq *find_device_devfreq(struct device *dev)
 }
 
 /**
+<<<<<<< HEAD
+ * devfreq_set_freq_limits() - Set min and max frequency from freq_table
+ * @devfreq:	the devfreq instance
+ */
+static void devfreq_set_freq_limits(struct devfreq *devfreq)
+{
+	int idx;
+	unsigned long min = ~0, max = 0;
+
+	if (!devfreq->profile->freq_table)
+		return;
+
+	for (idx = 0; idx < devfreq->profile->max_state; idx++) {
+		if (min > devfreq->profile->freq_table[idx])
+			min = devfreq->profile->freq_table[idx];
+		if (max < devfreq->profile->freq_table[idx])
+			max = devfreq->profile->freq_table[idx];
+	}
+
+	devfreq->min_freq = min;
+	devfreq->max_freq = max;
+}
+
+/**
+=======
+>>>>>>> android-3.18
  * devfreq_get_freq_level() - Lookup freq_table for the frequency
  * @devfreq:	the devfreq instance
  * @freq:	the target frequency
  */
+<<<<<<< HEAD
+int devfreq_get_freq_level(struct devfreq *devfreq, unsigned long freq)
+=======
 static int devfreq_get_freq_level(struct devfreq *devfreq, unsigned long freq)
+>>>>>>> android-3.18
 {
 	int lev;
 
@@ -83,6 +113,10 @@ static int devfreq_get_freq_level(struct devfreq *devfreq, unsigned long freq)
 
 	return -EINVAL;
 }
+<<<<<<< HEAD
+EXPORT_SYMBOL(devfreq_get_freq_level);
+=======
+>>>>>>> android-3.18
 
 /**
  * devfreq_update_status() - Update statistics of devfreq behavior
@@ -172,7 +206,7 @@ int update_devfreq(struct devfreq *devfreq)
 		return -EINVAL;
 
 	/* Reevaluate the proper frequency */
-	err = devfreq->governor->get_target_freq(devfreq, &freq);
+	err = devfreq->governor->get_target_freq(devfreq, &freq, &flags);
 	if (err)
 		return err;
 
@@ -239,7 +273,11 @@ static void devfreq_monitor(struct work_struct *work)
  */
 void devfreq_monitor_start(struct devfreq *devfreq)
 {
+<<<<<<< HEAD
+	INIT_DELAYED_WORK_DEFERRABLE(&devfreq->work, devfreq_monitor);
+=======
 	INIT_DEFERRABLE_WORK(&devfreq->work, devfreq_monitor);
+>>>>>>> android-3.18
 	if (devfreq->profile->polling_ms)
 		queue_delayed_work(devfreq_wq, &devfreq->work,
 			msecs_to_jiffies(devfreq->profile->polling_ms));
@@ -280,12 +318,37 @@ void devfreq_monitor_suspend(struct devfreq *devfreq)
 		return;
 	}
 
+<<<<<<< HEAD
+=======
 	devfreq_update_status(devfreq, devfreq->previous_freq);
+>>>>>>> android-3.18
 	devfreq->stop_polling = true;
 	mutex_unlock(&devfreq->lock);
 	cancel_delayed_work_sync(&devfreq->work);
 }
 EXPORT_SYMBOL(devfreq_monitor_suspend);
+<<<<<<< HEAD
+
+/**
+ * devfreq_monitor_resume() - Resume load monitoring of a devfreq instance
+ * @devfreq:    the devfreq instance.
+ *
+ * Helper function to resume devfreq device load monitoing. Function
+ * to be called from governor in response to DEVFREQ_GOV_RESUME
+ * event or when polling interval is set to non-zero.
+ */
+void devfreq_monitor_resume(struct devfreq *devfreq)
+{
+	mutex_lock(&devfreq->lock);
+	if (!devfreq->stop_polling)
+		goto out;
+
+	if (!delayed_work_pending(&devfreq->work) &&
+			devfreq->profile->polling_ms)
+		queue_delayed_work(devfreq_wq, &devfreq->work,
+			msecs_to_jiffies(devfreq->profile->polling_ms));
+	devfreq->stop_polling = false;
+=======
 
 /**
  * devfreq_monitor_resume() - Resume load monitoring of a devfreq instance
@@ -314,6 +377,7 @@ void devfreq_monitor_resume(struct devfreq *devfreq)
 	if (devfreq->profile->get_cur_freq &&
 		!devfreq->profile->get_cur_freq(devfreq->dev.parent, &freq))
 		devfreq->previous_freq = freq;
+>>>>>>> android-3.18
 
 out:
 	mutex_unlock(&devfreq->lock);
@@ -381,6 +445,53 @@ static int devfreq_notifier_call(struct notifier_block *nb, unsigned long type,
 {
 	struct devfreq *devfreq = container_of(nb, struct devfreq, nb);
 	int ret;
+<<<<<<< HEAD
+
+	mutex_lock(&devfreq->lock);
+	ret = update_devfreq(devfreq);
+	mutex_unlock(&devfreq->lock);
+
+	return ret;
+}
+
+/**
+ * _remove_devfreq() - Remove devfreq from the list and release its resources.
+ * @devfreq:	the devfreq struct
+ * @skip:	skip calling device_unregister().
+ */
+static void _remove_devfreq(struct devfreq *devfreq)
+{
+	mutex_lock(&devfreq_list_lock);
+	if (IS_ERR(find_device_devfreq(devfreq->dev.parent))) {
+		mutex_unlock(&devfreq_list_lock);
+		dev_warn(&devfreq->dev, "releasing devfreq which doesn't exist\n");
+		return;
+	}
+	list_del(&devfreq->node);
+	mutex_unlock(&devfreq_list_lock);
+
+	if (devfreq->governor)
+		devfreq->governor->event_handler(devfreq,
+						 DEVFREQ_GOV_STOP, NULL);
+
+	if (devfreq->profile->exit)
+		devfreq->profile->exit(devfreq->dev.parent);
+
+	mutex_destroy(&devfreq->lock);
+	kfree(devfreq);
+}
+
+/**
+ * devfreq_dev_release() - Callback for struct device to release the device.
+ * @dev:	the devfreq device
+ *
+ * This calls _remove_devfreq() if _remove_devfreq() is not called.
+ */
+static void devfreq_dev_release(struct device *dev)
+{
+	struct devfreq *devfreq = to_devfreq(dev);
+
+=======
 
 	mutex_lock(&devfreq->lock);
 	ret = update_devfreq(devfreq);
@@ -421,6 +532,7 @@ static void devfreq_dev_release(struct device *dev)
 {
 	struct devfreq *devfreq = to_devfreq(dev);
 
+>>>>>>> android-3.18
 	_remove_devfreq(devfreq);
 }
 
@@ -479,12 +591,23 @@ struct devfreq *devfreq_add_device(struct device *dev,
 						devfreq->profile->max_state *
 						devfreq->profile->max_state,
 						GFP_KERNEL);
+<<<<<<< HEAD
+	devfreq->time_in_state = devm_kzalloc(dev,
+					sizeof(*(devfreq->time_in_state)) *
+					devfreq->profile->max_state,
+					GFP_KERNEL);
+	devfreq->last_stat_updated = jiffies;
+	devfreq_set_freq_limits(devfreq);
+
+	dev_set_name(&devfreq->dev, dev_name(dev));
+=======
 	devfreq->time_in_state = devm_kzalloc(dev, sizeof(unsigned int) *
 						devfreq->profile->max_state,
 						GFP_KERNEL);
 	devfreq->last_stat_updated = jiffies;
 
 	dev_set_name(&devfreq->dev, "%s", dev_name(dev));
+>>>>>>> android-3.18
 	err = device_register(&devfreq->dev);
 	if (err) {
 		put_device(&devfreq->dev);
@@ -525,8 +648,11 @@ EXPORT_SYMBOL(devfreq_add_device);
 /**
  * devfreq_remove_device() - Remove devfreq feature from a device.
  * @devfreq:	the devfreq instance to be removed
+<<<<<<< HEAD
+=======
  *
  * The opposite of devfreq_add_device().
+>>>>>>> android-3.18
  */
 int devfreq_remove_device(struct devfreq *devfreq)
 {
@@ -535,6 +661,12 @@ int devfreq_remove_device(struct devfreq *devfreq)
 
 	device_unregister(&devfreq->dev);
 	put_device(&devfreq->dev);
+<<<<<<< HEAD
+
+	return 0;
+}
+EXPORT_SYMBOL(devfreq_remove_device);
+=======
 
 	return 0;
 }
@@ -602,10 +734,16 @@ void devm_devfreq_remove_device(struct device *dev, struct devfreq *devfreq)
 			       devm_devfreq_dev_match, devfreq));
 }
 EXPORT_SYMBOL(devm_devfreq_remove_device);
+>>>>>>> android-3.18
 
 /**
  * devfreq_suspend_device() - Suspend devfreq of a device.
  * @devfreq: the devfreq instance to be suspended
+<<<<<<< HEAD
+ */
+int devfreq_suspend_device(struct devfreq *devfreq)
+{
+=======
  *
  * This function is intended to be called by the pm callbacks
  * (e.g., runtime_suspend, suspend) of the device driver that
@@ -634,6 +772,7 @@ EXPORT_SYMBOL(devfreq_suspend_device);
  */
 int devfreq_resume_device(struct devfreq *devfreq)
 {
+>>>>>>> android-3.18
 	if (!devfreq)
 		return -EINVAL;
 
@@ -641,6 +780,26 @@ int devfreq_resume_device(struct devfreq *devfreq)
 		return 0;
 
 	return devfreq->governor->event_handler(devfreq,
+<<<<<<< HEAD
+				DEVFREQ_GOV_SUSPEND, NULL);
+}
+EXPORT_SYMBOL(devfreq_suspend_device);
+
+/**
+ * devfreq_resume_device() - Resume devfreq of a device.
+ * @devfreq: the devfreq instance to be resumed
+ */
+int devfreq_resume_device(struct devfreq *devfreq)
+{
+	if (!devfreq)
+		return -EINVAL;
+
+	if (!devfreq->governor)
+		return 0;
+
+	return devfreq->governor->event_handler(devfreq,
+=======
+>>>>>>> android-3.18
 				DEVFREQ_GOV_RESUME, NULL);
 }
 EXPORT_SYMBOL(devfreq_resume_device);
@@ -774,7 +933,11 @@ static ssize_t governor_show(struct device *dev,
 	return sprintf(buf, "%s\n", to_devfreq(dev)->governor->name);
 }
 
+<<<<<<< HEAD
+static ssize_t store_governor(struct device *dev, struct device_attribute *attr,
+=======
 static ssize_t governor_store(struct device *dev, struct device_attribute *attr,
+>>>>>>> android-3.18
 			      const char *buf, size_t count)
 {
 	struct devfreq *df = to_devfreq(dev);
@@ -816,11 +979,17 @@ out:
 		ret = count;
 	return ret;
 }
+<<<<<<< HEAD
+static ssize_t show_available_governors(struct device *d,
+				    struct device_attribute *attr,
+				    char *buf)
+=======
 static DEVICE_ATTR_RW(governor);
 
 static ssize_t available_governors_show(struct device *d,
 					struct device_attribute *attr,
 					char *buf)
+>>>>>>> android-3.18
 {
 	struct devfreq_governor *tmp_governor;
 	ssize_t count = 0;
@@ -839,6 +1008,11 @@ static ssize_t available_governors_show(struct device *d,
 
 	return count;
 }
+<<<<<<< HEAD
+
+static ssize_t show_freq(struct device *dev,
+			 struct device_attribute *attr, char *buf)
+=======
 static DEVICE_ATTR_RO(available_governors);
 
 static ssize_t cur_freq_show(struct device *dev, struct device_attribute *attr,
@@ -857,6 +1031,20 @@ static DEVICE_ATTR_RO(cur_freq);
 
 static ssize_t target_freq_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
+>>>>>>> android-3.18
+{
+	unsigned long freq;
+	struct devfreq *devfreq = to_devfreq(dev);
+
+	if (devfreq->profile->get_cur_freq &&
+		!devfreq->profile->get_cur_freq(devfreq->dev.parent, &freq))
+			return sprintf(buf, "%lu\n", freq);
+
+	return sprintf(buf, "%lu\n", devfreq->previous_freq);
+}
+
+static ssize_t show_target_freq(struct device *dev,
+			struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%lu\n", to_devfreq(dev)->previous_freq);
 }
@@ -890,7 +1078,11 @@ static ssize_t polling_interval_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(polling_interval);
 
+<<<<<<< HEAD
+static ssize_t store_min_freq(struct device *dev, struct device_attribute *attr,
+=======
 static ssize_t min_freq_store(struct device *dev, struct device_attribute *attr,
+>>>>>>> android-3.18
 			      const char *buf, size_t count)
 {
 	struct devfreq *df = to_devfreq(dev);
@@ -958,6 +1150,17 @@ static ssize_t max_freq_show(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR_RW(max_freq);
 
+<<<<<<< HEAD
+static ssize_t show_available_freqs(struct device *d,
+				    struct device_attribute *attr,
+				    char *buf)
+{
+	struct devfreq *df = to_devfreq(d);
+	struct device *dev = df->dev.parent;
+	struct opp *opp;
+	unsigned int i = 0, max_state = df->profile->max_state;
+	bool use_opp;
+=======
 static ssize_t available_frequencies_show(struct device *d,
 					  struct device_attribute *attr,
 					  char *buf)
@@ -965,19 +1168,36 @@ static ssize_t available_frequencies_show(struct device *d,
 	struct devfreq *df = to_devfreq(d);
 	struct device *dev = df->dev.parent;
 	struct dev_pm_opp *opp;
+>>>>>>> android-3.18
 	ssize_t count = 0;
 	unsigned long freq = 0;
 
 	rcu_read_lock();
+<<<<<<< HEAD
+	use_opp = opp_get_opp_count(dev) > 0;
+	do {
+		if (use_opp) {
+			opp = opp_find_freq_ceil(dev, &freq);
+			if (IS_ERR(opp))
+				break;
+		} else {
+			freq = df->profile->freq_table[i++];
+		}
+=======
 	do {
 		opp = dev_pm_opp_find_freq_ceil(dev, &freq);
 		if (IS_ERR(opp))
 			break;
+>>>>>>> android-3.18
 
 		count += scnprintf(&buf[count], (PAGE_SIZE - count - 2),
 				   "%lu ", freq);
 		freq++;
+<<<<<<< HEAD
+	} while (use_opp || (!use_opp && i < max_state));
+=======
 	} while (1);
+>>>>>>> android-3.18
 	rcu_read_unlock();
 
 	/* Truncate the trailing space */
@@ -988,6 +1208,64 @@ static ssize_t available_frequencies_show(struct device *d,
 
 	return count;
 }
+<<<<<<< HEAD
+
+static ssize_t show_trans_table(struct device *dev, struct device_attribute *attr,
+				char *buf)
+{
+	struct devfreq *devfreq = to_devfreq(dev);
+	ssize_t len;
+	int i, j, err;
+	unsigned int max_state = devfreq->profile->max_state;
+
+	err = devfreq_update_status(devfreq, devfreq->previous_freq);
+	if (err)
+		return 0;
+
+	len = sprintf(buf, "   From  :   To\n");
+	len += sprintf(buf + len, "         :");
+	for (i = 0; i < max_state; i++)
+		len += sprintf(buf + len, "%8u",
+				devfreq->profile->freq_table[i]);
+
+	len += sprintf(buf + len, "   time(ms)\n");
+
+	for (i = 0; i < max_state; i++) {
+		if (devfreq->profile->freq_table[i]
+					== devfreq->previous_freq) {
+			len += sprintf(buf + len, "*");
+		} else {
+			len += sprintf(buf + len, " ");
+		}
+		len += sprintf(buf + len, "%8u:",
+				devfreq->profile->freq_table[i]);
+		for (j = 0; j < max_state; j++)
+			len += sprintf(buf + len, "%8u",
+				devfreq->trans_table[(i * max_state) + j]);
+		len += sprintf(buf + len, "%10u\n",
+			jiffies_to_msecs(devfreq->time_in_state[i]));
+	}
+
+	len += sprintf(buf + len, "Total transition : %u\n",
+					devfreq->total_trans);
+	return len;
+}
+
+static struct device_attribute devfreq_attrs[] = {
+	__ATTR(governor, S_IRUGO | S_IWUSR, show_governor, store_governor),
+	__ATTR(available_governors, S_IRUGO, show_available_governors, NULL),
+	__ATTR(cur_freq, S_IRUGO, show_freq, NULL),
+	__ATTR(available_frequencies, S_IRUGO, show_available_freqs, NULL),
+	__ATTR(target_freq, S_IRUGO, show_target_freq, NULL),
+	__ATTR(polling_interval, S_IRUGO | S_IWUSR, show_polling_interval,
+	       store_polling_interval),
+	__ATTR(min_freq, S_IRUGO | S_IWUSR, show_min_freq, store_min_freq),
+	__ATTR(max_freq, S_IRUGO | S_IWUSR, show_max_freq, store_max_freq),
+	__ATTR(trans_stat, S_IRUGO, show_trans_table, NULL),
+	{ },
+};
+
+=======
 static DEVICE_ATTR_RO(available_frequencies);
 
 static ssize_t trans_stat_show(struct device *dev,
@@ -1046,6 +1324,7 @@ static struct attribute *devfreq_attrs[] = {
 };
 ATTRIBUTE_GROUPS(devfreq);
 
+>>>>>>> android-3.18
 static int __init devfreq_init(void)
 {
 	devfreq_class = class_create(THIS_MODULE, "devfreq");
@@ -1055,12 +1334,21 @@ static int __init devfreq_init(void)
 	}
 
 	devfreq_wq = create_freezable_workqueue("devfreq_wq");
+<<<<<<< HEAD
+	if (IS_ERR(devfreq_wq)) {
+		class_destroy(devfreq_class);
+		pr_err("%s: couldn't create workqueue\n", __FILE__);
+		return PTR_ERR(devfreq_wq);
+	}
+	devfreq_class->dev_attrs = devfreq_attrs;
+=======
 	if (!devfreq_wq) {
 		class_destroy(devfreq_class);
 		pr_err("%s: couldn't create workqueue\n", __FILE__);
 		return -ENOMEM;
 	}
 	devfreq_class->dev_groups = devfreq_groups;
+>>>>>>> android-3.18
 
 	return 0;
 }
@@ -1103,14 +1391,22 @@ struct dev_pm_opp *devfreq_recommended_opp(struct device *dev,
 
 		/* If not available, use the closest opp */
 		if (opp == ERR_PTR(-ERANGE))
+<<<<<<< HEAD
+			opp = opp_find_freq_ceil(dev, freq);
+=======
 			opp = dev_pm_opp_find_freq_ceil(dev, freq);
+>>>>>>> android-3.18
 	} else {
 		/* The freq is an lower bound. opp should be higher */
 		opp = dev_pm_opp_find_freq_ceil(dev, freq);
 
 		/* If not available, use the closest opp */
 		if (opp == ERR_PTR(-ERANGE))
+<<<<<<< HEAD
+			opp = opp_find_freq_floor(dev, freq);
+=======
 			opp = dev_pm_opp_find_freq_floor(dev, freq);
+>>>>>>> android-3.18
 	}
 
 	return opp;
@@ -1130,7 +1426,11 @@ int devfreq_register_opp_notifier(struct device *dev, struct devfreq *devfreq)
 	int ret = 0;
 
 	rcu_read_lock();
+<<<<<<< HEAD
+	nh = opp_get_notifier(dev);
+=======
 	nh = dev_pm_opp_get_notifier(dev);
+>>>>>>> android-3.18
 	if (IS_ERR(nh))
 		ret = PTR_ERR(nh);
 	rcu_read_unlock();
@@ -1157,7 +1457,11 @@ int devfreq_unregister_opp_notifier(struct device *dev, struct devfreq *devfreq)
 	int ret = 0;
 
 	rcu_read_lock();
+<<<<<<< HEAD
+	nh = opp_get_notifier(dev);
+=======
 	nh = dev_pm_opp_get_notifier(dev);
+>>>>>>> android-3.18
 	if (IS_ERR(nh))
 		ret = PTR_ERR(nh);
 	rcu_read_unlock();
@@ -1165,6 +1469,8 @@ int devfreq_unregister_opp_notifier(struct device *dev, struct devfreq *devfreq)
 		ret = srcu_notifier_chain_unregister(nh, &devfreq->nb);
 
 	return ret;
+<<<<<<< HEAD
+=======
 }
 EXPORT_SYMBOL(devfreq_unregister_opp_notifier);
 
@@ -1213,6 +1519,7 @@ void devm_devfreq_unregister_opp_notifier(struct device *dev,
 {
 	WARN_ON(devres_release(dev, devm_devfreq_opp_release,
 			       devm_devfreq_dev_match, devfreq));
+>>>>>>> android-3.18
 }
 EXPORT_SYMBOL(devm_devfreq_unregister_opp_notifier);
 
