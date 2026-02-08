@@ -26,13 +26,11 @@ source "drivers/scsi/Kconfig"
 
 source "drivers/ata/Kconfig"
 
-source "drivers/md/Kconfig"
-
 source "drivers/target/Kconfig"
 
 source "drivers/message/fusion/Kconfig"
 
-source "drivers/firewire/Kconfig"
+# source "drivers/ieee1394/Kconfig"
 
 source "drivers/message/i2o/Kconfig"
 
@@ -42,7 +40,7 @@ source "drivers/net/Kconfig"
 
 source "drivers/isdn/Kconfig"
 
-# input before char - char/joystick depends on it. As does USB.
+# source "drivers/telephony/Kconfig"
 
 source "drivers/input/Kconfig"
 
@@ -100,11 +98,9 @@ source "drivers/memstick/Kconfig"
 
 source "drivers/leds/Kconfig"
 
-source "drivers/switch/Kconfig"
-
 source "drivers/accessibility/Kconfig"
 
-source "drivers/infiniband/Kconfig"
+# source "drivers/infiniBand/Kconfig"
 
 source "drivers/edac/Kconfig"
 
@@ -120,9 +116,7 @@ source "drivers/uio/Kconfig"
 
 source "drivers/vfio/Kconfig"
 
-source "drivers/vlynq/Kconfig"
-
-source "drivers/virt/Kconfig"
+source "drivers/vhost/Kconfig"
 
 source "drivers/virtio/Kconfig"
 
@@ -134,15 +128,9 @@ source "drivers/staging/Kconfig"
 
 source "drivers/platform/Kconfig"
 
-source "drivers/soc/Kconfig"
-
 source "drivers/clk/Kconfig"
 
 source "drivers/hwspinlock/Kconfig"
-
-source "drivers/clocksource/Kconfig"
-
-source "drivers/mailbox/Kconfig"
 
 source "drivers/iommu/Kconfig"
 
@@ -150,7 +138,7 @@ source "drivers/remoteproc/Kconfig"
 
 source "drivers/rpmsg/Kconfig"
 
-source "drivers/soc/Kconfig"
+source "drivers/virt/Kconfig"
 
 source "drivers/devfreq/Kconfig"
 
@@ -168,6 +156,8 @@ source "drivers/pwm/Kconfig"
 
 source "drivers/irqchip/Kconfig"
 
+source "drivers/clocksource/Kconfig"
+
 source "drivers/ipack/Kconfig"
 
 source "drivers/reset/Kconfig"
@@ -183,5 +173,21 @@ source "drivers/mcb/Kconfig"
 source "drivers/ras/Kconfig"
 
 source "drivers/thunderbolt/Kconfig"
+
+source "drivers/soc/Kconfig"
+
+source "drivers/slimbus/Kconfig"
+
+source "drivers/gud/Kconfig"
+
+source "drivers/coresight/Kconfig"
+
+source "drivers/bif/Kconfig"
+
+source "drivers/sensors/Kconfig"
+
+source "drivers/switch/Kconfig"
+
+source "drivers/gpu/ion/Kconfig"
 
 endmenu
