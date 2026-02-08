@@ -171,7 +171,7 @@ static ssize_t cyttsp_irq_enable(struct device *dev,
 	if (size > 2)
 		return -EINVAL;
 
-	err = strict_strtoul(buf, 10, &value);
+	err = kstrtoul(buf, 10, &value);
 	if (err != 0)
 		return err;
 
@@ -381,7 +381,7 @@ static int str2uc(char *str, u8 *val)
 	substr[1] = str[1];
 	substr[2] = '\0';
 
-	rc = strict_strtoul(substr, 16, &ulval);
+	rc = kstrtoul(substr, 16, &ulval);
 	if (rc != 0)
 		return rc;
 
@@ -842,7 +842,7 @@ static ssize_t cyttsp_force_update_fw_store(struct device *dev,
 	if (size > 2)
 		return -EINVAL;
 
-	rc = strict_strtoul(buf, 10, &val);
+	rc = kstrtoul(buf, 10, &val);
 	if (rc != 0)
 		return rc;
 
@@ -870,7 +870,7 @@ static ssize_t cyttsp_update_fw_store(struct device *dev,
 	if (size > 2)
 		return -EINVAL;
 
-	rc = strict_strtoul(buf, 10, &val);
+	rc = kstrtoul(buf, 10, &val);
 	if (rc != 0)
 		return rc;
 

@@ -555,10 +555,7 @@ static void elantech_input_sync_v4(struct psmouse *psmouse)
 	} else {
 		input_report_key(dev, BTN_LEFT, packet[0] & 0x01);
 		input_report_key(dev, BTN_RIGHT, packet[0] & 0x02);
-<<<<<<< HEAD
-=======
 		input_report_key(dev, BTN_MIDDLE, packet[0] & 0x04);
->>>>>>> android-3.18
 	}
 
 	input_mt_report_pointer_emulation(dev, true);
@@ -1117,10 +1114,6 @@ static int elantech_get_resolution_v4(struct psmouse *psmouse,
  * Asus UX31               0x361f00        20, 15, 0e      clickpad
  * Asus UX32VD             0x361f02        00, 15, 0e      clickpad
  * Avatar AVIU-145A2       0x361f00        ?               clickpad
-<<<<<<< HEAD
- * Gigabyte U2442          0x450f01        58, 17, 0c      2 hw buttons
- * Lenovo L430             0x350f02        b9, 15, 0c      2 hw buttons (*)
-=======
  * Fujitsu CELSIUS H760    0x570f02        40, 14, 0c      3 hw buttons (**)
  * Fujitsu CELSIUS H780    0x5d0f02        41, 16, 0d      3 hw buttons (**)
  * Fujitsu LIFEBOOK E544   0x470f00        d0, 12, 09      2 hw buttons
@@ -1132,7 +1125,6 @@ static int elantech_get_resolution_v4(struct psmouse *psmouse,
  * Gigabyte U2442          0x450f01        58, 17, 0c      2 hw buttons
  * Lenovo L430             0x350f02        b9, 15, 0c      2 hw buttons (*)
  * Lenovo L530             0x350f02        b9, 15, 0c      2 hw buttons (*)
->>>>>>> android-3.18
  * Samsung NF210           0x150b00        78, 14, 0a      2 hw buttons
  * Samsung NP770Z5E        0x575f01        10, 15, 0f      clickpad
  * Samsung NP700Z5B        0x361f06        21, 15, 0f      clickpad
@@ -1142,11 +1134,8 @@ static int elantech_get_resolution_v4(struct psmouse *psmouse,
  * Samsung RF710           0x450f00        ?               2 hw buttons
  * System76 Pangolin       0x250f01        ?               2 hw buttons
  * (*) + 3 trackpoint buttons
-<<<<<<< HEAD
-=======
  * (**) + 0 trackpoint buttons
  * Note: Lenovo L430 and Lenovo L430 have the same fw_version/caps
->>>>>>> android-3.18
  */
 static void elantech_set_buttonpad_prop(struct psmouse *psmouse)
 {
@@ -1160,8 +1149,6 @@ static void elantech_set_buttonpad_prop(struct psmouse *psmouse)
 }
 
 /*
-<<<<<<< HEAD
-=======
  * Some hw_version 4 models do have a middle button
  */
 static const struct dmi_system_id elantech_dmi_has_middle_button[] = {
@@ -1193,7 +1180,6 @@ static const char * const middle_button_pnp_ids[] = {
 };
 
 /*
->>>>>>> android-3.18
  * Set the appropriate event bits for the input subsystem
  */
 static int elantech_set_input_params(struct psmouse *psmouse)

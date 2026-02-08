@@ -59,6 +59,18 @@ config TOUCHSCREEN_AD7877
 	  To compile this driver as a module, choose M here: the
 	  module will be called ad7877.
 
+config TOUCHSCREEN_ATMEL_MAXTOUCH
+       tristate "Atmel maXTouch based touchscreens"
+       depends on I2C
+       default n
+       help
+         Say Y here if you have an Atmel Maxtouch based touchscreen.
+
+         If unsure, say N.
+
+         To compile this driver as a module, choose M here: the
+         module will be called maXTouch.
+
 config TOUCHSCREEN_AD7879
 	tristate "Analog Devices AD7879-1/AD7889-1 touchscreen interface"
 	help
@@ -114,6 +126,18 @@ config TOUCHSCREEN_ATMEL_MXT
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called atmel_mxt_ts.
+
+config TOUCHSCREEN_ATMEL_MAXTOUCH_TS
+	tristate "Atmel Maxtouch Touchscreen Family"
+	depends on I2C
+	help
+	  Say Y here if you have Atmel MaXTouch Touchscreen
+	  using i2c connected to your system.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called atmel_maxtouch_ts.
 
 config TOUCHSCREEN_AUO_PIXCIR
 	tristate "AUO in-cell touchscreen using Pixcir ICs"
@@ -872,6 +896,27 @@ config TOUCHSCREEN_TSC2007
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called tsc2007.
+
+config TOUCHSCREEN_MSM_LEGACY
+	default n
+	tristate "MSM Touchscreen"
+	depends on ARCH_MSM && !ARCH_MSM7X30
+	help
+	  Say Y here if you have a touchscreen interface using MSM
+	  touchscreen controller.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called msm_touch.
+
+config ANDROID_TOUCHSCREEN_MSM_HACKS
+	default y
+	depends on TOUCHSCREEN_MSM_LEGACY
+	bool "Android MSM Touchscreen hacks"
+	help
+	  Say Y here if you are running Android framework on Qualcomm
+	  MSM/QSD based Surf or FFAs. These hacks are required inorder
+	  to Android framework to receive adjusted x, y co-ordinates
+	  until proper calibration framework is in place.
 
 config TOUCHSCREEN_W90X900
 	tristate "W90P910 touchscreen driver"

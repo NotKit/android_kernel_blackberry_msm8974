@@ -796,11 +796,7 @@ static int mpu3050_probe(struct i2c_client *client,
 
 		error = request_threaded_irq(client->irq,
 				     NULL, mpu3050_interrupt_thread,
-<<<<<<< HEAD
-				     IRQF_TRIGGER_FALLING,
-=======
 				     IRQF_TRIGGER_RISING | IRQF_ONESHOT,
->>>>>>> android-3.18
 				     "mpu3050", sensor);
 		if (error) {
 			dev_err(&client->dev,

@@ -41,7 +41,7 @@
 #ifdef KERNEL_ABOVE_2_6_38
 #define sstrtoul(...) kstrtoul(__VA_ARGS__)
 #else
-#define sstrtoul(...) strict_strtoul(__VA_ARGS__)
+#define sstrtoul(...) kstrtoul(__VA_ARGS__)
 #endif
 
 #define PDT_PROPS (0X00EF)

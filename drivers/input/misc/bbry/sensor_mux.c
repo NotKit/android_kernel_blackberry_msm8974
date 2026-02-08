@@ -23,7 +23,7 @@
 #include <linux/delay.h>
 #include <linux/sensors.h>
 #include <linux/of.h>
-#include <linux/of_i2c.h>
+#include <linux/i2c.h>
 
 #define SENSOR_MUX_DEV_NAME "sensor_mux"
 #define SENSOR_HUB_ADDR_GESTURE 0x03
@@ -58,7 +58,7 @@ int sensor_mux_prepare_read(struct sensor_mux_priv *priv, int reg_size, struct i
 		.len = msg->len == 1 ? 3 : (msg->len < 128 ? 4 : 5),
 	};
 	hub_msg.buf = kzalloc(hub_msg.len, GFP_KERNEL);
-	
+
 	hub_msg.buf[0] = msg->addr;
 	if (reg_size == 2)
 		hub_msg.buf[1] = (priv->reg >> 8) | 0x40;
@@ -66,7 +66,7 @@ int sensor_mux_prepare_read(struct sensor_mux_priv *priv, int reg_size, struct i
 		hub_msg.buf[1] = 0;
 	hub_msg.buf[1] = ~((unsigned int)~(hub_msg.buf[1] << 25) >> 25);
 	hub_msg.buf[2] = priv->reg;
-	
+
 	if (msg->len == 1)
 		hub_msg.buf[1] |= 0x20;
 	else if (msg->len < 128)
@@ -105,11 +105,11 @@ int sensor_mux_read_ready(struct sensor_mux_priv *priv, int *ready)
 			.buf = hub_status_buf,
 		}
 	};
-	
+
 	rc = parent->algo->master_xfer(parent, hub_status_msgs, 2);
-	
+
 	*ready = hub_status_buf[0] >> 7;
-	
+
 	return rc;
 }
 
@@ -123,11 +123,11 @@ static int sensor_mux_master_xfer(struct i2c_adapter *adapter,
 
 	for (i = 0; i < num; i++) {
 		struct i2c_msg *msg = &msgs[i];
-		
+
 		// STM VL6180 uses 2 bytes long reg addresses.
 		// Is there a better way to detect this?
 		int reg_size = msg->addr == STM_VL6180_ADDR ? 2 : 1;
-		
+
 		// the sensor hub doesn't need to be multiplexed
 		if (msg->addr == SENSOR_HUB_ADDR_GESTURE || msg->addr == SENSOR_HUB_ADDR_MUX) {
 			rc = parent->algo->master_xfer(parent, msg, 1);
@@ -135,7 +135,7 @@ static int sensor_mux_master_xfer(struct i2c_adapter *adapter,
 				break;
 			continue;
 		}
-		
+
 		if ((msg->flags & I2C_M_RD) == 0) {
 			struct i2c_msg hub_msg = {
 				.addr = 3,
@@ -152,9 +152,9 @@ static int sensor_mux_master_xfer(struct i2c_adapter *adapter,
 			}
 
 			hub_msg.buf = kzalloc(hub_msg.len, GFP_KERNEL);
-			
+
 			hub_msg.buf[0] = msg->addr;
-			if (reg_size == 2) { 
+			if (reg_size == 2) {
 				hub_msg.buf[1] = msg->buf[0];
 				hub_msg.buf[1] |= 0x40u;
 			} else {
@@ -165,7 +165,7 @@ static int sensor_mux_master_xfer(struct i2c_adapter *adapter,
 			rc = parent->algo->master_xfer(parent, &hub_msg, 1);
 			if (rc < 0)
 				break;
-			
+
 			kfree(hub_msg.buf);
 		} else {
 			priv->complete = &complete;
@@ -182,13 +182,13 @@ static int sensor_mux_master_xfer(struct i2c_adapter *adapter,
 					pr_err("%s: irq timed out\n", __func__);
 					continue;
 				}
-				
+
 				rc = sensor_mux_read_ready(priv, &ready);
 				if (rc < 0) {
 					pr_err("%s: Error reading status: %d\n", __func__, rc);
 					break;
 				}
-				
+
 				if (ready) {
 					rc = parent->algo->master_xfer(parent, msg, 1);
 					break;
@@ -203,10 +203,10 @@ static int sensor_mux_master_xfer(struct i2c_adapter *adapter,
 				break;
 		}
 	}
-	
+
 	if (rc < 0)
 		return rc;
-	
+
 	return num;
 }
 
@@ -269,8 +269,8 @@ static int sensor_mux_probe(struct i2c_client *client,
 		kfree(priv);
 		return -1;
 	}
-	
-	of_i2c_register_devices(&priv->adapter);
+
+	/* of_i2c_register_devices removed in 3.12+, devices are registered automatically */
 
 	return 0;
 }
@@ -278,13 +278,10 @@ static int sensor_mux_probe(struct i2c_client *client,
 static int sensor_mux_remove(struct i2c_client *client)
 {
 	struct sensor_mux_priv *priv = i2c_get_clientdata(client);
-	int rc;
 
 	dev_info(&client->dev, "sensor_mux remove\n");
 
-	rc = i2c_del_adapter(&priv->adapter);
-	if (rc < 0)
-		return rc;
+	i2c_del_adapter(&priv->adapter);
 	free_irq(priv->irq, priv);
 	kfree(priv);
 

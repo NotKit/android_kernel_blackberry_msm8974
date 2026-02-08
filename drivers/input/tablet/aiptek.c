@@ -1869,10 +1869,6 @@ aiptek_probe(struct usb_interface *intf, const struct usb_device_id *id)
 	if (i == ARRAY_SIZE(speeds)) {
 		dev_info(&intf->dev,
 			 "Aiptek tried all speeds, no sane response\n");
-<<<<<<< HEAD
-		err = -EINVAL;
-=======
->>>>>>> android-3.18
 		goto fail3;
 	}
 
