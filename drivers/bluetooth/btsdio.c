@@ -190,7 +190,7 @@ static void btsdio_interrupt(struct sdio_func *func)
 
 static int btsdio_open(struct hci_dev *hdev)
 {
-	struct btsdio_data *data = hci_get_drvdata(hdev);
+	struct btsdio_data *data = hdev->driver_data;
 	int err;
 
 	BT_DBG("%s", hdev->name);
@@ -226,7 +226,7 @@ release:
 
 static int btsdio_close(struct hci_dev *hdev)
 {
-	struct btsdio_data *data = hci_get_drvdata(hdev);
+	struct btsdio_data *data = hdev->driver_data;
 
 	BT_DBG("%s", hdev->name);
 
@@ -247,7 +247,7 @@ static int btsdio_close(struct hci_dev *hdev)
 
 static int btsdio_flush(struct hci_dev *hdev)
 {
-	struct btsdio_data *data = hci_get_drvdata(hdev);
+	struct btsdio_data *data = hdev->driver_data;
 
 	BT_DBG("%s", hdev->name);
 
@@ -258,7 +258,12 @@ static int btsdio_flush(struct hci_dev *hdev)
 
 static int btsdio_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
+<<<<<<< HEAD
+	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
+	struct btsdio_data *data = hdev->driver_data;
+=======
 	struct btsdio_data *data = hci_get_drvdata(hdev);
+>>>>>>> android-3.18
 
 	BT_DBG("%s", hdev->name);
 
@@ -287,6 +292,15 @@ static int btsdio_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	schedule_work(&data->work);
 
 	return 0;
+}
+
+static void btsdio_destruct(struct hci_dev *hdev)
+{
+	struct btsdio_data *data = hdev->driver_data;
+
+	BT_DBG("%s", hdev->name);
+
+	kfree(data);
 }
 
 static int btsdio_probe(struct sdio_func *func,
@@ -327,7 +341,7 @@ static int btsdio_probe(struct sdio_func *func,
 		return -ENOMEM;
 
 	hdev->bus = HCI_SDIO;
-	hci_set_drvdata(hdev, data);
+	hdev->driver_data = data;
 
 	if (id->class == SDIO_CLASS_BT_AMP)
 		hdev->dev_type = HCI_AMP;
@@ -342,6 +356,9 @@ static int btsdio_probe(struct sdio_func *func,
 	hdev->close    = btsdio_close;
 	hdev->flush    = btsdio_flush;
 	hdev->send     = btsdio_send_frame;
+	hdev->destruct = btsdio_destruct;
+
+	hdev->owner = THIS_MODULE;
 
 	if (func->vendor == 0x0104 && func->device == 0x00c5)
 		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);

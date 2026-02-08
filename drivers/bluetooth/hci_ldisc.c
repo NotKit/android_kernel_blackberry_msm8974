@@ -2,9 +2,9 @@
  *
  *  Bluetooth HCI UART driver
  *
- *  Copyright (C) 2000-2001  Qualcomm Incorporated
  *  Copyright (C) 2002-2003  Maxim Krasnyansky <maxk@qualcomm.com>
  *  Copyright (C) 2004-2005  Marcel Holtmann <marcel@holtmann.org>
+ *  Copyright (c) 2000-2001, 2010-2012, The Linux Foundation. All rights reserved.
  *
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -48,7 +48,10 @@
 
 #define VERSION "2.2"
 
+static bool reset = 0;
+
 static struct hci_uart_proto *hup[HCI_UART_MAX_PROTO];
+static void hci_uart_tty_wakeup_action(unsigned long data);
 
 int hci_uart_register_proto(struct hci_uart_proto *p)
 {
@@ -165,6 +168,8 @@ restart:
 		goto restart;
 
 	clear_bit(HCI_UART_SENDING, &hu->tx_state);
+<<<<<<< HEAD
+=======
 }
 
 static void hci_uart_init_work(struct work_struct *work)
@@ -194,6 +199,7 @@ int hci_uart_init_ready(struct hci_uart *hu)
 	schedule_work(&hu->init_ready);
 
 	return 0;
+>>>>>>> android-3.18
 }
 
 /* ------- Interface to HCI layer ------ */
@@ -212,7 +218,7 @@ static int hci_uart_open(struct hci_dev *hdev)
 /* Reset device */
 static int hci_uart_flush(struct hci_dev *hdev)
 {
-	struct hci_uart *hu  = hci_get_drvdata(hdev);
+	struct hci_uart *hu  = (struct hci_uart *) hdev->driver_data;
 	struct tty_struct *tty = hu->tty;
 
 	BT_DBG("hdev %p tty %p", hdev, tty);
@@ -252,6 +258,11 @@ static int hci_uart_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
 
+<<<<<<< HEAD
+	hu = (struct hci_uart *) hdev->driver_data;
+
+=======
+>>>>>>> android-3.18
 	BT_DBG("%s: type %d len %d", hdev->name, bt_cb(skb)->pkt_type, skb->len);
 
 	hu->proto->enqueue(hu, skb);
@@ -259,6 +270,15 @@ static int hci_uart_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	hci_uart_tx_wakeup(hu);
 
 	return 0;
+}
+
+static void hci_uart_destruct(struct hci_dev *hdev)
+{
+	if (!hdev)
+		return;
+
+	BT_DBG("%s", hdev->name);
+	kfree(hdev->driver_data);
 }
 
 /* ------ LDISC part ------ */
@@ -292,10 +312,15 @@ static int hci_uart_tty_open(struct tty_struct *tty)
 	hu->tty = tty;
 	tty->receive_room = 65536;
 
+<<<<<<< HEAD
+=======
 	INIT_WORK(&hu->init_ready, hci_uart_init_work);
+>>>>>>> android-3.18
 	INIT_WORK(&hu->write_work, hci_uart_write_work);
 
 	spin_lock_init(&hu->rx_lock);
+	tasklet_init(&hu->tty_wakeup_task, hci_uart_tty_wakeup_action,
+			 (unsigned long)hu);
 
 	/* Flush any pending characters in the driver and line discipline. */
 
@@ -333,6 +358,17 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 
 	cancel_work_sync(&hu->write_work);
 
+<<<<<<< HEAD
+		tasklet_kill(&hu->tty_wakeup_task);
+
+		if (test_and_clear_bit(HCI_UART_PROTO_SET, &hu->flags)) {
+			hu->proto->close(hu);
+			if (hdev) {
+				hci_unregister_dev(hdev);
+				hci_free_dev(hdev);
+			}
+		}
+=======
 	if (test_and_clear_bit(HCI_UART_PROTO_READY, &hu->flags)) {
 		if (hdev) {
 			if (test_bit(HCI_UART_REGISTERED, &hu->flags))
@@ -340,6 +376,7 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 			hci_free_dev(hdev);
 		}
 		hu->proto->close(hu);
+>>>>>>> android-3.18
 	}
 	clear_bit(HCI_UART_PROTO_SET, &hu->flags);
 
@@ -350,6 +387,8 @@ static void hci_uart_tty_close(struct tty_struct *tty)
  *
  *    Callback for transmit wakeup. Called when low level
  *    device driver can accept more send data.
+ *    This callback gets called from the isr context so
+ *    schedule the send data operation to tasklet.
  *
  * Arguments:        tty    pointer to associated tty instance data
  * Return Value:    None
@@ -357,11 +396,25 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 static void hci_uart_tty_wakeup(struct tty_struct *tty)
 {
 	struct hci_uart *hu = (void *)tty->disc_data;
+	tasklet_schedule(&hu->tty_wakeup_task);
+}
+
+/* hci_uart_tty_wakeup_action()
+ *
+ * Scheduled action to transmit data when low level device
+ * driver can accept more data.
+ */
+static void hci_uart_tty_wakeup_action(unsigned long data)
+{
+	struct hci_uart *hu = (struct hci_uart *)data;
+	struct tty_struct *tty;
 
 	BT_DBG("");
 
 	if (!hu)
 		return;
+
+	tty = hu->tty;
 
 	clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
 
@@ -386,6 +439,7 @@ static void hci_uart_tty_wakeup(struct tty_struct *tty)
  */
 static void hci_uart_tty_receive(struct tty_struct *tty, const u8 *data, char *flags, int count)
 {
+	int ret;
 	struct hci_uart *hu = (void *)tty->disc_data;
 
 	if (!hu || tty != hu->tty)
@@ -395,11 +449,17 @@ static void hci_uart_tty_receive(struct tty_struct *tty, const u8 *data, char *f
 		return;
 
 	spin_lock(&hu->rx_lock);
+<<<<<<< HEAD
+	ret = hu->proto->recv(hu, (void *) data, count);
+	if (ret > 0)
+		hu->hdev->stat.byte_rx += count;
+=======
 	hu->proto->recv(hu, (void *) data, count);
 
 	if (hu->hdev)
 		hu->hdev->stat.byte_rx += count;
 
+>>>>>>> android-3.18
 	spin_unlock(&hu->rx_lock);
 
 	tty_unthrottle(tty);
@@ -421,27 +481,34 @@ static int hci_uart_register_dev(struct hci_uart *hu)
 	hu->hdev = hdev;
 
 	hdev->bus = HCI_UART;
-	hci_set_drvdata(hdev, hu);
+	hdev->driver_data = hu;
 
 	hdev->open  = hci_uart_open;
 	hdev->close = hci_uart_close;
 	hdev->flush = hci_uart_flush;
 	hdev->send  = hci_uart_send_frame;
+<<<<<<< HEAD
+	hdev->destruct = hci_uart_destruct;
+	hdev->parent = hu->tty->dev;
+=======
 	SET_HCIDEV_DEV(hdev, hu->tty->dev);
+>>>>>>> android-3.18
 
-	if (test_bit(HCI_UART_RAW_DEVICE, &hu->hdev_flags))
-		set_bit(HCI_QUIRK_RAW_DEVICE, &hdev->quirks);
+	hdev->owner = THIS_MODULE;
 
+<<<<<<< HEAD
+	if (!reset)
+		set_bit(HCI_QUIRK_NO_RESET, &hdev->quirks);
+=======
 	if (test_bit(HCI_UART_EXT_CONFIG, &hu->hdev_flags))
 		set_bit(HCI_QUIRK_EXTERNAL_CONFIG, &hdev->quirks);
 
 	if (!test_bit(HCI_UART_RESET_ON_INIT, &hu->hdev_flags))
 		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);
+>>>>>>> android-3.18
 
-	if (test_bit(HCI_UART_CREATE_AMP, &hu->hdev_flags))
-		hdev->dev_type = HCI_AMP;
-	else
-		hdev->dev_type = HCI_BREDR;
+	if (test_bit(HCI_UART_RAW_DEVICE, &hu->hdev_flags))
+		set_bit(HCI_QUIRK_RAW_DEVICE, &hdev->quirks);
 
 	if (test_bit(HCI_UART_INIT_PENDING, &hu->hdev_flags))
 		return 0;
@@ -525,11 +592,18 @@ static int hci_uart_tty_ioctl(struct tty_struct *tty, struct file * file,
 
 	switch (cmd) {
 	case HCIUARTSETPROTO:
-		if (!test_and_set_bit(HCI_UART_PROTO_SET, &hu->flags)) {
+		if (!test_and_set_bit(HCI_UART_PROTO_SET_IN_PROGRESS,
+			&hu->flags) && !test_bit(HCI_UART_PROTO_SET,
+				&hu->flags)) {
 			err = hci_uart_set_proto(hu, arg);
 			if (err) {
-				clear_bit(HCI_UART_PROTO_SET, &hu->flags);
+				clear_bit(HCI_UART_PROTO_SET_IN_PROGRESS,
+						&hu->flags);
 				return err;
+			} else {
+				set_bit(HCI_UART_PROTO_SET, &hu->flags);
+				clear_bit(HCI_UART_PROTO_SET_IN_PROGRESS,
+						&hu->flags);
 			}
 		} else
 			return -EBUSY;
@@ -625,8 +699,13 @@ static int __init hci_uart_init(void)
 #ifdef CONFIG_BT_HCIUART_ATH3K
 	ath_init();
 #endif
+<<<<<<< HEAD
+#ifdef CONFIG_BT_HCIUART_IBS
+	ibs_init();
+=======
 #ifdef CONFIG_BT_HCIUART_3WIRE
 	h5_init();
+>>>>>>> android-3.18
 #endif
 
 	return 0;
@@ -648,8 +727,13 @@ static void __exit hci_uart_exit(void)
 #ifdef CONFIG_BT_HCIUART_ATH3K
 	ath_deinit();
 #endif
+<<<<<<< HEAD
+#ifdef CONFIG_BT_HCIUART_IBS
+	ibs_deinit();
+=======
 #ifdef CONFIG_BT_HCIUART_3WIRE
 	h5_deinit();
+>>>>>>> android-3.18
 #endif
 
 	/* Release tty registration of line discipline */
@@ -660,6 +744,9 @@ static void __exit hci_uart_exit(void)
 
 module_init(hci_uart_init);
 module_exit(hci_uart_exit);
+
+module_param(reset, bool, 0644);
+MODULE_PARM_DESC(reset, "Send HCI reset command on initialization");
 
 MODULE_AUTHOR("Marcel Holtmann <marcel@holtmann.org>");
 MODULE_DESCRIPTION("Bluetooth HCI UART driver ver " VERSION);

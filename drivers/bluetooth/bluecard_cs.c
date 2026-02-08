@@ -563,7 +563,11 @@ static irqreturn_t bluecard_interrupt(int irq, void *dev_inst)
 
 static int bluecard_hci_set_baud_rate(struct hci_dev *hdev, int baud)
 {
+<<<<<<< HEAD
+	bluecard_info_t *info = (bluecard_info_t *)(hdev->driver_data);
+=======
 	struct bluecard_info *info = hci_get_drvdata(hdev);
+>>>>>>> android-3.18
 	struct sk_buff *skb;
 
 	/* Ericsson baud rate command */
@@ -612,7 +616,11 @@ static int bluecard_hci_set_baud_rate(struct hci_dev *hdev, int baud)
 
 static int bluecard_hci_flush(struct hci_dev *hdev)
 {
+<<<<<<< HEAD
+	bluecard_info_t *info = (bluecard_info_t *)(hdev->driver_data);
+=======
 	struct bluecard_info *info = hci_get_drvdata(hdev);
+>>>>>>> android-3.18
 
 	/* Drop TX queue */
 	skb_queue_purge(&(info->txq));
@@ -623,7 +631,12 @@ static int bluecard_hci_flush(struct hci_dev *hdev)
 
 static int bluecard_hci_open(struct hci_dev *hdev)
 {
+<<<<<<< HEAD
+	bluecard_info_t *info = (bluecard_info_t *)(hdev->driver_data);
+	unsigned int iobase = info->p_dev->resource[0]->start;
+=======
 	struct bluecard_info *info = hci_get_drvdata(hdev);
+>>>>>>> android-3.18
 
 	if (test_bit(CARD_HAS_PCCARD_ID, &(info->hw_state)))
 		bluecard_hci_set_baud_rate(hdev, DEFAULT_BAUD_RATE);
@@ -644,7 +657,12 @@ static int bluecard_hci_open(struct hci_dev *hdev)
 
 static int bluecard_hci_close(struct hci_dev *hdev)
 {
+<<<<<<< HEAD
+	bluecard_info_t *info = (bluecard_info_t *)(hdev->driver_data);
+	unsigned int iobase = info->p_dev->resource[0]->start;
+=======
 	struct bluecard_info *info = hci_get_drvdata(hdev);
+>>>>>>> android-3.18
 
 	if (!test_and_clear_bit(HCI_RUNNING, &(hdev->flags)))
 		return 0;
@@ -664,7 +682,19 @@ static int bluecard_hci_close(struct hci_dev *hdev)
 
 static int bluecard_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
+<<<<<<< HEAD
+	bluecard_info_t *info;
+	struct hci_dev *hdev = (struct hci_dev *)(skb->dev);
+
+	if (!hdev) {
+		BT_ERR("Frame for unknown HCI device (hdev=NULL)");
+		return -ENODEV;
+	}
+
+	info = (bluecard_info_t *)(hdev->driver_data);
+=======
 	struct bluecard_info *info = hci_get_drvdata(hdev);
+>>>>>>> android-3.18
 
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
@@ -688,6 +718,20 @@ static int bluecard_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 }
 
 
+<<<<<<< HEAD
+static void bluecard_hci_destruct(struct hci_dev *hdev)
+{
+}
+
+
+static int bluecard_hci_ioctl(struct hci_dev *hdev, unsigned int cmd, unsigned long arg)
+{
+	return -ENOIOCTLCMD;
+}
+
+
+=======
+>>>>>>> android-3.18
 
 /* ======================== Card services HCI interaction ======================== */
 
@@ -720,13 +764,24 @@ static int bluecard_open(struct bluecard_info *info)
 	info->hdev = hdev;
 
 	hdev->bus = HCI_PCCARD;
-	hci_set_drvdata(hdev, info);
+	hdev->driver_data = info;
 	SET_HCIDEV_DEV(hdev, &info->p_dev->dev);
 
+<<<<<<< HEAD
+	hdev->open     = bluecard_hci_open;
+	hdev->close    = bluecard_hci_close;
+	hdev->flush    = bluecard_hci_flush;
+	hdev->send     = bluecard_hci_send_frame;
+	hdev->destruct = bluecard_hci_destruct;
+	hdev->ioctl    = bluecard_hci_ioctl;
+=======
 	hdev->open  = bluecard_hci_open;
 	hdev->close = bluecard_hci_close;
 	hdev->flush = bluecard_hci_flush;
 	hdev->send  = bluecard_hci_send_frame;
+>>>>>>> android-3.18
+
+	hdev->owner = THIS_MODULE;
 
 	id = inb(iobase + 0x30);
 
@@ -826,7 +881,9 @@ static int bluecard_close(struct bluecard_info *info)
 	/* Turn FPGA off */
 	outb(0x80, iobase + 0x30);
 
-	hci_unregister_dev(hdev);
+	if (hci_unregister_dev(hdev) < 0)
+		BT_ERR("Can't unregister HCI device %s", hdev->name);
+
 	hci_free_dev(hdev);
 
 	return 0;
@@ -907,7 +964,7 @@ static void bluecard_release(struct pcmcia_device *link)
 	pcmcia_disable_device(link);
 }
 
-static const struct pcmcia_device_id bluecard_ids[] = {
+static struct pcmcia_device_id bluecard_ids[] = {
 	PCMCIA_DEVICE_PROD_ID12("BlueCard", "LSE041", 0xbaf16fbf, 0x657cc15e),
 	PCMCIA_DEVICE_PROD_ID12("BTCFCARD", "LSE139", 0xe3987764, 0x2524b59c),
 	PCMCIA_DEVICE_PROD_ID12("WSS", "LSE039", 0x0a0736ec, 0x24e6dfab),

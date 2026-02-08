@@ -39,6 +39,7 @@
 #include <linux/serial.h>
 #include <linux/serial_reg.h>
 #include <linux/bitops.h>
+#include <asm/system.h>
 #include <asm/io.h>
 
 #include <linux/device.h>
@@ -388,7 +389,11 @@ static irqreturn_t bt3c_interrupt(int irq, void *dev_inst)
 
 static int bt3c_hci_flush(struct hci_dev *hdev)
 {
+<<<<<<< HEAD
+	bt3c_info_t *info = (bt3c_info_t *)(hdev->driver_data);
+=======
 	struct bt3c_info *info = hci_get_drvdata(hdev);
+>>>>>>> android-3.18
 
 	/* Drop TX queue */
 	skb_queue_purge(&(info->txq));
@@ -421,6 +426,16 @@ static int bt3c_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	struct bt3c_info *info = hci_get_drvdata(hdev);
 	unsigned long flags;
 
+<<<<<<< HEAD
+	if (!hdev) {
+		BT_ERR("Frame for unknown HCI device (hdev=NULL)");
+		return -ENODEV;
+	}
+
+	info = (bt3c_info_t *) (hdev->driver_data);
+
+=======
+>>>>>>> android-3.18
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
 		hdev->stat.cmd_tx++;
@@ -447,6 +462,20 @@ static int bt3c_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 }
 
 
+<<<<<<< HEAD
+static void bt3c_hci_destruct(struct hci_dev *hdev)
+{
+}
+
+
+static int bt3c_hci_ioctl(struct hci_dev *hdev, unsigned int cmd, unsigned long arg)
+{
+	return -ENOIOCTLCMD;
+}
+
+
+=======
+>>>>>>> android-3.18
 
 /* ======================== Card services HCI interaction ======================== */
 
@@ -561,13 +590,24 @@ static int bt3c_open(struct bt3c_info *info)
 	info->hdev = hdev;
 
 	hdev->bus = HCI_PCCARD;
-	hci_set_drvdata(hdev, info);
+	hdev->driver_data = info;
 	SET_HCIDEV_DEV(hdev, &info->p_dev->dev);
 
+<<<<<<< HEAD
+	hdev->open     = bt3c_hci_open;
+	hdev->close    = bt3c_hci_close;
+	hdev->flush    = bt3c_hci_flush;
+	hdev->send     = bt3c_hci_send_frame;
+	hdev->destruct = bt3c_hci_destruct;
+	hdev->ioctl    = bt3c_hci_ioctl;
+=======
 	hdev->open  = bt3c_hci_open;
 	hdev->close = bt3c_hci_close;
 	hdev->flush = bt3c_hci_flush;
 	hdev->send  = bt3c_hci_send_frame;
+>>>>>>> android-3.18
+
+	hdev->owner = THIS_MODULE;
 
 	/* Load firmware */
 	err = request_firmware(&firmware, "BT3CPCC.bin", &info->p_dev->dev);
@@ -613,7 +653,9 @@ static int bt3c_close(struct bt3c_info *info)
 
 	bt3c_hci_close(hdev);
 
-	hci_unregister_dev(hdev);
+	if (hci_unregister_dev(hdev) < 0)
+		BT_ERR("Can't unregister HCI device %s", hdev->name);
+
 	hci_free_dev(hdev);
 
 	return 0;
@@ -733,7 +775,7 @@ static void bt3c_release(struct pcmcia_device *link)
 }
 
 
-static const struct pcmcia_device_id bt3c_ids[] = {
+static struct pcmcia_device_id bt3c_ids[] = {
 	PCMCIA_DEVICE_PROD_ID13("3COM", "Bluetooth PC Card", 0xefce0a31, 0xd4ce9b02),
 	PCMCIA_DEVICE_NULL
 };
