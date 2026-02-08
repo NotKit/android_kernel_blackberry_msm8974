@@ -8,7 +8,7 @@ ccflags-y += -Idrivers/base/power
 
 obj-$(CONFIG_USB_DWC3)			+= dwc3.o
 
-dwc3-y					:= core.o debug.o trace.o
+dwc3-y					:= core.o debug.o trace.o dwc3_otg.o
 
 ifneq ($(filter y,$(CONFIG_USB_DWC3_HOST) $(CONFIG_USB_DWC3_DUAL_ROLE)),)
 	dwc3-y				+= host.o
@@ -39,4 +39,5 @@ obj-$(CONFIG_USB_DWC3_EXYNOS)		+= dwc3-exynos.o
 obj-$(CONFIG_USB_DWC3_PCI)		+= dwc3-pci.o
 obj-$(CONFIG_USB_DWC3_KEYSTONE)		+= dwc3-keystone.o
 obj-$(CONFIG_USB_DWC3_QCOM)		+= dwc3-qcom.o
+obj-$(CONFIG_USB_DWC3_MSM)		+= dwc3-msm.o
 obj-$(CONFIG_USB_DWC3_ST)		+= dwc3-st.o

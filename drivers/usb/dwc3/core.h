@@ -174,6 +174,9 @@
 #define DWC3_GCTL_GBLHIBERNATIONEN	(1 << 1)
 #define DWC3_GCTL_DSBLCLKGTNG		(1 << 0)
 
+/* Global User Control Register */
+#define DWC3_GUCTL_REFCLKPER (0x3FF << 22)
+
 /* Global USB2 PHY Configuration Register */
 #define DWC3_GUSB2PHYCFG_PHYSOFTRST	(1 << 31)
 #define DWC3_GUSB2PHYCFG_SUSPHY		(1 << 6)
@@ -181,6 +184,9 @@
 /* Global USB3 PIPE Control Register */
 #define DWC3_GUSB3PIPECTL_PHYSOFTRST	(1 << 31)
 #define DWC3_GUSB3PIPECTL_SUSPHY	(1 << 17)
+#define DWC3_GUSB3PIPECTL_DELAY_P1P2P3	(7 << 19)
+#define DWC3_GUSB3PIPECTL_DIS_RXDET_U3_RXDET	(1 << 22)
+#define DWC3_GUSB3PIPECTL_ELASTIC_BUF_MODE	(1 << 0)
 
 /* Global TX Fifo Size Register */
 #define DWC31_GTXFIFOSIZ_TXFRAMNUM	BIT(15)		/* DWC_usb31 only */
@@ -609,6 +615,11 @@ struct dwc3_hwparams {
 /* HWPARAMS0 */
 #define DWC3_MODE(n)		((n) & 0x7)
 
+#define DWC3_MODE_DEVICE	0
+#define DWC3_MODE_HOST		1
+#define DWC3_MODE_DRD		2
+#define DWC3_MODE_HUB		3
+
 #define DWC3_MDWIDTH(n)		(((n) & 0xff00) >> 8)
 
 /* HWPARAMS1 */
@@ -725,6 +736,7 @@ struct dwc3 {
 	spinlock_t		lock;
 
 	struct device		*dev;
+	void (*notify_event)(struct dwc3 *dwc, unsigned event);
 
 	struct dwc3_otg		*dotg;
 	struct platform_device	*xhci;
@@ -787,13 +799,8 @@ struct dwc3 {
 	u8			u1sel;
 	u8			u1pel;
 
-	u16			isoch_delay;
-	u16			u2sel;
-	u16			u2pel;
-	u8			u1sel;
-	u8			u1pel;
-
 	u8			speed;
+	u8			mode;
 
 	u8			num_out_eps;
 	u8			num_in_eps;
@@ -817,6 +824,12 @@ struct dwc3 {
 	unsigned		resize_fifos:1;
 	unsigned		setup_packet_pending:1;
 	unsigned		three_stage_setup:1;
+	bool			err_evt_seen;
+	unsigned long		irq_cnt;
+	int			tx_fifo_size;
+	bool			tx_fifo_reduced;
+	bool			vbus_active;
+	bool			softconnect;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1034,5 +1047,24 @@ static inline int dwc3_gadget_resume(struct dwc3 *dwc)
 	return 0;
 }
 #endif /* !IS_ENABLED(CONFIG_USB_DWC3_HOST) */
+
+#define DWC3_CONTROLLER_ERROR_EVENT			0
+#define DWC3_CONTROLLER_RESET_EVENT			1
+#define DWC3_CONTROLLER_POST_RESET_EVENT		2
+#define DWC3_CONTROLLER_POST_INITIALIZATION_EVENT	3
+
+void dwc3_host_exit(struct dwc3 *dwc);
+int dwc3_host_init(struct dwc3 *dwc);
+
+void dwc3_gadget_exit(struct dwc3 *dwc);
+int dwc3_gadget_init(struct dwc3 *dwc);
+
+int dwc3_otg_init(struct dwc3 *dwc);
+void dwc3_otg_exit(struct dwc3 *dwc);
+void dwc3_gadget_restart(struct dwc3 *dwc);
+int dwc3_event_buffers_setup(struct dwc3 *dwc);
+
+extern int dwc3_notify_event(struct dwc3 *dwc, unsigned event);
+extern void dwc3_set_notifier(void (*notify)(struct dwc3 *, unsigned));
 
 #endif /* __DRIVERS_USB_DWC3_CORE_H */
