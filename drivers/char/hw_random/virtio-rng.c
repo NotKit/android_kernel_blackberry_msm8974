@@ -124,11 +124,30 @@ static int probe_common(struct virtio_device *vdev)
 	};
 	vdev->priv = vi;
 
+	if (vq) {
+		/* We only support one device for now */
+		return -EBUSY;
+	}
 	/* We expect a single virtqueue. */
+<<<<<<< HEAD
+	vq = virtio_find_single_vq(vdev, random_recv_done, "input");
+	if (IS_ERR(vq)) {
+		err = PTR_ERR(vq);
+		vq = NULL;
+		return err;
+	}
+
+	err = hwrng_register(&virtio_hwrng);
+	if (err) {
+		vdev->config->del_vqs(vdev);
+		vq = NULL;
+		return err;
+=======
 	vi->vq = virtio_find_single_vq(vdev, random_recv_done, "input");
 	if (IS_ERR(vi->vq)) {
 		err = PTR_ERR(vi->vq);
 		goto err_find;
+>>>>>>> android-3.18
 	}
 
 	return 0;
@@ -152,6 +171,9 @@ static void remove_common(struct virtio_device *vdev)
 	if (vi->hwrng_register_done)
 		hwrng_unregister(&vi->hwrng);
 	vdev->config->del_vqs(vdev);
+<<<<<<< HEAD
+	vq = NULL;
+=======
 	ida_simple_remove(&rng_index_ida, vi->index);
 	kfree(vi);
 }
@@ -181,6 +203,7 @@ static int virtrng_freeze(struct virtio_device *vdev)
 {
 	remove_common(vdev);
 	return 0;
+>>>>>>> android-3.18
 }
 
 static int virtrng_restore(struct virtio_device *vdev)
