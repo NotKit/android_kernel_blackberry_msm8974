@@ -135,6 +135,9 @@ static struct xen_blkif *xen_blkif_alloc(domid_t domid)
 	init_completion(&blkif->drain_complete);
 	atomic_set(&blkif->drain, 0);
 	blkif->st_print = jiffies;
+<<<<<<< HEAD
+	init_waitqueue_head(&blkif->waiting_to_free);
+=======
 	blkif->persistent_gnts.rb_node = NULL;
 	spin_lock_init(&blkif->free_pages_lock);
 	INIT_LIST_HEAD(&blkif->free_pages);
@@ -168,6 +171,7 @@ static struct xen_blkif *xen_blkif_alloc(domid_t domid)
 	}
 	spin_lock_init(&blkif->pending_free_lock);
 	init_waitqueue_head(&blkif->pending_free_wq);
+>>>>>>> android-3.18
 	init_waitqueue_head(&blkif->shutdown_wq);
 
 	return blkif;
@@ -248,6 +252,7 @@ static int xen_blkif_disconnect(struct xen_blkif *blkif)
 {
 	if (blkif->xenblkd) {
 		kthread_stop(blkif->xenblkd);
+		wake_up(&blkif->shutdown_wq);
 		blkif->xenblkd = NULL;
 		wake_up(&blkif->shutdown_wq);
 	}
@@ -476,6 +481,12 @@ static int xen_blkbk_remove(struct xenbus_device *dev)
 		xen_blkif_put(be->blkif);
 	}
 
+<<<<<<< HEAD
+	kfree(be->mode);
+	kfree(be);
+	dev_set_drvdata(&dev->dev, NULL);
+=======
+>>>>>>> android-3.18
 	return 0;
 }
 
@@ -656,7 +667,11 @@ static void backend_changed(struct xenbus_watch *watch,
 	}
 
 	/* Front end dir is a number, which is used as the handle. */
+<<<<<<< HEAD
+	err = strict_strtoul(strrchr(dev->otherend, '/') + 1, 0, &handle);
+=======
 	err = kstrtoul(strrchr(dev->otherend, '/') + 1, 0, &handle);
+>>>>>>> android-3.18
 	if (err)
 		return;
 

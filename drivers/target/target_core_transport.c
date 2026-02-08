@@ -1122,6 +1122,195 @@ target_cmd_size_check(struct se_cmd *cmd, unsigned int size)
 
 	return 0;
 
+<<<<<<< HEAD
+	for (i = 0; i < 4; i++)
+		if (wwn->revision[i] >= 0x20)
+			buf[i] = wwn->revision[i];
+		else
+			buf[i] = ' ';
+	buf[i] = '\0';
+	pr_debug("  Revision: %s\n", buf);
+
+	device_type = dev->transport->get_device_type(dev);
+	pr_debug("  Type:   %s ", scsi_device_type(device_type));
+	pr_debug("                 ANSI SCSI revision: %02x\n",
+				dev->transport->get_device_rev(dev));
+}
+
+struct se_device *transport_add_device_to_core_hba(
+	struct se_hba *hba,
+	struct se_subsystem_api *transport,
+	struct se_subsystem_dev *se_dev,
+	u32 device_flags,
+	void *transport_dev,
+	struct se_dev_limits *dev_limits,
+	const char *inquiry_prod,
+	const char *inquiry_rev)
+{
+	int force_pt;
+	struct se_device  *dev;
+
+	dev = kzalloc(sizeof(struct se_device), GFP_KERNEL);
+	if (!dev) {
+		pr_err("Unable to allocate memory for se_dev_t\n");
+		return NULL;
+	}
+
+	transport_init_queue_obj(&dev->dev_queue_obj);
+	dev->dev_flags		= device_flags;
+	dev->dev_status		|= TRANSPORT_DEVICE_DEACTIVATED;
+	dev->dev_ptr		= transport_dev;
+	dev->se_hba		= hba;
+	dev->se_sub_dev		= se_dev;
+	dev->transport		= transport;
+	dev->dev_link_magic	= SE_DEV_LINK_MAGIC;
+	INIT_LIST_HEAD(&dev->dev_list);
+	INIT_LIST_HEAD(&dev->dev_sep_list);
+	INIT_LIST_HEAD(&dev->dev_tmr_list);
+	INIT_LIST_HEAD(&dev->execute_task_list);
+	INIT_LIST_HEAD(&dev->delayed_cmd_list);
+	INIT_LIST_HEAD(&dev->state_task_list);
+	INIT_LIST_HEAD(&dev->qf_cmd_list);
+	spin_lock_init(&dev->execute_task_lock);
+	spin_lock_init(&dev->delayed_cmd_lock);
+	spin_lock_init(&dev->dev_reservation_lock);
+	spin_lock_init(&dev->dev_status_lock);
+	spin_lock_init(&dev->se_port_lock);
+	spin_lock_init(&dev->se_tmr_lock);
+	spin_lock_init(&dev->qf_cmd_lock);
+	atomic_set(&dev->dev_ordered_id, 0);
+
+	se_dev_set_default_attribs(dev, dev_limits);
+
+	dev->dev_index = scsi_get_new_index(SCSI_DEVICE_INDEX);
+	dev->creation_time = get_jiffies_64();
+	spin_lock_init(&dev->stats_lock);
+
+	spin_lock(&hba->device_lock);
+	list_add_tail(&dev->dev_list, &hba->hba_dev_list);
+	hba->dev_count++;
+	spin_unlock(&hba->device_lock);
+	/*
+	 * Setup the SAM Task Attribute emulation for struct se_device
+	 */
+	core_setup_task_attr_emulation(dev);
+	/*
+	 * Force PR and ALUA passthrough emulation with internal object use.
+	 */
+	force_pt = (hba->hba_flags & HBA_FLAGS_INTERNAL_USE);
+	/*
+	 * Setup the Reservations infrastructure for struct se_device
+	 */
+	core_setup_reservations(dev, force_pt);
+	/*
+	 * Setup the Asymmetric Logical Unit Assignment for struct se_device
+	 */
+	if (core_setup_alua(dev, force_pt) < 0)
+		goto out;
+
+	/*
+	 * Startup the struct se_device processing thread
+	 */
+	dev->process_thread = kthread_run(transport_processing_thread, dev,
+					  "LIO_%s", dev->transport->name);
+	if (IS_ERR(dev->process_thread)) {
+		pr_err("Unable to create kthread: LIO_%s\n",
+			dev->transport->name);
+		goto out;
+	}
+	/*
+	 * Setup work_queue for QUEUE_FULL
+	 */
+	INIT_WORK(&dev->qf_work_queue, target_qf_do_work);
+	/*
+	 * Preload the initial INQUIRY const values if we are doing
+	 * anything virtual (IBLOCK, FILEIO, RAMDISK), but not for TCM/pSCSI
+	 * passthrough because this is being provided by the backend LLD.
+	 * This is required so that transport_get_inquiry() copies these
+	 * originals once back into DEV_T10_WWN(dev) for the virtual device
+	 * setup.
+	 */
+	if (dev->transport->transport_type != TRANSPORT_PLUGIN_PHBA_PDEV) {
+		if (!inquiry_prod || !inquiry_rev) {
+			pr_err("All non TCM/pSCSI plugins require"
+				" INQUIRY consts\n");
+			goto out;
+		}
+
+		strncpy(&dev->se_sub_dev->t10_wwn.vendor[0], "LIO-ORG", 8);
+		strncpy(&dev->se_sub_dev->t10_wwn.model[0], inquiry_prod, 16);
+		strncpy(&dev->se_sub_dev->t10_wwn.revision[0], inquiry_rev, 4);
+	}
+	scsi_dump_inquiry(dev);
+
+	return dev;
+out:
+	kthread_stop(dev->process_thread);
+
+	spin_lock(&hba->device_lock);
+	list_del(&dev->dev_list);
+	hba->dev_count--;
+	spin_unlock(&hba->device_lock);
+
+	se_release_vpd_for_dev(dev);
+
+	kfree(dev);
+
+	return NULL;
+}
+EXPORT_SYMBOL(transport_add_device_to_core_hba);
+
+/*	transport_generic_prepare_cdb():
+ *
+ *	Since the Initiator sees iSCSI devices as LUNs,  the SCSI CDB will
+ *	contain the iSCSI LUN in bits 7-5 of byte 1 as per SAM-2.
+ *	The point of this is since we are mapping iSCSI LUNs to
+ *	SCSI Target IDs having a non-zero LUN in the CDB will throw the
+ *	devices and HBAs for a loop.
+ */
+static inline void transport_generic_prepare_cdb(
+	unsigned char *cdb)
+{
+	switch (cdb[0]) {
+	case READ_10: /* SBC - RDProtect */
+	case READ_12: /* SBC - RDProtect */
+	case READ_16: /* SBC - RDProtect */
+	case SEND_DIAGNOSTIC: /* SPC - SELF-TEST Code */
+	case VERIFY: /* SBC - VRProtect */
+	case VERIFY_16: /* SBC - VRProtect */
+	case WRITE_VERIFY: /* SBC - VRProtect */
+	case WRITE_VERIFY_12: /* SBC - VRProtect */
+	case MAINTENANCE_IN: /* SPC - Parameter Data Format for SA RTPG */
+		break;
+	default:
+		cdb[1] &= 0x1f; /* clear logical unit number */
+		break;
+	}
+}
+
+static struct se_task *
+transport_generic_get_task(struct se_cmd *cmd,
+		enum dma_data_direction data_direction)
+{
+	struct se_task *task;
+	struct se_device *dev = cmd->se_dev;
+
+	task = dev->transport->alloc_task(cmd->t_task_cdb);
+	if (!task) {
+		pr_err("Unable to allocate struct se_task\n");
+		return NULL;
+	}
+
+	INIT_LIST_HEAD(&task->t_list);
+	INIT_LIST_HEAD(&task->t_execute_list);
+	INIT_LIST_HEAD(&task->t_state_list);
+	init_completion(&task->task_stop_comp);
+	task->task_se_cmd = cmd;
+	task->task_data_direction = data_direction;
+
+	return task;
+=======
+>>>>>>> android-3.18
 }
 
 /*
@@ -1187,8 +1376,18 @@ transport_check_alloc_task_attr(struct se_cmd *cmd)
 	return 0;
 }
 
+<<<<<<< HEAD
+/*	target_setup_cmd_from_cdb():
+ *
+ *	Called from fabric RX Thread.
+ */
+int target_setup_cmd_from_cdb(
+	struct se_cmd *cmd,
+	unsigned char *cdb)
+=======
 sense_reason_t
 target_setup_cmd_from_cdb(struct se_cmd *cmd, unsigned char *cdb)
+>>>>>>> android-3.18
 {
 	struct se_device *dev = cmd->se_dev;
 	sense_reason_t ret;
@@ -1402,6 +1601,12 @@ int target_submit_cmd_map_sgls(struct se_cmd *se_cmd, struct se_session *se_sess
 	 * Save pointers for SGLs containing protection information,
 	 * if present.
 	 */
+<<<<<<< HEAD
+	rc = target_setup_cmd_from_cdb(se_cmd, cdb);
+	if (rc != 0) {
+		transport_generic_request_failure(se_cmd);
+		return;
+=======
 	if (sgl_prot_count) {
 		se_cmd->t_prot_sg = sgl_prot;
 		se_cmd->t_prot_nents = sgl_prot_count;
@@ -1442,6 +1647,7 @@ int target_submit_cmd_map_sgls(struct se_cmd *se_cmd, struct se_session *se_sess
 			transport_generic_request_failure(se_cmd, rc);
 			return 0;
 		}
+>>>>>>> android-3.18
 	}
 
 	/*
@@ -1844,9 +2050,477 @@ static void target_restart_delayed_cmds(struct se_device *dev)
 	for (;;) {
 		struct se_cmd *cmd;
 
+<<<<<<< HEAD
+	spin_lock_irqsave(&cmd->t_state_lock, flags);
+	if (cmd->se_cmd_flags & SCF_SENT_CHECK_CONDITION) {
+		spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+		return 0;
+	}
+
+	list_for_each_entry_safe(task, task_tmp,
+				&cmd->t_task_list, t_list) {
+		if (!(task->task_flags & TF_HAS_SENSE))
+			continue;
+
+		if (!dev->transport->get_sense_buffer) {
+			pr_err("dev->transport->get_sense_buffer"
+					" is NULL\n");
+			continue;
+		}
+
+		sense_buffer = dev->transport->get_sense_buffer(task);
+		if (!sense_buffer) {
+			pr_err("ITT[0x%08x]_TASK[%p]: Unable to locate"
+				" sense buffer for task with sense\n",
+				cmd->se_tfo->get_task_tag(cmd), task);
+			continue;
+		}
+		spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+
+		offset = cmd->se_tfo->set_fabric_sense_len(cmd,
+				TRANSPORT_SENSE_BUFFER);
+
+		memcpy(&buffer[offset], sense_buffer,
+				TRANSPORT_SENSE_BUFFER);
+		cmd->scsi_status = task->task_scsi_status;
+		/* Automatically padded */
+		cmd->scsi_sense_length =
+				(TRANSPORT_SENSE_BUFFER + offset);
+
+		pr_debug("HBA_[%u]_PLUG[%s]: Set SAM STATUS: 0x%02x"
+				" and sense\n",
+			dev->se_hba->hba_id, dev->transport->name,
+				cmd->scsi_status);
+		return 0;
+	}
+	spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+
+	return -1;
+}
+
+static inline long long transport_dev_end_lba(struct se_device *dev)
+{
+	return dev->transport->get_blocks(dev) + 1;
+}
+
+static int transport_cmd_get_valid_sectors(struct se_cmd *cmd)
+{
+	struct se_device *dev = cmd->se_dev;
+	u32 sectors;
+
+	if (dev->transport->get_device_type(dev) != TYPE_DISK)
+		return 0;
+
+	sectors = (cmd->data_length / dev->se_sub_dev->se_dev_attrib.block_size);
+
+	if ((cmd->t_task_lba + sectors) > transport_dev_end_lba(dev)) {
+		pr_err("LBA: %llu Sectors: %u exceeds"
+			" transport_dev_end_lba(): %llu\n",
+			cmd->t_task_lba, sectors,
+			transport_dev_end_lba(dev));
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int target_check_write_same_discard(unsigned char *flags, struct se_device *dev)
+{
+	/*
+	 * Determine if the received WRITE_SAME is used to for direct
+	 * passthrough into Linux/SCSI with struct request via TCM/pSCSI
+	 * or we are signaling the use of internal WRITE_SAME + UNMAP=1
+	 * emulation for -> Linux/BLOCK disbard with TCM/IBLOCK code.
+	 */
+	int passthrough = (dev->transport->transport_type ==
+				TRANSPORT_PLUGIN_PHBA_PDEV);
+
+	if (!passthrough) {
+		if ((flags[0] & 0x04) || (flags[0] & 0x02)) {
+			pr_err("WRITE_SAME PBDATA and LBDATA"
+				" bits not supported for Block Discard"
+				" Emulation\n");
+			return -ENOSYS;
+		}
+		/*
+		 * Currently for the emulated case we only accept
+		 * tpws with the UNMAP=1 bit set.
+		 */
+		if (!(flags[0] & 0x08)) {
+			pr_err("WRITE_SAME w/o UNMAP bit not"
+				" supported for Block Discard Emulation\n");
+			return -ENOSYS;
+		}
+	}
+
+	return 0;
+}
+
+/*	transport_generic_cmd_sequencer():
+ *
+ *	Generic Command Sequencer that should work for most DAS transport
+ *	drivers.
+ *
+ *	Called from target_setup_cmd_from_cdb() in the $FABRIC_MOD
+ *	RX Thread.
+ *
+ *	FIXME: Need to support other SCSI OPCODES where as well.
+ */
+static int transport_generic_cmd_sequencer(
+	struct se_cmd *cmd,
+	unsigned char *cdb)
+{
+	struct se_device *dev = cmd->se_dev;
+	struct se_subsystem_dev *su_dev = dev->se_sub_dev;
+	int ret = 0, sector_ret = 0, passthrough;
+	u32 sectors = 0, size = 0, pr_reg_type = 0;
+	u16 service_action;
+	u8 alua_ascq = 0;
+	/*
+	 * Check for an existing UNIT ATTENTION condition
+	 */
+	if (core_scsi3_ua_check(cmd, cdb) < 0) {
+		cmd->se_cmd_flags |= SCF_SCSI_CDB_EXCEPTION;
+		cmd->scsi_sense_reason = TCM_CHECK_CONDITION_UNIT_ATTENTION;
+		return -EINVAL;
+	}
+	/*
+	 * Check status of Asymmetric Logical Unit Assignment port
+	 */
+	ret = su_dev->t10_alua.alua_state_check(cmd, cdb, &alua_ascq);
+	if (ret != 0) {
+		/*
+		 * Set SCSI additional sense code (ASC) to 'LUN Not Accessible';
+		 * The ALUA additional sense code qualifier (ASCQ) is determined
+		 * by the ALUA primary or secondary access state..
+		 */
+		if (ret > 0) {
+#if 0
+			pr_debug("[%s]: ALUA TG Port not available,"
+				" SenseKey: NOT_READY, ASC/ASCQ: 0x04/0x%02x\n",
+				cmd->se_tfo->get_fabric_name(), alua_ascq);
+#endif
+			transport_set_sense_codes(cmd, 0x04, alua_ascq);
+			cmd->se_cmd_flags |= SCF_SCSI_CDB_EXCEPTION;
+			cmd->scsi_sense_reason = TCM_CHECK_CONDITION_NOT_READY;
+			return -EINVAL;
+		}
+		goto out_invalid_cdb_field;
+	}
+	/*
+	 * Check status for SPC-3 Persistent Reservations
+	 */
+	if (su_dev->t10_pr.pr_ops.t10_reservation_check(cmd, &pr_reg_type) != 0) {
+		if (su_dev->t10_pr.pr_ops.t10_seq_non_holder(
+					cmd, cdb, pr_reg_type) != 0) {
+			cmd->se_cmd_flags |= SCF_SCSI_CDB_EXCEPTION;
+			cmd->se_cmd_flags |= SCF_SCSI_RESERVATION_CONFLICT;
+			cmd->scsi_status = SAM_STAT_RESERVATION_CONFLICT;
+			cmd->scsi_sense_reason = TCM_RESERVATION_CONFLICT;
+			return -EBUSY;
+		}
+		/*
+		 * This means the CDB is allowed for the SCSI Initiator port
+		 * when said port is *NOT* holding the legacy SPC-2 or
+		 * SPC-3 Persistent Reservation.
+		 */
+	}
+
+	/*
+	 * If we operate in passthrough mode we skip most CDB emulation and
+	 * instead hand the commands down to the physical SCSI device.
+	 */
+	passthrough =
+		(dev->transport->transport_type == TRANSPORT_PLUGIN_PHBA_PDEV);
+
+	switch (cdb[0]) {
+	case READ_6:
+		sectors = transport_get_sectors_6(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_21(cdb);
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case READ_10:
+		sectors = transport_get_sectors_10(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_32(cdb);
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case READ_12:
+		sectors = transport_get_sectors_12(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_32(cdb);
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case READ_16:
+		sectors = transport_get_sectors_16(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_64(cdb);
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case WRITE_6:
+		sectors = transport_get_sectors_6(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_21(cdb);
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case WRITE_10:
+		sectors = transport_get_sectors_10(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_32(cdb);
+		if (cdb[1] & 0x8)
+			cmd->se_cmd_flags |= SCF_FUA;
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case WRITE_12:
+		sectors = transport_get_sectors_12(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_32(cdb);
+		if (cdb[1] & 0x8)
+			cmd->se_cmd_flags |= SCF_FUA;
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case WRITE_16:
+		sectors = transport_get_sectors_16(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_64(cdb);
+		if (cdb[1] & 0x8)
+			cmd->se_cmd_flags |= SCF_FUA;
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+		break;
+	case XDWRITEREAD_10:
+		if ((cmd->data_direction != DMA_TO_DEVICE) ||
+		    !(cmd->se_cmd_flags & SCF_BIDI))
+			goto out_invalid_cdb_field;
+		sectors = transport_get_sectors_10(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+		size = transport_get_size(sectors, cdb, cmd);
+		cmd->t_task_lba = transport_lba_32(cdb);
+		cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+
+		/*
+		 * Do now allow BIDI commands for passthrough mode.
+		 */
+		if (passthrough)
+			goto out_unsupported_cdb;
+
+		/*
+		 * Setup BIDI XOR callback to be run after I/O completion.
+		 */
+		cmd->transport_complete_callback = &transport_xor_callback;
+		if (cdb[1] & 0x8)
+			cmd->se_cmd_flags |= SCF_FUA;
+		break;
+	case VARIABLE_LENGTH_CMD:
+		service_action = get_unaligned_be16(&cdb[8]);
+		switch (service_action) {
+		case XDWRITEREAD_32:
+			sectors = transport_get_sectors_32(cdb, cmd, &sector_ret);
+			if (sector_ret)
+				goto out_unsupported_cdb;
+			size = transport_get_size(sectors, cdb, cmd);
+			/*
+			 * Use WRITE_32 and READ_32 opcodes for the emulated
+			 * XDWRITE_READ_32 logic.
+			 */
+			cmd->t_task_lba = transport_lba_64_ext(cdb);
+			cmd->se_cmd_flags |= SCF_SCSI_DATA_SG_IO_CDB;
+
+			/*
+			 * Do now allow BIDI commands for passthrough mode.
+			 */
+			if (passthrough)
+				goto out_unsupported_cdb;
+
+			/*
+			 * Setup BIDI XOR callback to be run during after I/O
+			 * completion.
+			 */
+			cmd->transport_complete_callback = &transport_xor_callback;
+			if (cdb[1] & 0x8)
+				cmd->se_cmd_flags |= SCF_FUA;
+			break;
+		case WRITE_SAME_32:
+			sectors = transport_get_sectors_32(cdb, cmd, &sector_ret);
+			if (sector_ret)
+				goto out_unsupported_cdb;
+
+			if (sectors)
+				size = transport_get_size(1, cdb, cmd);
+			else {
+				pr_err("WSNZ=1, WRITE_SAME w/sectors=0 not"
+				       " supported\n");
+				goto out_invalid_cdb_field;
+			}
+
+			cmd->t_task_lba = get_unaligned_be64(&cdb[12]);
+			cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+
+			if (target_check_write_same_discard(&cdb[10], dev) < 0)
+				goto out_unsupported_cdb;
+			if (!passthrough)
+				cmd->execute_task = target_emulate_write_same;
+			break;
+		default:
+			pr_err("VARIABLE_LENGTH_CMD service action"
+				" 0x%04x not supported\n", service_action);
+			goto out_unsupported_cdb;
+		}
+		break;
+	case MAINTENANCE_IN:
+		if (dev->transport->get_device_type(dev) != TYPE_ROM) {
+			/* MAINTENANCE_IN from SCC-2 */
+			/*
+			 * Check for emulated MI_REPORT_TARGET_PGS.
+			 */
+			if ((cdb[1] & 0x1f) == MI_REPORT_TARGET_PGS &&
+			    su_dev->t10_alua.alua_type == SPC3_ALUA_EMULATED) {
+				cmd->execute_task =
+					target_emulate_report_target_port_groups;
+			}
+			size = (cdb[6] << 24) | (cdb[7] << 16) |
+			       (cdb[8] << 8) | cdb[9];
+		} else {
+			/* GPCMD_SEND_KEY from multi media commands */
+			size = (cdb[8] << 8) + cdb[9];
+		}
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case MODE_SELECT:
+		size = cdb[4];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case MODE_SELECT_10:
+		size = (cdb[7] << 8) + cdb[8];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case MODE_SENSE:
+		size = cdb[4];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_modesense;
+		break;
+	case MODE_SENSE_10:
+		size = (cdb[7] << 8) + cdb[8];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_modesense;
+		break;
+	case GPCMD_READ_BUFFER_CAPACITY:
+	case GPCMD_SEND_OPC:
+	case LOG_SELECT:
+	case LOG_SENSE:
+		size = (cdb[7] << 8) + cdb[8];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case READ_BLOCK_LIMITS:
+		size = READ_BLOCK_LEN;
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case GPCMD_GET_CONFIGURATION:
+	case GPCMD_READ_FORMAT_CAPACITIES:
+	case GPCMD_READ_DISC_INFO:
+	case GPCMD_READ_TRACK_RZONE_INFO:
+		size = (cdb[7] << 8) + cdb[8];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case PERSISTENT_RESERVE_IN:
+		if (su_dev->t10_pr.res_type == SPC3_PERSISTENT_RESERVATIONS)
+			cmd->execute_task = target_scsi3_emulate_pr_in;
+		size = (cdb[7] << 8) + cdb[8];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case PERSISTENT_RESERVE_OUT:
+		if (su_dev->t10_pr.res_type == SPC3_PERSISTENT_RESERVATIONS)
+			cmd->execute_task = target_scsi3_emulate_pr_out;
+		size = (cdb[7] << 8) + cdb[8];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case GPCMD_MECHANISM_STATUS:
+	case GPCMD_READ_DVD_STRUCTURE:
+		size = (cdb[8] << 8) + cdb[9];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case READ_POSITION:
+		size = READ_POSITION_LEN;
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case MAINTENANCE_OUT:
+		if (dev->transport->get_device_type(dev) != TYPE_ROM) {
+			/* MAINTENANCE_OUT from SCC-2
+			 *
+			 * Check for emulated MO_SET_TARGET_PGS.
+			 */
+			if (cdb[1] == MO_SET_TARGET_PGS &&
+			    su_dev->t10_alua.alua_type == SPC3_ALUA_EMULATED) {
+				cmd->execute_task =
+					target_emulate_set_target_port_groups;
+			}
+
+			size = (cdb[6] << 24) | (cdb[7] << 16) |
+			       (cdb[8] << 8) | cdb[9];
+		} else  {
+			/* GPCMD_REPORT_KEY from multi media commands */
+			size = (cdb[8] << 8) + cdb[9];
+		}
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case INQUIRY:
+		size = (cdb[3] << 8) + cdb[4];
+		/*
+		 * Do implict HEAD_OF_QUEUE processing for INQUIRY.
+		 * See spc4r17 section 5.3
+		 */
+		if (cmd->se_dev->dev_task_attr_type == SAM_TASK_ATTR_EMULATED)
+			cmd->sam_task_attr = MSG_HEAD_TAG;
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_inquiry;
+		break;
+	case READ_BUFFER:
+		size = (cdb[6] << 16) + (cdb[7] << 8) + cdb[8];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case READ_CAPACITY:
+		size = READ_CAP_LEN;
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_readcapacity;
+		break;
+	case READ_MEDIA_SERIAL_NUMBER:
+	case SECURITY_PROTOCOL_IN:
+	case SECURITY_PROTOCOL_OUT:
+		size = (cdb[6] << 24) | (cdb[7] << 16) | (cdb[8] << 8) | cdb[9];
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	case SERVICE_ACTION_IN:
+		switch (cmd->t_task_cdb[1] & 0x1f) {
+		case SAI_READ_CAPACITY_16:
+			if (!passthrough)
+				cmd->execute_task =
+					target_emulate_readcapacity_16;
+=======
 		spin_lock(&dev->delayed_cmd_lock);
 		if (list_empty(&dev->delayed_cmd_list)) {
 			spin_unlock(&dev->delayed_cmd_lock);
+>>>>>>> android-3.18
 			break;
 		}
 
@@ -1861,6 +2535,155 @@ static void target_restart_delayed_cmds(struct se_device *dev)
 
 		if (cmd->sam_task_attr == MSG_ORDERED_TAG)
 			break;
+<<<<<<< HEAD
+
+		/*
+		 * Check to ensure that LBA + Range does not exceed past end of
+		 * device for IBLOCK and FILEIO ->do_sync_cache() backend calls
+		 */
+		if ((cmd->t_task_lba != 0) || (sectors != 0)) {
+			if (transport_cmd_get_valid_sectors(cmd) < 0)
+				goto out_invalid_cdb_field;
+		}
+		cmd->execute_task = target_emulate_synchronize_cache;
+		break;
+	case UNMAP:
+		size = get_unaligned_be16(&cdb[7]);
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_unmap;
+		break;
+	case WRITE_SAME_16:
+		sectors = transport_get_sectors_16(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+
+		if (sectors)
+			size = transport_get_size(1, cdb, cmd);
+		else {
+			pr_err("WSNZ=1, WRITE_SAME w/sectors=0 not supported\n");
+			goto out_invalid_cdb_field;
+		}
+
+		cmd->t_task_lba = get_unaligned_be64(&cdb[2]);
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+
+		if (target_check_write_same_discard(&cdb[1], dev) < 0)
+			goto out_unsupported_cdb;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_write_same;
+		break;
+	case WRITE_SAME:
+		sectors = transport_get_sectors_10(cdb, cmd, &sector_ret);
+		if (sector_ret)
+			goto out_unsupported_cdb;
+
+		if (sectors)
+			size = transport_get_size(1, cdb, cmd);
+		else {
+			pr_err("WSNZ=1, WRITE_SAME w/sectors=0 not supported\n");
+			goto out_invalid_cdb_field;
+		}
+
+		cmd->t_task_lba = get_unaligned_be32(&cdb[2]);
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		/*
+		 * Follow sbcr26 with WRITE_SAME (10) and check for the existence
+		 * of byte 1 bit 3 UNMAP instead of original reserved field
+		 */
+		if (target_check_write_same_discard(&cdb[1], dev) < 0)
+			goto out_unsupported_cdb;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_write_same;
+		break;
+	case ALLOW_MEDIUM_REMOVAL:
+	case ERASE:
+	case REZERO_UNIT:
+	case SEEK_10:
+	case SPACE:
+	case START_STOP:
+	case TEST_UNIT_READY:
+	case VERIFY:
+	case WRITE_FILEMARKS:
+		cmd->se_cmd_flags |= SCF_SCSI_NON_DATA_CDB;
+		if (!passthrough)
+			cmd->execute_task = target_emulate_noop;
+		break;
+	case GPCMD_CLOSE_TRACK:
+	case INITIALIZE_ELEMENT_STATUS:
+	case GPCMD_LOAD_UNLOAD:
+	case GPCMD_SET_SPEED:
+	case MOVE_MEDIUM:
+		cmd->se_cmd_flags |= SCF_SCSI_NON_DATA_CDB;
+		break;
+	case REPORT_LUNS:
+		cmd->execute_task = target_report_luns;
+		size = (cdb[6] << 24) | (cdb[7] << 16) | (cdb[8] << 8) | cdb[9];
+		/*
+		 * Do implict HEAD_OF_QUEUE processing for REPORT_LUNS
+		 * See spc4r17 section 5.3
+		 */
+		if (cmd->se_dev->dev_task_attr_type == SAM_TASK_ATTR_EMULATED)
+			cmd->sam_task_attr = MSG_HEAD_TAG;
+		cmd->se_cmd_flags |= SCF_SCSI_CONTROL_SG_IO_CDB;
+		break;
+	default:
+		pr_warn("TARGET_CORE[%s]: Unsupported SCSI Opcode"
+			" 0x%02x, sending CHECK_CONDITION.\n",
+			cmd->se_tfo->get_fabric_name(), cdb[0]);
+		goto out_unsupported_cdb;
+	}
+
+	if (cmd->unknown_data_length)
+		cmd->data_length = size;
+
+	if (size != cmd->data_length) {
+		pr_warn("TARGET_CORE[%s]: Expected Transfer Length:"
+			" %u does not match SCSI CDB Length: %u for SAM Opcode:"
+			" 0x%02x\n", cmd->se_tfo->get_fabric_name(),
+				cmd->data_length, size, cdb[0]);
+
+		cmd->cmd_spdtl = size;
+
+		if (cmd->data_direction == DMA_TO_DEVICE) {
+			pr_err("Rejecting underflow/overflow"
+					" WRITE data\n");
+			goto out_invalid_cdb_field;
+		}
+		/*
+		 * Reject READ_* or WRITE_* with overflow/underflow for
+		 * type SCF_SCSI_DATA_SG_IO_CDB.
+		 */
+		if (!ret && (dev->se_sub_dev->se_dev_attrib.block_size != 512))  {
+			pr_err("Failing OVERFLOW/UNDERFLOW for LBA op"
+				" CDB on non 512-byte sector setup subsystem"
+				" plugin: %s\n", dev->transport->name);
+			/* Returns CHECK_CONDITION + INVALID_CDB_FIELD */
+			goto out_invalid_cdb_field;
+		}
+		/*
+		 * For the overflow case keep the existing fabric provided
+		 * ->data_length.  Otherwise for the underflow case, reset
+		 * ->data_length to the smaller SCSI expected data transfer
+		 * length.
+		 */
+		if (size > cmd->data_length) {
+			cmd->se_cmd_flags |= SCF_OVERFLOW_BIT;
+			cmd->residual_count = (size - cmd->data_length);
+		} else {
+			cmd->se_cmd_flags |= SCF_UNDERFLOW_BIT;
+			cmd->residual_count = (cmd->data_length - size);
+			cmd->data_length = size;
+		}
+	}
+
+	if (cmd->se_cmd_flags & SCF_SCSI_DATA_SG_IO_CDB &&
+	    sectors > dev->se_sub_dev->se_dev_attrib.fabric_max_sectors) {
+		printk_ratelimited(KERN_ERR "SCSI OP %02xh with too big sectors %u\n",
+				   cdb[0], sectors);
+		goto out_invalid_cdb_field;
+=======
+>>>>>>> android-3.18
 	}
 }
 
@@ -2266,7 +3089,11 @@ target_alloc_sgl(struct scatterlist **sgl, unsigned int *nents, u32 length,
 out:
 	while (i > 0) {
 		i--;
+<<<<<<< HEAD
+		__free_page(sg_page(&cmd->t_data_sg[i]));
+=======
 		__free_page(sg_page(&sg[i]));
+>>>>>>> android-3.18
 	}
 	kfree(sg);
 	return -ENOMEM;
@@ -2882,6 +3709,15 @@ transport_send_check_condition_and_sense(struct se_cmd *cmd,
 		/* LOGICAL BLOCK ADDRESS OUT OF RANGE */
 		buffer[SPC_ASC_KEY_OFFSET] = 0x21;
 		break;
+	case TCM_ADDRESS_OUT_OF_RANGE:
+		/* CURRENT ERROR */
+		buffer[offset] = 0x70;
+		buffer[offset+SPC_ADD_SENSE_LEN_OFFSET] = 10;
+		/* ILLEGAL REQUEST */
+		buffer[offset+SPC_SENSE_KEY_OFFSET] = ILLEGAL_REQUEST;
+		/* LOGICAL BLOCK ADDRESS OUT OF RANGE */
+		buffer[offset+SPC_ASC_KEY_OFFSET] = 0x21;
+		break;
 	case TCM_CHECK_CONDITION_UNIT_ATTENTION:
 		/* CURRENT ERROR */
 		buffer[0] = 0x70;
@@ -2957,7 +3793,11 @@ transport_send_check_condition_and_sense(struct se_cmd *cmd,
 		 */
 		buffer[SPC_SENSE_KEY_OFFSET] = NOT_READY;
 		/* LOGICAL UNIT COMMUNICATION FAILURE */
+<<<<<<< HEAD
+		buffer[offset+SPC_ASC_KEY_OFFSET] = 0x08;
+=======
 		buffer[SPC_ASC_KEY_OFFSET] = 0x08;
+>>>>>>> android-3.18
 		break;
 	}
 	/*
