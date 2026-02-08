@@ -288,11 +288,72 @@ static int rt2800pci_set_device_state(struct rt2x00_dev *rt2x00dev,
 static int rt2800pci_read_eeprom(struct rt2x00_dev *rt2x00dev)
 {
 	int retval;
+	u32 reg;
 
+<<<<<<< HEAD
+	/*
+	 * Allocate eeprom data.
+	 */
+	retval = rt2800pci_validate_eeprom(rt2x00dev);
+	if (retval)
+		return retval;
+
+	retval = rt2800_init_eeprom(rt2x00dev);
+	if (retval)
+		return retval;
+
+	/*
+	 * Enable rfkill polling by setting GPIO direction of the
+	 * rfkill switch GPIO pin correctly.
+	 */
+	rt2x00pci_register_read(rt2x00dev, GPIO_CTRL_CFG, &reg);
+	rt2x00_set_field32(&reg, GPIO_CTRL_CFG_GPIOD_BIT2, 1);
+	rt2x00pci_register_write(rt2x00dev, GPIO_CTRL_CFG, reg);
+
+	/*
+	 * Initialize hw specifications.
+	 */
+	retval = rt2800_probe_hw_mode(rt2x00dev);
+	if (retval)
+		return retval;
+
+	/*
+	 * This device has multiple filters for control frames
+	 * and has a separate filter for PS Poll frames.
+	 */
+	__set_bit(CAPABILITY_CONTROL_FILTERS, &rt2x00dev->cap_flags);
+	__set_bit(CAPABILITY_CONTROL_FILTER_PSPOLL, &rt2x00dev->cap_flags);
+
+	/*
+	 * This device has a pre tbtt interrupt and thus fetches
+	 * a new beacon directly prior to transmission.
+	 */
+	__set_bit(CAPABILITY_PRE_TBTT_INTERRUPT, &rt2x00dev->cap_flags);
+
+	/*
+	 * This device requires firmware.
+	 */
+	if (!rt2x00_is_soc(rt2x00dev))
+		__set_bit(REQUIRE_FIRMWARE, &rt2x00dev->cap_flags);
+	__set_bit(REQUIRE_DMA, &rt2x00dev->cap_flags);
+	__set_bit(REQUIRE_L2PAD, &rt2x00dev->cap_flags);
+	__set_bit(REQUIRE_TXSTATUS_FIFO, &rt2x00dev->cap_flags);
+	__set_bit(REQUIRE_TASKLET_CONTEXT, &rt2x00dev->cap_flags);
+	if (!modparam_nohwcrypt)
+		__set_bit(CAPABILITY_HW_CRYPTO, &rt2x00dev->cap_flags);
+	__set_bit(CAPABILITY_LINK_TUNING, &rt2x00dev->cap_flags);
+	__set_bit(REQUIRE_HT_TX_DESC, &rt2x00dev->cap_flags);
+
+	/*
+	 * Set the rssi offset.
+	 */
+	rt2x00dev->rssi_offset = DEFAULT_RSSI_OFFSET;
+=======
 	if (rt2800pci_efuse_detect(rt2x00dev))
 		retval = rt2800pci_read_eeprom_efuse(rt2x00dev);
 	else
 		retval = rt2800pci_read_eeprom_pci(rt2x00dev);
+>>>>>>> android-3.18
 
 	return retval;
 }

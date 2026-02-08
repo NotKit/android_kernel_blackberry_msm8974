@@ -258,7 +258,20 @@ static void ath_tx_flush_tid(struct ath_softc *sc, struct ath_atx_tid *tid)
 			continue;
 		}
 
+<<<<<<< HEAD
+		if (!bf) {
+			bf = ath_tx_setup_buffer(sc, txq, tid, skb);
+			if (!bf) {
+				ieee80211_free_txskb(sc->hw, skb);
+				continue;
+			}
+		}
+
+		if (fi->retries) {
+			list_add_tail(&bf->list, &bf_head);
+=======
 		if (fi->baw_tracked) {
+>>>>>>> android-3.18
 			ath_tx_update_baw(sc, tid, bf->bf_state.seqno);
 			sendbar = true;
 		}
@@ -370,6 +383,7 @@ static struct ath_buf *ath_tx_get_buffer(struct ath_softc *sc)
 	}
 
 	bf = list_first_entry(&sc->tx.txbuf, struct ath_buf, list);
+	bf->bf_next = NULL;
 	list_del(&bf->list);
 
 	spin_unlock_bh(&sc->tx.txbuflock);
@@ -504,7 +518,11 @@ static void ath_tx_complete_aggr(struct ath_softc *sc, struct ath_txq *txq,
 	 * Only BlockAcks have a TID and therefore normal Acks cannot be
 	 * checked
 	 */
+<<<<<<< HEAD
+	if (isba && tidno != ts->tid)
+=======
 	if (isba && tid->tidno != ts->tid)
+>>>>>>> android-3.18
 		txok = false;
 
 	isaggr = bf_isaggr(bf);
@@ -894,6 +912,12 @@ ath_tx_get_tid_subframe(struct ath_softc *sc, struct ath_txq *txq,
 			bf->bf_state.stale = false;
 
 		if (!bf) {
+<<<<<<< HEAD
+			__skb_unlink(skb, &tid->buf_q);
+			ieee80211_free_txskb(sc->hw, skb);
+			continue;
+		}
+=======
 			__skb_unlink(skb, *q);
 			ath_txq_skb_done(sc, txq, skb);
 			ieee80211_free_txskb(sc->hw, skb);
@@ -918,6 +942,7 @@ ath_tx_get_tid_subframe(struct ath_softc *sc, struct ath_txq *txq,
 			bf->bf_state.bf_type = 0;
 			return bf;
 		}
+>>>>>>> android-3.18
 
 		bf->bf_state.bf_type = BUF_AMPDU | BUF_AGGR;
 		seqno = bf->bf_state.seqno;
@@ -1107,7 +1132,10 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
 	const struct ieee80211_rate *rate;
 	struct ieee80211_hdr *hdr;
 	struct ath_frame_info *fi = get_frame_info(bf->bf_mpdu);
+<<<<<<< HEAD
+=======
 	u32 rts_thresh = sc->hw->wiphy->rts_threshold;
+>>>>>>> android-3.18
 	int i;
 	u8 rix = 0;
 
@@ -1120,7 +1148,11 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
 	info->dur_update = !ieee80211_is_pspoll(hdr->frame_control);
 	info->rtscts_rate = fi->rtscts_rate;
 
+<<<<<<< HEAD
+	for (i = 0; i < 4; i++) {
+=======
 	for (i = 0; i < ARRAY_SIZE(bf->rates); i++) {
+>>>>>>> android-3.18
 		bool is_40, is_sgi, is_sp;
 		int phy;
 
@@ -1175,7 +1207,11 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
 		}
 
 		/* legacy rates */
+<<<<<<< HEAD
+		rate = &sc->sbands[tx_info->band].bitrates[rates[i].idx];
+=======
 		rate = &common->sbands[tx_info->band].bitrates[rates[i].idx];
+>>>>>>> android-3.18
 		if ((tx_info->band == IEEE80211_BAND_2GHZ) &&
 		    !(rate->flags & IEEE80211_RATE_ERP_G))
 			phy = WLAN_RC_PHY_CCK;
@@ -1470,7 +1506,11 @@ void ath_tx_aggr_sleep(struct ieee80211_sta *sta, struct ath_softc *sc,
 	int tidno;
 
 	for (tidno = 0, tid = &an->tid[tidno];
+<<<<<<< HEAD
+	     tidno < WME_NUM_TID; tidno++, tid++) {
+=======
 	     tidno < IEEE80211_NUM_TIDS; tidno++, tid++) {
+>>>>>>> android-3.18
 
 		ac = tid->ac;
 		txq = ac->txq;
@@ -1482,7 +1522,11 @@ void ath_tx_aggr_sleep(struct ieee80211_sta *sta, struct ath_softc *sc,
 			continue;
 		}
 
+<<<<<<< HEAD
+		buffered = !skb_queue_empty(&tid->buf_q);
+=======
 		buffered = ath_tid_has_buffered(tid);
+>>>>>>> android-3.18
 
 		tid->sched = false;
 		list_del(&tid->list);
@@ -2004,6 +2048,28 @@ static void ath_tx_txqaddbuf(struct ath_softc *sc, struct ath_txq *txq,
 			bf_last->bf_next = NULL;
 		}
 	}
+<<<<<<< HEAD
+
+	bf = ath_tx_setup_buffer(sc, txctl->txq, tid, skb);
+	if (!bf) {
+		ieee80211_free_txskb(sc->hw, skb);
+		return;
+	}
+
+	bf->bf_state.bf_type = BUF_AMPDU;
+	INIT_LIST_HEAD(&bf_head);
+	list_add(&bf->list, &bf_head);
+
+	/* Add sub-frame to BAW */
+	ath_tx_addto_baw(sc, tid, bf->bf_state.seqno);
+
+	/* Queue to h/w without aggregation */
+	TX_STAT_INC(txctl->txq->axq_qnum, a_queued_hw);
+	bf->bf_lastbf = bf;
+	ath_tx_fill_desc(sc, bf, txctl->txq, fi->framelen);
+	ath_tx_txqaddbuf(sc, txctl->txq, &bf_head, false);
+=======
+>>>>>>> android-3.18
 }
 
 static void ath_tx_send_normal(struct ath_softc *sc, struct ath_txq *txq,
@@ -2012,7 +2078,13 @@ static void ath_tx_send_normal(struct ath_softc *sc, struct ath_txq *txq,
 	struct ieee80211_tx_info *tx_info = IEEE80211_SKB_CB(skb);
 	struct ath_frame_info *fi = get_frame_info(skb);
 	struct list_head bf_head;
+<<<<<<< HEAD
+	struct ath_buf *bf;
+
+	bf = fi->bf;
+=======
 	struct ath_buf *bf = fi->bf;
+>>>>>>> android-3.18
 
 	INIT_LIST_HEAD(&bf_head);
 	list_add_tail(&bf->list, &bf_head);
@@ -2042,6 +2114,7 @@ static void setup_frame_info(struct ieee80211_hw *hw,
 	struct ath_node *an = NULL;
 	enum ath9k_key_type keytype;
 	bool short_preamble = false;
+<<<<<<< HEAD
 
 	/*
 	 * We check if Short Preamble is needed for the CTS rate by
@@ -2052,6 +2125,18 @@ static void setup_frame_info(struct ieee80211_hw *hw,
 	    tx_info->control.vif->bss_conf.use_short_preamble)
 		short_preamble = true;
 
+=======
+
+	/*
+	 * We check if Short Preamble is needed for the CTS rate by
+	 * checking the BSS's global flag.
+	 * But for the rate series, IEEE80211_TX_RC_USE_SHORT_PREAMBLE is used.
+	 */
+	if (tx_info->control.vif &&
+	    tx_info->control.vif->bss_conf.use_short_preamble)
+		short_preamble = true;
+
+>>>>>>> android-3.18
 	rate = ieee80211_get_rts_cts_rate(hw, tx_info);
 	keytype = ath9k_cmn_get_hw_crypto_keytype(skb);
 
@@ -2069,9 +2154,12 @@ static void setup_frame_info(struct ieee80211_hw *hw,
 	fi->dyn_smps = sta && sta->smps_mode == IEEE80211_SMPS_DYNAMIC;
 	fi->keytype = keytype;
 	fi->framelen = framelen;
+<<<<<<< HEAD
+=======
 
 	if (!rate)
 		return;
+>>>>>>> android-3.18
 	fi->rtscts_rate = rate->hw_value;
 	if (short_preamble)
 		fi->rtscts_rate |= rate->hw_value_short;
@@ -2158,8 +2246,26 @@ void ath_assign_seq(struct ath_common *common, struct sk_buff *skb)
 	if (!(info->flags & IEEE80211_TX_CTL_ASSIGN_SEQ))
 		return;
 
+<<<<<<< HEAD
+	if ((tx_info->flags & IEEE80211_TX_CTL_AMPDU) && tid) {
+		/*
+		 * Try aggregation if it's a unicast data frame
+		 * and the destination is HT capable.
+		 */
+		ath_tx_send_ampdu(sc, tid, skb, txctl);
+	} else {
+		bf = ath_tx_setup_buffer(sc, txctl->txq, tid, skb);
+		if (!bf) {
+			if (txctl->paprd)
+				dev_kfree_skb_any(skb);
+			else
+				ieee80211_free_txskb(sc->hw, skb);
+			return;
+		}
+=======
 	if (!vif)
 		return;
+>>>>>>> android-3.18
 
 	avp = (struct ath_vif *)vif->drv_priv;
 

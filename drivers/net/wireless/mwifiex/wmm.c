@@ -429,6 +429,8 @@ mwifiex_wmm_init(struct mwifiex_adapter *adapter)
 		mwifiex_set_ba_params(priv);
 		mwifiex_reset_11n_rx_seq_num(priv);
 
+		mwifiex_reset_11n_rx_seq_num(priv);
+
 		atomic_set(&priv->wmm.tx_pkts_queued, 0);
 		atomic_set(&priv->wmm.highest_queued_prio, HIGH_PRIO_TID);
 	}
@@ -1246,6 +1248,15 @@ mwifiex_dequeue_tx_packet(struct mwifiex_adapter *adapter)
 
 	if (!ptr->is_11n_enabled ||
 	    mwifiex_is_ba_stream_setup(priv, ptr, tid) ||
+<<<<<<< HEAD
+	    priv->wps.session_enable ||
+	    ((priv->sec_info.wpa_enabled ||
+	      priv->sec_info.wpa2_enabled) &&
+	     !priv->wpa_is_gtk_set)) {
+		mwifiex_send_single_packet(priv, ptr, ptr_index, flags);
+		/* ra_list_spinlock has been freed in
+		   mwifiex_send_single_packet() */
+=======
 	    priv->wps.session_enable) {
 		if (ptr->is_11n_enabled &&
 		    mwifiex_is_ba_stream_setup(priv, ptr, tid) &&
@@ -1262,6 +1273,7 @@ mwifiex_dequeue_tx_packet(struct mwifiex_adapter *adapter)
 			/* ra_list_spinlock has been freed in
 			 * mwifiex_send_single_packet()
 			 */
+>>>>>>> android-3.18
 	} else {
 		if (mwifiex_is_ampdu_allowed(priv, ptr, tid) &&
 		    ptr->ba_pkt_count > ptr->ba_packet_thr) {

@@ -55,8 +55,15 @@ obj-$(CONFIG_WL_TI)	+= ti/
 
 obj-$(CONFIG_MWIFIEX)	+= mwifiex/
 
+obj-$(CONFIG_BCMDHD)	+= bcmdhd/
+
 obj-$(CONFIG_BRCMFMAC)	+= brcm80211/
 obj-$(CONFIG_BRCMSMAC)	+= brcm80211/
 
+<<<<<<< HEAD
+obj-$(CONFIG_LIBRA_SDIOIF)	+= libra/
+obj-$(CONFIG_WCNSS_CORE)	+= wcnss/
+=======
 obj-$(CONFIG_CW1200)	+= cw1200/
 obj-$(CONFIG_RSI_91X)	+= rsi/
+>>>>>>> android-3.18
