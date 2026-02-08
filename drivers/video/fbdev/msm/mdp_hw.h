@@ -624,4 +624,41 @@ int mdp_ppp_blit(const struct mdp_info *mdp, struct mdp_blit_req *req,
 #define MDDI_VDO_PACKET_PRIM  0xC3
 #define MDDI_VDO_PACKET_SECD  0xC0
 
+/* color conversion matrix configuration registers */
+/* pfmv is mv1, prmv is mv2 */
+#define MDP_CSC_PFMVn(n)		(0x40400 + (4 * (n)))
+#define MDP_CSC_PRMVn(n)		(0x40440 + (4 * (n)))
+
+#ifdef CONFIG_MSM_MDP31
+#define MDP_PPP_CSC_PRE_BV1n(n)		(0x40500 + (4 * (n)))
+#define MDP_PPP_CSC_PRE_BV2n(n)		(0x40540 + (4 * (n)))
+#define MDP_PPP_CSC_POST_BV1n(n)	(0x40580 + (4 * (n)))
+#define MDP_PPP_CSC_POST_BV2n(n)	(0x405c0 + (4 * (n)))
+
+#define MDP_PPP_CSC_PRE_LV1n(n)		(0x40600 + (4 * (n)))
+#define MDP_PPP_CSC_PRE_LV2n(n)		(0x40640 + (4 * (n)))
+#define MDP_PPP_CSC_POST_LV1n(n)	(0x40680 + (4 * (n)))
+#define MDP_PPP_CSC_POST_LV2n(n)	(0x406c0 + (4 * (n)))
+
+#define MDP_PPP_SCALE_COEFF_D0_SET	(0)
+#define MDP_PPP_SCALE_COEFF_D1_SET	(1)
+#define MDP_PPP_SCALE_COEFF_D2_SET	(2)
+#define MDP_PPP_SCALE_COEFF_U1_SET	(3)
+#define MDP_PPP_SCALE_COEFF_LSBn(n)	(0x50400 + (8 * (n)))
+#define MDP_PPP_SCALE_COEFF_MSBn(n)	(0x50404 + (8 * (n)))
+
+#define MDP_PPP_DEINT_COEFFn(n)		(0x30010 + (4 * (n)))
+
+#define MDP_PPP_SCALER_FIR		(0)
+#define MDP_PPP_SCALER_MN		(1)
+
+#else /* !defined(CONFIG_MSM_MDP31) */
+
+#define MDP_CSC_PBVn(n)			(0x40500 + (4 * (n)))
+#define MDP_CSC_SBVn(n)			(0x40540 + (4 * (n)))
+#define MDP_CSC_PLVn(n)			(0x40580 + (4 * (n)))
+#define MDP_CSC_SLVn(n)			(0x405c0 + (4 * (n)))
+
+#endif
+
 #endif
