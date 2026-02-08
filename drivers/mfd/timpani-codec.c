@@ -3477,7 +3477,7 @@ static int get_parameters(char *buf, long int *param1, int num_of_par)
 			else
 				base = 10;
 
-			if (strict_strtoul(token, base, &param1[cnt]) != 0)
+			if (kstrtoul(token, base, &param1[cnt]) != 0)
 				return -EINVAL;
 
 			token = strsep(&buf, " ");

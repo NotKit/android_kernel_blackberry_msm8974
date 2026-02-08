@@ -70,32 +70,13 @@ tps65912-objs                   := tps65912-core.o tps65912-irq.o
 obj-$(CONFIG_MFD_TPS65912)	+= tps65912.o
 obj-$(CONFIG_MFD_TPS65912_I2C)	+= tps65912-i2c.o
 obj-$(CONFIG_MFD_TPS65912_SPI)  += tps65912-spi.o
-<<<<<<< HEAD
-obj-$(CONFIG_MARIMBA_CODEC)     += marimba-codec.o
-=======
 obj-$(CONFIG_MFD_TPS80031)	+= tps80031.o
->>>>>>> android-3.18
 obj-$(CONFIG_MENELAUS)		+= menelaus.o
 
 obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o twl6030-irq.o
 obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
 obj-$(CONFIG_MFD_TWL4030_AUDIO)	+= twl4030-audio.o
-<<<<<<< HEAD
-
-obj-$(CONFIG_MARIMBA_CORE)	+= marimba-core.o
-obj-$(CONFIG_MARIMBA_TSADC)	+= marimba-tsadc.o
-obj-$(CONFIG_TPS65023)		+= tps65023.o
-
-obj-$(CONFIG_TIMPANI_CODEC)	+= timpani-codec.o
-
-obj-$(CONFIG_TIMPANI_CODEC) += msm-adie-codec.o
-obj-$(CONFIG_MARIMBA_CODEC) += msm-adie-codec.o
-
-obj-$(CONFIG_TWL6030_PWM)	+= twl6030-pwm.o
-obj-$(CONFIG_TWL6040_CORE)	+= twl6040-core.o twl6040-irq.o
-=======
 obj-$(CONFIG_TWL6040_CORE)	+= twl6040.o
->>>>>>> android-3.18
 
 obj-$(CONFIG_MFD_MC13XXX)	+= mc13xxx-core.o
 obj-$(CONFIG_MFD_MC13XXX_SPI)	+= mc13xxx-spi.o
@@ -179,17 +160,9 @@ si476x-core-y := si476x-cmd.o si476x-prop.o si476x-i2c.o
 obj-$(CONFIG_MFD_SI476X_CORE)	+= si476x-core.o
 
 obj-$(CONFIG_MFD_CS5535)	+= cs5535-mfd.o
-<<<<<<< HEAD
-obj-$(CONFIG_MFD_OMAP_USB_HOST)	+= omap-usb-host.o
-obj-$(CONFIG_MFD_PM8921_CORE) 	+= pm8921-core.o
-obj-$(CONFIG_MFD_PM8821_CORE) 	+= pm8821-core.o
-obj-$(CONFIG_MFD_PM8018_CORE) 	+= pm8018-core.o
-obj-$(CONFIG_MFD_PM8XXX_IRQ) 	+= pm8xxx-irq.o
-=======
 obj-$(CONFIG_MFD_OMAP_USB_HOST)	+= omap-usb-host.o omap-usb-tll.o
 obj-$(CONFIG_MFD_PM8921_CORE) 	+= pm8921-core.o ssbi.o
 obj-$(CONFIG_MFD_SPMI_PMIC)	+= qcom-spmi-pmic.o
->>>>>>> android-3.18
 obj-$(CONFIG_TPS65911_COMPARATOR)	+= tps65911-comparator.o
 obj-$(CONFIG_MFD_TPS65090)	+= tps65090.o
 obj-$(CONFIG_MFD_AAT2870_CORE)	+= aat2870-core.o
@@ -197,19 +170,6 @@ obj-$(CONFIG_MFD_INTEL_MSIC)	+= intel_msic.o
 obj-$(CONFIG_MFD_PALMAS)	+= palmas.o
 obj-$(CONFIG_MFD_VIPERBOARD)    += viperboard.o
 obj-$(CONFIG_MFD_RC5T583)	+= rc5t583.o rc5t583-irq.o
-<<<<<<< HEAD
-obj-$(CONFIG_MFD_S5M_CORE)	+= s5m-core.o s5m-irq.o
-obj-$(CONFIG_PMIC8058)		+= pmic8058.o
-obj-$(CONFIG_PMIC8901)		+= pmic8901.o
-obj-$(CONFIG_MFD_PM8038_CORE) 	+= pm8038-core.o
-obj-$(CONFIG_MFD_PM8821_IRQ) 	+= pm8821-irq.o
-obj-$(CONFIG_MFD_PM8XXX_DEBUG) 	+= pm8xxx-debug.o
-obj-$(CONFIG_MFD_PM8XXX_PWM) 	+= pm8xxx-pwm.o
-obj-$(CONFIG_MFD_PM8XXX_MISC) 	+= pm8xxx-misc.o
-obj-$(CONFIG_MFD_PM8XXX_SPK) 	+= pm8xxx-spk.o
-obj-$(CONFIG_MFD_PM8XXX_BATT_ALARM) 	+= pm8xxx-batt-alarm.o
-obj-$(CONFIG_MFD_ANATOP)	+= anatop-mfd.o
-=======
 obj-$(CONFIG_MFD_RK808)		+= rk808.o
 obj-$(CONFIG_MFD_RN5T618)	+= rn5t618.o
 obj-$(CONFIG_MFD_SEC_CORE)	+= sec-core.o sec-irq.o
@@ -226,4 +186,3 @@ obj-$(CONFIG_MFD_HI6421_PMIC)	+= hi6421-pmic-core.o
 
 intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
 obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
->>>>>>> android-3.18
