@@ -572,6 +572,10 @@ static struct sh_eth_cpu_data sh7757_data = {
 	.eesr_err_check	= EESR_TWB | EESR_TABT | EESR_RABT | EESR_RFE |
 			  EESR_RDE | EESR_RFRMER | EESR_TFE | EESR_TDE |
 			  EESR_ECI,
+<<<<<<< HEAD
+	.tx_error_check	= EESR_TWB | EESR_TABT | EESR_TDE | EESR_TFE,
+=======
+>>>>>>> android-3.18
 
 	.irq_flags	= IRQF_SHARED,
 	.apr		= 1,
@@ -643,6 +647,11 @@ static struct sh_eth_cpu_data sh7757_data_giga = {
 	.eesr_err_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_RABT |
 			  EESR_RFE | EESR_RDE | EESR_RFRMER | EESR_TFE |
 			  EESR_TDE | EESR_ECI,
+<<<<<<< HEAD
+	.tx_error_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_TDE | \
+			  EESR_TFE,
+=======
+>>>>>>> android-3.18
 	.fdr_value	= 0x0000072f,
 
 	.irq_flags	= IRQF_SHARED,
@@ -730,8 +739,15 @@ static struct sh_eth_cpu_data sh7763_data = {
 
 	.tx_check	= EESR_TC1 | EESR_FTC,
 	.eesr_err_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_RABT |
+<<<<<<< HEAD
+			  EESR_RFE | EESR_RDE | EESR_RFRMER | EESR_TFE |
+			  EESR_TDE | EESR_ECI,
+	.tx_error_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_TDE | \
+			  EESR_TFE,
+=======
 			  EESR_RDE | EESR_RFRMER | EESR_TFE | EESR_TDE |
 			  EESR_ECI,
+>>>>>>> android-3.18
 
 	.apr		= 1,
 	.mpr		= 1,
@@ -2129,8 +2145,7 @@ static int sh_eth_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	txdesc = &mdp->tx_ring[entry];
 	/* soft swap. */
 	if (!mdp->cd->hw_swap)
-		sh_eth_soft_swap(phys_to_virt(ALIGN(txdesc->addr, 4)),
-				 skb->len + 2);
+		sh_eth_soft_swap(PTR_ALIGN(skb->data, 4), skb->len + 2);
 	txdesc->addr = dma_map_single(&ndev->dev, skb->data, skb->len,
 				      DMA_TO_DEVICE);
 	if (skb->len < ETH_ZLEN)

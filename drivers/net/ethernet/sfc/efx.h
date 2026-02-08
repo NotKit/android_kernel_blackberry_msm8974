@@ -18,6 +18,21 @@
 #define EFX_MEM_BAR 2
 
 /* TX */
+<<<<<<< HEAD
+extern int efx_probe_tx_queue(struct efx_tx_queue *tx_queue);
+extern void efx_remove_tx_queue(struct efx_tx_queue *tx_queue);
+extern void efx_init_tx_queue(struct efx_tx_queue *tx_queue);
+extern void efx_init_tx_queue_core_txq(struct efx_tx_queue *tx_queue);
+extern void efx_fini_tx_queue(struct efx_tx_queue *tx_queue);
+extern void efx_release_tx_buffers(struct efx_tx_queue *tx_queue);
+extern netdev_tx_t
+efx_hard_start_xmit(struct sk_buff *skb, struct net_device *net_dev);
+extern netdev_tx_t
+efx_enqueue_skb(struct efx_tx_queue *tx_queue, struct sk_buff *skb);
+extern void efx_xmit_done(struct efx_tx_queue *tx_queue, unsigned int index);
+extern int efx_setup_tc(struct net_device *net_dev, u8 num_tc);
+extern unsigned int efx_tx_max_skb_descs(struct efx_nic *efx);
+=======
 int efx_probe_tx_queue(struct efx_tx_queue *tx_queue);
 void efx_remove_tx_queue(struct efx_tx_queue *tx_queue);
 void efx_init_tx_queue(struct efx_tx_queue *tx_queue);
@@ -30,6 +45,7 @@ void efx_xmit_done(struct efx_tx_queue *tx_queue, unsigned int index);
 int efx_setup_tc(struct net_device *net_dev, u8 num_tc);
 unsigned int efx_tx_max_skb_descs(struct efx_nic *efx);
 extern unsigned int efx_piobuf_size;
+>>>>>>> android-3.18
 
 /* RX */
 void efx_rx_config_page_split(struct efx_nic *efx);
@@ -65,9 +81,12 @@ void efx_schedule_slow_fill(struct efx_rx_queue *rx_queue);
  */
 #define EFX_RXQ_MIN_ENT		128U
 #define EFX_TXQ_MIN_ENT(efx)	(2 * efx_tx_max_skb_descs(efx))
+<<<<<<< HEAD
+=======
 
 #define EFX_TXQ_MAX_ENT(efx)	(EFX_WORKAROUND_35388(efx) ? \
 				 EFX_MAX_DMAQ_SIZE / 2 : EFX_MAX_DMAQ_SIZE)
+>>>>>>> android-3.18
 
 /* Filters */
 
@@ -238,6 +257,19 @@ static inline void efx_schedule_channel_irq(struct efx_channel *channel)
 void efx_link_status_changed(struct efx_nic *efx);
 void efx_link_set_advertising(struct efx_nic *efx, u32);
 void efx_link_set_wanted_fc(struct efx_nic *efx, u8);
+
+static inline void efx_device_detach_sync(struct efx_nic *efx)
+{
+	struct net_device *dev = efx->net_dev;
+
+	/* Lock/freeze all TX queues so that we can be sure the
+	 * TX scheduler is stopped when we're done and before
+	 * netif_device_present() becomes false.
+	 */
+	netif_tx_lock_bh(dev);
+	netif_device_detach(dev);
+	netif_tx_unlock_bh(dev);
+}
 
 static inline void efx_device_detach_sync(struct efx_nic *efx)
 {

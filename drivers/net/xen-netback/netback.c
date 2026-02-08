@@ -48,12 +48,100 @@
 #include <asm/xen/hypercall.h>
 #include <asm/xen/page.h>
 
+<<<<<<< HEAD
+/*
+ * This is the maximum slots a skb can have. If a guest sends a skb
+ * which exceeds this limit it is considered malicious.
+ */
+#define MAX_SKB_SLOTS_DEFAULT 20
+static unsigned int max_skb_slots = MAX_SKB_SLOTS_DEFAULT;
+module_param(max_skb_slots, uint, 0444);
+
+typedef unsigned int pending_ring_idx_t;
+#define INVALID_PENDING_RING_IDX (~0U)
+
+struct pending_tx_info {
+	struct xen_netif_tx_request req; /* coalesced tx request */
+	struct xenvif *vif;
+	pending_ring_idx_t head; /* head != INVALID_PENDING_RING_IDX
+				  * if it is head of one or more tx
+				  * reqs
+				  */
+};
+
+struct netbk_rx_meta {
+	int id;
+	int size;
+	int gso_size;
+};
+
+#define MAX_PENDING_REQS 256
+
+/* Discriminate from any valid pending_idx value. */
+#define INVALID_PENDING_IDX 0xFFFF
+
+#define MAX_BUFFER_OFFSET PAGE_SIZE
+
+/* extra field used in struct page */
+union page_ext {
+	struct {
+#if BITS_PER_LONG < 64
+#define IDX_WIDTH   8
+#define GROUP_WIDTH (BITS_PER_LONG - IDX_WIDTH)
+		unsigned int group:GROUP_WIDTH;
+		unsigned int idx:IDX_WIDTH;
+#else
+		unsigned int group, idx;
+#endif
+	} e;
+	void *mapping;
+};
+
+struct xen_netbk {
+	wait_queue_head_t wq;
+	struct task_struct *task;
+
+	struct sk_buff_head rx_queue;
+	struct sk_buff_head tx_queue;
+
+	struct timer_list net_timer;
+
+	struct page *mmap_pages[MAX_PENDING_REQS];
+
+	pending_ring_idx_t pending_prod;
+	pending_ring_idx_t pending_cons;
+	struct list_head net_schedule_list;
+
+	/* Protect the net_schedule_list in netif. */
+	spinlock_t net_schedule_list_lock;
+
+	atomic_t netfront_count;
+
+	struct pending_tx_info pending_tx_info[MAX_PENDING_REQS];
+	/* Coalescing tx requests before copying makes number of grant
+	 * copy ops greater or equal to number of slots required. In
+	 * worst case a tx request consumes 2 gnttab_copy.
+	 */
+	struct gnttab_copy tx_copy_ops[2*MAX_PENDING_REQS];
+
+	u16 pending_ring[MAX_PENDING_REQS];
+
+	/*
+	 * Given MAX_BUFFER_OFFSET of 4096 the worst case is that each
+	 * head/fragment page uses 2 copy operations because it
+	 * straddles two buffers in the frontend.
+	 */
+	struct gnttab_copy grant_copy_op[2*XEN_NETIF_RX_RING_SIZE];
+	struct netbk_rx_meta meta[2*XEN_NETIF_RX_RING_SIZE];
+};
+=======
 /* Provide an option to disable split event channels at load time as
  * event channels are limited resource. Split event channels are
  * enabled by default.
  */
 bool separate_tx_rx_irq = 1;
 module_param(separate_tx_rx_irq, bool, 0644);
+>>>>>>> android-3.18
 
 /* The time that packets can stay on the guest Rx internal queue
  * before they are dropped.
@@ -61,11 +149,39 @@ module_param(separate_tx_rx_irq, bool, 0644);
 unsigned int rx_drain_timeout_msecs = 10000;
 module_param(rx_drain_timeout_msecs, uint, 0444);
 
+<<<<<<< HEAD
+/*
+ * If head != INVALID_PENDING_RING_IDX, it means this tx request is head of
+ * one or more merged tx requests, otherwise it is the continuation of
+ * previous tx request.
+ */
+static inline int pending_tx_is_head(struct xen_netbk *netbk, RING_IDX idx)
+{
+	return netbk->pending_tx_info[idx].head != INVALID_PENDING_RING_IDX;
+}
+
+void xen_netbk_add_xenvif(struct xenvif *vif)
+{
+	int i;
+	int min_netfront_count;
+	int min_group = 0;
+	struct xen_netbk *netbk;
+
+	min_netfront_count = atomic_read(&xen_netbk[0].netfront_count);
+	for (i = 0; i < xen_netbk_group_nr; i++) {
+		int netfront_count = atomic_read(&xen_netbk[i].netfront_count);
+		if (netfront_count < min_netfront_count) {
+			min_group = i;
+			min_netfront_count = netfront_count;
+		}
+	}
+=======
 /* The length of time before the frontend is considered unresponsive
  * because it isn't providing Rx slots.
  */
 unsigned int rx_stall_timeout_msecs = 60000;
 module_param(rx_stall_timeout_msecs, uint, 0444);
+>>>>>>> android-3.18
 
 #define MAX_QUEUES_DEFAULT 8
 unsigned int xenvif_max_queues;
@@ -84,7 +200,13 @@ module_param(fatal_skb_slots, uint, 0444);
 static void xenvif_idx_release(struct xenvif_queue *queue, u16 pending_idx,
 			       u8 status);
 
+<<<<<<< HEAD
+static void xen_netbk_idx_release(struct xen_netbk *netbk, u16 pending_idx,
+				  u8 status);
+static void make_tx_response(struct xenvif *vif,
+=======
 static void make_tx_response(struct xenvif_queue *queue,
+>>>>>>> android-3.18
 			     struct xen_netif_tx_request *txp,
 			     s8       st);
 
@@ -187,7 +309,13 @@ static struct sk_buff *xenvif_rx_dequeue(struct xenvif_queue *queue)
 {
 	struct sk_buff *skb;
 
+<<<<<<< HEAD
+	/* XXX FIXME: RX path dependent on MAX_SKB_FRAGS */
+	if (vif->can_sg || vif->gso || vif->gso_prefix)
+		max += MAX_SKB_FRAGS + 1; /* extra_info + frags */
+=======
 	spin_lock_irq(&queue->rx_queue.lock);
+>>>>>>> android-3.18
 
 	skb = __skb_dequeue(&queue->rx_queue);
 	if (skb)
@@ -269,8 +397,12 @@ static bool start_new_rx_buffer(int offset, unsigned long size, int head,
 	 * own buffers as before.
 	 */
 	BUG_ON(size > MAX_BUFFER_OFFSET);
+<<<<<<< HEAD
+	if ((offset + size > MAX_BUFFER_OFFSET) && offset && !head)
+=======
 	if ((offset + size > MAX_BUFFER_OFFSET) && offset && !head &&
 	    !full_coalesce)
+>>>>>>> android-3.18
 		return true;
 
 	return false;
@@ -288,19 +420,26 @@ struct netrx_pending_operations {
 static struct xenvif_rx_meta *get_next_rx_buffer(struct xenvif_queue *queue,
 						 struct netrx_pending_operations *npo)
 {
+<<<<<<< HEAD
+	struct netbk_rx_meta *meta;
+	struct xen_netif_rx_request req;
+
+	RING_COPY_REQUEST(&vif->rx, vif->rx.req_cons++, &req);
+=======
 	struct xenvif_rx_meta *meta;
 	struct xen_netif_rx_request *req;
 
 	req = RING_GET_REQUEST(&queue->rx, queue->rx.req_cons++);
+>>>>>>> android-3.18
 
 	meta = npo->meta + npo->meta_prod++;
 	meta->gso_type = XEN_NETIF_GSO_TYPE_NONE;
 	meta->gso_size = 0;
 	meta->size = 0;
-	meta->id = req->id;
+	meta->id = req.id;
 
 	npo->copy_off = 0;
-	npo->copy_gref = req->gref;
+	npo->copy_gref = req.gref;
 
 	return meta;
 }
@@ -451,8 +590,13 @@ static int xenvif_gop_skb(struct sk_buff *skb,
 	struct xenvif *vif = netdev_priv(skb->dev);
 	int nr_frags = skb_shinfo(skb)->nr_frags;
 	int i;
+<<<<<<< HEAD
+	struct xen_netif_rx_request req;
+	struct netbk_rx_meta *meta;
+=======
 	struct xen_netif_rx_request *req;
 	struct xenvif_rx_meta *meta;
+>>>>>>> android-3.18
 	unsigned char *data;
 	int head = 1;
 	int old_meta_prod;
@@ -471,16 +615,25 @@ static int xenvif_gop_skb(struct sk_buff *skb,
 	}
 
 	/* Set up a GSO prefix descriptor, if necessary */
+<<<<<<< HEAD
+	if (skb_shinfo(skb)->gso_size && vif->gso_prefix) {
+		RING_COPY_REQUEST(&vif->rx, vif->rx.req_cons++, &req);
+=======
 	if ((1 << gso_type) & vif->gso_prefix_mask) {
 		req = RING_GET_REQUEST(&queue->rx, queue->rx.req_cons++);
+>>>>>>> android-3.18
 		meta = npo->meta + npo->meta_prod++;
 		meta->gso_type = gso_type;
 		meta->gso_size = skb_shinfo(skb)->gso_size;
 		meta->size = 0;
-		meta->id = req->id;
+		meta->id = req.id;
 	}
 
+<<<<<<< HEAD
+	RING_COPY_REQUEST(&vif->rx, vif->rx.req_cons++, &req);
+=======
 	req = RING_GET_REQUEST(&queue->rx, queue->rx.req_cons++);
+>>>>>>> android-3.18
 	meta = npo->meta + npo->meta_prod++;
 
 	if ((1 << gso_type) & vif->gso_mask) {
@@ -492,9 +645,9 @@ static int xenvif_gop_skb(struct sk_buff *skb,
 	}
 
 	meta->size = 0;
-	meta->id = req->id;
+	meta->id = req.id;
 	npo->copy_off = 0;
-	npo->copy_gref = req->gref;
+	npo->copy_gref = req.gref;
 
 	data = skb->data;
 	while (data < skb_tail_pointer(skb)) {
@@ -671,6 +824,12 @@ static void xenvif_rx_action(struct xenvif_queue *queue)
 			size = skb_frag_size(&skb_shinfo(skb)->frags[i]);
 			offset = skb_shinfo(skb)->frags[i].page_offset;
 
+<<<<<<< HEAD
+		/* Filled the batch queue? */
+		/* XXX FIXME: RX path dependent on MAX_SKB_FRAGS */
+		if (count + MAX_SKB_FRAGS >= XEN_NETIF_RX_RING_SIZE)
+			break;
+=======
 			/* For a worse-case estimate we need to factor in
 			 * the fragment page offset as this will affect the
 			 * number of times xenvif_gop_frag_copy() will
@@ -705,6 +864,7 @@ static void xenvif_rx_action(struct xenvif_queue *queue)
 		BUG_ON(ring_slots_used > max_slots_needed);
 
 		__skb_queue_tail(&rxq, skb);
+>>>>>>> android-3.18
 	}
 
 	BUG_ON(npo.meta_prod > ARRAY_SIZE(queue->meta));
@@ -810,9 +970,13 @@ static void tx_add_credit(struct xenvif_queue *queue)
 	 * Allow a burst big enough to transmit a jumbo packet of up to 128kB.
 	 * Otherwise the interface can seize up due to insufficient credit.
 	 */
+<<<<<<< HEAD
+	max_burst = max(131072UL, vif->credit_bytes);
+=======
 	max_burst = RING_GET_REQUEST(&queue->tx, queue->tx.req_cons)->size;
 	max_burst = min(max_burst, 131072UL);
 	max_burst = max(max_burst, queue->credit_bytes);
+>>>>>>> android-3.18
 
 	/* Take care that adding a new chunk of credit doesn't wrap to zero. */
 	max_credit = queue->remaining_credit + queue->credit_bytes;
@@ -837,16 +1001,41 @@ static void xenvif_tx_err(struct xenvif_queue *queue,
 	unsigned long flags;
 
 	do {
+<<<<<<< HEAD
+		make_tx_response(vif, txp, XEN_NETIF_RSP_ERROR);
+		if (cons == end)
+			break;
+		RING_COPY_REQUEST(&vif->tx, cons++, txp);
+=======
 		spin_lock_irqsave(&queue->response_lock, flags);
 		make_tx_response(queue, txp, XEN_NETIF_RSP_ERROR);
 		spin_unlock_irqrestore(&queue->response_lock, flags);
 		if (cons == end)
 			break;
 		txp = RING_GET_REQUEST(&queue->tx, cons++);
+>>>>>>> android-3.18
 	} while (1);
 	queue->tx.req_cons = cons;
 }
 
+<<<<<<< HEAD
+static void netbk_fatal_tx_err(struct xenvif *vif)
+{
+	netdev_err(vif->dev, "fatal error; disabling device\n");
+	xenvif_carrier_off(vif);
+	xenvif_put(vif);
+}
+
+static int netbk_count_requests(struct xenvif *vif,
+				struct xen_netif_tx_request *first,
+				RING_IDX first_idx,
+				struct xen_netif_tx_request *txp,
+				int work_to_do)
+{
+	RING_IDX cons = vif->tx.req_cons;
+	int slots = 0;
+	int drop_err = 0;
+=======
 static void xenvif_fatal_tx_err(struct xenvif *vif)
 {
 	netdev_err(vif->dev, "fatal error; disabling device\n");
@@ -865,11 +1054,19 @@ static int xenvif_count_requests(struct xenvif_queue *queue,
 	int slots = 0;
 	int drop_err = 0;
 	int more_data;
+>>>>>>> android-3.18
 
 	if (!(first->flags & XEN_NETTXF_more_data))
 		return 0;
 
 	do {
+<<<<<<< HEAD
+		if (slots >= work_to_do) {
+			netdev_err(vif->dev,
+				   "Asked for %d slots but exceeds this limit\n",
+				   work_to_do);
+			netbk_fatal_tx_err(vif);
+=======
 		struct xen_netif_tx_request dropped_tx = { 0 };
 
 		if (slots >= work_to_do) {
@@ -877,21 +1074,46 @@ static int xenvif_count_requests(struct xenvif_queue *queue,
 				   "Asked for %d slots but exceeds this limit\n",
 				   work_to_do);
 			xenvif_fatal_tx_err(queue->vif);
+>>>>>>> android-3.18
 			return -ENODATA;
 		}
 
 		/* This guest is really using too many slots and
 		 * considered malicious.
 		 */
+<<<<<<< HEAD
+		if (unlikely(slots >= max_skb_slots)) {
+			netdev_err(vif->dev,
+				   "Malicious frontend using %d slots, threshold %u\n",
+				   slots, max_skb_slots);
+			netbk_fatal_tx_err(vif);
+=======
 		if (unlikely(slots >= fatal_skb_slots)) {
 			netdev_err(queue->vif->dev,
 				   "Malicious frontend using %d slots, threshold %u\n",
 				   slots, fatal_skb_slots);
 			xenvif_fatal_tx_err(queue->vif);
+>>>>>>> android-3.18
 			return -E2BIG;
 		}
 
 		/* Xen network protocol had implicit dependency on
+<<<<<<< HEAD
+		 * MAX_SKB_FRAGS. XEN_NETIF_NR_SLOTS_MIN is set to the
+		 * historical MAX_SKB_FRAGS value 18 to honor the same
+		 * behavior as before. Any packet using more than 18
+		 * slots but less than max_skb_slots slots is dropped
+		 */
+		if (!drop_err && slots >= XEN_NETIF_NR_SLOTS_MIN) {
+			if (net_ratelimit())
+				netdev_dbg(vif->dev,
+					   "Too many slots (%d) exceeding limit (%d), dropping packet\n",
+					   slots, XEN_NETIF_NR_SLOTS_MIN);
+			drop_err = -E2BIG;
+		}
+
+		RING_COPY_REQUEST(&vif->tx, cons + slots, txp);
+=======
 		 * MAX_SKB_FRAGS. XEN_NETBK_LEGACY_SLOTS_MAX is set to
 		 * the historical MAX_SKB_FRAGS value 18 to honor the
 		 * same behavior as before. Any packet using more than
@@ -911,6 +1133,7 @@ static int xenvif_count_requests(struct xenvif_queue *queue,
 
 		memcpy(txp, RING_GET_REQUEST(&queue->tx, cons + slots),
 		       sizeof(*txp));
+>>>>>>> android-3.18
 
 		/* If the guest submitted a frame >= 64 KiB then
 		 * first->size overflowed and following slots will
@@ -923,7 +1146,11 @@ static int xenvif_count_requests(struct xenvif_queue *queue,
 		 */
 		if (!drop_err && txp->size > first->size) {
 			if (net_ratelimit())
+<<<<<<< HEAD
+				netdev_dbg(vif->dev,
+=======
 				netdev_dbg(queue->vif->dev,
+>>>>>>> android-3.18
 					   "Invalid tx request, slot size %u > remaining size %u\n",
 					   txp->size, first->size);
 			drop_err = -EIO;
@@ -933,6 +1160,17 @@ static int xenvif_count_requests(struct xenvif_queue *queue,
 		slots++;
 
 		if (unlikely((txp->offset + txp->size) > PAGE_SIZE)) {
+<<<<<<< HEAD
+			netdev_err(vif->dev, "Cross page boundary, txp->offset: %x, size: %u\n",
+				 txp->offset, txp->size);
+			netbk_fatal_tx_err(vif);
+			return -EINVAL;
+		}
+	} while ((txp++)->flags & XEN_NETTXF_more_data);
+
+	if (drop_err) {
+		netbk_tx_err(vif, first, first_idx + slots);
+=======
 			netdev_err(queue->vif->dev, "Cross page boundary, txp->offset: %x, size: %u\n",
 				 txp->offset, txp->size);
 			xenvif_fatal_tx_err(queue->vif);
@@ -948,12 +1186,17 @@ static int xenvif_count_requests(struct xenvif_queue *queue,
 
 	if (drop_err) {
 		xenvif_tx_err(queue, first, cons + slots);
+>>>>>>> android-3.18
 		return drop_err;
 	}
 
 	return slots;
 }
 
+<<<<<<< HEAD
+static struct page *xen_netbk_alloc_page(struct xen_netbk *netbk,
+					 u16 pending_idx)
+=======
 
 struct xenvif_tx_cb {
 	u16 pending_idx;
@@ -976,6 +1219,7 @@ static inline void xenvif_tx_create_map_op(struct xenvif_queue *queue,
 }
 
 static inline struct sk_buff *xenvif_alloc_skb(unsigned int size)
+>>>>>>> android-3.18
 {
 	struct sk_buff *skb =
 		alloc_skb(size + NET_SKB_PAD + NET_IP_ALIGN,
@@ -999,6 +1243,20 @@ static struct gnttab_map_grant_ref *xenvif_get_requests(struct xenvif_queue *que
 {
 	struct skb_shared_info *shinfo = skb_shinfo(skb);
 	skb_frag_t *frags = shinfo->frags;
+<<<<<<< HEAD
+	u16 pending_idx = *((u16 *)skb->data);
+	u16 head_idx = 0;
+	int slot, start;
+	struct page *page;
+	pending_ring_idx_t index, start_idx = 0;
+	uint16_t dst_offset;
+	unsigned int nr_slots;
+	struct pending_tx_info *first = NULL;
+
+	/* At this point shinfo->nr_frags is in fact the number of
+	 * slots, which can be as large as XEN_NETIF_NR_SLOTS_MIN.
+	 */
+=======
 	u16 pending_idx = XENVIF_TX_CB(skb)->pending_idx;
 	int start;
 	pending_ring_idx_t index;
@@ -1012,11 +1270,112 @@ static struct gnttab_map_grant_ref *xenvif_get_requests(struct xenvif_queue *que
 		BUG_ON(frag_overflow > MAX_SKB_FRAGS);
 		shinfo->nr_frags = MAX_SKB_FRAGS;
 	}
+>>>>>>> android-3.18
 	nr_slots = shinfo->nr_frags;
 
 	/* Skip first skb fragment if it is on same page as header fragment. */
 	start = (frag_get_pending_idx(&shinfo->frags[0]) == pending_idx);
 
+<<<<<<< HEAD
+	/* Coalesce tx requests, at this point the packet passed in
+	 * should be <= 64K. Any packets larger than 64K have been
+	 * handled in netbk_count_requests().
+	 */
+	for (shinfo->nr_frags = slot = start; slot < nr_slots;
+	     shinfo->nr_frags++) {
+		struct pending_tx_info *pending_tx_info =
+			netbk->pending_tx_info;
+
+		page = alloc_page(GFP_KERNEL|__GFP_COLD);
+		if (!page)
+			goto err;
+
+		dst_offset = 0;
+		first = NULL;
+		while (dst_offset < PAGE_SIZE && slot < nr_slots) {
+			gop->flags = GNTCOPY_source_gref;
+
+			gop->source.u.ref = txp->gref;
+			gop->source.domid = vif->domid;
+			gop->source.offset = txp->offset;
+
+			gop->dest.domid = DOMID_SELF;
+
+			gop->dest.offset = dst_offset;
+			gop->dest.u.gmfn = virt_to_mfn(page_address(page));
+
+			if (dst_offset + txp->size > PAGE_SIZE) {
+				/* This page can only merge a portion
+				 * of tx request. Do not increment any
+				 * pointer / counter here. The txp
+				 * will be dealt with in future
+				 * rounds, eventually hitting the
+				 * `else` branch.
+				 */
+				gop->len = PAGE_SIZE - dst_offset;
+				txp->offset += gop->len;
+				txp->size -= gop->len;
+				dst_offset += gop->len; /* quit loop */
+			} else {
+				/* This tx request can be merged in the page */
+				gop->len = txp->size;
+				dst_offset += gop->len;
+
+				index = pending_index(netbk->pending_cons++);
+
+				pending_idx = netbk->pending_ring[index];
+
+				memcpy(&pending_tx_info[pending_idx].req, txp,
+				       sizeof(*txp));
+				xenvif_get(vif);
+
+				pending_tx_info[pending_idx].vif = vif;
+
+				/* Poison these fields, corresponding
+				 * fields for head tx req will be set
+				 * to correct values after the loop.
+				 */
+				netbk->mmap_pages[pending_idx] = (void *)(~0UL);
+				pending_tx_info[pending_idx].head =
+					INVALID_PENDING_RING_IDX;
+
+				if (!first) {
+					first = &pending_tx_info[pending_idx];
+					start_idx = index;
+					head_idx = pending_idx;
+				}
+
+				txp++;
+				slot++;
+			}
+
+			gop++;
+		}
+
+		first->req.offset = 0;
+		first->req.size = dst_offset;
+		first->head = start_idx;
+		set_page_ext(page, netbk, head_idx);
+		netbk->mmap_pages[head_idx] = page;
+		frag_set_pending_idx(&frags[shinfo->nr_frags], head_idx);
+	}
+
+	BUG_ON(shinfo->nr_frags > MAX_SKB_FRAGS);
+
+	return gop;
+err:
+	/* Unwind, freeing all pages and sending error responses. */
+	while (shinfo->nr_frags-- > start) {
+		xen_netbk_idx_release(netbk,
+				frag_get_pending_idx(&frags[shinfo->nr_frags]),
+				XEN_NETIF_RSP_ERROR);
+	}
+	/* The head too, if necessary. */
+	if (start)
+		xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_ERROR);
+
+	return NULL;
+=======
 	for (shinfo->nr_frags = start; shinfo->nr_frags < nr_slots;
 	     shinfo->nr_frags++, txp++, gop++) {
 		index = pending_index(queue->pending_cons++);
@@ -1077,6 +1436,7 @@ static inline void xenvif_grant_handle_reset(struct xenvif_queue *queue,
 		BUG();
 	}
 	queue->grant_tx_handle[pending_idx] = NETBACK_INVALID_HANDLE;
+>>>>>>> android-3.18
 }
 
 static int xenvif_tx_check_gop(struct xenvif_queue *queue,
@@ -1084,6 +1444,20 @@ static int xenvif_tx_check_gop(struct xenvif_queue *queue,
 			       struct gnttab_map_grant_ref **gopp_map,
 			       struct gnttab_copy **gopp_copy)
 {
+<<<<<<< HEAD
+	struct gnttab_copy *gop = *gopp;
+	u16 pending_idx = *((u16 *)skb->data);
+	struct skb_shared_info *shinfo = skb_shinfo(skb);
+	struct pending_tx_info *tx_info;
+	int nr_frags = shinfo->nr_frags;
+	int i, err, start;
+	u16 peek; /* peek into next tx request */
+
+	/* Check status of header. */
+	err = gop->status;
+	if (unlikely(err))
+		xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_ERROR);
+=======
 	struct gnttab_map_grant_ref *gop_map = *gopp_map;
 	u16 pending_idx = XENVIF_TX_CB(skb)->pending_idx;
 	/* This always points to the shinfo of the skb being checked, which
@@ -1114,21 +1488,41 @@ static int xenvif_tx_check_gop(struct xenvif_queue *queue,
 					   XEN_NETIF_RSP_ERROR);
 	}
 	(*gopp_copy)++;
+>>>>>>> android-3.18
 
 check_frags:
 	for (i = 0; i < nr_frags; i++, gop_map++) {
 		int j, newerr;
+<<<<<<< HEAD
+		pending_ring_idx_t head;
+=======
+>>>>>>> android-3.18
 
 		pending_idx = frag_get_pending_idx(&shinfo->frags[i]);
+		tx_info = &netbk->pending_tx_info[pending_idx];
+		head = tx_info->head;
 
 		/* Check error status: if okay then remember grant handle. */
+<<<<<<< HEAD
+		do {
+			newerr = (++gop)->status;
+			if (newerr)
+				break;
+			peek = netbk->pending_ring[pending_index(++head)];
+		} while (!pending_tx_is_head(netbk, peek));
+=======
 		newerr = gop_map->status;
+>>>>>>> android-3.18
 
 		if (likely(!newerr)) {
 			xenvif_grant_handle_set(queue,
 						pending_idx,
 						gop_map->handle);
 			/* Had a previous error? Invalidate this fragment. */
+<<<<<<< HEAD
+			if (unlikely(err))
+				xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_OKAY);
+=======
 			if (unlikely(err)) {
 				xenvif_idx_unmap(queue, pending_idx);
 				/* If the mapping of the first frag was OK, but
@@ -1142,10 +1536,14 @@ check_frags:
 					xenvif_idx_release(queue, pending_idx,
 							   XEN_NETIF_RSP_OKAY);
 			}
+>>>>>>> android-3.18
 			continue;
 		}
 
 		/* Error on this fragment: respond to client with an error. */
+<<<<<<< HEAD
+		xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_ERROR);
+=======
 		if (net_ratelimit())
 			netdev_dbg(queue->vif->dev,
 				   "Grant map of %d. frag failed! status: %d pending_idx: %u ref: %u\n",
@@ -1155,11 +1553,20 @@ check_frags:
 				   gop_map->ref);
 
 		xenvif_idx_release(queue, pending_idx, XEN_NETIF_RSP_ERROR);
+>>>>>>> android-3.18
 
 		/* Not the first error? Preceding frags already invalidated. */
 		if (err)
 			continue;
 
+<<<<<<< HEAD
+		/* First error: invalidate header and preceding fragments. */
+		pending_idx = *((u16 *)skb->data);
+		xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_OKAY);
+		for (j = start; j < i; j++) {
+			pending_idx = frag_get_pending_idx(&shinfo->frags[j]);
+			xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_OKAY);
+=======
 		/* First error: if the header haven't shared a slot with the
 		 * first frag, release it as well.
 		 */
@@ -1186,6 +1593,7 @@ check_frags:
 				xenvif_idx_release(queue, pending_idx,
 						   XEN_NETIF_RSP_OKAY);
 			}
+>>>>>>> android-3.18
 		}
 
 		/* Remember the error: invalidate all subsequent fragments. */
@@ -1237,8 +1645,14 @@ static void xenvif_fill_frags(struct xenvif_queue *queue, struct sk_buff *skb)
 		skb->data_len += txp->size;
 		skb->truesize += txp->size;
 
+<<<<<<< HEAD
+		/* Take an extra reference to offset xen_netbk_idx_release */
+		get_page(netbk->mmap_pages[pending_idx]);
+		xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_OKAY);
+=======
 		/* Take an extra reference to offset network stack's put_page */
 		get_page(queue->mmap_pages[pending_idx]);
+>>>>>>> android-3.18
 	}
 	/* FIXME: __skb_fill_page_desc set this to true because page->pfmemalloc
 	 * overlaps with "index", and "mapping" is not set. I think mapping
@@ -1257,6 +1671,20 @@ static int xenvif_get_extras(struct xenvif_queue *queue,
 
 	do {
 		if (unlikely(work_to_do-- <= 0)) {
+<<<<<<< HEAD
+			netdev_err(vif->dev, "Missing extra info\n");
+			netbk_fatal_tx_err(vif);
+			return -EBADR;
+		}
+
+		RING_COPY_REQUEST(&vif->tx, cons, &extra);
+		if (unlikely(!extra.type ||
+			     extra.type >= XEN_NETIF_EXTRA_TYPE_MAX)) {
+			vif->tx.req_cons = ++cons;
+			netdev_err(vif->dev,
+				   "Invalid extra type: %d\n", extra.type);
+			netbk_fatal_tx_err(vif);
+=======
 			netdev_err(queue->vif->dev, "Missing extra info\n");
 			xenvif_fatal_tx_err(queue->vif);
 			return -EBADR;
@@ -1270,6 +1698,7 @@ static int xenvif_get_extras(struct xenvif_queue *queue,
 			netdev_err(queue->vif->dev,
 				   "Invalid extra type: %d\n", extra.type);
 			xenvif_fatal_tx_err(queue->vif);
+>>>>>>> android-3.18
 			return -EINVAL;
 		}
 
@@ -1286,6 +1715,16 @@ static int xenvif_set_skb_gso(struct xenvif *vif,
 {
 	if (!gso->u.gso.size) {
 		netdev_err(vif->dev, "GSO size must not be zero.\n");
+<<<<<<< HEAD
+		netbk_fatal_tx_err(vif);
+		return -EINVAL;
+	}
+
+	/* Currently only TCPv4 S.O. is supported. */
+	if (gso->u.gso.type != XEN_NETIF_GSO_TYPE_TCPV4) {
+		netdev_err(vif->dev, "Bad GSO type %d.\n", gso->u.gso.type);
+		netbk_fatal_tx_err(vif);
+=======
 		xenvif_fatal_tx_err(vif);
 		return -EINVAL;
 	}
@@ -1300,6 +1739,7 @@ static int xenvif_set_skb_gso(struct xenvif *vif,
 	default:
 		netdev_err(vif->dev, "Bad GSO type %d.\n", gso->u.gso.type);
 		xenvif_fatal_tx_err(vif);
+>>>>>>> android-3.18
 		return -EINVAL;
 	}
 
@@ -1334,8 +1774,13 @@ static int checksum_setup(struct xenvif_queue *queue, struct sk_buff *skb)
 static bool tx_credit_exceeded(struct xenvif_queue *queue, unsigned size)
 {
 	u64 now = get_jiffies_64();
+<<<<<<< HEAD
+	u64 next_credit = vif->credit_window_start +
+		msecs_to_jiffies(vif->credit_usec / 1000);
+=======
 	u64 next_credit = queue->credit_window_start +
 		msecs_to_jiffies(queue->credit_usec / 1000);
+>>>>>>> android-3.18
 
 	/* Timer could already be pending in rare cases. */
 	if (timer_pending(&queue->credit_timeout)) {
@@ -1345,8 +1790,13 @@ static bool tx_credit_exceeded(struct xenvif_queue *queue, unsigned size)
 
 	/* Passed the point where we can replenish credit? */
 	if (time_after_eq64(now, next_credit)) {
+<<<<<<< HEAD
+		vif->credit_window_start = now;
+		tx_add_credit(vif);
+=======
 		queue->credit_window_start = now;
 		tx_add_credit(queue);
+>>>>>>> android-3.18
 	}
 
 	/* Still too big to send right now? Set a callback. */
@@ -1357,8 +1807,12 @@ static bool tx_credit_exceeded(struct xenvif_queue *queue, unsigned size)
 			tx_credit_callback;
 		mod_timer(&queue->credit_timeout,
 			  next_credit);
+<<<<<<< HEAD
+		vif->credit_window_start = next_credit;
+=======
 		queue->credit_window_start = next_credit;
 		queue->rate_limited = true;
+>>>>>>> android-3.18
 
 		return true;
 	}
@@ -1375,9 +1829,19 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 	struct sk_buff *skb;
 	int ret;
 
+<<<<<<< HEAD
+	while ((nr_pending_reqs(netbk) + XEN_NETIF_NR_SLOTS_MIN
+		< MAX_PENDING_REQS) &&
+		!list_empty(&netbk->net_schedule_list)) {
+		struct xenvif *vif;
+		struct xen_netif_tx_request txreq;
+		struct xen_netif_tx_request txfrags[max_skb_slots];
+		struct page *page;
+=======
 	while (skb_queue_len(&queue->tx_queue) < budget) {
 		struct xen_netif_tx_request txreq;
 		struct xen_netif_tx_request txfrags[XEN_NETBK_LEGACY_SLOTS_MAX];
+>>>>>>> android-3.18
 		struct xen_netif_extra_info extras[XEN_NETIF_EXTRA_TYPE_MAX-1];
 		u16 pending_idx;
 		RING_IDX idx;
@@ -1385,6 +1849,33 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 		unsigned int data_len;
 		pending_ring_idx_t index;
 
+<<<<<<< HEAD
+		/* Get a netif from the list with work to do. */
+		vif = poll_net_schedule_list(netbk);
+		/* This can sometimes happen because the test of
+		 * list_empty(net_schedule_list) at the top of the
+		 * loop is unlocked.  Just go back and have another
+		 * look.
+		 */
+		if (!vif)
+			continue;
+
+		if (vif->tx.sring->req_prod - vif->tx.req_cons >
+		    XEN_NETIF_TX_RING_SIZE) {
+			netdev_err(vif->dev,
+				   "Impossible number of requests. "
+				   "req_prod %d, req_cons %d, size %ld\n",
+				   vif->tx.sring->req_prod, vif->tx.req_cons,
+				   XEN_NETIF_TX_RING_SIZE);
+			netbk_fatal_tx_err(vif);
+			continue;
+		}
+
+		RING_FINAL_CHECK_FOR_REQUESTS(&vif->tx, work_to_do);
+		if (!work_to_do) {
+			xenvif_put(vif);
+			continue;
+=======
 		if (queue->tx.sring->req_prod - queue->tx.req_cons >
 		    XEN_NETIF_TX_RING_SIZE) {
 			netdev_err(queue->vif->dev,
@@ -1394,6 +1885,7 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 				   XEN_NETIF_TX_RING_SIZE);
 			xenvif_fatal_tx_err(queue->vif);
 			break;
+>>>>>>> android-3.18
 		}
 
 		work_to_do = RING_HAS_UNCONSUMED_REQUESTS(&queue->tx);
@@ -1402,7 +1894,11 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 
 		idx = queue->tx.req_cons;
 		rmb(); /* Ensure that we see the request before we copy it. */
+<<<<<<< HEAD
+		RING_COPY_REQUEST(&vif->tx, idx, &txreq);
+=======
 		memcpy(&txreq, RING_GET_REQUEST(&queue->tx, idx), sizeof(txreq));
+>>>>>>> android-3.18
 
 		/* Credit-based scheduling. */
 		if (txreq.size > queue->remaining_credit &&
@@ -1416,6 +1912,19 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 
 		memset(extras, 0, sizeof(extras));
 		if (txreq.flags & XEN_NETTXF_extra_info) {
+<<<<<<< HEAD
+			work_to_do = xen_netbk_get_extras(vif, extras,
+							  work_to_do);
+			idx = vif->tx.req_cons;
+			if (unlikely(work_to_do < 0))
+				continue;
+		}
+
+		ret = netbk_count_requests(vif, &txreq, idx,
+					   txfrags, work_to_do);
+		if (unlikely(ret < 0))
+			continue;
+=======
 			work_to_do = xenvif_get_extras(queue, extras,
 						       work_to_do);
 			idx = queue->tx.req_cons;
@@ -1426,6 +1935,7 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 		ret = xenvif_count_requests(queue, &txreq, txfrags, work_to_do);
 		if (unlikely(ret < 0))
 			break;
+>>>>>>> android-3.18
 
 		idx += ret;
 
@@ -1438,19 +1948,32 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 
 		/* No crossing a page as the payload mustn't fragment. */
 		if (unlikely((txreq.offset + txreq.size) > PAGE_SIZE)) {
+<<<<<<< HEAD
+			netdev_err(vif->dev,
+				   "txreq.offset: %x, size: %u, end: %lu\n",
+				   txreq.offset, txreq.size,
+				   (txreq.offset&~PAGE_MASK) + txreq.size);
+			netbk_fatal_tx_err(vif);
+			continue;
+=======
 			netdev_err(queue->vif->dev,
 				   "txreq.offset: %x, size: %u, end: %lu\n",
 				   txreq.offset, txreq.size,
 				   (txreq.offset&~PAGE_MASK) + txreq.size);
 			xenvif_fatal_tx_err(queue->vif);
 			break;
+>>>>>>> android-3.18
 		}
 
 		index = pending_index(queue->pending_cons);
 		pending_idx = queue->pending_ring[index];
 
 		data_len = (txreq.size > PKT_PROT_LEN &&
+<<<<<<< HEAD
+			    ret < XEN_NETIF_NR_SLOTS_MIN) ?
+=======
 			    ret < XEN_NETBK_LEGACY_SLOTS_MAX) ?
+>>>>>>> android-3.18
 			PKT_PROT_LEN : txreq.size;
 
 		skb = xenvif_alloc_skb(data_len);
@@ -1465,6 +1988,26 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 			struct xen_netif_extra_info *gso;
 			gso = &extras[XEN_NETIF_EXTRA_TYPE_GSO - 1];
 
+<<<<<<< HEAD
+			if (netbk_set_skb_gso(vif, skb, gso)) {
+				/* Failure in netbk_set_skb_gso is fatal. */
+				kfree_skb(skb);
+				continue;
+			}
+		}
+
+		/* XXX could copy straight to head */
+		page = xen_netbk_alloc_page(netbk, pending_idx);
+		if (!page) {
+			kfree_skb(skb);
+			netbk_tx_err(vif, &txreq, idx);
+			continue;
+		}
+
+		gop->source.u.ref = txreq.gref;
+		gop->source.domid = vif->domid;
+		gop->source.offset = txreq.offset;
+=======
 			if (xenvif_set_skb_gso(queue->vif, skb, gso)) {
 				/* Failure in xenvif_set_skb_gso is fatal. */
 				kfree_skb(skb);
@@ -1473,6 +2016,7 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 		}
 
 		XENVIF_TX_CB(skb)->pending_idx = pending_idx;
+>>>>>>> android-3.18
 
 		__skb_put(skb, data_len);
 		queue->tx_copy_ops[*copy_ops].source.u.ref = txreq.gref;
@@ -1485,8 +2029,16 @@ static void xenvif_tx_build_gops(struct xenvif_queue *queue,
 		queue->tx_copy_ops[*copy_ops].dest.offset =
 			offset_in_page(skb->data);
 
+<<<<<<< HEAD
+		memcpy(&netbk->pending_tx_info[pending_idx].req,
+		       &txreq, sizeof(txreq));
+		netbk->pending_tx_info[pending_idx].vif = vif;
+		netbk->pending_tx_info[pending_idx].head = index;
+		*((u16 *)skb->data) = pending_idx;
+=======
 		queue->tx_copy_ops[*copy_ops].len = data_len;
 		queue->tx_copy_ops[*copy_ops].flags = GNTCOPY_source_gref;
+>>>>>>> android-3.18
 
 		(*copy_ops)++;
 
@@ -1634,8 +2186,12 @@ static int xenvif_tx_submit(struct xenvif_queue *queue)
 			txp->size -= data_len;
 		} else {
 			/* Schedule a response immediately. */
+<<<<<<< HEAD
+			xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_OKAY);
+=======
 			xenvif_idx_release(queue, pending_idx,
 					   XEN_NETIF_RSP_OKAY);
+>>>>>>> android-3.18
 		}
 
 		if (txp->flags & XEN_NETTXF_csum_blank)
@@ -1811,18 +2367,60 @@ static inline void xenvif_tx_dealloc_action(struct xenvif_queue *queue)
 				   XEN_NETIF_RSP_OKAY);
 }
 
+<<<<<<< HEAD
+static void xen_netbk_idx_release(struct xen_netbk *netbk, u16 pending_idx,
+				  u8 status)
+{
+	struct xenvif *vif;
+	struct pending_tx_info *pending_tx_info;
+	pending_ring_idx_t head;
+	u16 peek; /* peek into next tx request */
+
+	BUG_ON(netbk->mmap_pages[pending_idx] == (void *)(~0UL));
+=======
 
 /* Called after netfront has transmitted */
 int xenvif_tx_action(struct xenvif_queue *queue, int budget)
 {
 	unsigned nr_mops, nr_cops = 0;
 	int work_done, ret;
+>>>>>>> android-3.18
 
 	if (unlikely(!tx_work_todo(queue)))
 		return 0;
 
 	xenvif_tx_build_gops(queue, budget, &nr_cops, &nr_mops);
 
+<<<<<<< HEAD
+	vif = pending_tx_info->vif;
+	head = pending_tx_info->head;
+
+	BUG_ON(!pending_tx_is_head(netbk, head));
+	BUG_ON(netbk->pending_ring[pending_index(head)] != pending_idx);
+
+	do {
+		pending_ring_idx_t index;
+		pending_ring_idx_t idx = pending_index(head);
+		u16 info_idx = netbk->pending_ring[idx];
+
+		pending_tx_info = &netbk->pending_tx_info[info_idx];
+		make_tx_response(vif, &pending_tx_info->req, status);
+
+		/* Setting any number other than
+		 * INVALID_PENDING_RING_IDX indicates this slot is
+		 * starting a new packet / ending a previous packet.
+		 */
+		pending_tx_info->head = 0;
+
+		index = pending_index(netbk->pending_prod++);
+		netbk->pending_ring[index] = netbk->pending_ring[info_idx];
+
+		xenvif_put(vif);
+
+		peek = netbk->pending_ring[pending_index(++head)];
+
+	} while (!pending_tx_is_head(netbk, peek));
+=======
 	if (nr_cops == 0)
 		return 0;
 
@@ -1854,6 +2452,7 @@ static void xenvif_idx_release(struct xenvif_queue *queue, u16 pending_idx,
 	struct pending_tx_info *pending_tx_info;
 	pending_ring_idx_t index;
 	unsigned long flags;
+>>>>>>> android-3.18
 
 	pending_tx_info = &queue->pending_tx_info[pending_idx];
 	spin_lock_irqsave(&queue->response_lock, flags);
@@ -1867,7 +2466,11 @@ static void xenvif_idx_release(struct xenvif_queue *queue, u16 pending_idx,
 }
 
 
+<<<<<<< HEAD
+static void make_tx_response(struct xenvif *vif,
+=======
 static void make_tx_response(struct xenvif_queue *queue,
+>>>>>>> android-3.18
 			     struct xen_netif_tx_request *txp,
 			     s8       st)
 {
@@ -1938,7 +2541,14 @@ void xenvif_idx_unmap(struct xenvif_queue *queue, u16 pending_idx)
 
 static inline int tx_work_todo(struct xenvif_queue *queue)
 {
+<<<<<<< HEAD
+
+	if ((nr_pending_reqs(netbk) + XEN_NETIF_NR_SLOTS_MIN
+	     < MAX_PENDING_REQS) &&
+	     !list_empty(&netbk->net_schedule_list))
+=======
 	if (likely(RING_HAS_UNCONSUMED_REQUESTS(&queue->tx)))
+>>>>>>> android-3.18
 		return 1;
 
 	return 0;
@@ -2112,6 +2722,44 @@ int xenvif_kthread_guest_rx(void *data)
 	for (;;) {
 		xenvif_wait_for_rx_work(queue);
 
+<<<<<<< HEAD
+	if (max_skb_slots < XEN_NETIF_NR_SLOTS_MIN) {
+		printk(KERN_INFO
+		       "xen-netback: max_skb_slots too small (%d), bump it to XEN_NETIF_NR_SLOTS_MIN (%d)\n",
+		       max_skb_slots, XEN_NETIF_NR_SLOTS_MIN);
+		max_skb_slots = XEN_NETIF_NR_SLOTS_MIN;
+	}
+
+	xen_netbk_group_nr = num_online_cpus();
+	xen_netbk = vzalloc(sizeof(struct xen_netbk) * xen_netbk_group_nr);
+	if (!xen_netbk)
+		return -ENOMEM;
+
+	for (group = 0; group < xen_netbk_group_nr; group++) {
+		struct xen_netbk *netbk = &xen_netbk[group];
+		skb_queue_head_init(&netbk->rx_queue);
+		skb_queue_head_init(&netbk->tx_queue);
+
+		init_timer(&netbk->net_timer);
+		netbk->net_timer.data = (unsigned long)netbk;
+		netbk->net_timer.function = xen_netbk_alarm;
+
+		netbk->pending_cons = 0;
+		netbk->pending_prod = MAX_PENDING_REQS;
+		for (i = 0; i < MAX_PENDING_REQS; i++)
+			netbk->pending_ring[i] = i;
+
+		init_waitqueue_head(&netbk->wq);
+		netbk->task = kthread_create(xen_netbk_kthread,
+					     (void *)netbk,
+					     "netback/%u", group);
+
+		if (IS_ERR(netbk->task)) {
+			printk(KERN_ALERT "kthread_create() fails at netback\n");
+			del_timer(&netbk->net_timer);
+			rc = PTR_ERR(netbk->task);
+			goto failed_init;
+=======
 		if (kthread_should_stop())
 			break;
 
@@ -2126,6 +2774,7 @@ int xenvif_kthread_guest_rx(void *data)
 			xenvif_carrier_off(vif);
 			xenvif_rx_queue_purge(queue);
 			continue;
+>>>>>>> android-3.18
 		}
 
 		if (!skb_queue_empty(&queue->rx_queue))

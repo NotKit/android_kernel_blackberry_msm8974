@@ -86,6 +86,10 @@ static const int multicast_filter_limit = 32;
 
 #define MAX_READ_REQUEST_SHIFT	12
 #define TX_DMA_BURST	7	/* Maximum PCI burst, '7' is unlimited */
+<<<<<<< HEAD
+#define SafeMtu		0x1c20	/* ... actually life sucks beyond ~7k */
+=======
+>>>>>>> android-3.18
 #define InterFrameGap	0x03	/* 3 means InterFrameGap = the shortest one */
 
 #define R8169_REGS_SIZE		256
@@ -1764,6 +1768,9 @@ static void __rtl8169_set_wol(struct rtl8169_private *tp, u32 wolopts)
 
 	RTL_W8(Cfg9346, Cfg9346_Unlock);
 
+<<<<<<< HEAD
+	for (i = 0; i < ARRAY_SIZE(cfg); i++) {
+=======
 	switch (tp->mac_version) {
 	case RTL_GIGA_MAC_VER_34:
 	case RTL_GIGA_MAC_VER_35:
@@ -1804,6 +1811,7 @@ static void __rtl8169_set_wol(struct rtl8169_private *tp, u32 wolopts)
 	}
 
 	for (i = 0; i < tmp; i++) {
+>>>>>>> android-3.18
 		options = RTL_R8(cfg[i].reg) & ~cfg[i].mask;
 		if (wolopts & cfg[i].opt)
 			options |= cfg[i].mask;
@@ -2080,7 +2088,11 @@ static void rtl8169_rx_vlan_tag(struct RxDesc *desc, struct sk_buff *skb)
 	u32 opts2 = le32_to_cpu(desc->opts2);
 
 	if (opts2 & RxVlanTag)
+<<<<<<< HEAD
+		__vlan_hwaccel_put_tag(skb, swab16(opts2 & 0xffff));
+=======
 		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), swab16(opts2 & 0xffff));
+>>>>>>> android-3.18
 }
 
 static int rtl8169_gset_tbi(struct net_device *dev, struct ethtool_cmd *cmd)
@@ -4862,7 +4874,10 @@ static void rtl_init_rxcfg(struct rtl8169_private *tp)
 	case RTL_GIGA_MAC_VER_23:
 	case RTL_GIGA_MAC_VER_24:
 	case RTL_GIGA_MAC_VER_34:
+<<<<<<< HEAD
+=======
 	case RTL_GIGA_MAC_VER_35:
+>>>>>>> android-3.18
 		RTL_W32(RxConfig, RX128_INT_EN | RX_MULTI_EN | RX_DMA_BURST);
 		break;
 	case RTL_GIGA_MAC_VER_40:
@@ -6849,6 +6864,10 @@ static bool rtl_test_hw_pad_bug(struct rtl8169_private *tp, struct sk_buff *skb)
 	return skb->len < ETH_ZLEN && tp->mac_version == RTL_GIGA_MAC_VER_34;
 }
 
+<<<<<<< HEAD
+static inline bool rtl8169_tso_csum(struct rtl8169_private *tp,
+				    struct sk_buff *skb, u32 *opts)
+=======
 static netdev_tx_t rtl8169_start_xmit(struct sk_buff *skb,
 				      struct net_device *dev);
 /* r8169_csum_workaround()
@@ -6927,6 +6946,7 @@ static inline __be16 get_protocol(struct sk_buff *skb)
 
 static bool rtl8169_tso_csum_v1(struct rtl8169_private *tp,
 				struct sk_buff *skb, u32 *opts)
+>>>>>>> android-3.18
 {
 	u32 mss = skb_shinfo(skb)->gso_size;
 
@@ -6935,6 +6955,9 @@ static bool rtl8169_tso_csum_v1(struct rtl8169_private *tp,
 		opts[0] |= min(mss, TD_MSS_MAX) << TD0_MSS_SHIFT;
 	} else if (skb->ip_summed == CHECKSUM_PARTIAL) {
 		const struct iphdr *ip = ip_hdr(skb);
+
+		if (unlikely(rtl_test_hw_pad_bug(tp, skb)))
+			return skb_checksum_help(skb) == 0 && rtl_skb_pad(skb);
 
 		if (ip->protocol == IPPROTO_TCP)
 			opts[0] |= TD0_IP_CS | TD0_TCP_CS;
@@ -7015,13 +7038,19 @@ static bool rtl8169_tso_csum_v2(struct rtl8169_private *tp,
 			opts[1] |= TD1_UDP_CS;
 		else
 			WARN_ON_ONCE(1);
+<<<<<<< HEAD
+=======
 
 		opts[1] |= transport_offset << TCPHO_SHIFT;
+>>>>>>> android-3.18
 	} else {
 		if (unlikely(rtl_test_hw_pad_bug(tp, skb)))
 			return rtl_skb_pad(skb);
 	}
+<<<<<<< HEAD
+=======
 
+>>>>>>> android-3.18
 	return true;
 }
 
@@ -7046,6 +7075,13 @@ static netdev_tx_t rtl8169_start_xmit(struct sk_buff *skb,
 	if (unlikely(le32_to_cpu(txd->opts1) & DescOwn))
 		goto err_stop_0;
 
+<<<<<<< HEAD
+	opts[1] = cpu_to_le32(rtl8169_tx_vlan_tag(tp, skb));
+	opts[0] = DescOwn;
+
+	if (!rtl8169_tso_csum(tp, skb, opts))
+		goto err_update_stats;
+=======
 	opts[1] = cpu_to_le32(rtl8169_tx_vlan_tag(skb));
 	opts[0] = DescOwn;
 
@@ -7053,6 +7089,7 @@ static netdev_tx_t rtl8169_start_xmit(struct sk_buff *skb,
 		r8169_csum_workaround(tp, skb);
 		return NETDEV_TX_OK;
 	}
+>>>>>>> android-3.18
 
 	len = skb_headlen(skb);
 	mapping = dma_map_single(d, skb->data, len, DMA_TO_DEVICE);
@@ -7116,7 +7153,12 @@ static netdev_tx_t rtl8169_start_xmit(struct sk_buff *skb,
 err_dma_1:
 	rtl8169_unmap_tx_skb(d, tp->tx_skb + entry, txd);
 err_dma_0:
+<<<<<<< HEAD
+	dev_kfree_skb(skb);
+err_update_stats:
+=======
 	dev_kfree_skb_any(skb);
+>>>>>>> android-3.18
 	dev->stats.tx_dropped++;
 	return NETDEV_TX_OK;
 
@@ -7198,7 +7240,11 @@ static void rtl_tx(struct net_device *dev, struct rtl8169_private *tp)
 			tp->tx_stats.packets++;
 			tp->tx_stats.bytes += tx_skb->skb->len;
 			u64_stats_update_end(&tp->tx_stats.syncp);
+<<<<<<< HEAD
+			dev_kfree_skb(tx_skb->skb);
+=======
 			dev_kfree_skb_any(tx_skb->skb);
+>>>>>>> android-3.18
 			tx_skb->skb = NULL;
 		}
 		dirty_tx++;
@@ -7861,6 +7907,8 @@ static void rtl_remove_one(struct pci_dev *pdev)
 	    r8168_check_dash(tp)) {
 		rtl8168_driver_stop(tp);
 	}
+
+	netif_napi_del(&tp->napi);
 
 	netif_napi_del(&tp->napi);
 

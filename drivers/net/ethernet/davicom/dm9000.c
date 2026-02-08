@@ -271,9 +271,15 @@ static void dm9000_dumpblk_32bit(void __iomem *reg, int count)
  * Sleep, either by using msleep() or if we are suspending, then
  * use mdelay() to sleep.
  */
+<<<<<<< HEAD
+static void dm9000_msleep(board_info_t *db, unsigned int ms)
+{
+	if (db->in_suspend)
+=======
 static void dm9000_msleep(struct board_info *db, unsigned int ms)
 {
 	if (db->in_suspend || db->in_timeout)
+>>>>>>> android-3.18
 		mdelay(ms);
 	else
 		msleep(ms);
@@ -283,7 +289,11 @@ static void dm9000_msleep(struct board_info *db, unsigned int ms)
 static int
 dm9000_phy_read(struct net_device *dev, int phy_reg_unused, int reg)
 {
+<<<<<<< HEAD
+	board_info_t *db = netdev_priv(dev);
+=======
 	struct board_info *db = netdev_priv(dev);
+>>>>>>> android-3.18
 	unsigned long flags;
 	unsigned int reg_save;
 	int ret;
@@ -329,13 +339,21 @@ static void
 dm9000_phy_write(struct net_device *dev,
 		 int phyaddr_unused, int reg, int value)
 {
+<<<<<<< HEAD
+	board_info_t *db = netdev_priv(dev);
+=======
 	struct board_info *db = netdev_priv(dev);
+>>>>>>> android-3.18
 	unsigned long flags;
 	unsigned long reg_save;
 
 	dm9000_dbg(db, 5, "phy_write[%02x] = %04x\n", reg, value);
+<<<<<<< HEAD
+	mutex_lock(&db->addr_lock);
+=======
 	if (!db->in_timeout)
 		mutex_lock(&db->addr_lock);
+>>>>>>> android-3.18
 
 	spin_lock_irqsave(&db->lock, flags);
 
@@ -366,8 +384,12 @@ dm9000_phy_write(struct net_device *dev,
 	writeb(reg_save, db->io_addr);
 
 	spin_unlock_irqrestore(&db->lock, flags);
+<<<<<<< HEAD
+	mutex_unlock(&db->addr_lock);
+=======
 	if (!db->in_timeout)
 		mutex_unlock(&db->addr_lock);
+>>>>>>> android-3.18
 }
 
 /* dm9000_set_io
@@ -932,6 +954,9 @@ dm9000_init_dm9000(struct net_device *dev)
 		dm9000_phy_write(dev, 0, MII_DM_DSPCR, DSPCR_INIT_PARAM);
 	}
 
+	dm9000_phy_write(dev, 0, MII_BMCR, BMCR_RESET); /* PHY RESET */
+	dm9000_phy_write(dev, 0, MII_DM_DSPCR, DSPCR_INIT_PARAM); /* Init */
+
 	ncr = (db->flags & DM9000_PLATF_EXT_PHY) ? NCR_EXT_PHY : 0;
 
 	/* if wol is needed, then always set NCR_WAKEEN otherwise we end
@@ -1328,9 +1353,14 @@ dm9000_open(struct net_device *dev)
 
 	mii_check_media(&db->mii, netif_msg_link(db), 1);
 	netif_start_queue(dev);
+<<<<<<< HEAD
+	
+	dm9000_schedule_poll(db);
+=======
 
 	/* Poll initial link status */
 	schedule_delayed_work(&db->phy_poll, 1);
+>>>>>>> android-3.18
 
 	return 0;
 }
@@ -1570,7 +1600,12 @@ dm9000_probe(struct platform_device *pdev)
 	db->flags |= DM9000_PLATF_SIMPLE_PHY;
 #endif
 
-	dm9000_reset(db);
+	/* Fixing bug on dm9000_probe, takeover dm9000_reset(db),
+	 * Need 'NCR_MAC_LBK' bit to indeed stable our DM9000 fifo
+	 * while probe stage.
+	 */
+
+	iow(db, DM9000_NCR, NCR_MAC_LBK | NCR_RST);
 
 	/* try multiple times, DM9000 sometimes gets the read wrong */
 	for (i = 0; i < 8; i++) {

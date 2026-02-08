@@ -62,7 +62,11 @@
 #define FLEXCAN_MCR_BCC			BIT(16)
 #define FLEXCAN_MCR_LPRIO_EN		BIT(13)
 #define FLEXCAN_MCR_AEN			BIT(12)
+<<<<<<< HEAD
+#define FLEXCAN_MCR_MAXMB(x)		((x) & 0x1f)
+=======
 #define FLEXCAN_MCR_MAXMB(x)		((x) & 0x7f)
+>>>>>>> android-3.18
 #define FLEXCAN_MCR_IDAM_A		(0 << 8)
 #define FLEXCAN_MCR_IDAM_B		(1 << 8)
 #define FLEXCAN_MCR_IDAM_C		(2 << 8)
@@ -829,10 +833,16 @@ static irqreturn_t flexcan_irq(int irq, void *dev_id)
 	if (reg_iflag1 & (1 << FLEXCAN_TX_BUF_ID)) {
 		stats->tx_bytes += can_get_echo_skb(dev, 0);
 		stats->tx_packets++;
+<<<<<<< HEAD
+		/* after sending a RTR frame mailbox is in RX mode */
+		flexcan_write(FLEXCAN_MB_CODE_TX_INACTIVE,
+			&regs->cantxfg[FLEXCAN_TX_BUF_ID].can_ctrl);
+=======
 		can_led_event(dev, CAN_LED_EVENT_TX);
 		/* after sending a RTR frame mailbox is in RX mode */
 		flexcan_write(FLEXCAN_MB_CODE_TX_INACTIVE,
 			      &regs->cantxfg[FLEXCAN_TX_BUF_ID].can_ctrl);
+>>>>>>> android-3.18
 		flexcan_write((1 << FLEXCAN_TX_BUF_ID), &regs->iflag1);
 		netif_wake_queue(dev);
 	}
@@ -888,8 +898,14 @@ static int flexcan_chip_start(struct net_device *dev)
 {
 	struct flexcan_priv *priv = netdev_priv(dev);
 	struct flexcan_regs __iomem *regs = priv->base;
+<<<<<<< HEAD
+	int err;
+	u32 reg_mcr, reg_ctrl;
+	int i;
+=======
 	u32 reg_mcr, reg_ctrl, reg_crl2, reg_mecr;
 	int err, i;
+>>>>>>> android-3.18
 
 	/* enable module */
 	err = flexcan_chip_enable(priv);
@@ -1076,7 +1092,7 @@ static int flexcan_open(struct net_device *dev)
 
 	err = request_irq(dev->irq, flexcan_irq, IRQF_SHARED, dev->name, dev);
 	if (err)
-		goto out_close;
+		goto out_free_irq;
 
 	/* start chip and queuing */
 	err = flexcan_chip_start(dev);
@@ -1242,6 +1258,16 @@ static int flexcan_probe(struct platform_device *pdev)
 	int err, irq;
 	u32 clock_freq = 0;
 
+<<<<<<< HEAD
+	if (pdev->dev.of_node) {
+		const __be32 *clock_freq_p;
+
+		clock_freq_p = of_get_property(pdev->dev.of_node,
+						"clock-frequency", NULL);
+		if (clock_freq_p)
+			clock_freq = be32_to_cpup(clock_freq_p);
+	}
+=======
 	reg_xceiver = devm_regulator_get(&pdev->dev, "xceiver");
 	if (PTR_ERR(reg_xceiver) == -EPROBE_DEFER)
 		return -EPROBE_DEFER;
@@ -1251,6 +1277,7 @@ static int flexcan_probe(struct platform_device *pdev)
 	if (pdev->dev.of_node)
 		of_property_read_u32(pdev->dev.of_node,
 						"clock-frequency", &clock_freq);
+>>>>>>> android-3.18
 
 	if (!clock_freq) {
 		clk_ipg = devm_clk_get(&pdev->dev, "ipg");

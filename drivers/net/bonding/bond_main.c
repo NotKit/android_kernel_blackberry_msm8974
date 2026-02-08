@@ -75,8 +75,11 @@
 #include <net/net_namespace.h>
 #include <net/netns/generic.h>
 #include <net/pkt_sched.h>
+<<<<<<< HEAD
+=======
 #include <linux/rculist.h>
 #include <net/flow_dissector.h>
+>>>>>>> android-3.18
 #include "bonding.h"
 #include "bond_3ad.h"
 #include "bond_alb.h"
@@ -237,6 +240,119 @@ const char *bond_mode_name(int mode)
 /*---------------------------------- VLAN -----------------------------------*/
 
 /**
+<<<<<<< HEAD
+ * bond_add_vlan - add a new vlan id on bond
+ * @bond: bond that got the notification
+ * @vlan_id: the vlan id to add
+ *
+ * Returns -ENOMEM if allocation failed.
+ */
+static int bond_add_vlan(struct bonding *bond, unsigned short vlan_id)
+{
+	struct vlan_entry *vlan;
+
+	pr_debug("bond: %s, vlan id %d\n",
+		 (bond ? bond->dev->name : "None"), vlan_id);
+
+	vlan = kzalloc(sizeof(struct vlan_entry), GFP_KERNEL);
+	if (!vlan)
+		return -ENOMEM;
+
+	INIT_LIST_HEAD(&vlan->vlan_list);
+	vlan->vlan_id = vlan_id;
+
+	write_lock_bh(&bond->lock);
+
+	list_add_tail(&vlan->vlan_list, &bond->vlan_list);
+
+	write_unlock_bh(&bond->lock);
+
+	pr_debug("added VLAN ID %d on bond %s\n", vlan_id, bond->dev->name);
+
+	return 0;
+}
+
+/**
+ * bond_del_vlan - delete a vlan id from bond
+ * @bond: bond that got the notification
+ * @vlan_id: the vlan id to delete
+ *
+ * returns -ENODEV if @vlan_id was not found in @bond.
+ */
+static int bond_del_vlan(struct bonding *bond, unsigned short vlan_id)
+{
+	struct vlan_entry *vlan;
+	int res = -ENODEV;
+
+	pr_debug("bond: %s, vlan id %d\n", bond->dev->name, vlan_id);
+
+	block_netpoll_tx();
+	write_lock_bh(&bond->lock);
+
+	list_for_each_entry(vlan, &bond->vlan_list, vlan_list) {
+		if (vlan->vlan_id == vlan_id) {
+			list_del(&vlan->vlan_list);
+
+			if (bond_is_lb(bond))
+				bond_alb_clear_vlan(bond, vlan_id);
+
+			pr_debug("removed VLAN ID %d from bond %s\n",
+				 vlan_id, bond->dev->name);
+
+			kfree(vlan);
+
+			res = 0;
+			goto out;
+		}
+	}
+
+	pr_debug("couldn't find VLAN ID %d in bond %s\n",
+		 vlan_id, bond->dev->name);
+
+out:
+	write_unlock_bh(&bond->lock);
+	unblock_netpoll_tx();
+	return res;
+}
+
+/**
+ * bond_next_vlan - safely skip to the next item in the vlans list.
+ * @bond: the bond we're working on
+ * @curr: item we're advancing from
+ *
+ * Returns %NULL if list is empty, bond->next_vlan if @curr is %NULL,
+ * or @curr->next otherwise (even if it is @curr itself again).
+ *
+ * Caller must hold bond->lock
+ */
+struct vlan_entry *bond_next_vlan(struct bonding *bond, struct vlan_entry *curr)
+{
+	struct vlan_entry *next, *last;
+
+	if (list_empty(&bond->vlan_list))
+		return NULL;
+
+	if (!curr) {
+		next = list_entry(bond->vlan_list.next,
+				  struct vlan_entry, vlan_list);
+	} else {
+		last = list_entry(bond->vlan_list.prev,
+				  struct vlan_entry, vlan_list);
+		if (last == curr) {
+			next = list_entry(bond->vlan_list.next,
+					  struct vlan_entry, vlan_list);
+		} else {
+			next = list_entry(curr->vlan_list.next,
+					  struct vlan_entry, vlan_list);
+		}
+	}
+
+	return next;
+}
+
+/**
+=======
+>>>>>>> android-3.18
  * bond_dev_queue_xmit - Prepare skb for xmit.
  *
  * @bond: bond device that got this skb for tx.
@@ -249,8 +365,13 @@ void bond_dev_queue_xmit(struct bonding *bond, struct sk_buff *skb,
 	skb->dev = slave_dev;
 
 	BUILD_BUG_ON(sizeof(skb->queue_mapping) !=
+<<<<<<< HEAD
+		     sizeof(qdisc_skb_cb(skb)->bond_queue_mapping));
+	skb->queue_mapping = qdisc_skb_cb(skb)->bond_queue_mapping;
+=======
 		     sizeof(qdisc_skb_cb(skb)->slave_dev_queue_mapping));
 	skb->queue_mapping = qdisc_skb_cb(skb)->slave_dev_queue_mapping;
+>>>>>>> android-3.18
 
 	if (unlikely(netpoll_tx_running(bond->dev)))
 		bond_netpoll_send_skb(bond_get_slave_by_dev(bond, slave_dev), skb);
@@ -1034,6 +1155,10 @@ static void bond_compute_features(struct bonding *bond)
 	unsigned short max_hard_header_len = ETH_HLEN;
 	unsigned int gso_max_size = GSO_MAX_SIZE;
 	u16 gso_max_segs = GSO_MAX_SEGS;
+<<<<<<< HEAD
+	int i;
+=======
+>>>>>>> android-3.18
 
 	if (!bond_has_slaves(bond))
 		goto done;
@@ -1057,9 +1182,13 @@ static void bond_compute_features(struct bonding *bond)
 
 done:
 	bond_dev->vlan_features = vlan_features;
+<<<<<<< HEAD
+	bond_dev->hard_header_len = max_hard_header_len;
+=======
 	bond_dev->hw_enc_features = enc_features |
 				    NETIF_F_HW_VLAN_CTAG_TX |
 				    NETIF_F_HW_VLAN_STAG_TX;
+>>>>>>> android-3.18
 	bond_dev->gso_max_segs = gso_max_segs;
 	netif_set_gso_max_size(bond_dev, gso_max_size);
 
@@ -1402,7 +1531,17 @@ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev)
 	new_slave->delay = 0;
 	new_slave->link_failure_count = 0;
 
+<<<<<<< HEAD
+	write_unlock_bh(&bond->lock);
+
+	bond_compute_features(bond);
+
 	bond_update_speed_duplex(new_slave);
+
+	read_lock(&bond->lock);
+=======
+	bond_update_speed_duplex(new_slave);
+>>>>>>> android-3.18
 
 	new_slave->last_rx = jiffies -
 		(msecs_to_jiffies(bond->params.arp_interval) + 1);
@@ -1449,6 +1588,9 @@ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev)
 		new_slave->link = BOND_LINK_UP;
 	}
 
+<<<<<<< HEAD
+	if (USES_PRIMARY(bond->params.mode) && bond->params.primary[0]) {
+=======
 	if (new_slave->link != BOND_LINK_DOWN)
 		new_slave->last_link_up = jiffies;
 	netdev_dbg(bond_dev, "Initial state of slave_dev is BOND_LINK_%s\n",
@@ -1456,6 +1598,7 @@ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev)
 		   (new_slave->link == BOND_LINK_UP ? "UP" : "BACK"));
 
 	if (bond_uses_primary(bond) && bond->params.primary[0]) {
+>>>>>>> android-3.18
 		/* if there is a primary slave, remember it */
 		if (strcmp(bond->params.primary, new_slave->dev->name) == 0) {
 			rcu_assign_pointer(bond->primary_slave, new_slave);
@@ -1619,8 +1762,12 @@ err_detach:
 	slave_disable_netpoll(new_slave);
 
 err_close:
+<<<<<<< HEAD
+	slave_dev->priv_flags &= ~IFF_BONDING;
+=======
 	if (!netif_is_bond_master(slave_dev))
 		slave_dev->priv_flags &= ~IFF_BONDING;
+>>>>>>> android-3.18
 	dev_close(slave_dev);
 
 err_restore_mac:
@@ -1691,18 +1838,41 @@ static int __bond_release_one(struct net_device *bond_dev,
 		return -EINVAL;
 	}
 
+<<<<<<< HEAD
+	write_unlock_bh(&bond->lock);
+=======
 	bond_sysfs_slave_del(slave);
 
 	/* recompute stats just before removing the slave */
 	bond_get_stats(bond->dev, &bond->bond_stats);
 
 	bond_upper_dev_unlink(bond_dev, slave_dev);
+>>>>>>> android-3.18
 	/* unregister rx_handler early so bond_handle_frame wouldn't be called
 	 * for this slave anymore.
 	 */
 	netdev_rx_handler_unregister(slave_dev);
+<<<<<<< HEAD
+	write_lock_bh(&bond->lock);
+
+	if (!bond->params.fail_over_mac) {
+		if (!compare_ether_addr(bond_dev->dev_addr, slave->perm_hwaddr) &&
+		    bond->slave_cnt > 1)
+			pr_warning("%s: Warning: the permanent HWaddr of %s - %pM - is still in use by %s. Set the HWaddr of %s to a different address to avoid conflicts.\n",
+				   bond_dev->name, slave_dev->name,
+				   slave->perm_hwaddr,
+				   bond_dev->name, slave_dev->name);
+	}
+
+	/* Inform AD package of unbinding of slave. */
+	if (bond->params.mode == BOND_MODE_8023AD) {
+		/* must be called before the slave is
+		 * detached from the list
+		 */
+=======
 
 	if (BOND_MODE(bond) == BOND_MODE_8023AD)
+>>>>>>> android-3.18
 		bond_3ad_unbind_slave(slave);
 
 	if (bond_mode_uses_xmit_hash(bond))
@@ -1775,7 +1945,11 @@ static int __bond_release_one(struct net_device *bond_dev,
 	/* If the mode uses primary, then this case was handled above by
 	 * bond_change_active_slave(..., NULL)
 	 */
+<<<<<<< HEAD
+	if (!USES_PRIMARY(bond->params.mode)) {
+=======
 	if (!bond_uses_primary(bond)) {
+>>>>>>> android-3.18
 		/* unset promiscuity level from slave
 		 * NOTE: The NETDEV_CHANGEADDR call above may change the value
 		 * of the IFF_PROMISC flag in the bond_dev, but we need the
@@ -2000,10 +2174,16 @@ static void bond_miimon_commit(struct bonding *bond)
 				bond_set_backup_slave(slave);
 			}
 
+<<<<<<< HEAD
+			pr_info("%s: link status definitely up for interface %s, %u Mbps %s duplex.\n",
+				bond->dev->name, slave->dev->name,
+				slave->speed, slave->duplex ? "full" : "half");
+=======
 			netdev_info(bond->dev, "link status definitely up for interface %s, %u Mbps %s duplex\n",
 				    slave->dev->name,
 				    slave->speed == SPEED_UNKNOWN ? 0 : slave->speed,
 				    slave->duplex ? "full" : "half");
+>>>>>>> android-3.18
 
 			/* notify ad that the link status has changed */
 			if (BOND_MODE(bond) == BOND_MODE_8023AD)
@@ -2849,10 +3029,13 @@ static int bond_master_netdev_event(unsigned long event,
 	case NETDEV_REGISTER:
 		bond_create_proc_entry(event_bond);
 		break;
+<<<<<<< HEAD
+=======
 	case NETDEV_NOTIFY_PEERS:
 		if (event_bond->send_peer_notif)
 			event_bond->send_peer_notif--;
 		break;
+>>>>>>> android-3.18
 	default:
 		break;
 	}
@@ -3091,12 +3274,19 @@ static void bond_work_init_all(struct bonding *bond)
 			  bond_resend_igmp_join_requests_delayed);
 	INIT_DELAYED_WORK(&bond->alb_work, bond_alb_monitor);
 	INIT_DELAYED_WORK(&bond->mii_work, bond_mii_monitor);
+<<<<<<< HEAD
+	if (bond->params.mode == BOND_MODE_ACTIVEBACKUP)
+=======
 	if (BOND_MODE(bond) == BOND_MODE_ACTIVEBACKUP)
+>>>>>>> android-3.18
 		INIT_DELAYED_WORK(&bond->arp_work, bond_activebackup_arp_mon);
 	else
 		INIT_DELAYED_WORK(&bond->arp_work, bond_loadbalance_arp_mon);
 	INIT_DELAYED_WORK(&bond->ad_work, bond_3ad_state_machine_handler);
+<<<<<<< HEAD
+=======
 	INIT_DELAYED_WORK(&bond->slave_arr_work, bond_slave_arr_handler);
+>>>>>>> android-3.18
 }
 
 static void bond_work_cancel_all(struct bonding *bond)
@@ -3106,7 +3296,10 @@ static void bond_work_cancel_all(struct bonding *bond)
 	cancel_delayed_work_sync(&bond->alb_work);
 	cancel_delayed_work_sync(&bond->ad_work);
 	cancel_delayed_work_sync(&bond->mcast_work);
+<<<<<<< HEAD
+=======
 	cancel_delayed_work_sync(&bond->slave_arr_work);
+>>>>>>> android-3.18
 }
 
 static int bond_open(struct net_device *bond_dev)
@@ -3135,10 +3328,16 @@ static int bond_open(struct net_device *bond_dev)
 		/* bond_alb_initialize must be called before the timer
 		 * is started.
 		 */
+<<<<<<< HEAD
+		if (bond_alb_initialize(bond, (bond->params.mode == BOND_MODE_ALB)))
+			return -ENOMEM;
+		queue_delayed_work(bond->wq, &bond->alb_work, 0);
+=======
 		if (bond_alb_initialize(bond, (BOND_MODE(bond) == BOND_MODE_ALB)))
 			return -ENOMEM;
 		if (bond->params.tlb_dynamic_lb)
 			queue_delayed_work(bond->wq, &bond->alb_work, 0);
+>>>>>>> android-3.18
 	}
 
 	if (bond->params.miimon)  /* link check interval, in milliseconds. */
@@ -3149,7 +3348,11 @@ static int bond_open(struct net_device *bond_dev)
 		bond->recv_probe = bond_arp_rcv;
 	}
 
+<<<<<<< HEAD
+	if (bond->params.mode == BOND_MODE_8023AD) {
+=======
 	if (BOND_MODE(bond) == BOND_MODE_8023AD) {
+>>>>>>> android-3.18
 		queue_delayed_work(bond->wq, &bond->ad_work, 0);
 		/* register to receive LACPDUs */
 		bond->recv_probe = bond_3ad_lacpdu_recv;
@@ -3166,9 +3369,21 @@ static int bond_close(struct net_device *bond_dev)
 {
 	struct bonding *bond = netdev_priv(bond_dev);
 
+<<<<<<< HEAD
+	write_lock_bh(&bond->lock);
+	bond->send_peer_notif = 0;
+	write_unlock_bh(&bond->lock);
+
+	bond_work_cancel_all(bond);
+	if (bond_is_lb(bond)) {
+		/* Must be called only after all
+		 * slaves have been released
+		 */
+=======
 	bond_work_cancel_all(bond);
 	bond->send_peer_notif = 0;
 	if (bond_is_lb(bond))
+>>>>>>> android-3.18
 		bond_alb_deinitialize(bond);
 	bond->recv_probe = NULL;
 
@@ -3887,8 +4102,15 @@ static u16 bond_select_queue(struct net_device *dev, struct sk_buff *skb,
 	 */
 	u16 txq = skb_rx_queue_recorded(skb) ? skb_get_rx_queue(skb) : 0;
 
+<<<<<<< HEAD
+	/*
+	 * Save the original txq to restore before passing to the driver
+	 */
+	qdisc_skb_cb(skb)->bond_queue_mapping = skb->queue_mapping;
+=======
 	/* Save the original txq to restore before passing to the driver */
 	qdisc_skb_cb(skb)->slave_dev_queue_mapping = skb->queue_mapping;
+>>>>>>> android-3.18
 
 	if (unlikely(txq >= dev->real_num_tx_queues)) {
 		do {
@@ -4096,9 +4318,16 @@ void bond_setup(struct net_device *bond_dev)
 	bond_dev->features |= NETIF_F_HW_VLAN_CTAG_TX;
 }
 
+<<<<<<< HEAD
+/*
+* Destroy a bonding device.
+* Must be under rtnl_lock when this function is called.
+*/
+=======
 /* Destroy a bonding device.
  * Must be under rtnl_lock when this function is called.
  */
+>>>>>>> android-3.18
 static void bond_uninit(struct net_device *bond_dev)
 {
 	struct bonding *bond = netdev_priv(bond_dev);
@@ -4119,8 +4348,11 @@ static void bond_uninit(struct net_device *bond_dev)
 		kfree_rcu(arr, rcu);
 	}
 
+<<<<<<< HEAD
+=======
 	list_del(&bond->bond_list);
 
+>>>>>>> android-3.18
 	bond_debug_unregister(bond);
 }
 
@@ -4591,6 +4823,13 @@ static void __net_exit bond_net_exit(struct net *net)
 	rtnl_unlock();
 
 	bond_destroy_proc_dir(bn);
+
+	/* Kill off any bonds created after unregistering bond rtnl ops */
+	rtnl_lock();
+	list_for_each_entry_safe(bond, tmp_bond, &bn->dev_list, bond_list)
+		unregister_netdevice_queue(bond->dev, &list);
+	unregister_netdevice_many(&list);
+	rtnl_unlock();
 }
 
 static struct pernet_operations bond_net_ops = {
@@ -4632,7 +4871,11 @@ out:
 	return res;
 err:
 	bond_destroy_debugfs();
+<<<<<<< HEAD
+	rtnl_link_unregister(&bond_link_ops);
+=======
 	bond_netlink_fini();
+>>>>>>> android-3.18
 err_link:
 	unregister_pernet_subsys(&bond_net_ops);
 	goto out;

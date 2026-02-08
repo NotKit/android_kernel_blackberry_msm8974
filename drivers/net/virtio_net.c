@@ -748,9 +748,15 @@ static void refill_work(struct work_struct *work)
 
 static int virtnet_receive(struct receive_queue *rq, int budget)
 {
+<<<<<<< HEAD
+	struct virtnet_info *vi = container_of(napi, struct virtnet_info, napi);
+	void *buf;
+	unsigned int r, len, received = 0;
+=======
 	struct virtnet_info *vi = rq->vq->vdev->priv;
 	unsigned int len, received = 0;
 	void *buf;
+>>>>>>> android-3.18
 
 	while (received < budget &&
 	       (buf = virtqueue_get_buf(rq->vq, &len)) != NULL) {
@@ -777,9 +783,15 @@ again:
 
 	/* Out of packets? */
 	if (received < budget) {
+<<<<<<< HEAD
+		r = virtqueue_enable_cb_prepare(vi->rvq);
+		napi_complete(napi);
+		if (unlikely(virtqueue_poll(vi->rvq, r)) &&
+=======
 		r = virtqueue_enable_cb_prepare(rq->vq);
 		napi_complete(napi);
 		if (unlikely(virtqueue_poll(rq->vq, r)) &&
+>>>>>>> android-3.18
 		    napi_schedule_prep(napi)) {
 			virtqueue_disable_cb(rq->vq);
 			__napi_schedule(napi);
@@ -1327,8 +1339,13 @@ static void virtnet_get_ringparam(struct net_device *dev,
 {
 	struct virtnet_info *vi = netdev_priv(dev);
 
+<<<<<<< HEAD
+	ring->rx_max_pending = virtqueue_get_impl_size(vi->rvq);
+	ring->tx_max_pending = virtqueue_get_impl_size(vi->svq);
+=======
 	ring->rx_max_pending = virtqueue_get_vring_size(vi->rq[0].vq);
 	ring->tx_max_pending = virtqueue_get_vring_size(vi->sq[0].vq);
+>>>>>>> android-3.18
 	ring->rx_pending = ring->rx_max_pending;
 	ring->tx_pending = ring->tx_max_pending;
 }
@@ -1821,12 +1838,19 @@ static int virtnet_probe(struct virtio_device *vdev)
 		u64_stats_init(&virtnet_stats->rx_syncp);
 	}
 
+<<<<<<< HEAD
+	INIT_DELAYED_WORK(&vi->refill, refill_work);
+	sg_init_table(vi->rx_sg, ARRAY_SIZE(vi->rx_sg));
+	sg_init_table(vi->tx_sg, ARRAY_SIZE(vi->tx_sg));
+=======
 	INIT_WORK(&vi->config_work, virtnet_config_changed_work);
+>>>>>>> android-3.18
 
 	/* If we can receive ANY GSO packets, we must allocate large ones. */
 	if (virtio_has_feature(vdev, VIRTIO_NET_F_GUEST_TSO4) ||
 	    virtio_has_feature(vdev, VIRTIO_NET_F_GUEST_TSO6) ||
-	    virtio_has_feature(vdev, VIRTIO_NET_F_GUEST_ECN))
+	    virtio_has_feature(vdev, VIRTIO_NET_F_GUEST_ECN) ||
+	    virtio_has_feature(vdev, VIRTIO_NET_F_GUEST_UFO))
 		vi->big_packets = true;
 
 	if (virtio_has_feature(vdev, VIRTIO_NET_F_MRG_RXBUF))

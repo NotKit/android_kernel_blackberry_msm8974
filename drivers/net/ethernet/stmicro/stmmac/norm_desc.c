@@ -123,7 +123,15 @@ static int ndesc_get_rx_status(void *data, struct stmmac_extra_stats *x,
 static void ndesc_init_rx_desc(struct dma_desc *p, int disable_rx_ic, int mode,
 			       int end, int bfsize)
 {
+<<<<<<< HEAD
+	int i;
+	for (i = 0; i < ring_size; i++) {
+		p->des01.all_flags = 0;
+		p->des01.rx.own = 1;
+		p->des01.rx.buffer1_size = BUF_SIZE_2KiB - 1;
+=======
 	int bfsize1;
+>>>>>>> android-3.18
 
 	p->des01.all_flags = 0;
 	p->des01.rx.own = 1;
@@ -142,11 +150,20 @@ static void ndesc_init_rx_desc(struct dma_desc *p, int disable_rx_ic, int mode,
 
 static void ndesc_init_tx_desc(struct dma_desc *p, int mode, int end)
 {
+<<<<<<< HEAD
+	int i;
+	for (i = 0; i < ring_size; i++) {
+		p->des01.all_flags = 0;
+		ndesc_tx_set_on_ring_chain(p, (i == (ring_size - 1)));
+		p++;
+	}
+=======
 	p->des01.all_flags = 0;
 	if (mode == STMMAC_CHAIN_MODE)
 		ndesc_tx_set_on_chain(p, end);
 	else
 		ndesc_tx_set_on_ring(p, end);
+>>>>>>> android-3.18
 }
 
 static int ndesc_get_tx_owner(struct dma_desc *p)
@@ -166,6 +183,7 @@ static void ndesc_set_tx_owner(struct dma_desc *p)
 
 static void ndesc_set_rx_owner(struct dma_desc *p)
 {
+	p->des01.all_flags = 0;
 	p->des01.rx.own = 1;
 }
 

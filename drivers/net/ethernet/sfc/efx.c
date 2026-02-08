@@ -674,11 +674,32 @@ static void efx_stop_datapath(struct efx_nic *efx)
 	struct efx_channel *channel;
 	struct efx_tx_queue *tx_queue;
 	struct efx_rx_queue *rx_queue;
+	struct pci_dev *dev = efx->pci_dev;
 	int rc;
 
 	EFX_ASSERT_RESET_SERIALISED(efx);
 	BUG_ON(efx->port_enabled);
 
+<<<<<<< HEAD
+	/* Only perform flush if dma is enabled */
+	if (dev->is_busmaster) {
+		rc = efx_nic_flush_queues(efx);
+
+		if (rc && EFX_WORKAROUND_7803(efx)) {
+			/* Schedule a reset to recover from the flush failure. The
+			 * descriptor caches reference memory we're about to free,
+			 * but falcon_reconfigure_mac_wrapper() won't reconnect
+			 * the MACs because of the pending reset. */
+			netif_err(efx, drv, efx->net_dev,
+				  "Resetting to recover from flush failure\n");
+			efx_schedule_reset(efx, RESET_TYPE_ALL);
+		} else if (rc) {
+			netif_err(efx, drv, efx->net_dev, "failed to flush queues\n");
+		} else {
+			netif_dbg(efx, drv, efx->net_dev,
+				  "successfully flushed all queues\n");
+		}
+=======
 	efx_ptp_stop_datapath(efx);
 
 	/* Stop RX refill */
@@ -715,6 +736,7 @@ static void efx_stop_datapath(struct efx_nic *efx)
 	} else {
 		netif_dbg(efx, drv, efx->net_dev,
 			  "successfully flushed all queues\n");
+>>>>>>> android-3.18
 	}
 
 	efx_for_each_channel(channel, efx) {
@@ -835,6 +857,11 @@ out:
 		}
 	}
 
+<<<<<<< HEAD
+	efx_start_interrupts(efx, true);
+	efx_start_all(efx);
+	netif_device_attach(efx->net_dev);
+=======
 	rc2 = efx_soft_enable_interrupts(efx);
 	if (rc2) {
 		rc = rc ? rc : rc2;
@@ -845,6 +872,7 @@ out:
 		efx_start_all(efx);
 		netif_device_attach(efx->net_dev);
 	}
+>>>>>>> android-3.18
 	return rc;
 
 rollback:
@@ -1802,6 +1830,12 @@ static void efx_stop_all(struct efx_nic *efx)
 	efx->type->stop_stats(efx);
 	efx_stop_port(efx);
 
+<<<<<<< HEAD
+	/* Flush efx_mac_work(), refill_workqueue, monitor_work */
+	efx_flush_all(efx);
+
+=======
+>>>>>>> android-3.18
 	/* Stop the kernel transmit interface.  This is only valid if
 	 * the device is stopped or detached; otherwise the watchdog
 	 * may fire immediately.
@@ -2293,6 +2327,10 @@ static int efx_register_netdev(struct efx_nic *efx)
 
 	net_dev->watchdog_timeo = 5 * HZ;
 	net_dev->irq = efx->pci_dev->irq;
+<<<<<<< HEAD
+	net_dev->netdev_ops = &efx_netdev_ops;
+	SET_ETHTOOL_OPS(net_dev, &efx_ethtool_ops);
+=======
 	if (efx_nic_rev(efx) >= EFX_REV_HUNT_A0) {
 		net_dev->netdev_ops = &efx_ef10_netdev_ops;
 		net_dev->priv_flags |= IFF_UNICAST_FLT;
@@ -2300,6 +2338,7 @@ static int efx_register_netdev(struct efx_nic *efx)
 		net_dev->netdev_ops = &efx_farch_netdev_ops;
 	}
 	net_dev->ethtool_ops = &efx_ethtool_ops;
+>>>>>>> android-3.18
 	net_dev->gso_max_segs = EFX_TSO_MAX_SEGS;
 
 	rtnl_lock();
@@ -3067,8 +3106,12 @@ static int efx_pm_freeze(struct device *dev)
 
 	rtnl_lock();
 
+<<<<<<< HEAD
+	efx_device_detach_sync(efx);
+=======
 	if (efx->state != STATE_DISABLED) {
 		efx->state = STATE_UNINIT;
+>>>>>>> android-3.18
 
 		efx_device_detach_sync(efx);
 

@@ -240,10 +240,18 @@ static int enh_desc_get_rx_status(void *data, struct stmmac_extra_stats *x,
 static void enh_desc_init_rx_desc(struct dma_desc *p, int disable_rx_ic,
 				  int mode, int end, int bfsize)
 {
+<<<<<<< HEAD
+	int i;
+	for (i = 0; i < ring_size; i++) {
+		p->des01.all_flags = 0;
+		p->des01.erx.own = 1;
+		p->des01.erx.buffer1_size = BUF_SIZE_8KiB - 1;
+=======
 	int bfsize1;
 
 	p->des01.all_flags = 0;
 	p->des01.erx.own = 1;
+>>>>>>> android-3.18
 
 	bfsize1 = min(bfsize, BUF_SIZE_8KiB - 1);
 	p->des01.erx.buffer1_size = bfsize1;
@@ -259,11 +267,21 @@ static void enh_desc_init_rx_desc(struct dma_desc *p, int disable_rx_ic,
 
 static void enh_desc_init_tx_desc(struct dma_desc *p, int mode, int end)
 {
+<<<<<<< HEAD
+	int i;
+
+	for (i = 0; i < ring_size; i++) {
+		p->des01.all_flags = 0;
+		ehn_desc_tx_set_on_ring_chain(p, (i == ring_size - 1));
+		p++;
+	}
+=======
 	p->des01.all_flags = 0;
 	if (mode == STMMAC_CHAIN_MODE)
 		ehn_desc_tx_set_on_chain(p, end);
 	else
 		ehn_desc_tx_set_on_ring(p, end);
+>>>>>>> android-3.18
 }
 
 static int enh_desc_get_tx_owner(struct dma_desc *p)
@@ -283,6 +301,7 @@ static void enh_desc_set_tx_owner(struct dma_desc *p)
 
 static void enh_desc_set_rx_owner(struct dma_desc *p)
 {
+	p->des01.all_flags = 0;
 	p->des01.erx.own = 1;
 }
 

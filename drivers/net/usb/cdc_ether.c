@@ -154,8 +154,19 @@ int usbnet_generic_cdc_bind(struct usbnet *dev, struct usb_interface *intf)
 
 	memset(info, 0, sizeof(*info));
 	info->control = intf;
+<<<<<<< HEAD
+	while (len > 0) {
+
+		if ((len < buf [0]) || (buf [0] < 3)) {
+			dev_dbg(&intf->dev, "invalid descriptor buffer length\n");
+			goto bad_desc;
+		}
+
+		if (buf [1] != USB_DT_CS_INTERFACE)
+=======
 	while (len > 3) {
 		if (buf[1] != USB_DT_CS_INTERFACE)
+>>>>>>> android-3.18
 			goto next_desc;
 
 		/* use bDescriptorSubType to identify the CDC descriptors.
@@ -223,7 +234,7 @@ int usbnet_generic_cdc_bind(struct usbnet *dev, struct usb_interface *intf)
 						info->u->bSlaveInterface0);
 			if (!info->control || !info->data) {
 				dev_dbg(&intf->dev,
-					"master #%u/%p slave #%u/%p\n",
+					"master #%u/%pK slave #%u/%pK\n",
 					info->u->bMasterInterface0,
 					info->control,
 					info->u->bSlaveInterface0,
@@ -324,7 +335,7 @@ next_desc:
 		info->data = usb_ifnum_to_if(dev->udev, 1);
 		if (!info->control || !info->data || info->control != intf) {
 			dev_dbg(&intf->dev,
-				"rndis: master #0/%p slave #1/%p\n",
+				"rndis: master #0/%pK slave #1/%pK\n",
 				info->control,
 				info->data);
 			goto bad_desc;
@@ -751,6 +762,8 @@ static const struct usb_device_id	products[] = {
 				      USB_CDC_PROTO_NONE),
 	.driver_info = (unsigned long)&wwan_info,
 }, {
+<<<<<<< HEAD
+=======
 	/* ZTE (Vodafone) K3772-Z */
 	USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1181, USB_CLASS_COMM,
 				      USB_CDC_SUBCLASS_ETHERNET,
@@ -763,6 +776,7 @@ static const struct usb_device_id	products[] = {
 				      USB_CDC_PROTO_NONE),
 	.driver_info = (unsigned long)&wwan_info,
 }, {
+>>>>>>> android-3.18
 	/* Telit modules */
 	USB_VENDOR_AND_INTERFACE_INFO(0x1bc7, USB_CLASS_COMM,
 			USB_CDC_SUBCLASS_ETHERNET, USB_CDC_PROTO_NONE),
