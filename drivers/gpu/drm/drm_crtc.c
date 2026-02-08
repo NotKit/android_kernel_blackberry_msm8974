@@ -1589,50 +1589,10 @@ EXPORT_SYMBOL(drm_mode_group_init_legacy_group);
 
 void drm_reinit_primary_mode_group(struct drm_device *dev)
 {
-<<<<<<< HEAD
-	struct drm_connector *connector, *ot;
-	struct drm_crtc *crtc, *ct;
-	struct drm_encoder *encoder, *enct;
-	struct drm_framebuffer *fb, *fbt;
-	struct drm_property *property, *pt;
-	struct drm_plane *plane, *plt;
-
-	list_for_each_entry_safe(encoder, enct, &dev->mode_config.encoder_list,
-				 head) {
-		encoder->funcs->destroy(encoder);
-	}
-
-	list_for_each_entry_safe(connector, ot,
-				 &dev->mode_config.connector_list, head) {
-		connector->funcs->destroy(connector);
-	}
-
-	list_for_each_entry_safe(property, pt, &dev->mode_config.property_list,
-				 head) {
-		drm_property_destroy(dev, property);
-	}
-
-	list_for_each_entry_safe(fb, fbt, &dev->mode_config.fb_list, head) {
-		fb->funcs->destroy(fb);
-	}
-
-	list_for_each_entry_safe(plane, plt, &dev->mode_config.plane_list,
-				 head) {
-		plane->funcs->destroy(plane);
-	}
-
-	list_for_each_entry_safe(crtc, ct, &dev->mode_config.crtc_list, head) {
-		crtc->funcs->destroy(crtc);
-	}
-
-	idr_remove_all(&dev->mode_config.crtc_idr);
-	idr_destroy(&dev->mode_config.crtc_idr);
-=======
 	drm_modeset_lock_all(dev);
 	drm_mode_group_destroy(&dev->primary->mode_group);
 	drm_mode_group_init_legacy_group(dev, &dev->primary->mode_group);
 	drm_modeset_unlock_all(dev);
->>>>>>> android-3.18
 }
 EXPORT_SYMBOL(drm_reinit_primary_mode_group);
 
@@ -2765,10 +2725,6 @@ static int drm_mode_cursor_universal(struct drm_crtc *crtc,
 	BUG_ON(!crtc->cursor);
 	WARN_ON(crtc->cursor->crtc != crtc && crtc->cursor->crtc != NULL);
 
-<<<<<<< HEAD
-	if (!req->flags || (~DRM_MODE_CURSOR_FLAGS & req->flags))
-		return -EINVAL;
-=======
 	/*
 	 * Obtain fb we'll be using (either new or existing) and take an extra
 	 * reference to it if fb != null.  setplane will take care of dropping
@@ -2789,7 +2745,6 @@ static int drm_mode_cursor_universal(struct drm_crtc *crtc,
 		if (fb)
 			drm_framebuffer_reference(fb);
 	}
->>>>>>> android-3.18
 
 	if (req->flags & DRM_MODE_CURSOR_MOVE) {
 		crtc_x = req->x;

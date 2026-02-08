@@ -32,6 +32,13 @@
 #include <linux/io.h>
 #include <linux/msm_ion.h>
 
+#undef request_region
+#undef release_region
+
+#ifndef ioremap_cached
+#define ioremap_cached ioremap
+#endif
+
 struct ion_removed_heap {
 	struct ion_heap heap;
 	struct gen_pool *pool;

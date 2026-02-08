@@ -96,13 +96,10 @@ static int radeon_process_i2c_ch(struct radeon_i2c_chan *chan,
 
 	if (!(flags & HW_I2C_WRITE))
 		radeon_atom_copy_swap(buf, base, num, false);
-<<<<<<< HEAD
-=======
 
 done:
 	mutex_unlock(&rdev->mode_info.atom_context->scratch_mutex);
 	mutex_unlock(&chan->mutex);
->>>>>>> android-3.18
 
 	return r;
 }

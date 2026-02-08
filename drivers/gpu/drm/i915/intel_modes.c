@@ -78,20 +78,14 @@ int intel_ddc_get_modes(struct drm_connector *connector,
 			struct i2c_adapter *adapter)
 {
 	struct edid *edid;
-<<<<<<< HEAD
-=======
 	int ret;
->>>>>>> android-3.18
 
 	edid = drm_get_edid(connector, adapter);
 	if (!edid)
 		return 0;
-<<<<<<< HEAD
-=======
 
 	ret = intel_connector_update_modes(connector, edid);
 	kfree(edid);
->>>>>>> android-3.18
 
 	return intel_connector_update_modes(connector, edid);
 }

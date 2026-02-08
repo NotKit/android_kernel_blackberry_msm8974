@@ -771,15 +771,9 @@ i915_gem_execbuffer_relocate_slow(struct drm_device *dev,
 		 * relocations were valid.
 		 */
 		for (j = 0; j < exec[i].relocation_count; j++) {
-<<<<<<< HEAD
-			if (copy_to_user(&user_relocs[j].presumed_offset,
-					 &invalid_offset,
-					 sizeof(invalid_offset))) {
-=======
 			if (__copy_to_user(&user_relocs[j].presumed_offset,
 					   &invalid_offset,
 					   sizeof(invalid_offset))) {
->>>>>>> android-3.18
 				ret = -EFAULT;
 				mutex_lock(&dev->struct_mutex);
 				goto err;
@@ -889,15 +883,7 @@ validate_exec_list(struct drm_device *dev,
 		char __user *ptr = to_user_ptr(exec[i].relocs_ptr);
 		int length; /* limited by fault_in_pages_readable() */
 
-<<<<<<< HEAD
-		/* First check for malicious input causing overflow in
-		 * the worst case where we need to allocate the entire
-		 * relocation tree as a single array.
-		 */
-		if (exec[i].relocation_count > relocs_max - relocs_total)
-=======
 		if (exec[i].flags & invalid_flags)
->>>>>>> android-3.18
 			return -EINVAL;
 		relocs_total += exec[i].relocation_count;
 

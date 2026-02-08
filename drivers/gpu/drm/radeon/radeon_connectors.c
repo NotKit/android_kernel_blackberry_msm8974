@@ -66,27 +66,6 @@ void radeon_connector_hotplug(struct drm_connector *connector)
 		/* don't do anything if sink is not display port, i.e.,
 		 * passive dp->(dvi|hdmi) adaptor
 		 */
-<<<<<<< HEAD
-		if (dig_connector->dp_sink_type == CONNECTOR_OBJECT_ID_DISPLAYPORT) {
-			int saved_dpms = connector->dpms;
-			/* Only turn off the display if it's physically disconnected */
-			if (!radeon_hpd_sense(rdev, radeon_connector->hpd.hpd)) {
-				drm_helper_connector_dpms(connector, DRM_MODE_DPMS_OFF);
-			} else if (radeon_dp_needs_link_train(radeon_connector)) {
-				/* Don't try to start link training before we
-				 * have the dpcd */
-				if (!radeon_dp_getdpcd(radeon_connector))
-					return;
-
-				/* set it to OFF so that drm_helper_connector_dpms()
-				 * won't return immediately since the current state
-				 * is ON at this point.
-				 */
-				connector->dpms = DRM_MODE_DPMS_OFF;
-				drm_helper_connector_dpms(connector, DRM_MODE_DPMS_ON);
-			}
-			connector->dpms = saved_dpms;
-=======
 		if (dig_connector->dp_sink_type == CONNECTOR_OBJECT_ID_DISPLAYPORT &&
 		    radeon_hpd_sense(rdev, radeon_connector->hpd.hpd) &&
 		    radeon_dp_needs_link_train(radeon_connector)) {
@@ -99,7 +78,6 @@ void radeon_connector_hotplug(struct drm_connector *connector)
 			 */
 			drm_helper_connector_dpms(connector, DRM_MODE_DPMS_OFF);
 			drm_helper_connector_dpms(connector, DRM_MODE_DPMS_ON);
->>>>>>> android-3.18
 		}
 	}
 }
@@ -1676,11 +1654,7 @@ radeon_dp_detect(struct drm_connector *connector, bool force)
 				if (radeon_dp_getdpcd(radeon_connector))
 					ret = connector_status_connected;
 			} else {
-<<<<<<< HEAD
-				/* try non-aux ddc (DP to DVI/HMDI/etc. adapter) */
-=======
 				/* try non-aux ddc (DP to DVI/HDMI/etc. adapter) */
->>>>>>> android-3.18
 				if (radeon_ddc_probe(radeon_connector, false))
 					ret = connector_status_connected;
 			}
@@ -1926,11 +1900,7 @@ radeon_add_atom_connector(struct drm_device *dev,
 					   &radeon_dp_connector_funcs, connector_type);
 			drm_connector_helper_add(&radeon_connector->base,
 						 &radeon_dp_connector_helper_funcs);
-<<<<<<< HEAD
-			drm_connector_attach_property(&radeon_connector->base,
-=======
 			drm_object_attach_property(&radeon_connector->base.base,
->>>>>>> android-3.18
 						      rdev->mode_info.underscan_property,
 						      UNDERSCAN_OFF);
 			drm_object_attach_property(&radeon_connector->base.base,
@@ -1972,11 +1942,7 @@ radeon_add_atom_connector(struct drm_device *dev,
 					   &radeon_lvds_bridge_connector_funcs, connector_type);
 			drm_connector_helper_add(&radeon_connector->base,
 						 &radeon_dp_connector_helper_funcs);
-<<<<<<< HEAD
-			drm_connector_attach_property(&radeon_connector->base,
-=======
 			drm_object_attach_property(&radeon_connector->base.base,
->>>>>>> android-3.18
 						      dev->mode_config.scaling_mode_property,
 						      DRM_MODE_SCALE_FULLSCREEN);
 			subpixel_order = SubPixelHorizontalRGB;

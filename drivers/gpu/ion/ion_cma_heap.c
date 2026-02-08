@@ -65,6 +65,7 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
 {
 	struct device *dev = heap->priv;
 	struct ion_cma_buffer_info *info;
+	DEFINE_DMA_ATTRS(attrs);
 
 	dev_dbg(dev, "Request buffer allocation len %ld\n", len);
 
@@ -75,11 +76,12 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
 	}
 
 	if (!ION_IS_CACHED(flags))
-		info->cpu_addr = dma_alloc_writecombine(dev, len,
-					&(info->handle), GFP_KERNEL);
+		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
 	else
-		info->cpu_addr = dma_alloc_nonconsistent(dev, len,
-					&(info->handle), GFP_KERNEL);
+		dma_set_attr(DMA_ATTR_NON_CONSISTENT, &attrs);
+
+	info->cpu_addr = dma_alloc_attrs(dev, len, &(info->handle),
+						GFP_KERNEL, &attrs);
 
 	if (!info->cpu_addr) {
 		dev_err(dev, "Fail to allocate buffer\n");
@@ -114,7 +116,8 @@ static void ion_cma_free(struct ion_buffer *buffer)
 
 	dev_dbg(dev, "Release buffer %p\n", buffer);
 	/* release memory */
-	dma_free_coherent(dev, buffer->size, info->cpu_addr, info->handle);
+	dma_free_attrs(dev, buffer->size, info->cpu_addr, info->handle,
+		       NULL);
 	sg_free_table(info->table);
 	/* release sg table */
 	kfree(info->table);
@@ -157,12 +160,15 @@ static int ion_cma_mmap(struct ion_heap *mapper, struct ion_buffer *buffer,
 	struct device *dev = buffer->heap->priv;
 	struct ion_cma_buffer_info *info = buffer->priv_virt;
 
+	DEFINE_DMA_ATTRS(attrs);
+
 	if (info->is_cached)
-		return dma_mmap_nonconsistent(dev, vma, info->cpu_addr,
-				info->handle, buffer->size);
+		dma_set_attr(DMA_ATTR_NON_CONSISTENT, &attrs);
 	else
-		return dma_mmap_writecombine(dev, vma, info->cpu_addr,
-				info->handle, buffer->size);
+		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+
+	return dma_mmap_attrs(dev, vma, info->cpu_addr, info->handle,
+			      buffer->size, &attrs);
 }
 
 static void *ion_cma_map_kernel(struct ion_heap *heap,

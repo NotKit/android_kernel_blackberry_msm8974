@@ -70,15 +70,12 @@
 #define EDID_QUIRK_FORCE_REDUCED_BLANKING	(1 << 7)
 /* Force 8bpc */
 #define EDID_QUIRK_FORCE_8BPC			(1 << 8)
-<<<<<<< HEAD
-=======
 /* Force 12bpc */
 #define EDID_QUIRK_FORCE_12BPC			(1 << 9)
 /* Force 6bpc */
 #define EDID_QUIRK_FORCE_6BPC			(1 << 10)
 /* Force 10bpc */
 #define EDID_QUIRK_FORCE_10BPC			(1 << 11)
->>>>>>> android-3.18
 
 struct detailed_mode_closure {
 	struct drm_connector *connector;
@@ -143,12 +140,9 @@ static struct edid_quirk {
 	{ "SAM", 596, EDID_QUIRK_PREFER_LARGE_60 },
 	{ "SAM", 638, EDID_QUIRK_PREFER_LARGE_60 },
 
-<<<<<<< HEAD
-=======
 	/* Sony PVM-2541A does up to 12 bpc, but only reports max 8 bpc */
 	{ "SNY", 0x2541, EDID_QUIRK_FORCE_12BPC },
 
->>>>>>> android-3.18
 	/* ViewSonic VA2026w */
 	{ "VSC", 5020, EDID_QUIRK_FORCE_REDUCED_BLANKING },
 
@@ -157,8 +151,6 @@ static struct edid_quirk {
 
 	/* Panel in Samsung NP700G7A-S01PL notebook reports 6bpc */
 	{ "SEC", 0xd033, EDID_QUIRK_FORCE_8BPC },
-<<<<<<< HEAD
-=======
 
 	/* Rotel RSX-1058 forwards sink's EDID but only does HDMI 1.1*/
 	{ "ETR", 13896, EDID_QUIRK_FORCE_8BPC },
@@ -1005,7 +997,6 @@ static const struct drm_display_mode edid_4k_modes[] = {
 		   2160, 2168, 2178, 2250, 0,
 		   DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC),
 	  .vrefresh = 24, },
->>>>>>> android-3.18
 };
 
 /*** DDC fetch and block validation ***/
@@ -1895,12 +1886,6 @@ set_size:
 	mode->type = DRM_MODE_TYPE_DRIVER;
 	mode->vrefresh = drm_mode_vrefresh(mode);
 	drm_mode_set_name(mode);
-<<<<<<< HEAD
-
-	return mode;
-}
-=======
->>>>>>> android-3.18
 
 	return mode;
 }

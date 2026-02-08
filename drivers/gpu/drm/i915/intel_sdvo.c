@@ -882,15 +882,6 @@ static void intel_sdvo_get_mode_from_dtd(struct drm_display_mode *pmode,
 
 	mode.clock = dtd->part1.clock * 10;
 
-<<<<<<< HEAD
-	mode->flags &= ~(DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC);
-	if (dtd->part2.dtd_flags & DTD_FLAG_INTERLACE)
-		mode->flags |= DRM_MODE_FLAG_INTERLACE;
-	if (dtd->part2.dtd_flags & DTD_FLAG_HSYNC_POSITIVE)
-		mode->flags |= DRM_MODE_FLAG_PHSYNC;
-	if (dtd->part2.dtd_flags & DTD_FLAG_VSYNC_POSITIVE)
-		mode->flags |= DRM_MODE_FLAG_PVSYNC;
-=======
 	if (dtd->part2.dtd_flags & DTD_FLAG_INTERLACE)
 		mode.flags |= DRM_MODE_FLAG_INTERLACE;
 	if (dtd->part2.dtd_flags & DTD_FLAG_HSYNC_POSITIVE)
@@ -905,7 +896,6 @@ static void intel_sdvo_get_mode_from_dtd(struct drm_display_mode *pmode,
 	drm_mode_set_crtcinfo(&mode, 0);
 
 	drm_mode_copy(pmode, &mode);
->>>>>>> android-3.18
 }
 
 static bool intel_sdvo_check_supp_encode(struct intel_sdvo *intel_sdvo)
@@ -962,11 +952,7 @@ static void intel_sdvo_dump_hdmi_buf(struct intel_sdvo *intel_sdvo)
 
 static bool intel_sdvo_write_infoframe(struct intel_sdvo *intel_sdvo,
 				       unsigned if_index, uint8_t tx_rate,
-<<<<<<< HEAD
-				       uint8_t *data, unsigned length)
-=======
 				       const uint8_t *data, unsigned length)
->>>>>>> android-3.18
 {
 	uint8_t set_buf_index[2] = { if_index, 0 };
 	uint8_t hbuf_size, tmp[8];
@@ -1003,24 +989,6 @@ static bool intel_sdvo_write_infoframe(struct intel_sdvo *intel_sdvo,
 				    &tx_rate, 1);
 }
 
-<<<<<<< HEAD
-static bool intel_sdvo_set_avi_infoframe(struct intel_sdvo *intel_sdvo)
-{
-	struct dip_infoframe avi_if = {
-		.type = DIP_TYPE_AVI,
-		.ver = DIP_VERSION_AVI,
-		.len = DIP_LEN_AVI,
-	};
-	uint8_t sdvo_data[4 + sizeof(avi_if.body.avi)];
-
-	intel_dip_infoframe_csum(&avi_if);
-
-	/* sdvo spec says that the ecc is handled by the hw, and it looks like
-	 * we must not send the ecc field, either. */
-	memcpy(sdvo_data, &avi_if, 3);
-	sdvo_data[3] = avi_if.checksum;
-	memcpy(&sdvo_data[4], &avi_if.body, sizeof(avi_if.body.avi));
-=======
 static bool intel_sdvo_set_avi_infoframe(struct intel_sdvo *intel_sdvo,
 					 const struct drm_display_mode *adjusted_mode)
 {
@@ -1050,7 +1018,6 @@ static bool intel_sdvo_set_avi_infoframe(struct intel_sdvo *intel_sdvo,
 	len = hdmi_infoframe_pack(&frame, sdvo_data, sizeof(sdvo_data));
 	if (len < 0)
 		return false;
->>>>>>> android-3.18
 
 	return intel_sdvo_write_infoframe(intel_sdvo, SDVO_HBUF_INDEX_AVI_IF,
 					  SDVO_HBUF_TX_VSYNC,
@@ -1981,19 +1948,7 @@ static void intel_sdvo_get_lvds_modes(struct drm_connector *connector)
 	 * Fetch modes from VBT. For SDVO prefer the VBT mode since some
 	 * SDVO->LVDS transcoders can't cope with the EDID mode.
 	 */
-<<<<<<< HEAD
-	intel_ddc_get_modes(connector, &intel_sdvo->ddc);
-
-	/*
-	 * Fetch modes from VBT. For SDVO prefer the VBT mode since some
-	 * SDVO->LVDS transcoders can't cope with the EDID mode. Since
-	 * drm_mode_probed_add adds the mode at the head of the list we add it
-	 * last.
-	 */
-	if (dev_priv->sdvo_lvds_vbt_mode != NULL) {
-=======
 	if (dev_priv->vbt.sdvo_lvds_vbt_mode != NULL) {
->>>>>>> android-3.18
 		newmode = drm_mode_duplicate(connector->dev,
 					     dev_priv->vbt.sdvo_lvds_vbt_mode);
 		if (newmode != NULL) {
@@ -2004,8 +1959,6 @@ static void intel_sdvo_get_lvds_modes(struct drm_connector *connector)
 		}
 	}
 
-<<<<<<< HEAD
-=======
 	/*
 	 * Attempt to get the mode list from DDC.
 	 * Assume that the preferred modes are
@@ -2013,7 +1966,6 @@ static void intel_sdvo_get_lvds_modes(struct drm_connector *connector)
 	 */
 	intel_ddc_get_modes(connector, &intel_sdvo->ddc);
 
->>>>>>> android-3.18
 	list_for_each_entry(newmode, &connector->probed_modes, head) {
 		if (newmode->type & DRM_MODE_TYPE_PREFERRED) {
 			intel_sdvo->sdvo_lvds_fixed_mode =
@@ -2758,15 +2710,10 @@ static void intel_sdvo_output_cleanup(struct intel_sdvo *intel_sdvo)
 
 	list_for_each_entry_safe(connector, tmp,
 				 &dev->mode_config.connector_list, head) {
-<<<<<<< HEAD
-		if (intel_attached_encoder(connector) == &intel_sdvo->base)
-			intel_sdvo_destroy(connector);
-=======
 		if (intel_attached_encoder(connector) == &intel_sdvo->base) {
 			drm_connector_unregister(connector);
 			intel_sdvo_destroy(connector);
 		}
->>>>>>> android-3.18
 	}
 }
 
@@ -3064,28 +3011,12 @@ bool intel_sdvo_init(struct drm_device *dev, uint32_t sdvo_reg, bool is_sdvob)
 		}
 	}
 
-<<<<<<< HEAD
-	hotplug_mask = 0;
-	if (IS_G4X(dev)) {
-		hotplug_mask = IS_SDVOB(sdvo_reg) ?
-			SDVOB_HOTPLUG_INT_STATUS_G4X : SDVOC_HOTPLUG_INT_STATUS_G4X;
-	} else if (IS_GEN4(dev)) {
-		hotplug_mask = IS_SDVOB(sdvo_reg) ?
-			SDVOB_HOTPLUG_INT_STATUS_I965 : SDVOC_HOTPLUG_INT_STATUS_I965;
-	} else {
-		hotplug_mask = IS_SDVOB(sdvo_reg) ?
-			SDVOB_HOTPLUG_INT_STATUS_I915 : SDVOC_HOTPLUG_INT_STATUS_I915;
-	}
-
-	drm_encoder_helper_add(&intel_encoder->base, &intel_sdvo_helper_funcs);
-=======
 	intel_encoder->compute_config = intel_sdvo_compute_config;
 	intel_encoder->disable = intel_disable_sdvo;
 	intel_encoder->pre_enable = intel_sdvo_pre_enable;
 	intel_encoder->enable = intel_enable_sdvo;
 	intel_encoder->get_hw_state = intel_sdvo_get_hw_state;
 	intel_encoder->get_config = intel_sdvo_get_config;
->>>>>>> android-3.18
 
 	/* In default case sdvo lvds is false */
 	if (!intel_sdvo_get_capabilities(intel_sdvo, &intel_sdvo->caps))
@@ -3093,19 +3024,6 @@ bool intel_sdvo_init(struct drm_device *dev, uint32_t sdvo_reg, bool is_sdvob)
 
 	if (intel_sdvo_output_setup(intel_sdvo,
 				    intel_sdvo->caps.output_flags) != true) {
-<<<<<<< HEAD
-		DRM_DEBUG_KMS("SDVO output failed to setup on SDVO%c\n",
-			      IS_SDVOB(sdvo_reg) ? 'B' : 'C');
-		/* Output_setup can leave behind connectors! */
-		goto err_output;
-	}
-
-	/* Only enable the hotplug irq if we need it, to work around noisy
-	 * hotplug lines.
-	 */
-	if (intel_sdvo->hotplug_active[0])
-		dev_priv->hotplug_supported_mask |= hotplug_mask;
-=======
 		DRM_DEBUG_KMS("SDVO output failed to setup on %s\n",
 			      SDVO_NAME(intel_sdvo));
 		/* Output_setup can leave behind connectors! */
@@ -3129,7 +3047,6 @@ bool intel_sdvo_init(struct drm_device *dev, uint32_t sdvo_reg, bool is_sdvob)
 	 * cloning for SDVO encoders.
 	 */
 	intel_sdvo->base.cloneable = 0;
->>>>>>> android-3.18
 
 	intel_sdvo_select_ddc_bus(dev_priv, intel_sdvo, sdvo_reg);
 
