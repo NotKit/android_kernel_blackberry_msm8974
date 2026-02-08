@@ -90,14 +90,6 @@ of_get_fixed_voltage_config(struct device *dev)
 	if ((config->gpio == -ENODEV) || (config->gpio == -EPROBE_DEFER))
 		return ERR_PTR(-EPROBE_DEFER);
 
-<<<<<<< HEAD
-	delay = of_get_property(np, "startup-delay-us", NULL);
-	if (delay)
-		config->startup_delay = be32_to_cpu(*delay);
-
-	if (of_find_property(np, "enable-active-high", NULL))
-		config->enable_high = true;
-=======
 	of_property_read_u32(np, "startup-delay-us", &config->startup_delay);
 
 	config->enable_high = of_property_read_bool(np, "enable-active-high");
@@ -106,7 +98,6 @@ of_get_fixed_voltage_config(struct device *dev)
 
 	if (of_find_property(np, "vin-supply", NULL))
 		config->input_supply = "vin";
->>>>>>> android-3.18
 
 	if (of_find_property(np, "parent-supply", NULL))
 		init_data->supply_regulator = "parent";
@@ -129,11 +120,7 @@ static int reg_fixed_voltage_probe(struct platform_device *pdev)
 		if (IS_ERR(config))
 			return PTR_ERR(config);
 	} else {
-<<<<<<< HEAD
-		config = pdev->dev.platform_data;
-=======
 		config = dev_get_platdata(&pdev->dev);
->>>>>>> android-3.18
 	}
 
 	if (!config)
