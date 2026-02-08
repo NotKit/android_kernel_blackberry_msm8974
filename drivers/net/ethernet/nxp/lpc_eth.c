@@ -926,11 +926,7 @@ static void __lpc_handle_xmit(struct net_device *ndev)
 		} else {
 			/* Update stats */
 			ndev->stats.tx_packets++;
-<<<<<<< HEAD
-			ndev->stats.tx_bytes += skb->len;
-=======
 			ndev->stats.tx_bytes += skblen;
->>>>>>> android-3.18
 		}
 		dev_kfree_skb_irq(skb);
 
@@ -1307,10 +1303,7 @@ static const struct net_device_ops lpc_netdev_ops = {
 	.ndo_set_rx_mode	= lpc_eth_set_multicast_list,
 	.ndo_do_ioctl		= lpc_eth_ioctl,
 	.ndo_set_mac_address	= lpc_set_mac_address,
-<<<<<<< HEAD
-=======
 	.ndo_validate_addr	= eth_validate_addr,
->>>>>>> android-3.18
 	.ndo_change_mtu		= eth_change_mtu,
 };
 

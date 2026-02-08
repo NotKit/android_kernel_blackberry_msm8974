@@ -57,17 +57,7 @@ static unsigned int rx_refill_threshold;
  */
 #define EFX_RXD_HEAD_ROOM (1 + EFX_RX_MAX_FRAGS)
 
-<<<<<<< HEAD
-/* Offset of ethernet header within page */
-static inline unsigned int efx_rx_buf_offset(struct efx_nic *efx,
-					     struct efx_rx_buffer *buf)
-{
-	return buf->page_offset + efx->type->rx_buffer_hash_size;
-}
-static inline unsigned int efx_rx_buf_size(struct efx_nic *efx)
-=======
 static inline u8 *efx_rx_buf_va(struct efx_rx_buffer *buf)
->>>>>>> android-3.18
 {
 	return page_address(buf->page) + buf->page_offset;
 }
@@ -164,10 +154,6 @@ static int efx_init_rx_buffers(struct efx_rx_queue *rx_queue, bool atomic)
 	struct efx_nic *efx = rx_queue->efx;
 	struct efx_rx_buffer *rx_buf;
 	struct page *page;
-<<<<<<< HEAD
-	void *page_addr;
-=======
->>>>>>> android-3.18
 	unsigned int page_offset;
 	struct efx_rx_page_state *state;
 	dma_addr_t dma_addr;
@@ -201,30 +187,6 @@ static int efx_init_rx_buffers(struct efx_rx_queue *rx_queue, bool atomic)
 		dma_addr += sizeof(struct efx_rx_page_state);
 		page_offset = sizeof(struct efx_rx_page_state);
 
-<<<<<<< HEAD
-	split:
-		index = rx_queue->added_count & rx_queue->ptr_mask;
-		rx_buf = efx_rx_buffer(rx_queue, index);
-		rx_buf->dma_addr = dma_addr + EFX_PAGE_IP_ALIGN;
-		rx_buf->u.page = page;
-		rx_buf->page_offset = page_offset + EFX_PAGE_IP_ALIGN;
-		rx_buf->len = efx->rx_buffer_len - EFX_PAGE_IP_ALIGN;
-		rx_buf->flags = EFX_RX_BUF_PAGE;
-		++rx_queue->added_count;
-		++rx_queue->alloc_page_count;
-		++state->refcnt;
-
-		if ((~count & 1) && (efx->rx_buffer_len <= EFX_RX_HALF_PAGE)) {
-			/* Use the second half of the page */
-			get_page(page);
-			dma_addr += (PAGE_SIZE >> 1);
-			page_addr += (PAGE_SIZE >> 1);
-			page_offset += (PAGE_SIZE >> 1);
-			++count;
-			goto split;
-		}
-	}
-=======
 		do {
 			index = rx_queue->added_count & rx_queue->ptr_mask;
 			rx_buf = efx_rx_buffer(rx_queue, index);
@@ -241,7 +203,6 @@ static int efx_init_rx_buffers(struct efx_rx_queue *rx_queue, bool atomic)
 
 		rx_buf->flags = EFX_RX_BUF_LAST_IN_PAGE;
 	} while (++count < efx->rx_pages_per_batch);
->>>>>>> android-3.18
 
 	return 0;
 }
@@ -264,28 +225,11 @@ static void efx_unmap_rx_buffer(struct efx_nic *efx,
 	}
 }
 
-<<<<<<< HEAD
-		state = page_address(rx_buf->u.page);
-		if (--state->refcnt == 0) {
-			pci_unmap_page(efx->pci_dev,
-				       state->dma_addr,
-				       efx_rx_buf_size(efx),
-				       PCI_DMA_FROMDEVICE);
-		} else if (used_len) {
-			dma_sync_single_for_cpu(&efx->pci_dev->dev,
-						rx_buf->dma_addr, used_len,
-						DMA_FROM_DEVICE);
-		}
-	} else if (!(rx_buf->flags & EFX_RX_BUF_PAGE) && rx_buf->u.skb) {
-		pci_unmap_single(efx->pci_dev, rx_buf->dma_addr,
-				 rx_buf->len, PCI_DMA_FROMDEVICE);
-=======
 static void efx_free_rx_buffer(struct efx_rx_buffer *rx_buf)
 {
 	if (rx_buf->page) {
 		put_page(rx_buf->page);
 		rx_buf->page = NULL;
->>>>>>> android-3.18
 	}
 }
 
@@ -328,10 +272,6 @@ static void efx_recycle_rx_page(struct efx_channel *channel,
 static void efx_fini_rx_buffer(struct efx_rx_queue *rx_queue,
 			       struct efx_rx_buffer *rx_buf)
 {
-<<<<<<< HEAD
-	efx_unmap_rx_buffer(rx_queue->efx, rx_buf, 0);
-	efx_free_rx_buffer(rx_queue->efx, rx_buf);
-=======
 	/* Release the page reference we hold for the buffer. */
 	if (rx_buf->page)
 		put_page(rx_buf->page);
@@ -342,7 +282,6 @@ static void efx_fini_rx_buffer(struct efx_rx_queue *rx_queue,
 		efx_free_rx_buffer(rx_buf);
 	}
 	rx_buf->page = NULL;
->>>>>>> android-3.18
 }
 
 /* Recycle the pages that are used by buffers that have just been received. */
@@ -352,21 +291,10 @@ static void efx_recycle_rx_pages(struct efx_channel *channel,
 {
 	struct efx_rx_queue *rx_queue = efx_channel_get_rx_queue(channel);
 
-<<<<<<< HEAD
-	index = rx_queue->added_count & rx_queue->ptr_mask;
-	new_buf = efx_rx_buffer(rx_queue, index);
-	new_buf->u.page = rx_buf->u.page;
-	new_buf->page_offset = rx_buf->page_offset ^ (PAGE_SIZE >> 1);
-	new_buf->dma_addr = state->dma_addr + new_buf->page_offset;
-	new_buf->len = rx_buf->len;
-	new_buf->flags = EFX_RX_BUF_PAGE;
-	++rx_queue->added_count;
-=======
 	do {
 		efx_recycle_rx_page(channel, rx_buf);
 		rx_buf = efx_rx_buf_next(rx_queue, rx_buf);
 	} while (--n_frags);
->>>>>>> android-3.18
 }
 
 static void efx_discard_rx_packet(struct efx_channel *channel,
@@ -642,12 +570,6 @@ void efx_rx_packet(struct efx_rx_queue *rx_queue, unsigned int index,
 		return;
 	}
 
-<<<<<<< HEAD
-	/* Release and/or sync DMA mapping - assumes all RX buffers
-	 * consumed in-order per RX queue
-	 */
-	efx_unmap_rx_buffer(efx, rx_buf, len);
-=======
 	if (n_frags == 1 && !(flags & EFX_RX_PKT_PREFIX_LEN))
 		rx_buf->len = len;
 
@@ -655,7 +577,6 @@ void efx_rx_packet(struct efx_rx_queue *rx_queue, unsigned int index,
 	 * consumed in-order per RX queue.
 	 */
 	efx_sync_rx_buffer(efx, rx_buf, rx_buf->len);
->>>>>>> android-3.18
 
 	/* Prefetch nice and early so data will (hopefully) be in cache by
 	 * the time we look at it.

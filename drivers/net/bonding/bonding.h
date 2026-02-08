@@ -572,25 +572,15 @@ static inline void bond_destroy_proc_dir(struct bond_net *bn)
 static inline struct slave *bond_slave_has_mac(struct bonding *bond,
 					       const u8 *mac)
 {
-<<<<<<< HEAD
-	int i = 0;
-	struct slave *tmp;
-
-	bond_for_each_slave(bond, tmp, i)
-		if (!compare_ether_addr_64bits(mac, tmp->dev->dev_addr))
-=======
 	struct list_head *iter;
 	struct slave *tmp;
 
 	bond_for_each_slave(bond, tmp, iter)
 		if (ether_addr_equal_64bits(mac, tmp->dev->dev_addr))
->>>>>>> android-3.18
 			return tmp;
 
 	return NULL;
 }
-<<<<<<< HEAD
-=======
 
 /* Caller must hold rcu_read_lock() for read */
 static inline struct slave *bond_slave_has_mac_rcu(struct bonding *bond,
@@ -642,7 +632,6 @@ static inline int bond_get_targets_ip(__be32 *targets, __be32 ip)
 
 	return -1;
 }
->>>>>>> android-3.18
 
 /* exported from bond_main.c */
 extern int bond_net_id;
