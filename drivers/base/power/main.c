@@ -28,12 +28,9 @@
 #include <linux/sched.h>
 #include <linux/async.h>
 #include <linux/suspend.h>
-<<<<<<< HEAD
-=======
 #include <trace/events/power.h>
 #include <linux/cpufreq.h>
 #include <linux/cpuidle.h>
->>>>>>> android-3.18
 #include <linux/timer.h>
 #include <linux/wakeup_reason.h>
 
@@ -213,11 +210,7 @@ static ktime_t initcall_debug_start(struct device *dev)
 {
 	ktime_t calltime = ktime_set(0, 0);
 
-<<<<<<< HEAD
-	if (pm_print_times) {
-=======
 	if (pm_print_times_enabled) {
->>>>>>> android-3.18
 		pr_info("calling  %s+ @ %i, parent: %s\n",
 			dev_name(dev), task_pid_nr(current),
 			dev->parent ? dev_name(dev->parent) : "none");
@@ -233,16 +226,10 @@ static void initcall_debug_report(struct device *dev, ktime_t calltime,
 	ktime_t rettime;
 	s64 nsecs;
 
-<<<<<<< HEAD
-	if (pm_print_times) {
-		rettime = ktime_get();
-		delta = ktime_sub(rettime, calltime);
-=======
 	rettime = ktime_get();
 	nsecs = (s64) ktime_to_ns(ktime_sub(rettime, calltime));
 
 	if (pm_print_times_enabled) {
->>>>>>> android-3.18
 		pr_info("call %s+ returned %d after %Ld usecs\n", dev_name(dev),
 			error, (unsigned long long)nsecs >> 10);
 	}
@@ -426,33 +413,6 @@ static int dpm_run_callback(pm_callback_t cb, struct device *dev,
 	return error;
 }
 
-<<<<<<< HEAD
-/**
- * dpm_wd_handler - Driver suspend / resume watchdog handler.
- *
- * Called when a driver has timed out suspending or resuming.
- * There's not much we can do here to recover so BUG() out for
- * a crash-dump
- */
-static void dpm_wd_handler(unsigned long data)
-{
-	struct dpm_watchdog *wd = (void *)data;
-	struct device *dev      = wd->dev;
-	struct task_struct *tsk = wd->tsk;
-
-	dev_emerg(dev, "**** DPM device timeout ****\n");
-	show_stack(tsk, NULL);
-
-	BUG();
-}
-
-/**
- * dpm_wd_set - Enable pm watchdog for given device.
- * @wd: Watchdog. Must be allocated on the stack.
- * @dev: Device to handle.
- */
-static void dpm_wd_set(struct dpm_watchdog *wd, struct device *dev)
-=======
 #ifdef CONFIG_DPM_WATCHDOG
 struct dpm_watchdog {
 	struct device		*dev;
@@ -487,55 +447,36 @@ static void dpm_watchdog_handler(unsigned long data)
  * @dev: Device to handle.
  */
 static void dpm_watchdog_set(struct dpm_watchdog *wd, struct device *dev)
->>>>>>> android-3.18
 {
 	struct timer_list *timer = &wd->timer;
 
 	wd->dev = dev;
-<<<<<<< HEAD
-	wd->tsk = get_current();
-
-	init_timer_on_stack(timer);
-	timer->expires = jiffies + HZ * 12;
-	timer->function = dpm_wd_handler;
-=======
 	wd->tsk = current;
 
 	init_timer_on_stack(timer);
 	/* use same timeout value for both suspend and resume */
 	timer->expires = jiffies + HZ * CONFIG_DPM_WATCHDOG_TIMEOUT;
 	timer->function = dpm_watchdog_handler;
->>>>>>> android-3.18
 	timer->data = (unsigned long)wd;
 	add_timer(timer);
 }
 
 /**
-<<<<<<< HEAD
- * dpm_wd_clear - Disable pm watchdog.
- * @wd: Watchdog to disable.
- */
-static void dpm_wd_clear(struct dpm_watchdog *wd)
-=======
  * dpm_watchdog_clear - Disable suspend/resume watchdog.
  * @wd: Watchdog to disable.
  */
 static void dpm_watchdog_clear(struct dpm_watchdog *wd)
->>>>>>> android-3.18
 {
 	struct timer_list *timer = &wd->timer;
 
 	del_timer_sync(timer);
 	destroy_timer_on_stack(timer);
 }
-<<<<<<< HEAD
-=======
 #else
 #define DECLARE_DPM_WATCHDOG_ON_STACK(wd)
 #define dpm_watchdog_set(x, y)
 #define dpm_watchdog_clear(x)
 #endif
->>>>>>> android-3.18
 
 /*------------------------- Resume routines -------------------------*/
 
@@ -720,10 +661,7 @@ static int device_resume_early(struct device *dev, pm_message_t state, bool asyn
 	TRACE_RESUME(error);
 
 	pm_runtime_enable(dev);
-<<<<<<< HEAD
-=======
 	complete_all(&dev->power.completion);
->>>>>>> android-3.18
 	return error;
 }
 
@@ -813,11 +751,7 @@ static int device_resume(struct device *dev, pm_message_t state, bool async)
 	pm_callback_t callback = NULL;
 	char *info = NULL;
 	int error = 0;
-<<<<<<< HEAD
-	struct dpm_watchdog wd;
-=======
 	DECLARE_DPM_WATCHDOG_ON_STACK(wd);
->>>>>>> android-3.18
 
 	TRACE_DEVICE(dev);
 	TRACE_RESUME(0);
@@ -840,7 +774,7 @@ static int device_resume(struct device *dev, pm_message_t state, bool async)
 	 * a resumed device, even if the device hasn't been completed yet.
 	 */
 	dev->power.is_prepared = false;
-	dpm_wd_set(&wd, dev);
+	// dpm_wd_set(&wd, dev);
 
 	if (!dev->power.is_suspended)
 		goto Unlock;
@@ -892,13 +826,9 @@ static int device_resume(struct device *dev, pm_message_t state, bool async)
 
  Unlock:
 	device_unlock(dev);
-<<<<<<< HEAD
-	dpm_wd_clear(&wd);
-=======
 	dpm_watchdog_clear(&wd);
 
  Complete:
->>>>>>> android-3.18
 	complete_all(&dev->power.completion);
 
 	TRACE_RESUME(error);
@@ -1017,11 +947,7 @@ static void device_complete(struct device *dev, pm_message_t state)
 
 	device_unlock(dev);
 
-<<<<<<< HEAD
-	pm_runtime_put_sync(dev);
-=======
 	pm_runtime_put(dev);
->>>>>>> android-3.18
 }
 
 /**
@@ -1219,15 +1145,7 @@ int dpm_suspend_noirq(pm_message_t state)
 			list_move(&dev->power.entry, &dpm_noirq_list);
 		put_device(dev);
 
-<<<<<<< HEAD
-		if (pm_wakeup_pending()) {
-			pm_get_active_wakeup_sources(suspend_abort,
-				MAX_SUSPEND_ABORT_LEN);
-			log_suspend_abort_reason(suspend_abort);
-			error = -EBUSY;
-=======
 		if (async_error)
->>>>>>> android-3.18
 			break;
 	}
 	mutex_unlock(&dpm_list_mtx);
@@ -1261,8 +1179,6 @@ static int __device_suspend_late(struct device *dev, pm_message_t state, bool as
 	int error = 0;
 
 	__pm_runtime_disable(dev, false);
-<<<<<<< HEAD
-=======
 
 	dpm_wait_for_children(dev, async);
 
@@ -1276,7 +1192,6 @@ static int __device_suspend_late(struct device *dev, pm_message_t state, bool as
 
 	if (dev->power.syscore || dev->power.direct_complete)
 		goto Complete;
->>>>>>> android-3.18
 
 	if (dev->pm_domain) {
 		info = "late power domain ";
@@ -1298,16 +1213,6 @@ static int __device_suspend_late(struct device *dev, pm_message_t state, bool as
 	}
 
 	error = dpm_run_callback(callback, dev, state, info);
-<<<<<<< HEAD
-	if (error)
-		/*
-		 * dpm_resume_early wouldn't be run for this failed device,
-		 * hence enable runtime_pm now
-		 */
-		pm_runtime_enable(dev);
-
-	return error;
-=======
 	if (!error)
 		dev->power.is_late_suspended = true;
 	else
@@ -1342,7 +1247,6 @@ static int device_suspend_late(struct device *dev)
 	}
 
 	return __device_suspend_late(dev, pm_transition, false);
->>>>>>> android-3.18
 }
 
 /**
@@ -1380,15 +1284,7 @@ int dpm_suspend_late(pm_message_t state)
 		}
 		put_device(dev);
 
-<<<<<<< HEAD
-		if (pm_wakeup_pending()) {
-			pm_get_active_wakeup_sources(suspend_abort,
-				MAX_SUSPEND_ABORT_LEN);
-			log_suspend_abort_reason(suspend_abort);
-			error = -EBUSY;
-=======
 		if (async_error)
->>>>>>> android-3.18
 			break;
 	}
 	mutex_unlock(&dpm_list_mtx);
@@ -1415,7 +1311,6 @@ int dpm_suspend_end(pm_message_t state)
 	int error = dpm_suspend_late(state);
 	if (error)
 		return error;
-<<<<<<< HEAD
 
 	error = dpm_suspend_noirq(state);
 	if (error) {
@@ -1423,15 +1318,6 @@ int dpm_suspend_end(pm_message_t state)
 		return error;
 	}
 
-=======
-
-	error = dpm_suspend_noirq(state);
-	if (error) {
-		dpm_resume_early(resume_event(state));
-		return error;
-	}
-
->>>>>>> android-3.18
 	return 0;
 }
 EXPORT_SYMBOL_GPL(dpm_suspend_end);
@@ -1473,15 +1359,6 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	pm_callback_t callback = NULL;
 	char *info = NULL;
 	int error = 0;
-<<<<<<< HEAD
-	struct dpm_watchdog wd;
-	char suspend_abort[MAX_SUSPEND_ABORT_LEN];
-
-	dpm_wait_for_children(dev, async);
-
-	if (async_error)
-		goto Complete;
-=======
 	char suspend_abort[MAX_SUSPEND_ABORT_LEN];
 	DECLARE_DPM_WATCHDOG_ON_STACK(wd);
 
@@ -1491,7 +1368,6 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 		dev->power.direct_complete = false;
 		goto Complete;
 	}
->>>>>>> android-3.18
 
 	/*
 	 * Wait for possible runtime PM transitions of the device in progress
@@ -1510,18 +1386,11 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 		pm_get_active_wakeup_sources(suspend_abort,
 			MAX_SUSPEND_ABORT_LEN);
 		log_suspend_abort_reason(suspend_abort);
-<<<<<<< HEAD
-=======
 		dev->power.direct_complete = false;
->>>>>>> android-3.18
 		async_error = -EBUSY;
 		goto Complete;
 	}
 
-<<<<<<< HEAD
-	dpm_wd_set(&wd, dev);
-
-=======
 	if (dev->power.syscore)
 		goto Complete;
 
@@ -1541,7 +1410,6 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	}
 
 	dpm_watchdog_set(&wd, dev);
->>>>>>> android-3.18
 	device_lock(dev);
 
 	if (dev->pm_domain) {
@@ -1607,14 +1475,8 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	}
 
 	device_unlock(dev);
-<<<<<<< HEAD
-
-	dpm_wd_clear(&wd);
-
-=======
 	dpm_watchdog_clear(&wd);
 
->>>>>>> android-3.18
  Complete:
 	complete_all(&dev->power.completion);
 	if (error)
