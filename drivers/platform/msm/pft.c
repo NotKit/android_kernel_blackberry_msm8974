@@ -209,10 +209,10 @@ static char *inode_to_filename(struct inode *inode)
 	struct dentry *dentry = NULL;
 	char *filename = NULL;
 
-	if (list_empty(&inode->i_dentry))
+	if (hlist_empty(&inode->i_dentry))
 		return "unknown";
 
-	dentry = list_first_entry(&inode->i_dentry, struct dentry, d_u.d_alias);
+	dentry = hlist_entry(inode->i_dentry.first, struct dentry, d_u.d_alias);
 
 	filename = dentry->d_iname;
 
@@ -264,6 +264,12 @@ static int pft_add_file(struct file *filp)
  *
  * Return: 0 on success, negative value on failure.
  */
+static inline struct inode *dio_bio_get_inode(struct bio *bio)
+{
+	struct page *page = bio_page(bio);
+	return page ? (page->mapping ? page->mapping->host : NULL) : NULL;
+}
+
 static int pft_remove_file(struct file *filp)
 {
 	int ret = -ENOENT;
@@ -303,7 +309,7 @@ static bool pft_is_current_process_registered(void)
 {
 	int is_registered = false;
 	int i;
-	u32 uid = current_uid();
+	u32 uid = __kuid_val(current_uid());
 
 	mutex_lock(&pft_dev->lock);
 	for (i = 0; i < pft_dev->uid_count; i++) {
@@ -550,6 +556,17 @@ static inline u32 pft_get_app_key_index(u32 uid)
 }
 
 /**
+ * pft_is_encrypted_key() - is the key index for encrypted file.
+ * @key_index: key index.
+ *
+ * Return: true if the key index is for encrypted file.
+ */
+static inline bool pft_is_encrypted_key(u32 key_index)
+{
+	return (key_index != PFT_NO_KEY);
+}
+
+/**
  * pft_is_encrypted_file() - is the file encrypted.
  * @dentry: file pointer.
  *
@@ -774,35 +791,87 @@ EXPORT_SYMBOL(pft_allow_merge_bio);
  *
  * Return: 0 on successe, negative value on failure.
  */
+static int pft_key_loader_inode_create(struct inode *dir, struct dentry *dentry,
+				       int mask)
+{
+	u32 key_index = pft_get_app_key_index(__kuid_val(current_uid()));
+
+	/*
+	 * Allow PFM to create any file.
+	 * Allow registered apps to create encrypted files (registered app can't create
+	 * non-encrypted file when the key is loaded).
+	 * Block any other app from creating encrypted file.
+	 */
+	if (!pft_is_current_process_registered()) {
+		if (pft_is_encrypted_key(key_index)) {
+			pr_debug("key loaded, unregistered uid %u is denied from creating encrypted file %s\n",
+				 __kuid_val(current_uid()), dentry->d_name.name);
+			return -EACCES;
+		}
+	} else { /* Registered app */
+		if (!pft_is_encrypted_key(key_index)) {
+			pr_debug("key loaded, registered uid %u is denied from creating un-encrypted file %s\n",
+				 __kuid_val(current_uid()), dentry->d_name.name);
+			return -EACCES;
+		}
+	}
+
+	return 0;
+}
+
 int pft_inode_create(struct inode *dir, struct dentry *dentry, umode_t mode)
 {
+	int ret;
+
 	if (!dir || !dentry)
 		return 0;
 
 	if (!pft_is_ready())
 		return 0;
 
+	/*
+	 * We are interested only in regular files (mask & S_IFMT) or
+	 * directories (S_IFDIR).
+	 * (In case of directory, we just want to verify that we are
+	 * not creating it in our encrypted directory).
+	 */
+	if ( (mode & S_IFMT) && !(mode & S_IFDIR) )
+		return 0;
+
 	switch (pft_dev->state) {
 	case PFT_STATE_DEACTIVATED:
-	case PFT_STATE_KEY_LOADED:
+	case PFT_STATE_DEACTIVATING:
+		 /*
+		  * Device is disabled / disabling.
+		  * Open is allowed for any file.
+		  */
 		break;
 	case PFT_STATE_KEY_REMOVED:
-	case PFT_STATE_DEACTIVATING:
 	case PFT_STATE_REMOVING_KEY:
-		/* At this state no new encrypted files can be created */
+		/*
+		 * Key is removed / removing.
+		 * Allow creation of non-encrypted files.
+		 * Block creation of encrypted files.
+		 * (At this stage, we determine if the file will be encrypted
+		 * by checking if the creating app is registered or not).
+		 */
 		if (pft_is_current_process_registered()) {
 			pr_debug("key removed, registered uid %u is denied from creating new file %s\n",
-				current_uid(), dentry->d_iname);
+				 __kuid_val(current_uid()), dentry->d_name.name);
 			return -EACCES;
 		}
 		break;
+	case PFT_STATE_KEY_LOADED:
+		ret = pft_key_loader_inode_create(dir, dentry, mode);
+		if (ret)
+			return ret;
+		break;
 	default:
-		BUG(); /* State is set by "set state" command */
+		BUG();
 		break;
 	}
 
 	return 0;
-
 }
 EXPORT_SYMBOL(pft_inode_create);
 
@@ -824,7 +893,7 @@ EXPORT_SYMBOL(pft_inode_create);
 int pft_inode_post_create(struct inode *dir, struct dentry *dentry,
 			  umode_t mode)
 {
-	int ret;
+	int rc;
 
 	if (!dir || !dentry)
 		return 0;
@@ -840,19 +909,19 @@ int pft_inode_post_create(struct inode *dir, struct dentry *dentry,
 		break;
 	case PFT_STATE_KEY_LOADED:
 		/* Check whether the new file should be encrypted */
-		if (pft_is_current_process_registered()) {
-			u32 key_index = pft_get_app_key_index(current_uid());
-			ret = pft_tag_file(dentry, key_index);
-			if (ret == 0)
-				pr_debug("key loaded, pid [%u] uid [%d] is creating file %s\n",
-					 current_pid(), current_uid(),
-					 dentry->d_iname);
-			else {
-				pr_err("Failed to tag file %s by pid %d\n",
-					dentry->d_iname, current_pid());
-				return -EFAULT;
-			}
+		if (pft_dev->state == PFT_STATE_KEY_LOADED) {
+		u32 key_index = pft_get_app_key_index(__kuid_val(current_uid()));
+
+		if (pft_is_encrypted_key(key_index)) {
+			pr_debug("key loaded, pid [%u] uid [%d] is creating file %s\n",
+				 current_pid(), __kuid_val(current_uid()),
+				 dentry->d_name.name);
+			rc = pft_tag_file(dentry, key_index);
+			if (rc)
+				pr_err("failed to tag file %s, rc = %d.\n",
+				       dentry->d_name.name, rc);
 		}
+	}
 		break;
 	default:
 		BUG(); /* State is set by "set state" command */
@@ -917,13 +986,13 @@ int pft_inode_rename(struct inode *inode, struct dentry *dentry,
 
 	if (pft_is_inplace_inode(dentry->d_inode)) {
 		pr_err("access in-place-encryption file %s by uid [%d] pid [%d] is blocked.\n",
-		       inode_to_filename(inode), current_uid(), current_pid());
-		return -EACCES;
+		       inode_to_filename(inode), __kuid_val(current_uid()), current_pid());
+		return -EBUSY;
 	}
 
 	if (!pft_is_current_process_registered()) {
 		pr_err("unregistered app (uid %u pid %u) is trying to access encrypted file %s\n",
-		       current_uid(), current_pid(), dentry->d_iname);
+		       __kuid_val(current_uid()), current_pid(), inode_to_filename(inode));
 		return -EACCES;
 	} else
 		pr_debug("rename file %s\n", dentry->d_iname);
@@ -967,9 +1036,10 @@ int pft_file_open(struct file *filp, const struct cred *cred)
 	 * Only PFM allowed to access in-place-encryption-file
 	 * during in-place-encryption process
 	 */
-	if (pft_is_inplace_file(filp) && current_pid() != pft_dev->pfm_pid) {
+	if (pft_is_inplace_file(filp) && (current_pid() != pft_dev->pfm_pid)) {
 		pr_err("Access in-place-encryption file %s by uid %d pid %d is blocked.\n",
-			 file_to_filename(filp), current_uid(), current_pid());
+		       file_to_filename(filp), __kuid_val(current_uid()),
+		       current_pid());
 		return -EACCES;
 	}
 
@@ -980,13 +1050,13 @@ int pft_file_open(struct file *filp, const struct cred *cred)
 	case PFT_STATE_REMOVING_KEY:
 		/* Block any access for encrypted files when key not loaded */
 		pr_debug("key not loaded. uid (%u) can not access file %s\n",
-			 current_uid(), file_to_filename(filp));
+			 __kuid_val(current_uid()), file_to_filename(filp));
 		return -EACCES;
 	case PFT_STATE_KEY_LOADED:
 		 /* Only registered apps may access encrypted files. */
 		if (!pft_is_current_process_registered()) {
 			pr_err("unregistered app (uid %u pid %u) is trying to access encrypted file %s\n",
-			       current_uid(), current_pid(),
+			       __kuid_val(current_uid()), current_pid(),
 			       file_to_filename(filp));
 			return -EACCES;
 		}
@@ -1042,12 +1112,12 @@ int pft_file_permission(struct file *filp, int mask)
 			/* mask MAY_WRITE=2 / MAY_READ=4 */
 			pr_debug("r/w [mask 0x%x] in-place-encryption file %s by PFM (UID %d, PID %d).\n",
 				 mask, file_to_filename(filp),
-				 current_uid(), current_pid());
+				 __kuid_val(current_uid()), current_pid());
 			return 0;
 		} else {
 			pr_err("Access in-place-encryption file %s by App (UID %d, PID %d) is blocked.\n",
 			       file_to_filename(filp),
-			       current_uid(), current_pid());
+			       __kuid_val(current_uid()), current_pid());
 			return -EACCES;
 		}
 	}
@@ -1059,13 +1129,13 @@ int pft_file_permission(struct file *filp, int mask)
 	case PFT_STATE_REMOVING_KEY:
 		/* Block any access for encrypted files when key not loaded */
 		pr_debug("key not loaded. uid (%u) can not access file %s\n",
-			 current_uid(), file_to_filename(filp));
+			 __kuid_val(current_uid()), file_to_filename(filp));
 		return -EACCES;
 	case PFT_STATE_KEY_LOADED:
 		 /* Only registered apps can access encrypted files. */
 		if (!pft_is_current_process_registered()) {
 			pr_err("unregistered app (uid %u pid %u) is trying to access encrypted file %s\n",
-			       current_uid(), current_pid(),
+			       __kuid_val(current_uid()), current_pid(),
 			       file_to_filename(filp));
 			return -EACCES;
 		}
@@ -1124,7 +1194,7 @@ int pft_file_close(struct file *filp)
 
 	if (pft_is_inplace_file(filp)) {
 		pr_debug("pid [%u] uid [%u] is closing in-place-encryption file %s\n",
-			 current_pid(), current_uid(), file_to_filename(filp));
+			 current_pid(), __kuid_val(current_uid()), file_to_filename(filp));
 		pft_dev->inplace_file = NULL;
 	}
 
@@ -1162,13 +1232,13 @@ int pft_inode_unlink(struct inode *dir, struct dentry *dentry)
 
 	if (pft_is_inplace_inode(inode)) {
 		pr_err("block delete in-place-encryption file %s by uid [%d] pid [%d], while encryption in progress.\n",
-		       inode_to_filename(inode), current_uid(), current_pid());
+		       inode_to_filename(inode), __kuid_val(current_uid()), current_pid());
 		return -EBUSY;
 	}
 
 	if (!pft_is_current_process_registered()) {
 		pr_err("unregistered app (uid %u pid %u) is trying to access encrypted file %s\n",
-		       current_uid(), current_pid(), inode_to_filename(inode));
+		       __kuid_val(current_uid()), current_pid(), inode_to_filename(inode));
 		return -EACCES;
 	} else
 		pr_debug("delete file %s\n", inode_to_filename(inode));
@@ -1400,7 +1470,7 @@ static int pft_set_inplace_file(struct pft_command *command, int size)
 	pft_sync_file(filp);
 
 	rc = pft_tag_file(pft_dev->inplace_file->f_dentry,
-			  pft_get_app_key_index(current_uid()));
+			  pft_get_app_key_index(__kuid_val(current_uid())));
 
 	if (!rc) {
 		pr_debug("tagged file %s to be encrypted.\n",
@@ -1754,7 +1824,7 @@ static int __init pft_init(void)
 		goto fail;
 	}
 
-	pr_info("Drivr initialized successfully %s %s.n", __DATE__, __TIME__);
+	pr_info("Driver initialized successfully.\n");
 
 	return 0;
 

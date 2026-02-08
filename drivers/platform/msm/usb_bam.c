@@ -14,13 +14,14 @@
 #include <linux/kernel.h>
 #include <linux/list.h>
 #include <linux/interrupt.h>
-#include <linux/platform_device.h>
 #include <linux/clk.h>
+#include <linux/platform_device.h>
+#include <linux/usb/msm_hsusb.h>
+#include <linux/usb/phy.h>
 #include <linux/io.h>
 #include <linux/stat.h>
 #include <linux/module.h>
 #include <linux/of.h>
-#include <linux/usb/msm_hsusb.h>
 #include <mach/usb_bam.h>
 #include <mach/sps.h>
 #include <mach/ipa.h>
@@ -628,7 +629,7 @@ static int disconnect_pipe(u8 idx)
 
 static void usb_bam_resume_core(enum usb_bam cur_bam)
 {
-	struct usb_phy *trans = usb_get_transceiver();
+	struct usb_phy *trans = usb_get_phy(USB_PHY_TYPE_USB2);
 
 	if (cur_bam != HSUSB_BAM)
 		return;
@@ -639,7 +640,7 @@ static void usb_bam_resume_core(enum usb_bam cur_bam)
 
 static void usb_bam_start_lpm(bool disconnect)
 {
-	struct usb_phy *trans = usb_get_transceiver();
+	struct usb_phy *trans = usb_get_phy(USB_PHY_TYPE_USB2);
 
 	BUG_ON(trans == NULL);
 
@@ -1256,7 +1257,7 @@ static void usb_bam_start_suspend(struct work_struct *w)
 
 static void usb_bam_finish_resume(struct work_struct *w)
 {
-	struct usb_phy *trans = usb_get_transceiver();
+	struct usb_phy *trans = usb_get_phy(USB_PHY_TYPE_USB2);
 
 	BUG_ON(trans == NULL);
 	pr_debug("%s: enter", __func__);
@@ -1566,7 +1567,7 @@ int usb_bam_client_ready(bool ready)
 	peer_handshake_info.client_ready = ready;
 	if (peer_handshake_info.state == USB_BAM_SM_PLUG_ACKED && !ready) {
 		pr_debug("Starting reset sequence");
-		INIT_COMPLETION(ctx.reset_done);
+		reinit_completion(&ctx.reset_done);
 	}
 
 	spin_unlock(&usb_bam_peer_handshake_info_lock);

@@ -22,6 +22,7 @@
 #include <linux/err.h>
 #include <linux/time.h>
 #include <linux/qpnp/clkdiv.h>
+#include <linux/of_address.h>
 
 #define Q_MAX_DT_PROP_SIZE 32
 
@@ -44,11 +45,10 @@ struct q_clkdiv {
 	enum q_clkdiv_cfg cxo_div;
 	struct device_node *node;
 	uint16_t offset;
-	struct spmi_controller *ctrl;
+	struct spmi_device *spmi;
 	bool enabled;
 	struct mutex lock;
 	struct list_head list;
-	uint8_t slave;
 };
 
 static LIST_HEAD(qpnp_clkdiv_devs);
@@ -91,7 +91,8 @@ static int __clkdiv_enable(struct q_clkdiv *q_clkdiv, bool enable)
 	buf[0] = enable ? Q_SET_EN : 0;
 
 	mutex_lock(&q_clkdiv->lock);
-	rc = spmi_ext_register_writel(q_clkdiv->ctrl, q_clkdiv->slave,
+	mutex_lock(&q_clkdiv->lock);
+	rc = spmi_ext_register_writel(q_clkdiv->spmi,
 			      Q_REG_ADDR(q_clkdiv, Q_REG_EN_CTL),
 			      &buf[0], 1);
 	if (!rc)
@@ -154,7 +155,7 @@ int qpnp_clkdiv_config(struct q_clkdiv *q_clkdiv, enum q_clkdiv_cfg cfg)
 		}
 	}
 
-	rc = spmi_ext_register_writel(q_clkdiv->ctrl, q_clkdiv->slave,
+	rc = spmi_ext_register_writel(q_clkdiv->spmi,
 			      Q_REG_ADDR(q_clkdiv, Q_REG_DIV_CTL1), &buf[0], 1);
 	if (rc) {
 		pr_err("enable to write config\n");
@@ -178,13 +179,13 @@ cfg_err:
 }
 EXPORT_SYMBOL(qpnp_clkdiv_config);
 
-static int __devinit qpnp_clkdiv_probe(struct spmi_device *spmi)
+static int qpnp_clkdiv_probe(struct spmi_device *spmi)
 {
 	struct q_clkdiv *q_clkdiv;
 	struct device_node *node = spmi->dev.of_node;
 	int rc;
 	uint32_t en;
-	struct resource *res;
+	struct resource res;
 
 	q_clkdiv = devm_kzalloc(&spmi->dev, sizeof(*q_clkdiv), GFP_ATOMIC);
 	if (!q_clkdiv)
@@ -198,16 +199,16 @@ static int __devinit qpnp_clkdiv_probe(struct spmi_device *spmi)
 		return rc;
 	}
 
-	res = spmi_get_resource(spmi, NULL, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	rc = of_address_to_resource(spmi->dev.of_node, 0, &res);
+	if (rc) {
 		dev_err(&spmi->dev, "%s: unable to get device reg resource\n",
 					__func__);
 		return -EINVAL;
 	}
 
-	q_clkdiv->slave = spmi->sid;
-	q_clkdiv->offset = res->start;
-	q_clkdiv->ctrl = spmi->ctrl;
+	q_clkdiv->offset = res.start;
+	q_clkdiv->spmi = spmi;
 	q_clkdiv->node = node;
 	mutex_init(&q_clkdiv->lock);
 
@@ -249,11 +250,10 @@ static int __devinit qpnp_clkdiv_probe(struct spmi_device *spmi)
 	return 0;
 }
 
-static int __devexit qpnp_clkdiv_remove(struct spmi_device *spmi)
+static void qpnp_clkdiv_remove(struct spmi_device *spmi)
 {
 	struct q_clkdiv *q_clkdiv = dev_get_drvdata(&spmi->dev);
 	list_del(&q_clkdiv->list);
-	return 0;
 }
 
 static struct of_device_id spmi_match_table[] = {
@@ -268,7 +268,7 @@ static struct spmi_driver qpnp_clkdiv_driver = {
 		.of_match_table = spmi_match_table,
 	},
 	.probe		= qpnp_clkdiv_probe,
-	.remove		= __devexit_p(qpnp_clkdiv_remove),
+	.remove		= qpnp_clkdiv_remove,
 };
 
 static int __init qpnp_clkdiv_init(void)
