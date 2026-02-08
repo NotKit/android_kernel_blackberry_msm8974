@@ -450,6 +450,14 @@ static struct of_bus *of_match_bus(struct device_node *np)
 	return NULL;
 }
 
+<<<<<<< HEAD
+static int of_empty_ranges_quirk(void)
+{
+	if (IS_ENABLED(CONFIG_PPC)) {
+		/* To save cycles, we cache the result */
+		static int quirk_state = -1;
+
+=======
 static int of_empty_ranges_quirk(struct device_node *np)
 {
 	if (IS_ENABLED(CONFIG_PPC)) {
@@ -461,6 +469,7 @@ static int of_empty_ranges_quirk(struct device_node *np)
 			return true;
 
 		/* Make quirk cached */
+>>>>>>> android-3.18
 		if (quirk_state < 0)
 			quirk_state =
 				of_machine_is_compatible("Power Macintosh") ||
@@ -495,7 +504,11 @@ static int of_translate_one(struct device_node *parent, struct of_bus *bus,
 	 * This code is only enabled on powerpc. --gcl
 	 */
 	ranges = of_get_property(parent, rprop, &rlen);
+<<<<<<< HEAD
+	if (ranges == NULL && !of_empty_ranges_quirk()) {
+=======
 	if (ranges == NULL && !of_empty_ranges_quirk(parent)) {
+>>>>>>> android-3.18
 		pr_err("OF: no ranges; cannot translate\n");
 		return 1;
 	}
@@ -627,6 +640,25 @@ u64 of_translate_dma_address(struct device_node *dev, const __be32 *in_addr)
 	return __of_translate_address(dev, in_addr, "dma-ranges");
 }
 EXPORT_SYMBOL(of_translate_dma_address);
+
+bool of_can_translate_address(struct device_node *dev)
+{
+	struct device_node *parent;
+	struct of_bus *bus;
+	int na, ns;
+
+	parent = of_get_parent(dev);
+	if (parent == NULL)
+		return false;
+
+	bus = of_match_bus(parent);
+	bus->count_cells(dev, &na, &ns);
+
+	of_node_put(parent);
+
+	return OF_CHECK_COUNTS(na, ns);
+}
+EXPORT_SYMBOL(of_can_translate_address);
 
 const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
 		    unsigned int *flags)
