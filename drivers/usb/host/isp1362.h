@@ -692,13 +692,7 @@ static void isp1362_read_fifo(struct isp1362_hcd *isp1362_hcd, void *buf, u16 le
 	if (!len)
 		return;
 
-<<<<<<< HEAD
-	_BUG_ON(!irqs_disabled());
-
-	RDBG("%s: Reading %d byte from fifo to mem @ %pK\n", __func__, len, buf);
-=======
 	RDBG("%s: Reading %d byte from fifo to mem @ %p\n", __func__, len, buf);
->>>>>>> android-3.18
 #if USE_32BIT
 	if (len >= 4) {
 		RDBG("%s: Using readsl for %d dwords\n", __func__, len >> 2);
@@ -743,13 +737,7 @@ static void isp1362_write_fifo(struct isp1362_hcd *isp1362_hcd, void *buf, u16 l
 		return;
 	}
 
-<<<<<<< HEAD
-	_BUG_ON(!irqs_disabled());
-
-	RDBG("%s: Writing %d byte to fifo from memory @%pK\n", __func__, len, buf);
-=======
 	RDBG("%s: Writing %d byte to fifo from memory @%p\n", __func__, len, buf);
->>>>>>> android-3.18
 #if USE_32BIT
 	if (len >= 4) {
 		RDBG("%s: Using writesl for %d dwords\n", __func__, len >> 2);

@@ -1474,11 +1474,7 @@ static struct ehci_qh *qh_make(struct oxu_hcd *oxu,
 		}
 		break;
 	default:
-<<<<<<< HEAD
-		dbg("bogus dev %pK speed %d", urb->dev, urb->dev->speed);
-=======
 		oxu_dbg(oxu, "bogus dev %p speed %d\n", urb->dev, urb->dev->speed);
->>>>>>> android-3.18
 done:
 		qh_put(qh);
 		return NULL;
@@ -2314,11 +2310,7 @@ restart:
 				qh_put(temp.qh);
 				break;
 			default:
-<<<<<<< HEAD
-				dbg("corrupt type %d frame %d shadow %pK",
-=======
 				oxu_dbg(oxu, "corrupt type %d frame %d shadow %p\n",
->>>>>>> android-3.18
 					type, frame, q.ptr);
 				q.ptr = NULL;
 			}
@@ -3003,14 +2995,9 @@ static int oxu_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 				/* shouldn't happen often, but ...
 				 * FIXME kill those tds' urbs
 				 */
-<<<<<<< HEAD
-				err("can't reschedule qh %pK, err %d",
-					qh, status);
-=======
 				dev_err(hcd->self.controller,
 					"can't reschedule qh %p, err %d\n", qh,
 					status);
->>>>>>> android-3.18
 			}
 			return status;
 		}

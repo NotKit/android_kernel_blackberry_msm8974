@@ -1006,7 +1006,7 @@ static int msm_hsic_reset_done(struct usb_hcd *hcd)
 	ehci_writel(ehci, ehci_readl(ehci, status_reg) & ~(PORT_RWC_BITS |
 					PORT_RESET), status_reg);
 
-	ret = handshake(ehci, status_reg, PORT_RESET, 0, 1 * 1000);
+	ret = ehci_handshake(ehci, status_reg, PORT_RESET, 0, 1 * 1000);
 
 	if (ret)
 		pr_err("reset handshake failed in %s\n", __func__);
@@ -1157,7 +1157,7 @@ static void ehci_hsic_reset_sof_bug_handler(struct usb_hcd *hcd, u32 val)
 	cmd = ehci_readl(ehci, &ehci->regs->command);
 	cmd &= ~CMD_RUN;
 	ehci_writel(ehci, cmd, &ehci->regs->command);
-	ret = handshake(ehci, &ehci->regs->status, STS_HALT,
+	ret = ehci_handshake(ehci, &ehci->regs->status, STS_HALT,
 			STS_HALT, 16 * 125);
 	if (ret) {
 		pr_err("halt handshake fatal error\n");
@@ -1190,7 +1190,7 @@ retry:
 	if (!mehci->reset_again)
 		goto done;
 
-	if (handshake(ehci, status_reg, PORT_RESET, 0, 10 * 1000)) {
+	if (ehci_handshake(ehci, status_reg, PORT_RESET, 0, 10 * 1000)) {
 		pr_err("reset handshake fatal error\n");
 		dbg_log_event(NULL, "RESET: fatal", retries);
 		goto fail;
@@ -1276,10 +1276,10 @@ static int msm_hsic_resume_thread(void *data)
 	}
 
 	if (unlikely(ehci->debug)) {
-		if (!dbgp_reset_prep())
+		if (!dbgp_reset_prep(hcd))
 			ehci->debug = NULL;
 		else
-			dbgp_external_startup();
+			dbgp_external_startup(hcd);
 	}
 
 	/* at least some APM implementations will try to deliver
@@ -1349,7 +1349,7 @@ resume_again:
 		} else {
 			dbg_log_event(NULL, "FPR: Tightloop", 0);
 			/* do the resume in a tight loop */
-			handshake(ehci, &ehci->regs->port_status[0],
+			ehci_handshake(ehci, &ehci->regs->port_status[0],
 				PORT_RESUME, 0, 22 * 1000);
 			ehci_writel(ehci, ehci_readl(ehci,
 				&ehci->regs->command) | CMD_RUN,
@@ -1933,7 +1933,7 @@ struct msm_hsic_host_platform_data *msm_hsic_dt_to_pdata(
 }
 
 
-static int __devinit ehci_hsic_msm_probe(struct platform_device *pdev)
+static int  ehci_hsic_msm_probe(struct platform_device *pdev)
 {
 	struct usb_hcd *hcd;
 	struct resource *res;
@@ -2195,7 +2195,7 @@ put_hcd:
 	return ret;
 }
 
-static int __devexit ehci_hsic_msm_remove(struct platform_device *pdev)
+static int  ehci_hsic_msm_remove(struct platform_device *pdev)
 {
 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
 	struct msm_hsic_hcd *mehci = hcd_to_hsic(hcd);
@@ -2387,7 +2387,7 @@ static const struct of_device_id hsic_host_dt_match[] = {
 };
 static struct platform_driver ehci_msm_hsic_driver = {
 	.probe	= ehci_hsic_msm_probe,
-	.remove	= __devexit_p(ehci_hsic_msm_remove),
+	.remove	= ehci_hsic_msm_remove,
 	.driver = {
 		.name = "msm_hsic_host",
 #ifdef CONFIG_PM

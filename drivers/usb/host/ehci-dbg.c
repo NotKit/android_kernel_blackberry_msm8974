@@ -661,13 +661,8 @@ static ssize_t fill_periodic_buffer(struct debug_buffer *buf)
 			switch (hc32_to_cpu(ehci, tag)) {
 			case Q_TYPE_QH:
 				hw = p.qh->hw;
-<<<<<<< HEAD
-				temp = scnprintf (next, size, " qh%d-%04x/%pK",
-						p.qh->period,
-=======
 				temp = scnprintf (next, size, " qh%d-%04x/%p",
 						p.qh->ps.period,
->>>>>>> android-3.18
 						hc32_to_cpup(ehci,
 							&hw->hw_info2)
 							/* uframe masks */
@@ -741,13 +736,8 @@ static ssize_t fill_periodic_buffer(struct debug_buffer *buf)
 				break;
 			case Q_TYPE_SITD:
 				temp = scnprintf (next, size,
-<<<<<<< HEAD
-					" sitd%d-%04x/%pK",
-					p.sitd->stream->interval,
-=======
 					" sitd%d-%04x/%p",
 					p.sitd->stream->ps.period,
->>>>>>> android-3.18
 					hc32_to_cpup(ehci, &p.sitd->hw_uframe)
 						& 0x0000ffff,
 					p.sitd);
@@ -917,15 +907,10 @@ static ssize_t fill_registers_buffer(struct debug_buffer *buf)
 		}
 	}
 
-<<<<<<< HEAD
-	if (ehci->reclaim) {
-		temp = scnprintf(next, size, "reclaim qh %pK\n", ehci->reclaim);
-=======
 	if (!list_empty(&ehci->async_unlink)) {
 		temp = scnprintf(next, size, "async unlink qh %p\n",
 				list_first_entry(&ehci->async_unlink,
 						struct ehci_qh, unlink_node));
->>>>>>> android-3.18
 		size -= temp;
 		next += temp;
 	}
