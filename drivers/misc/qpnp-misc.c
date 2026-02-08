@@ -61,7 +61,7 @@ static u8 qpnp_read_byte(struct spmi_device *spmi, u16 addr)
 	int rc;
 	u8 val;
 
-	rc = spmi_ext_register_readl(spmi->ctrl, spmi->sid, addr, &val, 1);
+	rc = spmi_ext_register_readl(spmi, addr, &val, 1);
 	if (rc) {
 		pr_err("SPMI read failed rc=%d\n", rc);
 		return 0;
@@ -133,7 +133,7 @@ int qpnp_misc_irqs_available(struct device *consumer_dev)
 	return __misc_irqs_available(mdev_found);
 }
 
-static int __devinit qpnp_misc_probe(struct spmi_device *spmi)
+static int qpnp_misc_probe(struct spmi_device *spmi)
 {
 	struct resource *resource;
 	struct qpnp_misc_dev *mdev = ERR_PTR(-EINVAL);
