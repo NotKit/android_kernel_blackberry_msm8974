@@ -1009,6 +1009,7 @@ static int dwc3_ep0_start_control_status(struct dwc3_ep *dep)
 
 static void __dwc3_ep0_do_control_status(struct dwc3 *dwc, struct dwc3_ep *dep)
 {
+	int ret;
 	if (dwc->resize_fifos) {
 		dwc3_trace(trace_dwc3_ep0, "Resizing FIFOs");
 		dwc3_gadget_resize_tx_fifos(dwc);
@@ -1049,6 +1050,8 @@ static void dwc3_ep0_end_control_data(struct dwc3 *dwc, struct dwc3_ep *dep)
 static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
 		const struct dwc3_event_depevt *event)
 {
+	struct dwc3_ep *dep;
+
 	dwc->setup_packet_pending = true;
 
 	switch (event->status) {
