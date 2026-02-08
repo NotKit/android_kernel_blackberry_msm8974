@@ -21,6 +21,9 @@ extern int msm_krait_need_wfe_fixup;
  */
 #define WFE(cond)	__ALT_SMP_ASM("wfe" cond, "nop")
 
+
+#endif
+
 /*
  * The fixup involves disabling FIQs during execution of the WFE instruction.
  * This could potentially lead to deadlock if a thread is trying to acquire a
@@ -46,7 +49,6 @@ extern int msm_krait_need_wfe_fixup;
 "10:	msr	cpsr_cf, " tmp "\n"
 #else
 #define WFE_SAFE(fixup, tmp)	"	wfe\n"
-#endif
 #endif
 
 #define SEV		__ALT_SMP_ASM(WASM(sev), WASM(nop))
@@ -87,7 +89,7 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 "	teqeq	%[tmp], #0\n"
 "	bne	1b"
 	: [tmp] "=&r" (tmp), [fixup] "+r" (fixup)
-	: [lock] "r" (&lock->lock), [bit0] "r" (1)
+	: [lock] "r" (&lock->slock), [bit0] "r" (1)
 	: "cc");
 
 	while (lockval.tickets.next != lockval.tickets.owner) {
@@ -195,7 +197,7 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 "	bne	2b"
 	: [ticket]"=&r" (ticket), [tmp]"=&r" (tmp),
 	  [next_ticket]"=&r" (next_ticket), [fixup]"+r" (fixup)
-	: [lockaddr]"r" (&lock->lock), [val1]"r" (1)
+	: [lockaddr]"r" (&lock->slock), [val1]"r" (1)
 	: "cc");
 	smp_mb();
 }
@@ -215,7 +217,7 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 "1:"
 	: [ticket]"=&r" (ticket), [tmp]"=&r" (tmp),
 	  [next_ticket]"=&r" (next_ticket)
-	: [lockaddr]"r" (&lock->lock), [val1]"r" (1)
+	: [lockaddr]"r" (&lock->slock), [val1]"r" (1)
 	: "cc");
 	if (!tmp)
 		smp_mb();
@@ -236,7 +238,7 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
 "	teq	%[tmp], #0\n"
 "	bne	1b"
 	: [ticket]"=&r" (ticket), [tmp]"=&r" (tmp)
-	: [lockaddr]"r" (&lock->lock), [serving1]"r" (0x00010000)
+	: [lockaddr]"r" (&lock->slock), [serving1]"r" (0x00010000)
 	: "cc");
 	dsb_sev();
 }
@@ -263,21 +265,26 @@ static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
 "	bne	1b"
 	: [ticket]"=&r" (ticket), [tmp]"=&r" (tmp),
 	  [fixup]"+r" (fixup)
-	: [lockaddr]"r" (&lock->lock)
+	: [lockaddr]"r" (&lock->slock)
 	: "cc");
 }
 
 static inline int arch_spin_is_locked(arch_spinlock_t *lock)
 {
-	unsigned long tmp = ACCESS_ONCE(lock->lock);
+	unsigned long tmp = ACCESS_ONCE(lock->slock);
 	return (((tmp >> TICKET_SHIFT) ^ tmp) & TICKET_MASK) != 0;
 }
 
 static inline int arch_spin_is_contended(arch_spinlock_t *lock)
 {
-	unsigned long tmp = ACCESS_ONCE(lock->lock);
+	unsigned long tmp = ACCESS_ONCE(lock->slock);
 	return ((tmp - (tmp >> TICKET_SHIFT)) & TICKET_MASK) > 1;
 }
+static inline int arch_spin_value_unlocked(arch_spinlock_t lock)
+{
+	return lock.tickets.owner == lock.tickets.next;
+}
+
 #define arch_spin_is_contended	arch_spin_is_contended
 
 #endif

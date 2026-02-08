@@ -38,6 +38,8 @@ struct arm_pmu_platdata {
 				  irq_handler_t pmu_handler);
 	int (*runtime_resume)(struct device *dev);
 	int (*runtime_suspend)(struct device *dev);
+	int (*request_pmu_irq)(int irq, irq_handler_t *handle_irq);
+	void (*free_pmu_irq)(int irq);
 };
 
 #ifdef CONFIG_HW_PERF_EVENTS
@@ -94,6 +96,8 @@ struct arm_pmu {
 					 struct perf_event *event);
 	int		(*set_event_filter)(struct hw_perf_event *evt,
 					    struct perf_event_attr *attr);
+	void		(*clear_event_constraints)(struct perf_event *event);
+	int		(*test_set_event_constraints)(struct perf_event *event);
 	u32		(*read_counter)(struct perf_event *event);
 	void		(*write_counter)(struct perf_event *event, u32 val);
 	void		(*start)(struct arm_pmu *);

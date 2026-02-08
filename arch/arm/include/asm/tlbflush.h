@@ -335,13 +335,13 @@ static inline void local_flush_tlb_all(void)
 	const unsigned int __tlb_flag = __cpu_tlb_flags;
 
 	if (tlb_flag(TLB_WB))
-		dsb(nshst);
+		dsb();
 
 	__local_flush_tlb_all();
 	tlb_op(TLB_V7_UIS_FULL, "c8, c7, 0", zero);
 
 	if (tlb_flag(TLB_BARRIER)) {
-		dsb(nsh);
+		dsb();
 		isb();
 	}
 }
@@ -352,13 +352,13 @@ static inline void __flush_tlb_all(void)
 	const unsigned int __tlb_flag = __cpu_tlb_flags;
 
 	if (tlb_flag(TLB_WB))
-		dsb(ishst);
+		dsb();
 
 	__local_flush_tlb_all();
 	tlb_op(TLB_V7_UIS_FULL, "c8, c3, 0", zero);
 
 	if (tlb_flag(TLB_BARRIER)) {
-		dsb(ish);
+		dsb();
 		isb();
 	}
 }
@@ -529,19 +529,6 @@ static inline void __flush_tlb_kernel_page(unsigned long kaddr)
 	}
 }
 
-static inline void local_flush_bp_all(void)
-{
-	const int zero = 0;
-	const unsigned int __tlb_flag = __cpu_tlb_flags;
-
-	if (tlb_flag(TLB_V7_UIS_BP))
-		asm("mcr p15, 0, %0, c7, c1, 6" : : "r" (zero));
-	else if (tlb_flag(TLB_V6_BP))
-		asm("mcr p15, 0, %0, c7, c5, 6" : : "r" (zero));
-
-	if (tlb_flag(TLB_BARRIER))
-		isb();
-}
 
 /*
  * Branch predictor maintenance is paired with full TLB invalidation, so
