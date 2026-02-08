@@ -11,6 +11,13 @@
 
 #include <linux/usb/phy.h>
 
+enum usb_otg_event {
+	OTG_EVENT_ID_GND,
+	OTG_EVENT_ID_FLOAT,
+	OTG_EVENT_VBUS_VALID,
+	OTG_EVENT_VBUS_INVALID,
+};
+
 struct usb_otg {
 	u8			default_a;
 
