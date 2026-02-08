@@ -146,6 +146,8 @@ static inline void pxa_ac97_warm_pxa27x(void)
 
 static inline void pxa_ac97_cold_pxa27x(void)
 {
+	unsigned int timeout;
+
 	GCR &=  GCR_COLD_RST;  /* clear everything but nCRST */
 	GCR &= ~GCR_COLD_RST;  /* then assert nCRST */
 
@@ -154,8 +156,16 @@ static inline void pxa_ac97_cold_pxa27x(void)
 	/* PXA27x Developers Manual section 13.5.2.2.1 */
 	clk_prepare_enable(ac97conf_clk);
 	udelay(5);
+<<<<<<< HEAD
+	clk_disable(ac97conf_clk);
+	GCR = GCR_COLD_RST | GCR_WARM_RST;
+	timeout = 100;     /* wait for the codec-ready bit to be set */
+	while (!((GSR | gsr_bits) & (GSR_PCR | GSR_SCR)) && timeout--)
+		mdelay(1);
+=======
 	clk_disable_unprepare(ac97conf_clk);
 	GCR = GCR_COLD_RST | GCR_WARM_RST;
+>>>>>>> android-3.18
 }
 #endif
 
@@ -351,7 +361,11 @@ int pxa2xx_ac97_hw_probe(struct platform_device *dev)
 			       __func__, ret);
 			goto err_conf;
 		}
+<<<<<<< HEAD
+		pxa27x_assert_ac97reset(reset_gpio, 0);
+=======
 		pxa27x_configure_ac97reset(reset_gpio, false);
+>>>>>>> android-3.18
 
 		ac97conf_clk = clk_get(&dev->dev, "AC97CONFCLK");
 		if (IS_ERR(ac97conf_clk)) {
