@@ -17,6 +17,7 @@
  */
 
 #include <linux/ftrace_event.h>
+#include <linux/coresight-stm.h>
 
 /*
  * DECLARE_EVENT_CLASS can be used to add a generic function
@@ -423,6 +424,8 @@ ftrace_define_fields_##call(struct ftrace_event_call *event_call)	\
 #undef __string
 #define __string(item, src) __dynamic_array(char, item,			\
 		    strlen((src) ? (const char *)(src) : "(null)") + 1)
+<<<<<<< HEAD
+=======
 
 /*
  * __bitmask_size_in_bytes_raw is the number of bytes needed to hold
@@ -446,6 +449,7 @@ ftrace_define_fields_##call(struct ftrace_event_call *event_call)	\
 #undef __bitmask
 #define __bitmask(item, nr_bits) __dynamic_array(unsigned long, item,	\
 					 __bitmask_size_in_longs(nr_bits))
+>>>>>>> android-3.18
 
 #undef DECLARE_EVENT_CLASS
 #define DECLARE_EVENT_CLASS(call, proto, args, tstruct, assign, print)	\
@@ -596,6 +600,8 @@ static inline notrace int ftrace_get_offsets_##call(			\
 #undef __assign_str
 #define __assign_str(dst, src)						\
 	strcpy(__get_str(dst), (src) ? (const char *)(src) : "(null)");
+<<<<<<< HEAD
+=======
 
 #undef __bitmask
 #define __bitmask(item, nr_bits) __dynamic_array(unsigned long, item, -1)
@@ -606,6 +612,7 @@ static inline notrace int ftrace_get_offsets_##call(			\
 #undef __assign_bitmask
 #define __assign_bitmask(dst, src, nr_bits)					\
 	memcpy(__get_bitmask(dst), (src), __bitmask_size_in_bytes(nr_bits))
+>>>>>>> android-3.18
 
 #undef TP_fast_assign
 #define TP_fast_assign(args...) args
@@ -646,7 +653,16 @@ ftrace_raw_event_##call(void *__data, proto)				\
 									\
 	{ assign; }							\
 									\
+<<<<<<< HEAD
+	if (!filter_current_check_discard(buffer, event_call, entry, event)) { \
+		stm_log(OST_ENTITY_FTRACE_EVENTS, entry,		\
+			sizeof(*entry) + __data_size);			\
+		trace_nowake_buffer_unlock_commit(buffer,		\
+						  event, irq_flags, pc); \
+	}								\
+=======
 	ftrace_event_buffer_commit(&fbuffer);				\
+>>>>>>> android-3.18
 }
 /*
  * The ftrace_test_probe is compiled out, it is only here as a build time check
