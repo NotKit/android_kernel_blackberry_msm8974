@@ -58,6 +58,7 @@
 #include <linux/mutex.h>
 #include <linux/vmalloc.h>
 #include <linux/if_arp.h>
+#include <linux/if_packet.h>
 #include <linux/rhashtable.h>
 #include <asm/cacheflush.h>
 #include <linux/hash.h>
