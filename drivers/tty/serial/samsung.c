@@ -572,13 +572,8 @@ static void s3c24xx_serial_pm(struct uart_port *port, unsigned int level,
 		while (--timeout && !s3c24xx_serial_txempty_nofifo(port))
 			udelay(100);
 
-<<<<<<< HEAD
-		if (!IS_ERR(ourport->baudclk) && ourport->baudclk != NULL)
-			clk_disable(ourport->baudclk);
-=======
 		if (!IS_ERR(ourport->baudclk))
 			clk_disable_unprepare(ourport->baudclk);
->>>>>>> android-3.18
 
 		clk_disable_unprepare(ourport->clk);
 		break;
