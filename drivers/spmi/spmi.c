@@ -458,10 +458,16 @@ static void of_spmi_register_devices(struct spmi_controller *ctrl)
 
 		err = of_property_read_u32_array(node, "reg", reg, 2);
 		if (err) {
-			dev_err(&ctrl->dev,
-				"node %s err (%d) does not have 'reg' property\n",
-				node->full_name, err);
-			continue;
+			/* Fallback to 1-cell reg with default USID 0 */
+			err = of_property_read_u32(node, "reg", &reg[0]);
+			if (!err) {
+				reg[1] = 0;
+			} else {
+				dev_err(&ctrl->dev,
+					"node %s err (%d) does not have 'reg' property\n",
+					node->full_name, err);
+				continue;
+			}
 		}
 
 		if (reg[1] != SPMI_USID) {

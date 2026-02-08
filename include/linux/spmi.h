@@ -14,6 +14,7 @@
 
 #include <linux/types.h>
 #include <linux/device.h>
+#include <linux/ioport.h>
 #include <linux/mod_devicetable.h>
 
 /* Maximum slave identifier */
@@ -44,10 +45,19 @@
  * @ctrl:	SPMI controller managing the bus hosting this device.
  * @usid:	This devices' Unique Slave IDentifier.
  */
+struct spmi_resource {
+	struct resource		*resource;
+	u32			num_resources;
+	char			*label;
+};
+
 struct spmi_device {
 	struct device		dev;
 	struct spmi_controller	*ctrl;
 	u8			usid;
+	int			num_dev_node;
+	struct spmi_resource	*dev_node;
+	struct spmi_resource	res;
 };
 
 static inline struct spmi_device *to_spmi_device(struct device *d)
@@ -55,10 +65,25 @@ static inline struct spmi_device *to_spmi_device(struct device *d)
 	return container_of(d, struct spmi_device, dev);
 }
 
-static inline void *spmi_device_get_drvdata(const struct spmi_device *sdev)
+static inline void *spmi_get_drvdata(const struct spmi_device *sdev)
 {
 	return dev_get_drvdata(&sdev->dev);
 }
+
+struct resource *spmi_get_resource(struct spmi_device *dev,
+				   struct spmi_resource *node,
+				   unsigned int type, unsigned int res_num);
+
+int spmi_get_irq(struct spmi_device *dev, struct spmi_resource *node,
+		 unsigned int res_num);
+
+struct spmi_resource *spmi_get_dev_container_byname(struct spmi_device *dev,
+						   const char *label);
+
+#define spmi_for_each_container_dev(res, dev) \
+	for (res = (dev)->dev_node; res < (dev)->dev_node + (dev)->num_dev_node; \
+	     res++)
+
 
 static inline void spmi_device_set_drvdata(struct spmi_device *sdev, void *data)
 {
