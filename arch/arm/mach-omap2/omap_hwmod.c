@@ -1976,14 +1976,6 @@ static int _ocp_softreset(struct omap_hwmod *oh)
 	if (ret)
 		goto dis_opt_clks;
 
-<<<<<<< HEAD
-	_write_sysconfig(v, oh);
-	ret = _clear_softreset(oh, &v);
-	if (ret)
-		goto dis_opt_clks;
-
-=======
->>>>>>> android-3.18
 	_write_sysconfig(v, oh);
 
 	if (oh->class->sysc->srst_udelay)

@@ -1302,25 +1302,6 @@ vector_rst:
 
 vector_addrexcptn:
 	b	vector_addrexcptn
-<<<<<<< HEAD
-
-/*=============================================================================
- * Undefined FIQs
- *-----------------------------------------------------------------------------
- * Enter in FIQ mode, spsr = ANY CPSR, lr = ANY PC
- * MUST PRESERVE SVC SPSR, but need to switch to SVC mode to show our msg.
- * Basically to switch modes, we *HAVE* to clobber one register...  brain
- * damage alert!  I don't think that we can execute any code in here in any
- * other mode than FIQ...  Ok you can switch to another mode, but you can't
- * get out of that mode without clobbering one register.
- */
-vector_fiq:
-	subs	pc, lr, #4
-
-.krait_fixup:
-	.word	msm_krait_need_wfe_fixup
-
-=======
 
 /*=============================================================================
  * FIQ "NMI" handler
@@ -1347,7 +1328,6 @@ vector_fiq:
 	.long	__fiq_svc			@  e
 	.long	__fiq_svc			@  f
 
->>>>>>> android-3.18
 	.globl	vector_fiq_offset
 	.equ	vector_fiq_offset, vector_fiq
 

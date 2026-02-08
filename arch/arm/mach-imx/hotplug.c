@@ -11,15 +11,9 @@
  */
 
 #include <linux/errno.h>
-<<<<<<< HEAD
-#include <asm/cacheflush.h>
-#include <asm/cp15.h>
-#include <mach/common.h>
-=======
 #include <linux/jiffies.h>
 #include <asm/cp15.h>
 #include <asm/proc-fns.h>
->>>>>>> android-3.18
 
 #include "common.h"
 
@@ -73,13 +67,6 @@ static inline void cpu_enter_lowpower(void)
  */
 void imx_cpu_die(unsigned int cpu)
 {
-<<<<<<< HEAD
-	imx_enable_cpu(cpu, false);
-
-	/* spin here until hardware takes it down */
-	while (1)
-		;
-=======
 	cpu_enter_lowpower();
 	/*
 	 * We use the cpu jumping argument register to sync with
@@ -90,7 +77,6 @@ void imx_cpu_die(unsigned int cpu)
 
 	while (1)
 		cpu_do_idle();
->>>>>>> android-3.18
 }
 
 int imx_cpu_kill(unsigned int cpu)

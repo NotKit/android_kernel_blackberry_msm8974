@@ -240,7 +240,7 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max_low,
 
 	free_area_init_node(0, zone_size, min, zhole_size);
 }
-#endif
+
 
 #ifdef CONFIG_HAVE_ARCH_PFN_VALID
 int pfn_valid(unsigned long pfn)
@@ -395,6 +395,7 @@ void __init bootmem_init(void)
 	min_low_pfn = min;
 	max_low_pfn = max_low;
 	max_pfn = max_high;
+#endif
 }
 
 /*
@@ -551,51 +552,7 @@ static void __init free_highpages(void)
 #define MLM(b, t) b, t, ((t) - (b)) >> 20
 #define MLK_ROUNDUP(b, t) b, t, DIV_ROUND_UP(((t) - (b)), SZ_1K)
 
-#ifdef CONFIG_ENABLE_VMALLOC_SAVING
-static void print_vmalloc_lowmem_info(void)
-{
-	int i;
-	void *va_start, *va_end;
 
-	printk(KERN_NOTICE
-		"	   vmalloc : 0x%08lx - 0x%08lx   (%4ld MB)\n",
-		MLM(VMALLOC_START, VMALLOC_END));
-
-	for (i = meminfo.nr_banks - 1; i >= 0; i--) {
-		if (!meminfo.bank[i].highmem) {
-			va_start = __va(meminfo.bank[i].start);
-			va_end = __va(meminfo.bank[i].start +
-						meminfo.bank[i].size);
-			printk(KERN_NOTICE
-			 "	    lowmem : 0x%08lx - 0x%08lx   (%4ld MB)\n",
-			MLM((unsigned long)va_start, (unsigned long)va_end));
-		}
-		if (i && ((meminfo.bank[i-1].start + meminfo.bank[i-1].size) !=
-			   meminfo.bank[i].start)) {
-			phys_addr_t end_phys;
-
-			if((meminfo.bank[i-1].start + meminfo.bank[i-1].size) > arm_lowmem_limit)
-				continue;
-
-			if(meminfo.bank[i].start > arm_lowmem_limit)
-				end_phys = arm_lowmem_limit;
-			else
-				end_phys = meminfo.bank[i].start;
-
-			if (meminfo.bank[i-1].start + meminfo.bank[i-1].size
-				   <= MAX_HOLE_ADDRESS) {
-				va_start = __va(meminfo.bank[i-1].start
-						+ meminfo.bank[i-1].size);
-				va_end = __va(end_phys);
-				printk(KERN_NOTICE
-				"	   vmalloc : 0x%08lx - 0x%08lx   (%4ld MB)\n",
-					   MLM((unsigned long)va_start,
-						   (unsigned long)va_end));
-			}
-		}
-	}
-}
-#endif
 
 /*
  * mem_init() marks the free areas in the mem_map and tells us how much
@@ -850,7 +807,7 @@ static inline void fix_kernmem_perms(void) { }
 
 void free_tcmmem(void)
 {
-	unsigned long reclaimed_initmem;
+
 #ifdef CONFIG_HAVE_TCM
 	extern char __tcm_start, __tcm_end;
 
@@ -865,6 +822,7 @@ void free_initmem(void)
 	free_tcmmem();
 
 #ifdef CONFIG_STRICT_MEMORY_RWX
+	unsigned long reclaimed_initmem;
 	poison_init_mem((char *)__arch_info_begin,
 		__init_end - (char *)__arch_info_begin);
 	reclaimed_initmem = free_area(__phys_to_pfn(__pa(__arch_info_begin)),
@@ -875,6 +833,7 @@ void free_initmem(void)
 	poison_init_mem(__init_begin, __init_end - __init_begin);
 	if (!machine_is_integrator() && !machine_is_cintegrator())
 		free_initmem_default(-1);
+#endif
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -883,7 +842,7 @@ static int keep_initrd;
 
 void free_initrd_mem(unsigned long start, unsigned long end)
 {
-	unsigned long reclaimed_initrd_mem;
+
 
 	if (!keep_initrd) {
 		if (start == initrd_start)
