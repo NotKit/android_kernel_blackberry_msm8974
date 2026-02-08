@@ -157,7 +157,7 @@ static void setup_packet(
 	sl811_write(sl811, bank + SL11H_HOSTCTLREG,
 			control | SL11H_HCTLMASK_OUT);
 	ep->length = 0;
-	PACKET("SETUP qh%p\n", ep);
+	PACKET("SETUP qh%pK\n", ep);
 }
 
 /* STATUS finishes control requests, often after IN or OUT data packets */
@@ -187,7 +187,7 @@ static void status_packet(
 		control |= SL11H_HCTLMASK_OUT;
 	sl811_write(sl811, bank + SL11H_HOSTCTLREG, control);
 	ep->length = 0;
-	PACKET("STATUS%s/%s qh%p\n", ep->nak_count ? "/retry" : "",
+	PACKET("STATUS%s/%s qh%pK\n", ep->nak_count ? "/retry" : "",
 			do_out ? "out" : "in", ep);
 }
 
@@ -224,7 +224,7 @@ static void in_packet(
 	sl811_write(sl811, bank + SL11H_HOSTCTLREG, control);
 	ep->length = min_t(u32, len,
 			urb->transfer_buffer_length - urb->actual_length);
-	PACKET("IN%s/%d qh%p len%d\n", ep->nak_count ? "/retry" : "",
+	PACKET("IN%s/%d qh%pK len%d\n", ep->nak_count ? "/retry" : "",
 			!!usb_gettoggle(urb->dev, ep->epnum, 0), ep, len);
 }
 
@@ -267,7 +267,7 @@ static void out_packet(
 	sl811_write(sl811, bank + SL11H_HOSTCTLREG,
 			control | SL11H_HCTLMASK_OUT);
 	ep->length = len;
-	PACKET("OUT%s/%d qh%p len%d\n", ep->nak_count ? "/retry" : "",
+	PACKET("OUT%s/%d qh%pK len%d\n", ep->nak_count ? "/retry" : "",
 			!!usb_gettoggle(urb->dev, ep->epnum, 1), ep, len);
 }
 
@@ -335,8 +335,12 @@ static struct sl811h_ep	*start(struct sl811 *sl811, u8 bank)
 	}
 
 	if (unlikely(list_empty(&ep->hep->urb_list))) {
+<<<<<<< HEAD
+		DBG("empty %pK queue?\n", ep);
+=======
 		dev_dbg(sl811_to_hcd(sl811)->self.controller,
 			"empty %p queue?\n", ep);
+>>>>>>> android-3.18
 		return NULL;
 	}
 
@@ -389,8 +393,12 @@ static struct sl811h_ep	*start(struct sl811 *sl811, u8 bank)
 		status_packet(sl811, ep, urb, bank, control);
 		break;
 	default:
+<<<<<<< HEAD
+		DBG("bad ep%pK pid %02x\n", ep, ep->nextpid);
+=======
 		dev_dbg(sl811_to_hcd(sl811)->self.controller,
 			"bad ep%p pid %02x\n", ep, ep->nextpid);
+>>>>>>> android-3.18
 		ep = NULL;
 	}
 	return ep;
@@ -446,8 +454,12 @@ static void finish_request(
 	}
 
 	/* periodic deschedule */
+<<<<<<< HEAD
+	DBG("deschedule qh%d/%pK branch %d\n", ep->period, ep, ep->branch);
+=======
 	dev_dbg(sl811_to_hcd(sl811)->self.controller,
 		"deschedule qh%d/%p branch %d\n", ep->period, ep, ep->branch);
+>>>>>>> android-3.18
 	for (i = ep->branch; i < PERIODIC_SIZE; i += ep->period) {
 		struct sl811h_ep	*temp;
 		struct sl811h_ep	**prev = &sl811->periodic[i];
@@ -486,7 +498,7 @@ done(struct sl811 *sl811, struct sl811h_ep *ep, u8 bank)
 
 	/* we can safely ignore NAKs */
 	if (status & SL11H_STATMASK_NAK) {
-		// PACKET("...NAK_%02x qh%p\n", bank, ep);
+		// PACKET("...NAK_%02x qh%pK\n", bank, ep);
 		if (!ep->period)
 			ep->nak_count++;
 		ep->error_count = 0;
@@ -502,7 +514,7 @@ done(struct sl811 *sl811, struct sl811h_ep *ep, u8 bank)
 		ep->nak_count = ep->error_count = 0;
 		switch (ep->nextpid) {
 		case USB_PID_OUT:
-			// PACKET("...ACK/out_%02x qh%p\n", bank, ep);
+			// PACKET("...ACK/out_%02x qh%pK\n", bank, ep);
 			urb->actual_length += ep->length;
 			usb_dotoggle(udev, ep->epnum, 1);
 			if (urb->actual_length
@@ -520,7 +532,7 @@ done(struct sl811 *sl811, struct sl811h_ep *ep, u8 bank)
 			}
 			break;
 		case USB_PID_IN:
-			// PACKET("...ACK/in_%02x qh%p\n", bank, ep);
+			// PACKET("...ACK/in_%02x qh%pK\n", bank, ep);
 			buf = urb->transfer_buffer + urb->actual_length;
 			prefetchw(buf);
 			len = ep->maxpacket - sl811_read(sl811,
@@ -544,7 +556,7 @@ done(struct sl811 *sl811, struct sl811h_ep *ep, u8 bank)
 			}
 			break;
 		case USB_PID_SETUP:
-			// PACKET("...ACK/setup_%02x qh%p\n", bank, ep);
+			// PACKET("...ACK/setup_%02x qh%pK\n", bank, ep);
 			if (urb->transfer_buffer_length == urb->actual_length)
 				ep->nextpid = USB_PID_ACK;
 			else if (usb_pipeout(urb->pipe)) {
@@ -556,14 +568,14 @@ done(struct sl811 *sl811, struct sl811h_ep *ep, u8 bank)
 			}
 			break;
 		case USB_PID_ACK:
-			// PACKET("...ACK/status_%02x qh%p\n", bank, ep);
+			// PACKET("...ACK/status_%02x qh%pK\n", bank, ep);
 			urbstat = 0;
 			break;
 		}
 
 	/* STALL stops all transfers */
 	} else if (status & SL11H_STATMASK_STALL) {
-		PACKET("...STALL_%02x qh%p\n", bank, ep);
+		PACKET("...STALL_%02x qh%pK\n", bank, ep);
 		ep->nak_count = ep->error_count = 0;
 		urbstat = -EPIPE;
 
@@ -576,7 +588,7 @@ done(struct sl811 *sl811, struct sl811h_ep *ep, u8 bank)
 		else
 			urbstat = -EPROTO;
 		ep->error_count = 0;
-		PACKET("...3STRIKES_%02x %02x qh%p stat %d\n",
+		PACKET("...3STRIKES_%02x %02x qh%pK stat %d\n",
 				bank, status, ep, urbstat);
 	}
 
@@ -920,8 +932,12 @@ static int sl811h_urb_enqueue(
 		 * to share the faster parts of the tree without needing
 		 * dummy/placeholder nodes
 		 */
+<<<<<<< HEAD
+		DBG("schedule qh%d/%pK branch %d\n", ep->period, ep, ep->branch);
+=======
 		dev_dbg(hcd->self.controller, "schedule qh%d/%p branch %d\n",
 			ep->period, ep, ep->branch);
+>>>>>>> android-3.18
 		for (i = ep->branch; i < PERIODIC_SIZE; i += ep->period) {
 			struct sl811h_ep	**prev = &sl811->periodic[i];
 			struct sl811h_ep	*here = *prev;
@@ -1014,8 +1030,12 @@ static int sl811h_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 		if (urb)
 			finish_request(sl811, ep, urb, 0);
 		else
+<<<<<<< HEAD
+			VDBG("dequeue, urb %pK active %s; wait4irq\n", urb,
+=======
 			dev_dbg(sl811_to_hcd(sl811)->self.controller,
 				"dequeue, urb %p active %s; wait4irq\n", urb,
+>>>>>>> android-3.18
 				(sl811->active_a == ep) ? "A" : "B");
 	} else
 		retval = -EINVAL;
@@ -1036,7 +1056,11 @@ sl811h_endpoint_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
 	if (!list_empty(&hep->urb_list))
 		msleep(3);
 	if (!list_empty(&hep->urb_list))
+<<<<<<< HEAD
+		WARNING("ep %pK not empty?\n", ep);
+=======
 		dev_warn(hcd->self.controller, "ep %p not empty?\n", ep);
+>>>>>>> android-3.18
 
 	kfree(ep);
 	hep->hcpriv = NULL;
@@ -1423,17 +1447,17 @@ static int sl811h_show(struct seq_file *s, void *unused)
 				sl811_read(sl811, SL11H_SOFTMRREG) << 6);
 	}
 
-	seq_printf(s, "A: qh%p ctl %02x sts %02x\n", sl811->active_a,
+	seq_printf(s, "A: qh%pK ctl %02x sts %02x\n", sl811->active_a,
 		sl811_read(sl811, SL811_EP_A(SL11H_HOSTCTLREG)),
 		sl811_read(sl811, SL811_EP_A(SL11H_PKTSTATREG)));
-	seq_printf(s, "B: qh%p ctl %02x sts %02x\n", sl811->active_b,
+	seq_printf(s, "B: qh%pK ctl %02x sts %02x\n", sl811->active_b,
 		sl811_read(sl811, SL811_EP_B(SL11H_HOSTCTLREG)),
 		sl811_read(sl811, SL811_EP_B(SL11H_PKTSTATREG)));
 	seq_printf(s, "\n");
 	list_for_each_entry (ep, &sl811->async, schedule) {
 		struct urb		*urb;
 
-		seq_printf(s, "%s%sqh%p, ep%d%s, maxpacket %d"
+		seq_printf(s, "%s%sqh%pK, ep%d%s, maxpacket %d"
 					" nak %d err %d\n",
 			(ep == sl811->active_a) ? "(A) " : "",
 			(ep == sl811->active_b) ? "(B) " : "",
@@ -1448,7 +1472,7 @@ static int sl811h_show(struct seq_file *s, void *unused)
 			ep->maxpacket,
 			ep->nak_count, ep->error_count);
 		list_for_each_entry (urb, &ep->hep->urb_list, urb_list) {
-			seq_printf(s, "  urb%p, %d/%d\n", urb,
+			seq_printf(s, "  urb%pK, %d/%d\n", urb,
 				urb->actual_length,
 				urb->transfer_buffer_length);
 		}
@@ -1467,7 +1491,7 @@ static int sl811h_show(struct seq_file *s, void *unused)
 		/* DUMB: prints shared entries multiple times */
 		do {
 			seq_printf(s,
-				"   %s%sqh%d/%p (%sdev%d ep%d%s max %d) "
+				"   %s%sqh%d/%pK (%sdev%d ep%d%s max %d) "
 					"err %d\n",
 				(ep == sl811->active_a) ? "(A) " : "",
 				(ep == sl811->active_b) ? "(B) " : "",

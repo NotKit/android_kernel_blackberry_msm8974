@@ -18,6 +18,60 @@
 	} temp;})
 #define pipestring(pipe) edstring(usb_pipetype(pipe))
 
+<<<<<<< HEAD
+/* debug| print the main components of an URB
+ * small: 0) header + data packets 1) just header
+ */
+static void __maybe_unused
+urb_print(struct urb * urb, char * str, int small, int status)
+{
+	unsigned int pipe= urb->pipe;
+
+	if (!urb->dev || !urb->dev->bus) {
+		dbg("%s URB: no dev", str);
+		return;
+	}
+
+#ifndef	OHCI_VERBOSE_DEBUG
+	if (status != 0)
+#endif
+	dbg("%s %pK dev=%d ep=%d%s-%s flags=%x len=%d/%d stat=%d",
+		    str,
+		    urb,
+		    usb_pipedevice (pipe),
+		    usb_pipeendpoint (pipe),
+		    usb_pipeout (pipe)? "out" : "in",
+		    pipestring (pipe),
+		    urb->transfer_flags,
+		    urb->actual_length,
+		    urb->transfer_buffer_length,
+		    status);
+
+#ifdef	OHCI_VERBOSE_DEBUG
+	if (!small) {
+		int i, len;
+
+		if (usb_pipecontrol (pipe)) {
+			printk (KERN_DEBUG "%s: setup(8):", __FILE__);
+			for (i = 0; i < 8 ; i++)
+				printk (" %02x", ((__u8 *) urb->setup_packet) [i]);
+			printk ("\n");
+		}
+		if (urb->transfer_buffer_length > 0 && urb->transfer_buffer) {
+			printk (KERN_DEBUG "%s: data(%d/%d):", __FILE__,
+				urb->actual_length,
+				urb->transfer_buffer_length);
+			len = usb_pipeout (pipe)?
+						urb->transfer_buffer_length: urb->actual_length;
+			for (i = 0; i < 16 && i < len; i++)
+				printk (" %02x", ((__u8 *) urb->transfer_buffer) [i]);
+			printk ("%s stat:%d\n", i < len? "...": "", status);
+		}
+	}
+#endif
+}
+=======
+>>>>>>> android-3.18
 
 #define ohci_dbg_sw(ohci, next, size, format, arg...) \
 	do { \
@@ -256,7 +310,7 @@ static void ohci_dump_td (const struct ohci_hcd *ohci, const char *label,
 {
 	u32	tmp = hc32_to_cpup (ohci, &td->hwINFO);
 
-	ohci_dbg (ohci, "%s td %p%s; urb %p index %d; hw next td %08x\n",
+	ohci_dbg (ohci, "%s td %pK%s; urb %pK index %d; hw next td %08x\n",
 		label, td,
 		(tmp & TD_DONE) ? " (DONE)" : "",
 		td->urb, td->index,
@@ -314,7 +368,7 @@ ohci_dump_ed (const struct ohci_hcd *ohci, const char *label,
 	u32	tmp = hc32_to_cpu (ohci, ed->hwINFO);
 	char	*type = "";
 
-	ohci_dbg (ohci, "%s, ed %p state 0x%x type %s; next ed %08x\n",
+	ohci_dbg (ohci, "%s, ed %pK state 0x%x type %s; next ed %08x\n",
 		label,
 		ed, ed->state, edstring (ed->type),
 		hc32_to_cpup (ohci, &ed->hwNextED));
@@ -415,7 +469,7 @@ show_list (struct ohci_hcd *ohci, char *buf, size_t count, struct ed *ed)
 		struct td	*td;
 
 		temp = scnprintf (buf, size,
-			"ed/%p %cs dev%d ep%d%s max %d %08x%s%s %s",
+			"ed/%pK %cs dev%d ep%d%s max %d %08x%s%s %s",
 			ed,
 			(info & ED_LOWSPEED) ? 'l' : 'f',
 			info & 0x7f,
@@ -437,7 +491,7 @@ show_list (struct ohci_hcd *ohci, char *buf, size_t count, struct ed *ed)
 			cbp = hc32_to_cpup (ohci, &td->hwCBP);
 			be = hc32_to_cpup (ohci, &td->hwBE);
 			temp = scnprintf (buf, size,
-					"\n\ttd %p %s %d cc=%x urb %p (%08x)",
+					"\n\ttd %pK %s %d cc=%x urb %pK (%08x)",
 					td,
 					({ char *pid;
 					switch (info & TD_DP) {
@@ -514,7 +568,7 @@ static ssize_t fill_periodic_buffer(struct debug_buffer *buf)
 		next += temp;
 
 		do {
-			temp = scnprintf (next, size, " ed%d/%p",
+			temp = scnprintf (next, size, " ed%d/%pK",
 				ed->interval, ed);
 			size -= temp;
 			next += temp;

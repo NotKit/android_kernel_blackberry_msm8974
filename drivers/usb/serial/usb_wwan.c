@@ -50,6 +50,13 @@ void usb_wwan_dtr_rts(struct usb_serial_port *port, int on)
 	/* FIXME: locking */
 	portdata->rts_state = on;
 	portdata->dtr_state = on;
+<<<<<<< HEAD
+
+	intfdata->send_setup(port);
+}
+EXPORT_SYMBOL(usb_wwan_dtr_rts);
+=======
+>>>>>>> android-3.18
 
 	intfdata->send_setup(port);
 }
@@ -229,11 +236,18 @@ int usb_wwan_write(struct tty_struct *tty, struct usb_serial_port *port,
 		} else {
 			intfdata->in_flight++;
 			spin_unlock_irqrestore(&intfdata->susp_lock, flags);
+			usb_anchor_urb(this_urb, &portdata->submitted);
 			err = usb_submit_urb(this_urb, GFP_ATOMIC);
 			if (err) {
+<<<<<<< HEAD
+				dbg("usb_submit_urb %pK (write bulk) failed "
+				    "(%d)", this_urb, err);
+				usb_unanchor_urb(this_urb);
+=======
 				dev_err(&port->dev,
 					"%s: submit urb %d failed: %d\n",
 					__func__, i, err);
+>>>>>>> android-3.18
 				clear_bit(i, &portdata->out_busy);
 				spin_lock_irqsave(&intfdata->susp_lock, flags);
 				intfdata->in_flight--;
@@ -255,15 +269,137 @@ int usb_wwan_write(struct tty_struct *tty, struct usb_serial_port *port,
 }
 EXPORT_SYMBOL(usb_wwan_write);
 
+static void usb_wwan_in_work(struct work_struct *w)
+{
+	struct usb_wwan_port_private *portdata =
+		container_of(w, struct usb_wwan_port_private, in_work);
+	struct usb_wwan_intf_private *intfdata;
+	struct list_head *q = &portdata->in_urb_list;
+	struct urb *urb;
+	unsigned char *data;
+	struct tty_struct *tty;
+	struct usb_serial_port *port;
+	int err;
+	ssize_t len;
+	ssize_t count;
+	unsigned long flags;
+
+	spin_lock_irqsave(&portdata->in_lock, flags);
+	while (!list_empty(q)) {
+		urb = list_first_entry(q, struct urb, urb_list);
+		port = urb->context;
+		if (port->throttle_req || port->throttled)
+			break;
+
+		tty = tty_port_tty_get(&port->port);
+		if (!tty)
+			break;
+
+		/* list_empty() will still be false after this; it means
+		 * URB is still being processed */
+		list_del(&urb->urb_list);
+
+		spin_unlock_irqrestore(&portdata->in_lock, flags);
+
+		len = urb->actual_length - portdata->n_read;
+		data = urb->transfer_buffer + portdata->n_read;
+		count = tty_insert_flip_string(tty, data, len);
+		tty_flip_buffer_push(tty);
+		tty_kref_put(tty);
+
+		if (count < len) {
+			dbg("%s: len:%d count:%d n_read:%d\n", __func__,
+					len, count, portdata->n_read);
+			portdata->n_read += count;
+			port->throttled = true;
+
+			/* add request back to list */
+			spin_lock_irqsave(&portdata->in_lock, flags);
+			list_add(&urb->urb_list, q);
+			spin_unlock_irqrestore(&portdata->in_lock, flags);
+			return;
+		}
+
+		/* re-init list pointer to indicate we are done with it */
+		INIT_LIST_HEAD(&urb->urb_list);
+
+		portdata->n_read = 0;
+		intfdata = port->serial->private;
+
+		spin_lock_irqsave(&intfdata->susp_lock, flags);
+		if (!intfdata->suspended && !urb->anchor) {
+			usb_anchor_urb(urb, &portdata->submitted);
+			err = usb_submit_urb(urb, GFP_ATOMIC);
+			if (err) {
+				usb_unanchor_urb(urb);
+				if (err != -EPERM)
+					pr_err("%s: submit read urb failed:%d",
+							__func__, err);
+			}
+
+			usb_mark_last_busy(port->serial->dev);
+		}
+		spin_unlock_irqrestore(&intfdata->susp_lock, flags);
+		spin_lock_irqsave(&portdata->in_lock, flags);
+	}
+	spin_unlock_irqrestore(&portdata->in_lock, flags);
+}
+
 static void usb_wwan_indat_callback(struct urb *urb)
 {
 	int err;
 	int endpoint;
+	struct usb_wwan_port_private *portdata;
+	struct usb_wwan_intf_private *intfdata;
 	struct usb_serial_port *port;
+<<<<<<< HEAD
+=======
 	struct device *dev;
 	unsigned char *data = urb->transfer_buffer;
+>>>>>>> android-3.18
 	int status = urb->status;
+	unsigned long flags;
 
+<<<<<<< HEAD
+	dbg("%s: %pK", __func__, urb);
+
+	endpoint = usb_pipeendpoint(urb->pipe);
+	port = urb->context;
+	portdata = usb_get_serial_port_data(port);
+	intfdata = port->serial->private;
+
+	usb_mark_last_busy(port->serial->dev);
+
+	if ((status == -ENOENT || !status) && urb->actual_length) {
+		spin_lock_irqsave(&portdata->in_lock, flags);
+		list_add_tail(&urb->urb_list, &portdata->in_urb_list);
+		spin_unlock_irqrestore(&portdata->in_lock, flags);
+
+		queue_work(system_nrt_wq, &portdata->in_work);
+
+		return;
+	}
+
+	dbg("%s: nonzero status: %d on endpoint %02x.",
+		__func__, status, endpoint);
+
+	spin_lock(&intfdata->susp_lock);
+	if (intfdata->suspended || !portdata->opened) {
+		spin_unlock(&intfdata->susp_lock);
+		return;
+	}
+	spin_unlock(&intfdata->susp_lock);
+
+	if (status != -ESHUTDOWN) {
+		usb_anchor_urb(urb, &portdata->submitted);
+		err = usb_submit_urb(urb, GFP_ATOMIC);
+		if (err) {
+			usb_unanchor_urb(urb);
+			if (err != -EPERM)
+				pr_err("%s: submit read urb failed:%d",
+						__func__, err);
+		}
+=======
 	endpoint = usb_pipeendpoint(urb->pipe);
 	port = urb->context;
 	dev = &port->dev;
@@ -294,6 +430,7 @@ static void usb_wwan_indat_callback(struct urb *urb)
 		}
 	} else {
 		usb_mark_last_busy(port->serial->dev);
+>>>>>>> android-3.18
 	}
 }
 
@@ -366,6 +503,31 @@ int usb_wwan_chars_in_buffer(struct tty_struct *tty)
 }
 EXPORT_SYMBOL(usb_wwan_chars_in_buffer);
 
+void usb_wwan_throttle(struct tty_struct *tty)
+{
+	struct usb_serial_port *port = tty->driver_data;
+
+	port->throttle_req = true;
+
+	dbg("%s:\n", __func__);
+}
+EXPORT_SYMBOL(usb_wwan_throttle);
+
+void usb_wwan_unthrottle(struct tty_struct *tty)
+{
+	struct usb_serial_port *port = tty->driver_data;
+	struct usb_wwan_port_private *portdata;
+
+	portdata = usb_get_serial_port_data(port);
+
+	dbg("%s:\n", __func__);
+	port->throttle_req = false;
+	port->throttled = false;
+
+	queue_work(system_nrt_wq, &portdata->in_work);
+}
+EXPORT_SYMBOL(usb_wwan_unthrottle);
+
 int usb_wwan_open(struct tty_struct *tty, struct usb_serial_port *port)
 {
 	struct usb_wwan_port_private *portdata;
@@ -377,10 +539,27 @@ int usb_wwan_open(struct tty_struct *tty, struct usb_serial_port *port)
 	portdata = usb_get_serial_port_data(port);
 	intfdata = usb_get_serial_data(serial);
 
+<<<<<<< HEAD
+	/* explicitly set the driver mode to raw */
+	tty->raw = 1;
+	tty->real_raw = 1;
+
+	set_bit(TTY_NO_WRITE_SPLIT, &tty->flags);
+	dbg("%s", __func__);
+=======
 	if (port->interrupt_in_urb) {
 		err = usb_submit_urb(port->interrupt_in_urb, GFP_KERNEL);
 		if (err) {
 			dev_err(&port->dev, "%s: submit int urb failed: %d\n",
+				__func__, err);
+		}
+	}
+>>>>>>> android-3.18
+
+	if (port->interrupt_in_urb) {
+		err = usb_submit_urb(port->interrupt_in_urb, GFP_KERNEL);
+		if (err) {
+			dev_dbg(&port->dev, "%s: submit int urb failed: %d\n",
 				__func__, err);
 		}
 	}
@@ -390,11 +569,18 @@ int usb_wwan_open(struct tty_struct *tty, struct usb_serial_port *port)
 		urb = portdata->in_urbs[i];
 		if (!urb)
 			continue;
+		usb_anchor_urb(urb, &portdata->submitted);
 		err = usb_submit_urb(urb, GFP_KERNEL);
 		if (err) {
+<<<<<<< HEAD
+			usb_unanchor_urb(urb);
+			dbg("%s: submit urb %d failed (%d) %d",
+			    __func__, i, err, urb->transfer_buffer_length);
+=======
 			dev_err(&port->dev,
 				"%s: submit read urb %d failed: %d\n",
 				__func__, i, err);
+>>>>>>> android-3.18
 		}
 	}
 
@@ -427,17 +613,45 @@ void usb_wwan_close(struct usb_serial_port *port)
 	int i;
 	struct usb_serial *serial = port->serial;
 	struct usb_wwan_port_private *portdata;
+<<<<<<< HEAD
+	struct usb_wwan_intf_private *intfdata = port->serial->private;
+=======
 	struct usb_wwan_intf_private *intfdata = usb_get_serial_data(serial);
+>>>>>>> android-3.18
 	struct urb *urb;
 
 	portdata = usb_get_serial_port_data(port);
 
+<<<<<<< HEAD
+	if (serial->dev) {
+		/* Stop reading/writing urbs */
+		spin_lock_irq(&intfdata->susp_lock);
+		portdata->opened = 0;
+		spin_unlock_irq(&intfdata->susp_lock);
+
+		for (;;) {
+			urb = usb_get_from_anchor(&portdata->delayed);
+			if (!urb)
+				break;
+			unbusy_queued_urb(urb, portdata);
+			usb_autopm_put_interface_async(serial->interface);
+		}
+
+		for (i = 0; i < N_IN_URB; i++)
+			usb_kill_urb(portdata->in_urbs[i]);
+		for (i = 0; i < N_OUT_URB; i++)
+			usb_kill_urb(portdata->out_urbs[i]);
+		usb_kill_urb(port->interrupt_in_urb);
+		/* balancing - important as an error cannot be handled*/
+		usb_autopm_get_interface_no_resume(serial->interface);
+=======
 	/*
 	 * Need to take susp_lock to make sure port is not already being
 	 * resumed, but no need to hold it due to ASYNC_INITIALIZED.
 	 */
 	spin_lock_irq(&intfdata->susp_lock);
 	if (--intfdata->open_ports == 0)
+>>>>>>> android-3.18
 		serial->interface->needs_remote_wakeup = 0;
 	spin_unlock_irq(&intfdata->susp_lock);
 
@@ -506,6 +720,41 @@ int usb_wwan_port_probe(struct usb_serial_port *port)
 						usb_wwan_indat_callback);
 		portdata->in_urbs[i] = urb;
 	}
+<<<<<<< HEAD
+}
+
+int usb_wwan_startup(struct usb_serial *serial)
+{
+	int i, j;
+	struct usb_serial_port *port;
+	struct usb_wwan_port_private *portdata;
+	u8 *buffer;
+
+	dbg("%s", __func__);
+
+	/* Now setup per port private data */
+	for (i = 0; i < serial->num_ports; i++) {
+		port = serial->port[i];
+		portdata = kzalloc(sizeof(*portdata), GFP_KERNEL);
+		if (!portdata) {
+			dbg("%s: kmalloc for usb_wwan_port_private (%d) failed!.",
+			    __func__, i);
+			return 1;
+		}
+		init_usb_anchor(&portdata->delayed);
+		init_usb_anchor(&portdata->submitted);
+		INIT_WORK(&portdata->in_work, usb_wwan_in_work);
+		INIT_LIST_HEAD(&portdata->in_urb_list);
+		spin_lock_init(&portdata->in_lock);
+
+		for (j = 0; j < N_IN_URB; j++) {
+			buffer = kmalloc(IN_BUFLEN, GFP_KERNEL);
+			if (!buffer)
+				goto bail_out_error;
+			portdata->in_buffer[j] = buffer;
+		}
+=======
+>>>>>>> android-3.18
 
 	for (i = 0; i < N_OUT_URB; i++) {
 		buffer = kmalloc(OUT_BUFLEN, GFP_KERNEL);
@@ -520,8 +769,14 @@ int usb_wwan_port_probe(struct usb_serial_port *port)
 		portdata->out_urbs[i] = urb;
 	}
 
+<<<<<<< HEAD
+		usb_set_serial_port_data(port, portdata);
+	}
+	usb_wwan_setup_urbs(serial);
+=======
 	usb_set_serial_port_data(port, portdata);
 
+>>>>>>> android-3.18
 	return 0;
 
 bail_out_error2:
@@ -530,10 +785,15 @@ bail_out_error2:
 		kfree(portdata->out_buffer[i]);
 	}
 bail_out_error:
+<<<<<<< HEAD
+	for (j = 0; j < N_IN_URB; j++)
+		kfree(portdata->in_buffer[j]);
+=======
 	for (i = 0; i < N_IN_URB; i++) {
 		usb_free_urb(portdata->in_urbs[i]);
 		free_page((unsigned long)portdata->in_buffer[i]);
 	}
+>>>>>>> android-3.18
 	kfree(portdata);
 
 	return -ENOMEM;
@@ -543,6 +803,16 @@ EXPORT_SYMBOL_GPL(usb_wwan_port_probe);
 int usb_wwan_port_remove(struct usb_serial_port *port)
 {
 	int i;
+<<<<<<< HEAD
+	struct usb_serial_port *port;
+	struct usb_wwan_port_private *portdata;
+
+	/* Stop reading/writing urbs */
+	for (i = 0; i < serial->num_ports; ++i) {
+		port = serial->port[i];
+		portdata = usb_get_serial_port_data(port);
+		usb_kill_anchored_urbs(&portdata->submitted);
+=======
 	struct usb_wwan_port_private *portdata;
 
 	portdata = usb_get_serial_port_data(port);
@@ -555,6 +825,7 @@ int usb_wwan_port_remove(struct usb_serial_port *port)
 	for (i = 0; i < N_OUT_URB; i++) {
 		usb_free_urb(portdata->out_urbs[i]);
 		kfree(portdata->out_buffer[i]);
+>>>>>>> android-3.18
 	}
 
 	kfree(portdata);
@@ -569,6 +840,43 @@ static void stop_urbs(struct usb_serial *serial)
 	int i, j;
 	struct usb_serial_port *port;
 	struct usb_wwan_port_private *portdata;
+<<<<<<< HEAD
+	struct urb *urb;
+	struct list_head *q;
+	unsigned long flags;
+
+	/* Now free them */
+	for (i = 0; i < serial->num_ports; ++i) {
+		port = serial->port[i];
+		portdata = usb_get_serial_port_data(port);
+
+		cancel_work_sync(&portdata->in_work);
+		/* TBD: do we really need this */
+		spin_lock_irqsave(&portdata->in_lock, flags);
+		q = &portdata->in_urb_list;
+		while (!list_empty(q)) {
+			urb = list_first_entry(q, struct urb, urb_list);
+			list_del_init(&urb->urb_list);
+		}
+		spin_unlock_irqrestore(&portdata->in_lock, flags);
+
+		for (j = 0; j < N_IN_URB; j++) {
+			usb_free_urb(portdata->in_urbs[j]);
+			kfree(portdata->in_buffer[j]);
+			portdata->in_urbs[j] = NULL;
+		}
+		for (j = 0; j < N_OUT_URB; j++) {
+			usb_free_urb(portdata->out_urbs[j]);
+			kfree(portdata->out_buffer[j]);
+			portdata->out_urbs[j] = NULL;
+		}
+	}
+
+	/* Now free per port private data */
+	for (i = 0; i < serial->num_ports; i++) {
+		port = serial->port[i];
+		kfree(usb_get_serial_port_data(port));
+=======
 
 	for (i = 0; i < serial->num_ports; ++i) {
 		port = serial->port[i];
@@ -580,29 +888,72 @@ static void stop_urbs(struct usb_serial *serial)
 		for (j = 0; j < N_OUT_URB; j++)
 			usb_kill_urb(portdata->out_urbs[j]);
 		usb_kill_urb(port->interrupt_in_urb);
+>>>>>>> android-3.18
 	}
 }
 
 int usb_wwan_suspend(struct usb_serial *serial, pm_message_t message)
 {
+<<<<<<< HEAD
+	struct usb_wwan_intf_private *intfdata = serial->private;
+
+	dbg("%s entered", __func__);
+
+	spin_lock_irq(&intfdata->susp_lock);
+	if (PMSG_IS_AUTO(message)) {
+		if (intfdata->in_flight ||
+				pm_runtime_autosuspend_expiration(&serial->dev->dev))
+=======
 	struct usb_wwan_intf_private *intfdata = usb_get_serial_data(serial);
 
 	spin_lock_irq(&intfdata->susp_lock);
 	if (PMSG_IS_AUTO(message)) {
 		if (intfdata->in_flight) {
+>>>>>>> android-3.18
 			spin_unlock_irq(&intfdata->susp_lock);
 			return -EBUSY;
 		}
 	}
+<<<<<<< HEAD
+
+	intfdata->suspended = 1;
+	spin_unlock_irq(&intfdata->susp_lock);
+
+	stop_read_write_urbs(serial);
+=======
 	intfdata->suspended = 1;
 	spin_unlock_irq(&intfdata->susp_lock);
 
 	stop_urbs(serial);
+>>>>>>> android-3.18
 
 	return 0;
 }
 EXPORT_SYMBOL(usb_wwan_suspend);
 
+<<<<<<< HEAD
+static int play_delayed(struct usb_serial_port *port)
+{
+	struct usb_wwan_intf_private *data;
+	struct usb_wwan_port_private *portdata;
+	struct urb *urb;
+	int err = 0;
+
+	portdata = usb_get_serial_port_data(port);
+	data = port->serial->private;
+	while ((urb = usb_get_from_anchor(&portdata->delayed))) {
+		usb_anchor_urb(urb, &portdata->submitted);
+		err = usb_submit_urb(urb, GFP_ATOMIC);
+		if (!err) {
+			data->in_flight++;
+		} else {
+			usb_unanchor_urb(urb);
+			/* we have to throw away the rest */
+			do {
+				unbusy_queued_urb(urb, portdata);
+				usb_autopm_put_interface_no_suspend(port->serial->interface);
+			} while ((urb = usb_get_from_anchor(&portdata->delayed)));
+=======
 /* Caller must hold susp_lock. */
 static int usb_wwan_submit_delayed_urbs(struct usb_serial_port *port)
 {
@@ -618,6 +969,7 @@ static int usb_wwan_submit_delayed_urbs(struct usb_serial_port *port)
 	for (;;) {
 		urb = usb_get_from_anchor(&portdata->delayed);
 		if (!urb)
+>>>>>>> android-3.18
 			break;
 
 		err = usb_submit_urb(urb, GFP_ATOMIC);
@@ -632,10 +984,14 @@ static int usb_wwan_submit_delayed_urbs(struct usb_serial_port *port)
 		data->in_flight++;
 	}
 
+<<<<<<< HEAD
+	return err;
+=======
 	if (err_count)
 		return -EIO;
 
 	return 0;
+>>>>>>> android-3.18
 }
 
 int usb_wwan_resume(struct usb_serial *serial)
@@ -648,15 +1004,29 @@ int usb_wwan_resume(struct usb_serial *serial)
 	int err;
 	int err_count = 0;
 
+<<<<<<< HEAD
+	dbg("%s entered", __func__);
+
+	spin_lock_irq(&intfdata->susp_lock);
+	intfdata->suspended = 0;
+=======
 	spin_lock_irq(&intfdata->susp_lock);
 	for (i = 0; i < serial->num_ports; i++) {
 		port = serial->port[i];
 
 		if (!test_bit(ASYNCB_INITIALIZED, &port->port.flags))
 			continue;
+>>>>>>> android-3.18
 
 		portdata = usb_get_serial_port_data(port);
 
+<<<<<<< HEAD
+		/* skip closed ports */
+		if (!portdata || !portdata->opened)
+			continue;
+
+=======
+>>>>>>> android-3.18
 		if (port->interrupt_in_urb) {
 			err = usb_submit_urb(port->interrupt_in_urb,
 					GFP_ATOMIC);
@@ -668,22 +1038,43 @@ int usb_wwan_resume(struct usb_serial *serial)
 			}
 		}
 
+<<<<<<< HEAD
+		err = play_delayed(port);
+=======
 		err = usb_wwan_submit_delayed_urbs(port);
+>>>>>>> android-3.18
 		if (err)
 			err_count++;
 
 		for (j = 0; j < N_IN_URB; j++) {
 			urb = portdata->in_urbs[j];
+
+			/* don't re-submit if it already was submitted or if
+			 * it is being processed by in_work */
+			if (urb->anchor || !list_empty(&urb->urb_list))
+				continue;
+
+			usb_anchor_urb(urb, &portdata->submitted);
 			err = usb_submit_urb(urb, GFP_ATOMIC);
 			if (err < 0) {
+<<<<<<< HEAD
+				err("%s: Error %d for bulk URB[%d]:%p %d",
+				    __func__, err, j, urb, i);
+				usb_unanchor_urb(urb);
+				intfdata->suspended = 1;
+=======
 				dev_err(&port->dev,
 					"%s: submit read urb %d failed: %d\n",
 					__func__, i, err);
+>>>>>>> android-3.18
 				err_count++;
 			}
 		}
 	}
+<<<<<<< HEAD
+=======
 	intfdata->suspended = 0;
+>>>>>>> android-3.18
 	spin_unlock_irq(&intfdata->susp_lock);
 
 	if (err_count)

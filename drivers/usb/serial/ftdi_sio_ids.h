@@ -38,6 +38,9 @@
 
 #define FTDI_LUMEL_PD12_PID	0x6002
 
+/* Cyber Cortex AV by Fabulous Silicon (http://fabuloussilicon.com) */
+#define CYBER_CORTEX_AV_PID	0x8698
+
 /*
  * Custom USB adapters made by Falconia Partners LLC
  * for FreeCalypso project, ID codes allocated to Falconia by FTDI.
@@ -166,7 +169,10 @@
 #define XSENS_AWINDA_DONGLE_PID 0x0102
 #define XSENS_MTW_PID		0x0200	/* Xsens MTw */
 #define XSENS_MTDEVBOARD_PID	0x0300	/* Motion Tracker Development Board */
+<<<<<<< HEAD
+=======
 #define XSENS_MTIUSBCONVERTER_PID	0x0301	/* MTi USB converter */
+>>>>>>> android-3.18
 #define XSENS_CONVERTER_PID	0xD00D	/* Xsens USB-serial converter */
 
 /* Xsens devices using FTDI VID */
@@ -577,10 +583,14 @@
 /*
  * NovaTech product ids (FTDI_VID)
  */
+<<<<<<< HEAD
+#define FTDI_NT_ORIONLXM_PID	0x7c90	/* OrionLXm Substation Automation Platform */
+=======
 #define FTDI_NT_ORIONLXM_PID		0x7c90	/* OrionLXm Substation Automation Platform */
 #define FTDI_NT_ORIONLX_PLUS_PID	0x7c91	/* OrionLX+ Substation Automation Platform */
 #define FTDI_NT_ORION_IO_PID		0x7c92	/* Orion I/O */
 #define FTDI_NT_ORIONMX_PID		0x7c93	/* OrionMX */
+>>>>>>> android-3.18
 
 /*
  * Synapse Wireless product ids (FTDI_VID)
@@ -926,6 +936,10 @@
 #define NOVITUS_BONO_E_PID		0x6010
 
 /*
+<<<<<<< HEAD
+ * RT Systems programming cables for various ham radios
+ */
+=======
  * ICPDAS I-756*U devices
  */
 #define ICPDAS_VID			0x1b5c
@@ -945,6 +959,7 @@
 /* This device uses the VID of FTDI */
 #define RTSYSTEMS_USB_VX8_PID   0x9e50  /* USB-VX8 USB to 7 pin modular plug for Yaesu VX-8 radio */
 
+>>>>>>> android-3.18
 #define RTSYSTEMS_VID		0x2100	/* Vendor ID */
 #define RTSYSTEMS_USB_S03_PID	0x9001	/* RTS-03 USB to Serial Adapter */
 #define RTSYSTEMS_USB_59_PID	0x9e50	/* USB-59 USB to 8 pin plug */
@@ -1470,12 +1485,15 @@
 #define FTDI_CINTERION_MC55I_PID	0xA951
 
 /*
+<<<<<<< HEAD
+=======
  * Product: FirmwareHubEmulator
  * Manufacturer: Harman Becker Automotive Systems
  */
 #define FTDI_FHE_PID		0xA9A0
 
 /*
+>>>>>>> android-3.18
  * Product: Comet Caller ID decoder
  * Manufacturer: Crucible Technologies
  */
@@ -1560,6 +1578,8 @@
 #define CHETCO_SEASMART_DISPLAY_PID	0xA5AD /* SeaSmart NMEA2000 Display */
 #define CHETCO_SEASMART_LITE_PID	0xA5AE /* SeaSmart Lite USB Adapter */
 #define CHETCO_SEASMART_ANALOG_PID	0xA5AF /* SeaSmart Analog Adapter */
+<<<<<<< HEAD
+=======
 
 /*
  * Unjo AB
@@ -1580,3 +1600,4 @@
 #define UBLOX_VID			0x1546
 #define UBLOX_C099F9P_ZED_PID		0x0502
 #define UBLOX_C099F9P_ODIN_PID		0x0503
+>>>>>>> android-3.18

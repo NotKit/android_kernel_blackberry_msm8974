@@ -26,9 +26,14 @@ obj-$(CONFIG_USB_HWA_HCD)	+= host/
 obj-$(CONFIG_USB_ISP1760_HCD)	+= host/
 obj-$(CONFIG_USB_IMX21_HCD)	+= host/
 obj-$(CONFIG_USB_FSL_MPH_DR_OF)	+= host/
+<<<<<<< HEAD
+obj-$(CONFIG_USB_PEHCI_HCD)	+= host/
+obj-$(CONFIG_USB_ICE40_HCD)	+= host/
+=======
 obj-$(CONFIG_USB_FUSBH200_HCD)	+= host/
 obj-$(CONFIG_USB_FOTG210_HCD)	+= host/
 obj-$(CONFIG_USB_MAX3421_HCD)	+= host/
+>>>>>>> android-3.18
 
 obj-$(CONFIG_USB_C67X00_HCD)	+= c67x00/
 
@@ -38,6 +43,7 @@ obj-$(CONFIG_USB_ACM)		+= class/
 obj-$(CONFIG_USB_PRINTER)	+= class/
 obj-$(CONFIG_USB_WDM)		+= class/
 obj-$(CONFIG_USB_TMC)		+= class/
+obj-$(CONFIG_USB_CCID_BRIDGE)	+= class/
 
 obj-$(CONFIG_USB_STORAGE)	+= storage/
 obj-$(CONFIG_USB)		+= storage/

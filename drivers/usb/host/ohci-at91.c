@@ -229,6 +229,38 @@ static void usb_hcd_at91_remove(struct usb_hcd *hcd,
 }
 
 /*-------------------------------------------------------------------------*/
+<<<<<<< HEAD
+
+static int __devinit
+ohci_at91_reset (struct usb_hcd *hcd)
+{
+	struct at91_usbh_data	*board = hcd->self.controller->platform_data;
+	struct ohci_hcd		*ohci = hcd_to_ohci (hcd);
+	int			ret;
+
+	if ((ret = ohci_init(ohci)) < 0)
+		return ret;
+
+	ohci->num_ports = board->ports;
+	return 0;
+}
+
+static int __devinit
+ohci_at91_start (struct usb_hcd *hcd)
+{
+	struct ohci_hcd		*ohci = hcd_to_ohci (hcd);
+	int			ret;
+
+	if ((ret = ohci_run(ohci)) < 0) {
+		err("can't start %s", hcd->self.bus_name);
+		ohci_stop(hcd);
+		return ret;
+	}
+	return 0;
+}
+
+=======
+>>>>>>> android-3.18
 static void ohci_at91_usb_set_power(struct at91_usbh_data *pdata, int port, int enable)
 {
 	if (!valid_port(port))
@@ -285,7 +317,7 @@ static int ohci_at91_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 	u32 *data = (u32 *)buf;
 
 	dev_dbg(hcd->self.controller,
-		"ohci_at91_hub_control(%p,0x%04x,0x%04x,0x%04x,%p,%04x)\n",
+		"ohci_at91_hub_control(%pK,0x%04x,0x%04x,0x%04x,%pK,%04x)\n",
 		hcd, typeReq, wValue, wIndex, buf, wLength);
 
 	wIndex--;
@@ -391,6 +423,54 @@ static int ohci_at91_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 
 /*-------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
+static const struct hc_driver ohci_at91_hc_driver = {
+	.description =		hcd_name,
+	.product_desc =		"AT91 OHCI",
+	.hcd_priv_size =	sizeof(struct ohci_hcd),
+
+	/*
+	 * generic hardware linkage
+	 */
+	.irq =			ohci_irq,
+	.flags =		HCD_USB11 | HCD_MEMORY,
+
+	/*
+	 * basic lifecycle operations
+	 */
+	.reset =		ohci_at91_reset,
+	.start =		ohci_at91_start,
+	.stop =			ohci_stop,
+	.shutdown =		ohci_shutdown,
+
+	/*
+	 * managing i/o requests and associated device resources
+	 */
+	.urb_enqueue =		ohci_urb_enqueue,
+	.urb_dequeue =		ohci_urb_dequeue,
+	.endpoint_disable =	ohci_endpoint_disable,
+
+	/*
+	 * scheduling support
+	 */
+	.get_frame_number =	ohci_get_frame,
+
+	/*
+	 * root hub support
+	 */
+	.hub_status_data =	ohci_at91_hub_status_data,
+	.hub_control =		ohci_at91_hub_control,
+#ifdef CONFIG_PM
+	.bus_suspend =		ohci_bus_suspend,
+	.bus_resume =		ohci_bus_resume,
+#endif
+	.start_port_reset =	ohci_start_port_reset,
+};
+
+/*-------------------------------------------------------------------------*/
+
+=======
+>>>>>>> android-3.18
 static irqreturn_t ohci_hcd_at91_overcurrent_irq(int irq, void *data)
 {
 	struct platform_device *pdev = data;

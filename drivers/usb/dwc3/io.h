@@ -24,16 +24,24 @@
 #include "debug.h"
 #include "core.h"
 
+#include "core.h"
+
 static inline u32 dwc3_readl(void __iomem *base, u32 offset)
 {
+<<<<<<< HEAD
+=======
 	u32 offs = offset - DWC3_GLOBALS_REGS_START;
 	u32 value;
 
+>>>>>>> android-3.18
 	/*
 	 * We requested the mem region starting from the Globals address
 	 * space, see dwc3_probe in core.c.
 	 * However, the offsets are given starting from xHCI address space.
 	 */
+<<<<<<< HEAD
+	return readl(base + (offset - DWC3_GLOBALS_REGS_START));
+=======
 	value = readl(base + offs);
 
 	/*
@@ -45,17 +53,24 @@ static inline u32 dwc3_readl(void __iomem *base, u32 offset)
 			base - DWC3_GLOBALS_REGS_START + offset, value);
 
 	return value;
+>>>>>>> android-3.18
 }
 
 static inline void dwc3_writel(void __iomem *base, u32 offset, u32 value)
 {
+<<<<<<< HEAD
+=======
 	u32 offs = offset - DWC3_GLOBALS_REGS_START;
 
+>>>>>>> android-3.18
 	/*
 	 * We requested the mem region starting from the Globals address
 	 * space, see dwc3_probe in core.c.
 	 * However, the offsets are given starting from xHCI address space.
 	 */
+<<<<<<< HEAD
+	writel(value, base + (offset - DWC3_GLOBALS_REGS_START));
+=======
 	writel(value, base + offs);
 
 	/*
@@ -65,6 +80,7 @@ static inline void dwc3_writel(void __iomem *base, u32 offset, u32 value)
 	 */
 	dwc3_trace(trace_dwc3_writel, "addr %p value %08x",
 			base - DWC3_GLOBALS_REGS_START + offset, value);
+>>>>>>> android-3.18
 }
 
 #endif /* __DRIVERS_USB_DWC3_IO_H */

@@ -678,10 +678,20 @@ static int serial_port_carrier_raised(struct tty_port *port)
 static void serial_port_dtr_rts(struct tty_port *port, int on)
 {
 	struct usb_serial_port *p = container_of(port, struct usb_serial_port, port);
-	struct usb_serial_driver *drv = p->serial->type;
+	struct usb_serial *serial = p->serial;
+	struct usb_serial_driver *drv = serial->type;
 
-	if (drv->dtr_rts)
+	if (!drv->dtr_rts)
+		return;
+	/*
+	 * Work-around bug in the tty-layer which can result in dtr_rts
+	 * being called after a disconnect (and tty_unregister_device
+	 * has returned). Remove once bug has been squashed.
+	 */
+	mutex_lock(&serial->disc_mutex);
+	if (!serial->disconnected)
 		drv->dtr_rts(p, on);
+	mutex_unlock(&serial->disc_mutex);
 }
 
 static const struct tty_port_operations serial_port_ops = {
@@ -745,7 +755,11 @@ static int usb_serial_probe(struct usb_interface *interface,
 		retval = type->probe(serial, id);
 
 		if (retval) {
+<<<<<<< HEAD
+			dbg("sub driver rejected device");
+=======
 			dev_dbg(ddev, "sub driver rejected device\n");
+>>>>>>> android-3.18
 			usb_serial_put(serial);
 			module_put(type->driver.owner);
 			return retval;
@@ -760,7 +774,11 @@ static int usb_serial_probe(struct usb_interface *interface,
 
 		if (usb_endpoint_is_bulk_in(endpoint)) {
 			/* we found a bulk in endpoint */
+<<<<<<< HEAD
+			dbg("found bulk in on endpoint %d", i);
+=======
 			dev_dbg(ddev, "found bulk in on endpoint %d\n", i);
+>>>>>>> android-3.18
 			if (num_bulk_in < MAX_NUM_PORTS) {
 				bulk_in_endpoint[num_bulk_in] = endpoint;
 				++num_bulk_in;
@@ -769,7 +787,11 @@ static int usb_serial_probe(struct usb_interface *interface,
 
 		if (usb_endpoint_is_bulk_out(endpoint)) {
 			/* we found a bulk out endpoint */
+<<<<<<< HEAD
+			dbg("found bulk out on endpoint %d", i);
+=======
 			dev_dbg(ddev, "found bulk out on endpoint %d\n", i);
+>>>>>>> android-3.18
 			if (num_bulk_out < MAX_NUM_PORTS) {
 				bulk_out_endpoint[num_bulk_out] = endpoint;
 				++num_bulk_out;
@@ -778,20 +800,32 @@ static int usb_serial_probe(struct usb_interface *interface,
 
 		if (usb_endpoint_is_int_in(endpoint)) {
 			/* we found a interrupt in endpoint */
+<<<<<<< HEAD
+			dbg("found interrupt in on endpoint %d", i);
+			if (num_interrupt_in < MAX_NUM_PORTS) {
+				interrupt_in_endpoint[num_interrupt_in] = endpoint;
+=======
 			dev_dbg(ddev, "found interrupt in on endpoint %d\n", i);
 			if (num_interrupt_in < MAX_NUM_PORTS) {
 				interrupt_in_endpoint[num_interrupt_in] =
 						endpoint;
+>>>>>>> android-3.18
 				++num_interrupt_in;
 			}
 		}
 
 		if (usb_endpoint_is_int_out(endpoint)) {
 			/* we found an interrupt out endpoint */
+<<<<<<< HEAD
+			dbg("found interrupt out on endpoint %d", i);
+			if (num_interrupt_out < MAX_NUM_PORTS) {
+				interrupt_out_endpoint[num_interrupt_out] = endpoint;
+=======
 			dev_dbg(ddev, "found interrupt out on endpoint %d\n", i);
 			if (num_interrupt_out < MAX_NUM_PORTS) {
 				interrupt_out_endpoint[num_interrupt_out] =
 						endpoint;
+>>>>>>> android-3.18
 				++num_interrupt_out;
 			}
 		}
@@ -815,7 +849,11 @@ static int usb_serial_probe(struct usb_interface *interface,
 				endpoint = &iface_desc->endpoint[i].desc;
 				if (usb_endpoint_is_int_in(endpoint)) {
 					/* we found a interrupt in endpoint */
+<<<<<<< HEAD
+					dbg("found interrupt in for Prolific device on separate interface");
+=======
 					dev_dbg(ddev, "found interrupt in for Prolific device on separate interface\n");
+>>>>>>> android-3.18
 					if (num_interrupt_in < MAX_NUM_PORTS) {
 						interrupt_in_endpoint[num_interrupt_in] = endpoint;
 						++num_interrupt_in;
@@ -829,7 +867,11 @@ static int usb_serial_probe(struct usb_interface *interface,
 		 * properly during a later invocation of usb_serial_probe
 		 */
 		if (num_bulk_in == 0 || num_bulk_out == 0) {
+<<<<<<< HEAD
+			dev_info(&interface->dev, "PL-2303 hack: descriptors matched but endpoints did not\n");
+=======
 			dev_info(ddev, "PL-2303 hack: descriptors matched but endpoints did not\n");
+>>>>>>> android-3.18
 			usb_serial_put(serial);
 			module_put(type->driver.owner);
 			return -ENODEV;
@@ -842,7 +884,12 @@ static int usb_serial_probe(struct usb_interface *interface,
 	if (type == &usb_serial_generic_device) {
 		num_ports = num_bulk_out;
 		if (num_ports == 0) {
+<<<<<<< HEAD
+			dev_err(&interface->dev,
+			    "Generic device with no bulk out, not allowed.\n");
+=======
 			dev_err(ddev, "Generic device with no bulk out, not allowed.\n");
+>>>>>>> android-3.18
 			usb_serial_put(serial);
 			module_put(type->driver.owner);
 			return -EIO;
@@ -860,7 +907,11 @@ static int usb_serial_probe(struct usb_interface *interface,
 	}
 
 	if (num_ports > MAX_NUM_PORTS) {
+<<<<<<< HEAD
+		dev_warn(&interface->dev, "too many ports requested: %d\n", num_ports);
+=======
 		dev_warn(ddev, "too many ports requested: %d\n", num_ports);
+>>>>>>> android-3.18
 		num_ports = MAX_NUM_PORTS;
 	}
 
@@ -891,6 +942,7 @@ static int usb_serial_probe(struct usb_interface *interface,
 		port->port.ops = &serial_port_ops;
 		port->serial = serial;
 		spin_lock_init(&port->lock);
+		init_waitqueue_head(&port->delta_msr_wait);
 		/* Keep this for private driver use for the moment but
 		   should probably go away */
 		INIT_WORK(&port->work, usb_serial_port_work);
@@ -1333,11 +1385,14 @@ static int usb_serial_register(struct usb_serial_driver *driver)
 				driver->description);
 		return -EINVAL;
 	}
+<<<<<<< HEAD
+=======
 
 	/* Prevent individual ports from being unbound. */
 	driver->driver.suppress_bind_attrs = true;
 
 	usb_serial_operations_init(driver);
+>>>>>>> android-3.18
 
 	/* Add this device to our list of devices */
 	mutex_lock(&table_lock);
@@ -1371,8 +1426,14 @@ static void usb_serial_deregister(struct usb_serial_driver *device)
  * @name: name of the usb_driver for this set of @serial_drivers
  * @id_table: list of all devices this @serial_drivers set binds to
  *
+<<<<<<< HEAD
+ * Registers @udriver and all the drivers in the @serial_drivers array.
+ * Automatically fills in the .no_dynamic_id and PM fields in @udriver and
+ * the .usb_driver field in each serial driver.
+=======
  * Registers all the drivers in the @serial_drivers array, and dynamically
  * creates a struct usb_driver with the name @name and id_table of @id_table.
+>>>>>>> android-3.18
  */
 int usb_serial_register_drivers(struct usb_serial_driver *const serial_drivers[],
 				const char *name,
@@ -1390,7 +1451,11 @@ int usb_serial_register_drivers(struct usb_serial_driver *const serial_drivers[]
 	 * Performance hack: We don't want udriver to be probed until
 	 * the serial drivers are registered, because the probe would
 	 * simply fail for lack of a matching serial driver.
+<<<<<<< HEAD
+	 * Therefore save off udriver's id_table until we are all set.
+=======
 	 * So we leave udriver's id_table set to NULL until we are all set.
+>>>>>>> android-3.18
 	 *
 	 * Suspend/resume support is implemented in the usb-serial core,
 	 * so fill in the PM-related fields in udriver.
@@ -1404,6 +1469,8 @@ int usb_serial_register_drivers(struct usb_serial_driver *const serial_drivers[]
 	udriver->supports_autosuspend = 1;
 	udriver->suspend = usb_serial_suspend;
 	udriver->resume = usb_serial_resume;
+<<<<<<< HEAD
+=======
 	udriver->probe = usb_serial_probe;
 	udriver->disconnect = usb_serial_disconnect;
 
@@ -1415,6 +1482,7 @@ int usb_serial_register_drivers(struct usb_serial_driver *const serial_drivers[]
 		}
 	}
 
+>>>>>>> android-3.18
 	rc = usb_register(udriver);
 	if (rc)
 		goto failed_usb_register;

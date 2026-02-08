@@ -134,6 +134,17 @@ MODULE_PARM_DESC(quirks, "supplemental list of device IDs and their quirks");
 	.initFunction = init_function,	\
 }
 
+#define UNUSUAL_VENDOR_INTF(idVendor, cl, sc, pr, \
+		vendor_name, product_name, use_protocol, use_transport, \
+		init_function, Flags) \
+{ \
+	.vendorName = vendor_name,	\
+	.productName = product_name,	\
+	.useProtocol = use_protocol,	\
+	.useTransport = use_transport,	\
+	.initFunction = init_function,	\
+}
+
 static struct us_unusual_dev us_unusual_dev_list[] = {
 #	include "unusual_devs.h"
 	{ }		/* Terminating entry */
@@ -768,6 +779,28 @@ static int get_pipes(struct us_data *us)
 	return 0;
 }
 
+/* Initialize SCSI device auto-suspend timeout here */
+static void usb_stor_set_scsi_autosuspend(struct us_data *us)
+{
+	struct usb_device *udev = us->pusb_dev;
+	struct usb_host_config *config = udev->actconfig;
+	struct usb_host_interface *intf;
+	int i;
+
+	/*
+	 * Some USB UICC devices has Mass storage interface along
+	 * with CCID interface.  These cards are inserted all the
+	 * time.  Enable SCSI auto-suspend for such devices.
+	 */
+	for (i = 0; i < config->desc.bNumInterfaces; i++) {
+		intf = config->interface[i]->cur_altsetting;
+		if (intf->desc.bInterfaceClass == USB_CLASS_CSCID) {
+			us->sdev_autosuspend_delay = 2000; /* msec */
+			return;
+		}
+	}
+}
+
 /* Initialize all the dynamic resources we need */
 static int usb_stor_acquire_resources(struct us_data *us)
 {
@@ -1021,6 +1054,10 @@ int usb_stor_probe2(struct us_data *us)
 	result = usb_stor_acquire_resources(us);
 	if (result)
 		goto BadDevice;
+
+	us->sdev_autosuspend_delay = -1;
+	usb_stor_set_scsi_autosuspend(us);
+
 	snprintf(us->scsi_name, sizeof(us->scsi_name), "usb-storage %s",
 					dev_name(&us->pusb_intf->dev));
 	result = scsi_add_host(us_to_host(us), dev);

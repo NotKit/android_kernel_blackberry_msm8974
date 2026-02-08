@@ -34,6 +34,7 @@
 #include "debug.h"
 #include "gadget.h"
 #include "io.h"
+#include "debug.h"
 
 static void __dwc3_ep0_do_control_status(struct dwc3 *dwc, struct dwc3_ep *dep);
 static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
@@ -97,8 +98,13 @@ static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum)
 	ret = dwc3_send_gadget_ep_cmd(dwc, dep->number,
 			DWC3_DEPCMD_STARTTRANSFER, &params);
 	if (ret < 0) {
+<<<<<<< HEAD
+		dbg_event(dep->number, "STTRAFL", ret);
+		dev_dbg(dwc->dev, "failed to send STARTTRANSFER command\n");
+=======
 		dwc3_trace(trace_dwc3_ep0, "%s STARTTRANSFER failed",
 				dep->name);
+>>>>>>> android-3.18
 		return ret;
 	}
 
@@ -163,8 +169,12 @@ static int __dwc3_gadget_ep0_queue(struct dwc3_ep *dep,
 		if (dwc->ep0state == EP0_STATUS_PHASE)
 			__dwc3_ep0_do_control_status(dwc, dwc->eps[direction]);
 		else
+<<<<<<< HEAD
+			dev_dbg(dwc->dev, "too early for delayed status\n");
+=======
 			dwc3_trace(trace_dwc3_ep0,
 					"too early for delayed status");
+>>>>>>> android-3.18
 
 		return 0;
 	}
@@ -228,8 +238,12 @@ int dwc3_gadget_ep0_queue(struct usb_ep *ep, struct usb_request *request,
 
 	spin_lock_irqsave(&dwc->lock, flags);
 	if (!dep->endpoint.desc) {
+<<<<<<< HEAD
+		dev_dbg(dwc->dev, "trying to queue request %pK to disabled %s\n",
+=======
 		dwc3_trace(trace_dwc3_ep0,
 				"trying to queue request %p to disabled %s",
+>>>>>>> android-3.18
 				request, dep->name);
 		ret = -ESHUTDOWN;
 		goto out;
@@ -241,8 +255,12 @@ int dwc3_gadget_ep0_queue(struct usb_ep *ep, struct usb_request *request,
 		goto out;
 	}
 
+<<<<<<< HEAD
+	dev_vdbg(dwc->dev, "queueing request %pK to %s length %d, state '%s'\n",
+=======
 	dwc3_trace(trace_dwc3_ep0,
 			"queueing request %p to %s length %d state '%s'",
+>>>>>>> android-3.18
 			request, dep->name, request->length,
 			dwc3_ep0_state_string(dwc->ep0state));
 
@@ -279,16 +297,26 @@ static void dwc3_ep0_stall_and_restart(struct dwc3 *dwc)
 	dwc3_ep0_out_start(dwc);
 }
 
+<<<<<<< HEAD
+int dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value)
+=======
 int __dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value)
+>>>>>>> android-3.18
 {
 	struct dwc3_ep			*dep = to_dwc3_ep(ep);
 	struct dwc3			*dwc = dep->dwc;
 
+<<<<<<< HEAD
+	dbg_event(dep->number, "EP0STAL", value);
+=======
+>>>>>>> android-3.18
 	dwc3_ep0_stall_and_restart(dwc);
 
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
 int dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value)
 {
 	struct dwc3_ep			*dep = to_dwc3_ep(ep);
@@ -303,14 +331,19 @@ int dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value)
 	return ret;
 }
 
+>>>>>>> android-3.18
 void dwc3_ep0_out_start(struct dwc3 *dwc)
 {
 	int				ret;
 
 	dwc3_ep0_prepare_one_trb(dwc, 0, dwc->ctrl_req_addr, 8,
 			DWC3_TRBCTL_CONTROL_SETUP);
+<<<<<<< HEAD
+	WARN_ON_ONCE(ret < 0);
+=======
 	ret = dwc3_ep0_start_trans(dwc, 0);
 	WARN_ON(ret < 0);
+>>>>>>> android-3.18
 }
 
 static struct dwc3_ep *dwc3_wIndex_to_dep(struct dwc3 *dwc, __le16 wIndex_le)
@@ -424,7 +457,11 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
 		 * default control pipe
 		 */
 		case USB_DEVICE_U1_ENABLE:
+<<<<<<< HEAD
+			if (dwc->dev_state != DWC3_CONFIGURED_STATE)
+=======
 			if (state != USB_STATE_CONFIGURED)
+>>>>>>> android-3.18
 				return -EINVAL;
 			if (dwc->speed != DWC3_DSTS_SUPERSPEED)
 				return -EINVAL;
@@ -438,7 +475,11 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
 			break;
 
 		case USB_DEVICE_U2_ENABLE:
+<<<<<<< HEAD
+			if (dwc->dev_state != DWC3_CONFIGURED_STATE)
+=======
 			if (state != USB_STATE_CONFIGURED)
+>>>>>>> android-3.18
 				return -EINVAL;
 			if (dwc->speed != DWC3_DSTS_SUPERSPEED)
 				return -EINVAL;
@@ -567,6 +608,9 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 		ret = dwc3_ep0_delegate_req(dwc, ctrl);
 		/* if the cfg matches and the cfg is non zero */
 		if (cfg && (!ret || (ret == USB_GADGET_DELAYED_STATUS))) {
+<<<<<<< HEAD
+			dwc->dev_state = DWC3_CONFIGURED_STATE;
+=======
 
 			/*
 			 * only change state if set_config has already
@@ -578,6 +622,7 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 				usb_gadget_set_state(&dwc->gadget,
 						USB_STATE_CONFIGURED);
 
+>>>>>>> android-3.18
 			/*
 			 * Enable transition to U1/U2 state when
 			 * nothing is pending from application.
@@ -650,11 +695,18 @@ static void dwc3_ep0_set_sel_cmpl(struct usb_ep *ep, struct usb_request *req)
 static int dwc3_ep0_set_sel(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 {
 	struct dwc3_ep	*dep;
+<<<<<<< HEAD
+	u16		wLength;
+	u16		wValue;
+
+	if (dwc->dev_state == DWC3_DEFAULT_STATE)
+=======
 	enum usb_device_state state = dwc->gadget.state;
 	u16		wLength;
 	u16		wValue;
 
 	if (state == USB_STATE_DEFAULT)
+>>>>>>> android-3.18
 		return -EINVAL;
 
 	wValue = le16_to_cpu(ctrl->wValue);
@@ -731,11 +783,19 @@ static int dwc3_ep0_std_request(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 		ret = dwc3_ep0_set_config(dwc, ctrl);
 		break;
 	case USB_REQ_SET_SEL:
+<<<<<<< HEAD
+		dev_vdbg(dwc->dev, "USB_REQ_SET_SEL\n");
+		ret = dwc3_ep0_set_sel(dwc, ctrl);
+		break;
+	case USB_REQ_SET_ISOCH_DELAY:
+		dev_vdbg(dwc->dev, "USB_REQ_SET_ISOCH_DELAY\n");
+=======
 		dwc3_trace(trace_dwc3_ep0, "USB_REQ_SET_SEL\n");
 		ret = dwc3_ep0_set_sel(dwc, ctrl);
 		break;
 	case USB_REQ_SET_ISOCH_DELAY:
 		dwc3_trace(trace_dwc3_ep0, "USB_REQ_SET_ISOCH_DELAY\n");
+>>>>>>> android-3.18
 		ret = dwc3_ep0_set_isoch_delay(dwc, ctrl);
 		break;
 	default:
@@ -756,8 +816,11 @@ static void dwc3_ep0_inspect_setup(struct dwc3 *dwc,
 
 	if (!dwc->gadget_driver)
 		goto out;
+<<<<<<< HEAD
+=======
 
 	trace_dwc3_ctrl_req(ctrl);
+>>>>>>> android-3.18
 
 	len = le16_to_cpu(ctrl->wLength);
 	if (!len) {
@@ -770,6 +833,7 @@ static void dwc3_ep0_inspect_setup(struct dwc3 *dwc,
 		dwc->ep0_next_event = DWC3_EP0_NRDY_DATA;
 	}
 
+	dbg_setup(0x00, ctrl);
 	if ((ctrl->bRequestType & USB_TYPE_MASK) == USB_TYPE_STANDARD)
 		ret = dwc3_ep0_std_request(dwc, ctrl);
 	else
@@ -779,10 +843,18 @@ static void dwc3_ep0_inspect_setup(struct dwc3 *dwc,
 		dwc->delayed_status = true;
 
 out:
+<<<<<<< HEAD
+	if (ret < 0) {
+		dbg_event(0x0, "ERRSTAL", ret);
+		dwc3_ep0_stall_and_restart(dwc);
+	}
+=======
 	if (ret < 0)
 		dwc3_ep0_stall_and_restart(dwc);
+>>>>>>> android-3.18
 }
 
+bool zlp_required;
 static void dwc3_ep0_complete_data(struct dwc3 *dwc,
 		const struct dwc3_event_depevt *event)
 {
@@ -803,6 +875,11 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
 	trb = dwc->ep0_trb;
 
 	r = next_request(&ep0->request_list);
+<<<<<<< HEAD
+	if (r == NULL)
+		return;
+
+=======
 	if (!r)
 		return;
 
@@ -816,8 +893,33 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
 		return;
 	}
 
+>>>>>>> android-3.18
 	ur = &r->request;
+	if ((epnum & 1) && ur->zero &&
+		(ur->length % ep0->endpoint.maxpacket == 0)) {
+		zlp_required = true;
+		ur->zero = false;
+	}
 
+<<<<<<< HEAD
+	trb = dwc->ep0_trb;
+
+	status = DWC3_TRB_SIZE_TRBSTS(trb->size);
+	if (status == DWC3_TRBSTS_SETUP_PENDING) {
+		dev_dbg(dwc->dev, "Setup Pending received\n");
+		zlp_required = false;
+
+		if (r)
+			dwc3_gadget_giveback(ep0, r, -ECONNRESET);
+
+		return;
+	}
+
+	if (zlp_required)
+		return;
+
+=======
+>>>>>>> android-3.18
 	length = trb->size & DWC3_TRB_SIZE_MASK;
 
 	if (dwc->ep0_bounced) {
@@ -841,7 +943,7 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
 
 	if ((epnum & 1) && ur->actual < ur->length) {
 		/* for some reason we did not get everything out */
-
+		dbg_event(epnum, "INDATSTAL", 0);
 		dwc3_ep0_stall_and_restart(dwc);
 	} else {
 		dwc3_gadget_giveback(ep0, r, 0);
@@ -884,6 +986,7 @@ static void dwc3_ep0_complete_status(struct dwc3 *dwc,
 		if (ret < 0) {
 			dwc3_trace(trace_dwc3_ep0, "Invalid Test #%d",
 					dwc->test_mode_nr);
+			dbg_event(0x00, "INVALTEST", ret);
 			dwc3_ep0_stall_and_restart(dwc);
 			return;
 		}
@@ -891,8 +994,14 @@ static void dwc3_ep0_complete_status(struct dwc3 *dwc,
 
 	status = DWC3_TRB_SIZE_TRBSTS(trb->size);
 	if (status == DWC3_TRBSTS_SETUP_PENDING)
+<<<<<<< HEAD
+		dev_dbg(dwc->dev, "Setup Pending received\n");
+
+	dbg_print(dep->number, "DONE", status, "STATUS");
+=======
 		dwc3_trace(trace_dwc3_ep0, "Setup Pending received\n");
 
+>>>>>>> android-3.18
 	dwc->ep0state = EP0_SETUP_PHASE;
 	dwc3_ep0_out_start(dwc);
 }
@@ -918,7 +1027,11 @@ static void dwc3_ep0_xfer_complete(struct dwc3 *dwc,
 		break;
 
 	case EP0_STATUS_PHASE:
+<<<<<<< HEAD
+		dev_vdbg(dwc->dev, "Status Phase\n");
+=======
 		dwc3_trace(trace_dwc3_ep0, "Status Phase");
+>>>>>>> android-3.18
 		dwc3_ep0_complete_status(dwc, event);
 		break;
 	default:
@@ -934,6 +1047,14 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
 	req->direction = !!dep->number;
 
 	if (req->request.length == 0) {
+<<<<<<< HEAD
+		ret = dwc3_ep0_start_trans(dwc, dep->number,
+				dwc->ctrl_req_addr, 0,
+				DWC3_TRBCTL_CONTROL_DATA);
+	} else if (!IS_ALIGNED(req->request.length, dep->endpoint.maxpacket)
+			&& (dep->number == 0)) {
+		u32		transfer_size;
+=======
 		dwc3_ep0_prepare_one_trb(dwc, dep->number,
 				dwc->ctrl_req_addr, 0,
 				DWC3_TRBCTL_CONTROL_DATA);
@@ -942,6 +1063,7 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
 			&& (dep->number == 0)) {
 		u32	transfer_size;
 		u32	maxpacket;
+>>>>>>> android-3.18
 
 		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
 				dep->number);
@@ -950,6 +1072,12 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
 			return;
 		}
 
+<<<<<<< HEAD
+		WARN_ON(req->request.length > DWC3_EP0_BOUNCE_SIZE);
+
+		transfer_size = roundup(req->request.length,
+				(u32) dep->endpoint.maxpacket);
+=======
 		maxpacket = dep->endpoint.maxpacket;
 		transfer_size = roundup(req->request.length, maxpacket);
 
@@ -957,6 +1085,7 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
 			dev_WARN(dwc->dev, "bounce buf can't handle req len\n");
 			transfer_size = DWC3_EP0_BOUNCE_SIZE;
 		}
+>>>>>>> android-3.18
 
 		dwc->ep0_bounced = true;
 
@@ -965,7 +1094,11 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
 		 * DWC3_EP0_BOUNCE_SIZE we will need two chained
 		 * TRBs to handle the transfer.
 		 */
+<<<<<<< HEAD
+		ret = dwc3_ep0_start_trans(dwc, dep->number,
+=======
 		dwc3_ep0_prepare_one_trb(dwc, dep->number,
+>>>>>>> android-3.18
 				dwc->ep0_bounce_addr, transfer_size,
 				DWC3_TRBCTL_CONTROL_DATA);
 		ret = dwc3_ep0_start_trans(dwc, dep->number);
@@ -977,12 +1110,21 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
 			return;
 		}
 
+<<<<<<< HEAD
+		if (dep->number &&
+			!(req->request.length % dwc->gadget.ep0->maxpacket))
+			req->request.zero = true;
+
+		ret = dwc3_ep0_start_trans(dwc, dep->number, req->request.dma,
+				req->request.length, DWC3_TRBCTL_CONTROL_DATA);
+=======
 		dwc3_ep0_prepare_one_trb(dwc, dep->number, req->request.dma,
 				req->request.length, DWC3_TRBCTL_CONTROL_DATA);
 		ret = dwc3_ep0_start_trans(dwc, dep->number);
+>>>>>>> android-3.18
 	}
 
-	WARN_ON(ret < 0);
+	dbg_queue(dep->number, &req->request, ret);
 }
 
 static int dwc3_ep0_start_control_status(struct dwc3_ep *dep)
@@ -1000,13 +1142,19 @@ static int dwc3_ep0_start_control_status(struct dwc3_ep *dep)
 
 static void __dwc3_ep0_do_control_status(struct dwc3 *dwc, struct dwc3_ep *dep)
 {
+<<<<<<< HEAD
+	int ret;
+=======
+>>>>>>> android-3.18
 	if (dwc->resize_fifos) {
 		dwc3_trace(trace_dwc3_ep0, "Resizing FIFOs");
 		dwc3_gadget_resize_tx_fifos(dwc);
 		dwc->resize_fifos = 0;
 	}
 
-	WARN_ON(dwc3_ep0_start_control_status(dep));
+	ret = dwc3_ep0_start_control_status(dep);
+	dbg_print(dep->number, "QUEUE", ret, "STATUS");
+	WARN_ON(ret);
 }
 
 static void dwc3_ep0_do_control_status(struct dwc3 *dwc,
@@ -1022,6 +1170,38 @@ static void dwc3_ep0_end_control_data(struct dwc3 *dwc, struct dwc3_ep *dep)
 	struct dwc3_gadget_ep_cmd_params params;
 	u32			cmd;
 	int			ret;
+<<<<<<< HEAD
+
+	if (!dep->resource_index)
+		return;
+
+	cmd = DWC3_DEPCMD_ENDTRANSFER;
+	cmd |= DWC3_DEPCMD_CMDIOC;
+	cmd |= DWC3_DEPCMD_PARAM(dep->resource_index);
+	memset(&params, 0, sizeof(params));
+	ret = dwc3_send_gadget_ep_cmd(dwc, dep->number, cmd, &params);
+	if (ret) {
+		dev_dbg(dwc->dev, "%s: send ep cmd ENDTRANSFER failed",
+			dep->name);
+		dbg_event(dep->number, "EENDXFER", ret);
+	}
+	dep->resource_index = 0;
+}
+
+static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
+		const struct dwc3_event_depevt *event)
+{
+	u8			epnum;
+	int			ret;
+	struct dwc3_ep	*dep;
+
+	dwc->setup_packet_pending = true;
+	epnum = event->endpoint_number;
+
+	switch (event->status) {
+	case DEPEVT_STATUS_CONTROL_DATA:
+		dev_vdbg(dwc->dev, "Control Data\n");
+=======
 
 	if (!dep->resource_index)
 		return;
@@ -1043,6 +1223,7 @@ static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
 	switch (event->status) {
 	case DEPEVT_STATUS_CONTROL_DATA:
 		dwc3_trace(trace_dwc3_ep0, "Control Data");
+>>>>>>> android-3.18
 
 		/*
 		 * We already have a DATA transfer in the controller's cache,
@@ -1053,21 +1234,56 @@ static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
 		 * Phase we already have started and issue SetStall on the
 		 * control endpoint.
 		 */
+		dep = dwc->eps[dwc->ep0_expect_in];
 		if (dwc->ep0_expect_in != event->endpoint_number) {
+<<<<<<< HEAD
+
+			dev_vdbg(dwc->dev, "Wrong direction for Data phase\n");
+			dwc3_ep0_end_control_data(dwc, dep);
+			dbg_event(epnum, "WRONGDR", 0);
+=======
 			struct dwc3_ep	*dep = dwc->eps[dwc->ep0_expect_in];
 
 			dwc3_trace(trace_dwc3_ep0,
 					"Wrong direction for Data phase");
 			dwc3_ep0_end_control_data(dwc, dep);
+>>>>>>> android-3.18
 			dwc3_ep0_stall_and_restart(dwc);
 			return;
 		}
 
+<<<<<<< HEAD
+		if (zlp_required) {
+			zlp_required = false;
+			ret = dwc3_ep0_start_trans(dwc, epnum,
+					dwc->ctrl_req_addr, 0,
+					DWC3_TRBCTL_CONTROL_DATA);
+			dbg_event(epnum, "ZLP", ret);
+			if (ret)
+				dev_dbg(dwc->dev, "%s: start xfer cmd failed",
+					dep->name);
+		}
+
+=======
+>>>>>>> android-3.18
 		break;
 
 	case DEPEVT_STATUS_CONTROL_STATUS:
 		if (dwc->ep0_next_event != DWC3_EP0_NRDY_STATUS)
 			return;
+<<<<<<< HEAD
+
+		dev_vdbg(dwc->dev, "Control Status\n");
+
+		zlp_required = false;
+		dwc->ep0state = EP0_STATUS_PHASE;
+
+		if (dwc->delayed_status &&
+				list_empty(&dwc->eps[0]->request_list)) {
+			if (event->endpoint_number != 1)
+				dbg_event(epnum, "EEPNUM", event->status);
+			dev_vdbg(dwc->dev, "Mass Storage delayed status\n");
+=======
 
 		dwc3_trace(trace_dwc3_ep0, "Control Status");
 
@@ -1076,8 +1292,10 @@ static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
 		if (dwc->delayed_status) {
 			WARN_ON_ONCE(event->endpoint_number != 1);
 			dwc3_trace(trace_dwc3_ep0, "Delayed Status");
+>>>>>>> android-3.18
 			return;
 		}
+		dwc->delayed_status = false;
 
 		dwc3_ep0_do_control_status(dwc, event);
 	}

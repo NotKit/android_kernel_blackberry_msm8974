@@ -385,7 +385,7 @@ sanitize:
 		/* caller was supposed to have unlinked any requests;
 		 * that's not our job.  can't recover; must leak ed.
 		 */
-		ohci_err (ohci, "leak ed %p (#%02x) state %d%s\n",
+		ohci_err (ohci, "leak ed %pK (#%02x) state %d%s\n",
 			ed, ep->desc.bEndpointAddress, ed->state,
 			list_empty (&ed->td_list) ? "" : " (has tds)");
 		td_free (ohci, ed->dummy);
@@ -947,9 +947,42 @@ static irqreturn_t ohci_irq (struct usb_hcd *hcd)
 			usb_hcd_resume_root_hub(hcd);
 	}
 
+<<<<<<< HEAD
+	if (ints & OHCI_INTR_WDH) {
+		spin_lock (&ohci->lock);
+		dl_done_list (ohci);
+		spin_unlock (&ohci->lock);
+	}
+
+	if (quirk_zfmicro(ohci) && (ints & OHCI_INTR_SF)) {
+		spin_lock(&ohci->lock);
+		if (ohci->ed_to_check) {
+			struct ed *ed = ohci->ed_to_check;
+
+			if (check_ed(ohci, ed)) {
+				/* HC thinks the TD list is empty; HCD knows
+				 * at least one TD is outstanding
+				 */
+				if (--ohci->zf_delay == 0) {
+					struct td *td = list_entry(
+						ed->td_list.next,
+						struct td, td_list);
+					ohci_warn(ohci,
+						  "Reclaiming orphan TD %pK\n",
+						  td);
+					takeback_td(ohci, td);
+					ohci->ed_to_check = NULL;
+				}
+			} else
+				ohci->ed_to_check = NULL;
+		}
+		spin_unlock(&ohci->lock);
+	}
+=======
 	spin_lock(&ohci->lock);
 	if (ints & OHCI_INTR_WDH)
 		update_done_list(ohci);
+>>>>>>> android-3.18
 
 	/* could track INTR_SO to reduce available PCI/... bandwidth */
 
@@ -1041,7 +1074,7 @@ int ohci_restart(struct ohci_hcd *ohci)
 		case ED_UNLINK:
 			break;
 		default:
-			ohci_dbg(ohci, "bogus ed %p state %d\n",
+			ohci_dbg(ohci, "bogus ed %pK state %d\n",
 					ed, ed->state);
 		}
 

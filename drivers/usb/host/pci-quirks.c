@@ -77,6 +77,8 @@
 #define USB_INTEL_USB2PRM      0xD4
 #define USB_INTEL_USB3_PSSEN   0xD8
 #define USB_INTEL_USB3PRM      0xDC
+<<<<<<< HEAD
+=======
 
 /*
  * amd_chipset_gen values represent AMD different chipset generations
@@ -97,6 +99,7 @@ struct amd_chipset_type {
 	enum amd_chipset_gen gen;
 	u8 rev;
 };
+>>>>>>> android-3.18
 
 static struct amd_chipset_info {
 	struct pci_dev	*nb_dev;
@@ -863,6 +866,35 @@ static int handshake(void __iomem *ptr, u32 mask, u32 done,
 	return -ETIMEDOUT;
 }
 
+<<<<<<< HEAD
+#define PCI_DEVICE_ID_INTEL_LYNX_POINT_XHCI	0x8C31
+#define PCI_DEVICE_ID_INTEL_LYNX_POINT_LP_XHCI	0x9C31
+
+bool usb_is_intel_ppt_switchable_xhci(struct pci_dev *pdev)
+{
+	return pdev->class == PCI_CLASS_SERIAL_USB_XHCI &&
+		pdev->vendor == PCI_VENDOR_ID_INTEL &&
+		pdev->device == PCI_DEVICE_ID_INTEL_PANTHERPOINT_XHCI;
+}
+
+/* The Intel Lynx Point chipset also has switchable ports. */
+bool usb_is_intel_lpt_switchable_xhci(struct pci_dev *pdev)
+{
+	return pdev->class == PCI_CLASS_SERIAL_USB_XHCI &&
+		pdev->vendor == PCI_VENDOR_ID_INTEL &&
+		(pdev->device == PCI_DEVICE_ID_INTEL_LYNX_POINT_XHCI ||
+		 pdev->device == PCI_DEVICE_ID_INTEL_LYNX_POINT_LP_XHCI);
+}
+
+bool usb_is_intel_switchable_xhci(struct pci_dev *pdev)
+{
+	return usb_is_intel_ppt_switchable_xhci(pdev) ||
+		usb_is_intel_lpt_switchable_xhci(pdev);
+}
+EXPORT_SYMBOL_GPL(usb_is_intel_switchable_xhci);
+
+=======
+>>>>>>> android-3.18
 /*
  * Intel's Panther Point chipset has two host controllers (EHCI and xHCI) that
  * share some number of ports.  These ports can be switched between either
@@ -929,6 +961,32 @@ void usb_enable_intel_xhci_ports(struct pci_dev *xhci_pdev)
 	dev_dbg(&xhci_pdev->dev, "Configurable ports to enable SuperSpeed: 0x%x\n",
 			ports_available);
 
+<<<<<<< HEAD
+	/* Don't switchover the ports if the user hasn't compiled the xHCI
+	 * driver.  Otherwise they will see "dead" USB ports that don't power
+	 * the devices.
+	 */
+	if (!IS_ENABLED(CONFIG_USB_XHCI_HCD)) {
+		dev_warn(&xhci_pdev->dev,
+				"CONFIG_USB_XHCI_HCD is turned off, "
+				"defaulting to EHCI.\n");
+		dev_warn(&xhci_pdev->dev,
+				"USB 3.0 devices will work at USB 2.0 speeds.\n");
+		usb_disable_xhci_ports(xhci_pdev);
+		return;
+	}
+
+	/* Read USB3PRM, the USB 3.0 Port Routing Mask Register
+	 * Indicate the ports that can be changed from OS.
+	 */
+	pci_read_config_dword(xhci_pdev, USB_INTEL_USB3PRM,
+			&ports_available);
+
+	dev_dbg(&xhci_pdev->dev, "Configurable ports to enable SuperSpeed: 0x%x\n",
+			ports_available);
+
+=======
+>>>>>>> android-3.18
 	/* Write USB3_PSSEN, the USB 3.0 Port SuperSpeed Enable
 	 * Register, to turn on SuperSpeed terminations for the
 	 * switchable ports.
@@ -964,6 +1022,13 @@ void usb_enable_intel_xhci_ports(struct pci_dev *xhci_pdev)
 			"to xHCI: 0x%x\n", ports_available);
 }
 EXPORT_SYMBOL_GPL(usb_enable_intel_xhci_ports);
+
+void usb_disable_xhci_ports(struct pci_dev *xhci_pdev)
+{
+	pci_write_config_dword(xhci_pdev, USB_INTEL_USB3_PSSEN, 0x0);
+	pci_write_config_dword(xhci_pdev, USB_INTEL_XUSB2PR, 0x0);
+}
+EXPORT_SYMBOL_GPL(usb_disable_xhci_ports);
 
 void usb_disable_xhci_ports(struct pci_dev *xhci_pdev)
 {
@@ -1044,8 +1109,13 @@ static void quirk_usb_handoff_xhci(struct pci_dev *pdev)
 	writel(val, base + ext_cap_offset + XHCI_LEGACY_CONTROL_OFFSET);
 
 hc_init:
+<<<<<<< HEAD
+	if (usb_is_intel_switchable_xhci(pdev))
+		usb_enable_xhci_ports(pdev);
+=======
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL)
 		usb_enable_intel_xhci_ports(pdev);
+>>>>>>> android-3.18
 
 	op_reg_base = base + XHCI_HC_LENGTH(readl(base));
 

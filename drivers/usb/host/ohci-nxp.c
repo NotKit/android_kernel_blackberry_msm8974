@@ -272,7 +272,7 @@ static int ohci_hcd_nxp_probe(struct platform_device *pdev)
 	ohci_nxp_start_hc();
 	platform_set_drvdata(pdev, hcd);
 
-	dev_info(&pdev->dev, "at 0x%p, irq %d\n", hcd->regs, hcd->irq);
+	dev_info(&pdev->dev, "at 0x%pK, irq %d\n", hcd->regs, hcd->irq);
 	ret = usb_add_hcd(hcd, irq, 0);
 	if (ret == 0) {
 		device_wakeup_enable(hcd->self.controller);

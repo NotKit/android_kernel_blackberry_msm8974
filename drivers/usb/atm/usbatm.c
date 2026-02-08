@@ -230,13 +230,18 @@ static int usbatm_submit_urb(struct urb *urb)
 	struct usbatm_channel *channel = urb->context;
 	int ret;
 
+<<<<<<< HEAD
+	vdbg("%s: submitting urb 0x%pK, size %u",
+	     __func__, urb, urb->transfer_buffer_length);
+=======
 	/* vdbg("%s: submitting urb 0x%p, size %u",
 	     __func__, urb, urb->transfer_buffer_length); */
+>>>>>>> android-3.18
 
 	ret = usb_submit_urb(urb, GFP_ATOMIC);
 	if (ret) {
 		if (printk_ratelimit())
-			atm_warn(channel->usbatm, "%s: urb 0x%p submission failed (%d)!\n",
+			atm_warn(channel->usbatm, "%s: urb 0x%pK submission failed (%d)!\n",
 				__func__, urb, ret);
 
 		/* consider all errors transient and return the buffer back to the queue */
@@ -261,8 +266,13 @@ static void usbatm_complete(struct urb *urb)
 	unsigned long flags;
 	int status = urb->status;
 
+<<<<<<< HEAD
+	vdbg("%s: urb 0x%pK, status %d, actual_length %d",
+	     __func__, urb, status, urb->actual_length);
+=======
 	/* vdbg("%s: urb 0x%p, status %d, actual_length %d",
 	     __func__, urb, status, urb->actual_length); */
+>>>>>>> android-3.18
 
 	/* usually in_interrupt(), but not always */
 	spin_lock_irqsave(&channel->lock, flags);
@@ -279,7 +289,7 @@ static void usbatm_complete(struct urb *urb)
 			return;
 
 		if (printk_ratelimit())
-			atm_warn(channel->usbatm, "%s: urb 0x%p failed (%d)!\n",
+			atm_warn(channel->usbatm, "%s: urb 0x%pK failed (%d)!\n",
 				__func__, urb, status);
 		/* throttle processing in case of an error */
 		mod_timer(&channel->delay, jiffies + msecs_to_jiffies(THROTTLE_MSECS));
@@ -338,7 +348,7 @@ static void usbatm_extract_one_cell(struct usbatm_data *instance, unsigned char 
 	sarb = instance->cached_vcc->sarb;
 
 	if (sarb->tail + ATM_CELL_PAYLOAD > sarb->end) {
-		atm_rldbg(instance, "%s: buffer overrun (sarb->len %u, vcc: 0x%p)!\n",
+		atm_rldbg(instance, "%s: buffer overrun (sarb->len %u, vcc: 0x%pK)!\n",
 				__func__, sarb->len, vcc);
 		/* discard cells already received */
 		skb_trim(sarb, 0);
@@ -356,7 +366,7 @@ static void usbatm_extract_one_cell(struct usbatm_data *instance, unsigned char 
 
 		/* guard against overflow */
 		if (length > ATM_MAX_AAL5_PDU) {
-			atm_rldbg(instance, "%s: bogus length %u (vcc: 0x%p)!\n",
+			atm_rldbg(instance, "%s: bogus length %u (vcc: 0x%pK)!\n",
 				  __func__, length, vcc);
 			atomic_inc(&vcc->stats->rx_err);
 			goto out;
@@ -365,22 +375,26 @@ static void usbatm_extract_one_cell(struct usbatm_data *instance, unsigned char 
 		pdu_length = usbatm_pdu_length(length);
 
 		if (sarb->len < pdu_length) {
-			atm_rldbg(instance, "%s: bogus pdu_length %u (sarb->len: %u, vcc: 0x%p)!\n",
+			atm_rldbg(instance, "%s: bogus pdu_length %u (sarb->len: %u, vcc: 0x%pK)!\n",
 				  __func__, pdu_length, sarb->len, vcc);
 			atomic_inc(&vcc->stats->rx_err);
 			goto out;
 		}
 
 		if (crc32_be(~0, skb_tail_pointer(sarb) - pdu_length, pdu_length) != 0xc704dd7b) {
-			atm_rldbg(instance, "%s: packet failed crc check (vcc: 0x%p)!\n",
+			atm_rldbg(instance, "%s: packet failed crc check (vcc: 0x%pK)!\n",
 				  __func__, vcc);
 			atomic_inc(&vcc->stats->rx_err);
 			goto out;
 		}
 
+<<<<<<< HEAD
+		vdbg("%s: got packet (length: %u, pdu_length: %u, vcc: 0x%pK)", __func__, length, pdu_length, vcc);
+=======
 		vdbg(&instance->usb_intf->dev,
 		     "%s: got packet (length: %u, pdu_length: %u, vcc: 0x%p)",
 		     __func__, length, pdu_length, vcc);
+>>>>>>> android-3.18
 
 		if (!(skb = dev_alloc_skb(length))) {
 			if (printk_ratelimit())
@@ -390,9 +404,13 @@ static void usbatm_extract_one_cell(struct usbatm_data *instance, unsigned char 
 			goto out;
 		}
 
+<<<<<<< HEAD
+		vdbg("%s: allocated new sk_buff (skb: 0x%pK, skb->truesize: %u)", __func__, skb, skb->truesize);
+=======
 		vdbg(&instance->usb_intf->dev,
 		     "%s: allocated new sk_buff (skb: 0x%p, skb->truesize: %u)",
 		     __func__, skb, skb->truesize);
+>>>>>>> android-3.18
 
 		if (!atm_charge(vcc, skb->truesize)) {
 			atm_rldbg(instance, "%s: failed atm_charge (skb->truesize: %u)!\n",
@@ -406,8 +424,12 @@ static void usbatm_extract_one_cell(struct usbatm_data *instance, unsigned char 
 					length);
 		__skb_put(skb, length);
 
+<<<<<<< HEAD
+		vdbg("%s: sending skb 0x%pK, skb->len %u, skb->truesize %u",
+=======
 		vdbg(&instance->usb_intf->dev,
 		     "%s: sending skb 0x%p, skb->len %u, skb->truesize %u",
+>>>>>>> android-3.18
 		     __func__, skb, skb->len, skb->truesize);
 
 		PACKETDEBUG(instance, skb->data, skb->len);
@@ -531,8 +553,12 @@ static void usbatm_rx_process(unsigned long data)
 	struct urb *urb;
 
 	while ((urb = usbatm_pop_urb(&instance->rx_channel))) {
+<<<<<<< HEAD
+		vdbg("%s: processing urb 0x%pK", __func__, urb);
+=======
 		vdbg(&instance->usb_intf->dev,
 		     "%s: processing urb 0x%p", __func__, urb);
+>>>>>>> android-3.18
 
 		if (usb_pipeisoc(urb->pipe)) {
 			unsigned char *merge_start = NULL;
@@ -604,8 +630,12 @@ static void usbatm_tx_process(unsigned long data)
 						  buffer + bytes_written,
 						  buf_size - bytes_written);
 
+<<<<<<< HEAD
+		vdbg("%s: wrote %u bytes from skb 0x%pK to urb 0x%pK",
+=======
 		vdbg(&instance->usb_intf->dev,
 		     "%s: wrote %u bytes from skb 0x%p to urb 0x%p",
+>>>>>>> android-3.18
 		     __func__, bytes_written, skb, urb);
 
 		if (!UDSL_SKB(skb)->len) {
@@ -637,7 +667,7 @@ static void usbatm_cancel_send(struct usbatm_data *instance,
 	spin_lock_irq(&instance->sndqueue.lock);
 	skb_queue_walk_safe(&instance->sndqueue, skb, n) {
 		if (UDSL_SKB(skb)->atm.vcc == vcc) {
-			atm_dbg(instance, "%s: popping skb 0x%p\n", __func__, skb);
+			atm_dbg(instance, "%s: popping skb 0x%pK\n", __func__, skb);
 			__skb_unlink(skb, &instance->sndqueue);
 			usbatm_pop(vcc, skb);
 		}
@@ -646,7 +676,7 @@ static void usbatm_cancel_send(struct usbatm_data *instance,
 
 	tasklet_disable(&instance->tx_channel.tasklet);
 	if ((skb = instance->current_skb) && (UDSL_SKB(skb)->atm.vcc == vcc)) {
-		atm_dbg(instance, "%s: popping current skb (0x%p)\n", __func__, skb);
+		atm_dbg(instance, "%s: popping current skb (0x%pK)\n", __func__, skb);
 		instance->current_skb = NULL;
 		usbatm_pop(vcc, skb);
 	}
@@ -659,6 +689,11 @@ static int usbatm_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	struct usbatm_control *ctrl = UDSL_SKB(skb);
 	int err;
 
+<<<<<<< HEAD
+	vdbg("%s called (skb 0x%pK, len %u)", __func__, skb, skb->len);
+
+=======
+>>>>>>> android-3.18
 	/* racy disconnection check - fine */
 	if (!instance || instance->disconnected) {
 #ifdef VERBOSE_DEBUG
@@ -848,7 +883,7 @@ static int usbatm_atm_open(struct atm_vcc *vcc)
 
 	mutex_unlock(&instance->serialize);
 
-	atm_dbg(instance, "%s: allocated vcc data 0x%p\n", __func__, new);
+	atm_dbg(instance, "%s: allocated vcc data 0x%pK\n", __func__, new);
 
 	return 0;
 
@@ -865,6 +900,15 @@ static void usbatm_atm_close(struct atm_vcc *vcc)
 
 	if (!instance || !vcc_data)
 		return;
+<<<<<<< HEAD
+	}
+
+	atm_dbg(instance, "%s entered\n", __func__);
+
+	atm_dbg(instance, "%s: deallocating vcc 0x%pK with vpi %d vci %d\n",
+		__func__, vcc_data, vcc_data->vpi, vcc_data->vci);
+=======
+>>>>>>> android-3.18
 
 	usbatm_cancel_send(instance, vcc);
 
@@ -1124,8 +1168,12 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 		struct usbatm_channel *channel = i ?
 			&instance->tx_channel : &instance->rx_channel;
 
+<<<<<<< HEAD
+		dev_dbg(dev, "%s: using %d byte buffer for %s channel 0x%pK\n", __func__, channel->buf_size, i ? "tx" : "rx", channel);
+=======
 		dev_dbg(dev, "%s: using %d byte buffer for %s channel 0x%p\n",
 			__func__, channel->buf_size, i ? "tx" : "rx", channel);
+>>>>>>> android-3.18
 	}
 
 	/* initialize urbs */
@@ -1171,7 +1219,11 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 		if (i >= num_rcv_urbs)
 			list_add_tail(&urb->urb_list, &channel->list);
 
+<<<<<<< HEAD
+		vdbg("%s: alloced buffer 0x%pK buf size %u urb 0x%pK",
+=======
 		vdbg(&intf->dev, "%s: alloced buffer 0x%p buf size %u urb 0x%p",
+>>>>>>> android-3.18
 		     __func__, urb->transfer_buffer, urb->transfer_buffer_length, urb);
 	}
 

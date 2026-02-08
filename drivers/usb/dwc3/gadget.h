@@ -68,6 +68,14 @@ static inline struct dwc3_request *next_request(struct list_head *list)
 	return list_first_entry(list, struct dwc3_request, list);
 }
 
+static inline void dwc3_gadget_move_request_list_front(struct dwc3_request *req)
+{
+	struct dwc3_ep		*dep = req->dep;
+
+	req->queued = false;
+	list_move(&req->list, &dep->request_list);
+}
+
 static inline void dwc3_gadget_move_request_queued(struct dwc3_request *req)
 {
 	struct dwc3_ep		*dep = req->dep;
@@ -82,11 +90,22 @@ void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
 void dwc3_ep0_interrupt(struct dwc3 *dwc,
 		const struct dwc3_event_depevt *event);
 void dwc3_ep0_out_start(struct dwc3 *dwc);
+<<<<<<< HEAD
+=======
 int __dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value);
+>>>>>>> android-3.18
 int dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value);
 int dwc3_gadget_ep0_queue(struct usb_ep *ep, struct usb_request *request,
 		gfp_t gfp_flags);
 int __dwc3_gadget_ep_set_halt(struct dwc3_ep *dep, int value, int protocol);
+<<<<<<< HEAD
+int dwc3_send_gadget_ep_cmd(struct dwc3 *dwc, unsigned ep,
+		unsigned cmd, struct dwc3_gadget_ep_cmd_params *params);
+int dwc3_send_gadget_generic_command(struct dwc3 *dwc, int cmd, u32 param);
+dma_addr_t dwc3_trb_dma_offset(struct dwc3_ep *dep,
+		struct dwc3_trb *trb);
+=======
+>>>>>>> android-3.18
 
 /**
  * dwc3_gadget_ep_get_transfer_index - Gets transfer index from HW

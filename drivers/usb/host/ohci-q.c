@@ -143,7 +143,11 @@ static void periodic_link (struct ohci_hcd *ohci, struct ed *ed)
 {
 	unsigned	i;
 
+<<<<<<< HEAD
+	ohci_vdbg (ohci, "link %sed %pK branch %d [%dus.], interval %d\n",
+=======
 	ohci_dbg(ohci, "link %sed %p branch %d [%dus.], interval %d\n",
+>>>>>>> android-3.18
 		(ed->hwINFO & cpu_to_hc32 (ohci, ED_ISO)) ? "iso " : "",
 		ed, ed->branch, ed->load, ed->interval);
 
@@ -287,7 +291,11 @@ static void periodic_unlink (struct ohci_hcd *ohci, struct ed *ed)
 	}
 	ohci_to_hcd(ohci)->self.bandwidth_allocated -= ed->load / ed->interval;
 
+<<<<<<< HEAD
+	ohci_vdbg (ohci, "unlink %sed %pK branch %d [%dus.], interval %d\n",
+=======
 	ohci_dbg(ohci, "unlink %sed %p branch %d [%dus.], interval %d\n",
+>>>>>>> android-3.18
 		(ed->hwINFO & cpu_to_hc32 (ohci, ED_ISO)) ? "iso " : "",
 		ed, ed->branch, ed->load, ed->interval);
 }
@@ -785,8 +793,13 @@ static int td_done(struct ohci_hcd *ohci, struct urb *urb, struct td *td)
 		urb->iso_frame_desc [td->index].status = cc_to_error [cc];
 
 		if (cc != TD_CC_NOERROR)
+<<<<<<< HEAD
+			ohci_vdbg (ohci,
+				"urb %pK iso td %pK (%d) len %d cc %d\n",
+=======
 			ohci_dbg(ohci,
 				"urb %p iso td %p (%d) len %d cc %d\n",
+>>>>>>> android-3.18
 				urb, td, 1 + td->index, dlen, cc);
 
 	/* BULK, INT, CONTROL ... drivers see aggregate length/status,
@@ -817,8 +830,13 @@ static int td_done(struct ohci_hcd *ohci, struct urb *urb, struct td *td)
 		}
 
 		if (cc != TD_CC_NOERROR && cc < 0x0E)
+<<<<<<< HEAD
+			ohci_vdbg (ohci,
+				"urb %pK td %pK (%d) cc %d, len=%d/%d\n",
+=======
 			ohci_dbg(ohci,
 				"urb %p td %p (%d) cc %d, len=%d/%d\n",
+>>>>>>> android-3.18
 				urb, td, 1 + td->index, cc,
 				urb->actual_length,
 				urb->transfer_buffer_length);
@@ -884,7 +902,7 @@ static void ed_halted(struct ohci_hcd *ohci, struct td *td, int cc)
 		/* fallthrough */
 	default:
 		ohci_dbg (ohci,
-			"urb %p path %s ep%d%s %08x cc %d --> status %d\n",
+			"urb %pK path %s ep%d%s %08x cc %d --> status %d\n",
 			urb, urb->dev->devpath,
 			usb_pipeendpoint (urb->pipe),
 			usb_pipein (urb->pipe) ? "in" : "out",
@@ -1209,6 +1227,30 @@ static void process_done_list(struct ohci_hcd *ohci)
 		else
 			ohci->dl_start = td->next_dl_td;
 
+<<<<<<< HEAD
+	while (td) {
+		struct td	*td_next = td->next_dl_td;
+		struct ed	*ed = td->ed;
+
+		/*
+		 * Some OHCI controllers (NVIDIA for sure, maybe others)
+		 * occasionally forget to add TDs to the done queue.  Since
+		 * TDs for a given endpoint are always processed in order,
+		 * if we find a TD on the donelist then all of its
+		 * predecessors must be finished as well.
+		 */
+		for (;;) {
+			struct td	*td2;
+
+			td2 = list_first_entry(&ed->td_list, struct td,
+					td_list);
+			if (td2 == td)
+				break;
+			takeback_td(ohci, td2);
+		}
+
+=======
+>>>>>>> android-3.18
 		takeback_td(ohci, td);
 	}
 }

@@ -174,6 +174,27 @@ static void usblp_dump(struct usblp *usblp)
 	struct device *dev = &usblp->intf->dev;
 	int p;
 
+<<<<<<< HEAD
+	dbg("usblp=0x%pK", usblp);
+	dbg("dev=0x%pK", usblp->dev);
+	dbg("present=%d", usblp->present);
+	dbg("readbuf=0x%pK", usblp->readbuf);
+	dbg("readcount=%d", usblp->readcount);
+	dbg("ifnum=%d", usblp->ifnum);
+    for (p = USBLP_FIRST_PROTOCOL; p <= USBLP_LAST_PROTOCOL; p++) {
+	dbg("protocol[%d].alt_setting=%d", p, usblp->protocol[p].alt_setting);
+	dbg("protocol[%d].epwrite=%pK", p, usblp->protocol[p].epwrite);
+	dbg("protocol[%d].epread=%pK", p, usblp->protocol[p].epread);
+    }
+	dbg("current_protocol=%d", usblp->current_protocol);
+	dbg("minor=%d", usblp->minor);
+	dbg("wstatus=%d", usblp->wstatus);
+	dbg("rstatus=%d", usblp->rstatus);
+	dbg("quirks=%d", usblp->quirks);
+	dbg("used=%d", usblp->used);
+	dbg("bidir=%d", usblp->bidir);
+	dbg("device_id_string=\"%s\"",
+=======
 	dev_dbg(dev, "usblp=0x%p\n", usblp);
 	dev_dbg(dev, "dev=0x%p\n", usblp->dev);
 	dev_dbg(dev, "present=%d\n", usblp->present);
@@ -196,6 +217,7 @@ static void usblp_dump(struct usblp *usblp)
 	dev_dbg(dev, "used=%d\n", usblp->used);
 	dev_dbg(dev, "bidir=%d\n", usblp->bidir);
 	dev_dbg(dev, "device_id_string=\"%s\"\n",
+>>>>>>> android-3.18
 		usblp->device_id_string ?
 			usblp->device_id_string + 2 :
 			(unsigned char *)"(null)");
@@ -895,11 +917,11 @@ static int usblp_wwait(struct usblp *usblp, int nonblock)
 
 	add_wait_queue(&usblp->wwait, &waita);
 	for (;;) {
-		set_current_state(TASK_INTERRUPTIBLE);
 		if (mutex_lock_interruptible(&usblp->mut)) {
 			rc = -EINTR;
 			break;
 		}
+		set_current_state(TASK_INTERRUPTIBLE);
 		rc = usblp_wtest(usblp, nonblock);
 		mutex_unlock(&usblp->mut);
 		if (rc <= 0)

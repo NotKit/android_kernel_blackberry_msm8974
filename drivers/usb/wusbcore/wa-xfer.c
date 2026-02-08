@@ -351,9 +351,14 @@ static unsigned __wa_xfer_is_done(struct wa_xfer *xfer)
 		switch (seg->status) {
 		case WA_SEG_DONE:
 			if (found_short && seg->result > 0) {
+<<<<<<< HEAD
+				dev_dbg(dev, "xfer %pK#%u: bad short segments (%zu)\n",
+					xfer, cnt, seg->result);
+=======
 				dev_dbg(dev, "xfer %p ID %08X#%u: bad short segments (%zu)\n",
 					xfer, wa_xfer_id(xfer), cnt,
 					seg->result);
+>>>>>>> android-3.18
 				urb->status = -EINVAL;
 				goto out;
 			}
@@ -362,13 +367,30 @@ static unsigned __wa_xfer_is_done(struct wa_xfer *xfer)
 				&& seg->result < xfer->seg_size
 			    && cnt != xfer->segs-1)
 				found_short = 1;
+<<<<<<< HEAD
+			dev_dbg(dev, "xfer %pK#%u: DONE short %d "
+=======
 			dev_dbg(dev, "xfer %p ID %08X#%u: DONE short %d "
+>>>>>>> android-3.18
 				"result %zu urb->actual_length %d\n",
 				xfer, wa_xfer_id(xfer), seg->index, found_short,
 				seg->result, urb->actual_length);
 			break;
 		case WA_SEG_ERROR:
 			xfer->result = seg->result;
+<<<<<<< HEAD
+			dev_dbg(dev, "xfer %pK#%u: ERROR result %zu\n",
+				xfer, seg->index, seg->result);
+			goto out;
+		case WA_SEG_ABORTED:
+			dev_dbg(dev, "xfer %pK#%u ABORTED: result %d\n",
+				xfer, seg->index, urb->status);
+			xfer->result = urb->status;
+			goto out;
+		default:
+			dev_warn(dev, "xfer %pK#%u: is_done bad state %d\n",
+				 xfer, cnt, seg->status);
+=======
 			dev_dbg(dev, "xfer %p ID %08X#%u: ERROR result %zi(0x%08zX)\n",
 				xfer, wa_xfer_id(xfer), seg->index, seg->result,
 				seg->result);
@@ -382,6 +404,7 @@ static unsigned __wa_xfer_is_done(struct wa_xfer *xfer)
 		default:
 			dev_warn(dev, "xfer %p ID %08X#%u: is_done bad state %d\n",
 				 xfer, wa_xfer_id(xfer), cnt, seg->status);
+>>>>>>> android-3.18
 			xfer->result = -EINVAL;
 			goto out;
 		}
@@ -535,7 +558,7 @@ static int __wa_xfer_abort(struct wa_xfer *xfer)
 error_submit:
 	wa_put(xfer->wa);
 	if (printk_ratelimit())
-		dev_err(dev, "xfer %p: Can't submit abort request: %d\n",
+		dev_err(dev, "xfer %pK: Can't submit abort request: %d\n",
 			xfer, result);
 	kfree(b);
 error_kmalloc:
@@ -634,6 +657,13 @@ static ssize_t __wa_xfer_setup_sizes(struct wa_xfer *xfer,
 		goto error;
 	}
 	xfer->seg_size = (xfer->seg_size / maxpktsize) * maxpktsize;
+<<<<<<< HEAD
+	xfer->segs = (urb->transfer_buffer_length + xfer->seg_size - 1)
+		/ xfer->seg_size;
+	if (xfer->segs > WA_SEGS_MAX) {
+		dev_err(dev, "BUG? ops, number of segments %d bigger than %d\n",
+			(int)(urb->transfer_buffer_length / xfer->seg_size),
+=======
 	if ((rpipe->descr.bmAttribute & 0x3) == USB_ENDPOINT_XFER_ISOC) {
 		int index = 0;
 
@@ -658,6 +688,7 @@ static ssize_t __wa_xfer_setup_sizes(struct wa_xfer *xfer,
 	if (xfer->segs > WA_SEGS_MAX) {
 		dev_err(dev, "BUG? oops, number of segments %zu bigger than %d\n",
 			(urb->transfer_buffer_length/xfer->seg_size),
+>>>>>>> android-3.18
 			WA_SEGS_MAX);
 		result = -EINVAL;
 		goto error;
@@ -896,9 +927,15 @@ static void wa_seg_iso_pack_desc_cb(struct urb *urb)
 		spin_lock_irqsave(&xfer->lock, flags);
 		wa = xfer->wa;
 		dev = &wa->usb_iface->dev;
+<<<<<<< HEAD
+		dev_dbg(dev, "xfer %pK#%u: data out done (%d bytes)\n",
+			xfer, seg->index, urb->actual_length);
+		if (seg->status < WA_SEG_PENDING)
+=======
 		dev_dbg(dev, "iso xfer %08X#%u: packet descriptor done\n",
 			wa_xfer_id(xfer), seg->index);
 		if (xfer->is_inbound && seg->status < WA_SEG_PENDING)
+>>>>>>> android-3.18
 			seg->status = WA_SEG_PENDING;
 		spin_unlock_irqrestore(&xfer->lock, flags);
 		break;
@@ -910,8 +947,13 @@ static void wa_seg_iso_pack_desc_cb(struct urb *urb)
 		wa = xfer->wa;
 		dev = &wa->usb_iface->dev;
 		rpipe = xfer->ep->hcpriv;
+<<<<<<< HEAD
+		dev_dbg(dev, "xfer %pK#%u: data out error %d\n",
+			xfer, seg->index, urb->status);
+=======
 		pr_err_ratelimited("iso xfer %08X#%u: packet descriptor error %d\n",
 				wa_xfer_id(xfer), seg->index, urb->status);
+>>>>>>> android-3.18
 		if (edc_inc(&wa->nep_edc, EDC_MAX_ERRORS,
 			    EDC_ERROR_TIMEFRAME)){
 			dev_err(dev, "iso xfer: URB max acceptable errors exceeded, resetting device\n");
@@ -969,11 +1011,16 @@ static void wa_seg_tr_cb(struct urb *urb)
 		spin_lock_irqsave(&xfer->lock, flags);
 		wa = xfer->wa;
 		dev = &wa->usb_iface->dev;
+<<<<<<< HEAD
+		dev_dbg(dev, "xfer %pK#%u: request done\n", xfer, seg->index);
+		if (xfer->is_inbound && seg->status < WA_SEG_PENDING)
+=======
 		dev_dbg(dev, "xfer %p ID 0x%08X#%u: request done\n",
 			xfer, wa_xfer_id(xfer), seg->index);
 		if (xfer->is_inbound &&
 			seg->status < WA_SEG_PENDING &&
 			!(usb_pipeisoc(xfer->urb->pipe)))
+>>>>>>> android-3.18
 			seg->status = WA_SEG_PENDING;
 		spin_unlock_irqrestore(&xfer->lock, flags);
 		break;
@@ -986,9 +1033,14 @@ static void wa_seg_tr_cb(struct urb *urb)
 		dev = &wa->usb_iface->dev;
 		rpipe = xfer->ep->hcpriv;
 		if (printk_ratelimit())
+<<<<<<< HEAD
+			dev_err(dev, "xfer %pK#%u: request error %d\n",
+				xfer, seg->index, urb->status);
+=======
 			dev_err(dev, "xfer %p ID 0x%08X#%u: request error %d\n",
 				xfer, wa_xfer_id(xfer), seg->index,
 				urb->status);
+>>>>>>> android-3.18
 		if (edc_inc(&wa->nep_edc, EDC_MAX_ERRORS,
 			    EDC_ERROR_TIMEFRAME)){
 			dev_err(dev, "DTO: URB max acceptable errors "
@@ -1320,7 +1372,7 @@ static int __wa_xfer_setup(struct wa_xfer *xfer, struct urb *urb)
 	xfer_hdr_size = result;
 	result = __wa_xfer_setup_segs(xfer, xfer_hdr_size);
 	if (result < 0) {
-		dev_err(dev, "xfer %p: Failed to allocate %d segments: %d\n",
+		dev_err(dev, "xfer %pK: Failed to allocate %d segments: %d\n",
 			xfer, xfer->segs, result);
 		goto error_setup_segs;
 	}
@@ -1403,6 +1455,11 @@ static int __wa_seg_submit(struct wa_rpipe *rpipe, struct wa_xfer *xfer,
 	seg->status = WA_SEG_SUBMITTED;
 	result = usb_submit_urb(&seg->tr_urb, GFP_ATOMIC);
 	if (result < 0) {
+<<<<<<< HEAD
+		printk(KERN_ERR "xfer %pK#%u: REQ submit failed: %d\n",
+		       xfer, seg->index, result);
+		goto error_seg_submit;
+=======
 		pr_err("%s: xfer %p#%u: REQ submit failed: %d\n",
 		       __func__, xfer, seg->index, result);
 		wa_xfer_put(xfer);
@@ -1419,6 +1476,7 @@ static int __wa_seg_submit(struct wa_rpipe *rpipe, struct wa_xfer *xfer,
 			wa_xfer_put(xfer);
 			goto error_iso_pack_desc_submit;
 		}
+>>>>>>> android-3.18
 	}
 	/* submit the out data if this is an out request. */
 	if (seg->dto_urb) {
@@ -1426,9 +1484,14 @@ static int __wa_seg_submit(struct wa_rpipe *rpipe, struct wa_xfer *xfer,
 		wa_xfer_get(xfer);
 		result = usb_submit_urb(seg->dto_urb, GFP_ATOMIC);
 		if (result < 0) {
+<<<<<<< HEAD
+			printk(KERN_ERR "xfer %pK#%u: DTO submit failed: %d\n",
+			       xfer, seg->index, result);
+=======
 			pr_err("%s: xfer %p#%u: DTO submit failed: %d\n",
 			       __func__, xfer, seg->index, result);
 			wa_xfer_put(xfer);
+>>>>>>> android-3.18
 			goto error_dto_submit;
 		}
 		/*
@@ -1479,6 +1542,11 @@ static int __wa_xfer_delayed_run(struct wa_rpipe *rpipe, int *dto_waiting)
 				 list_node);
 		list_del(&seg->list_node);
 		xfer = seg->xfer;
+<<<<<<< HEAD
+		result = __wa_seg_submit(rpipe, xfer, seg);
+		dev_dbg(dev, "xfer %pK#%u submitted from delayed [%d segments available] %d\n",
+			xfer, seg->index, atomic_read(&rpipe->segs_available), result);
+=======
 		/*
 		 * Get a reference to the xfer in case the callbacks for the
 		 * URBs submitted by __wa_seg_submit attempt to complete
@@ -1492,6 +1560,7 @@ static int __wa_xfer_delayed_run(struct wa_rpipe *rpipe, int *dto_waiting)
 		dev_dbg(dev, "xfer %p ID %08X#%u submitted from delayed [%d segments available] %d\n",
 			xfer, wa_xfer_id(xfer), seg->index,
 			atomic_read(&rpipe->segs_available), result);
+>>>>>>> android-3.18
 		if (unlikely(result < 0)) {
 			int done;
 
@@ -1577,6 +1646,20 @@ static int __wa_xfer_submit(struct wa_xfer *xfer)
 		available = atomic_read(&rpipe->segs_available);
 		empty = list_empty(&rpipe->seg_list);
 		seg = xfer->seg[cnt];
+<<<<<<< HEAD
+		dev_dbg(dev, "xfer %pK#%u: available %u empty %u (%s)\n",
+			xfer, cnt, available, empty,
+			available == 0 || !empty ? "delayed" : "submitted");
+		if (available == 0 || !empty) {
+			dev_dbg(dev, "xfer %pK#%u: delayed\n", xfer, cnt);
+			seg->status = WA_SEG_DELAYED;
+			list_add_tail(&seg->list_node, &rpipe->seg_list);
+		} else {
+			result = __wa_seg_submit(rpipe, xfer, seg);
+			if (result < 0) {
+				__wa_xfer_abort(xfer);
+				goto error_seg_submit;
+=======
 		if (available && empty) {
 			/*
 			 * Only attempt to acquire DTO if we have a segment
@@ -1597,6 +1680,7 @@ static int __wa_xfer_submit(struct wa_xfer *xfer)
 					__wa_xfer_abort(xfer);
 					goto error_seg_submit;
 				}
+>>>>>>> android-3.18
 			}
 		}
 
@@ -1843,7 +1927,7 @@ int wa_urb_enqueue(struct wahc *wa, struct usb_host_endpoint *ep,
 	    && (urb->sg == NULL)
 	    && !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP)
 	    && urb->transfer_buffer_length != 0) {
-		dev_err(dev, "BUG? urb %p: NULL xfer buffer & NODMA\n", urb);
+		dev_err(dev, "BUG? urb %pK: NULL xfer buffer & NODMA\n", urb);
 		dump_stack();
 	}
 
@@ -1868,7 +1952,7 @@ int wa_urb_enqueue(struct wahc *wa, struct usb_host_endpoint *ep,
 	xfer->ep = ep;
 	urb->hcpriv = xfer;
 
-	dev_dbg(dev, "xfer %p urb %p pipe 0x%02x [%d bytes] %s %s %s\n",
+	dev_dbg(dev, "xfer %pK urb %pK pipe 0x%02x [%d bytes] %s %s %s\n",
 		xfer, urb, urb->pipe, urb->transfer_buffer_length,
 		urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP ? "dma" : "nodma",
 		urb->pipe & USB_DIR_IN ? "inbound" : "outbound",
@@ -1997,7 +2081,7 @@ int wa_urb_dequeue(struct wahc *wa, struct urb *urb, int status)
 		switch (seg->status) {
 		case WA_SEG_NOTREADY:
 		case WA_SEG_READY:
-			printk(KERN_ERR "xfer %p#%u: dequeue bad state %u\n",
+			printk(KERN_ERR "xfer %pK#%u: dequeue bad state %u\n",
 			       xfer, cnt, seg->status);
 			WARN_ON(1);
 			break;
@@ -2307,8 +2391,13 @@ static void wa_xfer_result_chew(struct wahc *wa, struct wa_xfer *xfer,
 	seg = xfer->seg[seg_idx];
 	rpipe = xfer->ep->hcpriv;
 	usb_status = xfer_result->bTransferStatus;
+<<<<<<< HEAD
+	dev_dbg(dev, "xfer %pK#%u: bTransferStatus 0x%02x (seg %u)\n",
+		xfer, seg_idx, usb_status, seg->status);
+=======
 	dev_dbg(dev, "xfer %p ID 0x%08X#%u: bTransferStatus 0x%02x (seg status %u)\n",
 		xfer, wa_xfer_id(xfer), seg_idx, usb_status, seg->status);
+>>>>>>> android-3.18
 	if (seg->status == WA_SEG_ABORTED
 	    || seg->status == WA_SEG_ERROR)	/* already handled */
 		goto segment_aborted;
@@ -2316,16 +2405,21 @@ static void wa_xfer_result_chew(struct wahc *wa, struct wa_xfer *xfer,
 		seg->status = WA_SEG_PENDING;	/* before wa_seg{_dto}_cb() */
 	if (seg->status != WA_SEG_PENDING) {
 		if (printk_ratelimit())
-			dev_err(dev, "xfer %p#%u: Bad segment state %u\n",
+			dev_err(dev, "xfer %pK#%u: Bad segment state %u\n",
 				xfer, seg_idx, seg->status);
 		seg->status = WA_SEG_PENDING;	/* workaround/"fix" it */
 	}
 	if (usb_status & 0x80) {
 		seg->result = wa_xfer_status_to_errno(usb_status);
+<<<<<<< HEAD
+		dev_err(dev, "DTI: xfer %pK#%u failed (0x%02x)\n",
+			xfer, seg->index, usb_status);
+=======
 		dev_err(dev, "DTI: xfer %p 0x%08X:#%u failed (0x%02x)\n",
 			xfer, xfer->id, seg->index, usb_status);
 		seg->status = ((usb_status & 0x7F) == WA_XFER_STATUS_ABORTED) ?
 			WA_SEG_ABORTED : WA_SEG_ERROR;
+>>>>>>> android-3.18
 		goto error_complete;
 	}
 	/* FIXME: we ignore warnings, tally them for stats */
@@ -2379,7 +2473,7 @@ error_submit_buf_in:
 		wa_reset_all(wa);
 	}
 	if (printk_ratelimit())
-		dev_err(dev, "xfer %p#%u: can't submit DTI data phase: %d\n",
+		dev_err(dev, "xfer %pK#%u: can't submit DTI data phase: %d\n",
 			xfer, seg_idx, result);
 	seg->result = result;
 	kfree(buf_in_urb->sg);
@@ -2421,7 +2515,7 @@ error_bad_seg:
 	spin_unlock_irqrestore(&xfer->lock, flags);
 	wa_urb_dequeue(wa, xfer->urb, -ENOENT);
 	if (printk_ratelimit())
-		dev_err(dev, "xfer %p#%u: bad segment\n", xfer, seg_idx);
+		dev_err(dev, "xfer %pK#%u: bad segment\n", xfer, seg_idx);
 	if (edc_inc(&wa->dti_edc, EDC_MAX_ERRORS, EDC_ERROR_TIMEFRAME)) {
 		dev_err(dev, "DTI: URB max acceptable errors "
 			"exceeded, resetting device\n");
@@ -2643,6 +2737,18 @@ static void wa_buf_in_cb(struct urb *urb)
 	switch (urb->status) {
 	case 0:
 		spin_lock_irqsave(&xfer->lock, flags);
+<<<<<<< HEAD
+		wa = xfer->wa;
+		dev = &wa->usb_iface->dev;
+		rpipe = xfer->ep->hcpriv;
+		dev_dbg(dev, "xfer %pK#%u: data in done (%zu bytes)\n",
+			xfer, seg->index, (size_t)urb->actual_length);
+		seg->status = WA_SEG_DONE;
+		seg->result = urb->actual_length;
+		xfer->segs_done++;
+		rpipe_ready = rpipe_avail_inc(rpipe);
+		done = __wa_xfer_is_done(xfer);
+=======
 
 		seg->result += urb->actual_length;
 		if (isoc_data_frame_count > 0) {
@@ -2679,6 +2785,7 @@ static void wa_buf_in_cb(struct urb *urb)
 			done = __wa_xfer_mark_seg_as_done(xfer, seg,
 					WA_SEG_DONE);
 		}
+>>>>>>> android-3.18
 		spin_unlock_irqrestore(&xfer->lock, flags);
 		if (done)
 			wa_xfer_completion(xfer);
@@ -2697,9 +2804,14 @@ static void wa_buf_in_cb(struct urb *urb)
 		resubmit_dti = wa->dti_state != WA_DTI_TRANSFER_RESULT_PENDING;
 		spin_lock_irqsave(&xfer->lock, flags);
 		if (printk_ratelimit())
+<<<<<<< HEAD
+			dev_err(dev, "xfer %pK#%u: data in error %d\n",
+				xfer, seg->index, urb->status);
+=======
 			dev_err(dev, "xfer %p 0x%08X#%u: data in error %d\n",
 				xfer, wa_xfer_id(xfer), seg->index,
 				urb->status);
+>>>>>>> android-3.18
 		if (edc_inc(&wa->nep_edc, EDC_MAX_ERRORS,
 			    EDC_ERROR_TIMEFRAME)){
 			dev_err(dev, "DTO: URB max acceptable errors "
@@ -2771,6 +2883,43 @@ static void wa_dti_cb(struct urb *urb)
 	BUG_ON(wa->dti_urb != urb);
 	switch (wa->dti_urb->status) {
 	case 0:
+<<<<<<< HEAD
+		/* We have a xfer result buffer; check it */
+		dev_dbg(dev, "DTI: xfer result %d bytes at %pK\n",
+			urb->actual_length, urb->transfer_buffer);
+		if (wa->dti_urb->actual_length != sizeof(*xfer_result)) {
+			dev_err(dev, "DTI Error: xfer result--bad size "
+				"xfer result (%d bytes vs %zu needed)\n",
+				urb->actual_length, sizeof(*xfer_result));
+			break;
+		}
+		xfer_result = wa->xfer_result;
+		if (xfer_result->hdr.bLength != sizeof(*xfer_result)) {
+			dev_err(dev, "DTI Error: xfer result--"
+				"bad header length %u\n",
+				xfer_result->hdr.bLength);
+			break;
+		}
+		if (xfer_result->hdr.bNotifyType != WA_XFER_RESULT) {
+			dev_err(dev, "DTI Error: xfer result--"
+				"bad header type 0x%02x\n",
+				xfer_result->hdr.bNotifyType);
+			break;
+		}
+		usb_status = xfer_result->bTransferStatus & 0x3f;
+		if (usb_status == WA_XFER_STATUS_ABORTED
+		    || usb_status == WA_XFER_STATUS_NOT_FOUND)
+			/* taken care of already */
+			break;
+		xfer_id = xfer_result->dwTransferID;
+		xfer = wa_xfer_get_by_id(wa, xfer_id);
+		if (xfer == NULL) {
+			/* FIXME: transaction might have been cancelled */
+			dev_err(dev, "DTI Error: xfer result--"
+				"unknown xfer 0x%08x (status 0x%02x)\n",
+				xfer_id, usb_status);
+			break;
+=======
 		if (wa->dti_state == WA_DTI_TRANSFER_RESULT_PENDING) {
 			struct wa_xfer_result *xfer_result;
 			struct wa_xfer *xfer;
@@ -2818,6 +2967,7 @@ static void wa_dti_cb(struct urb *urb)
 		} else {
 			dev_err(dev, "DTI Error: unexpected EP state = %d\n",
 				wa->dti_state);
+>>>>>>> android-3.18
 		}
 		break;
 	case -ENOENT:		/* (we killed the URB)...so, no broadcast */
