@@ -97,9 +97,15 @@ static int of_i2c_gpio_get_pins(struct device_node *np,
 	if (*sda_pin == -EPROBE_DEFER || *scl_pin == -EPROBE_DEFER)
 		return -EPROBE_DEFER;
 
+<<<<<<< HEAD
+	if (!gpio_is_valid(pdata->sda_pin) || !gpio_is_valid(pdata->scl_pin)) {
+		pr_err("%s: %s invalid GPIO pins, sda=%d/scl=%d\n", __func__,
+		       np->full_name, pdata->sda_pin, pdata->scl_pin);
+=======
 	if (!gpio_is_valid(*sda_pin) || !gpio_is_valid(*scl_pin)) {
 		pr_err("%s: invalid GPIO pins, sda=%d/scl=%d\n",
 		       np->full_name, *sda_pin, *scl_pin);
+>>>>>>> android-3.18
 		return -ENODEV;
 	}
 
@@ -122,6 +128,21 @@ static void of_i2c_gpio_get_props(struct device_node *np,
 		of_property_read_bool(np, "i2c-gpio,scl-open-drain");
 	pdata->scl_is_output_only =
 		of_property_read_bool(np, "i2c-gpio,scl-output-only");
+<<<<<<< HEAD
+
+	if (pdata->id == -1)
+	{
+		int rc = of_property_read_u32(np, "cell-index", &pdata->id);
+		if (rc) {
+			pr_err("%s: %s cell-index not specified, rc=%d\n", __func__,
+			       np->full_name, rc);
+			return rc;
+		}
+	}
+
+	return 0;
+=======
+>>>>>>> android-3.18
 }
 
 static int i2c_gpio_probe(struct platform_device *pdev)
@@ -166,6 +187,7 @@ static int i2c_gpio_probe(struct platform_device *pdev)
 	adap = &priv->adap;
 	bit_data = &priv->bit_data;
 	pdata = &priv->pdata;
+	pdata->id = pdev->id;
 
 	if (pdev->dev.of_node) {
 		pdata->sda_pin = sda_pin;
@@ -174,6 +196,7 @@ static int i2c_gpio_probe(struct platform_device *pdev)
 	} else {
 		memcpy(pdata, dev_get_platdata(&pdev->dev), sizeof(*pdata));
 	}
+	pdev->id = pdata->id;
 
 	if (pdata->sda_is_open_drain) {
 		gpio_direction_output(pdata->sda_pin, 1);
