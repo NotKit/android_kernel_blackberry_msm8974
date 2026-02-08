@@ -25,6 +25,63 @@
 #include "io.h"
 #include "xhci.h"
 
+/* Compatibility shims for 3.18 kernel API changes */
+
+/* system_nrt_wq was removed in kernel 3.8, use system_wq instead */
+#define system_nrt_wq system_wq
+
+/* DWC3_GHWPARAMS6_SRP_SUPPORT - SRP support bit in GHWPARAMS6 */
+#ifndef DWC3_GHWPARAMS6_SRP_SUPPORT
+#define DWC3_GHWPARAMS6_SRP_SUPPORT	(1 << 10)
+#endif
+
+/* otg_state_string renamed to usb_otg_state_string in later kernels */
+#ifndef otg_state_string
+#define otg_state_string(state) usb_otg_state_string(state)
+#endif
+
+/* usb_set_transceiver renamed to usb_add_phy in later kernels */
+#define usb_set_transceiver(phy) usb_add_phy(phy, USB_PHY_TYPE_USB3)
+
+/* Power supply API stubs - these functions were changed in 3.18 */
+static inline int power_supply_set_scope(struct power_supply *psy, int scope)
+{
+	/* Scope setting not supported in 3.18 power supply API */
+	return 0;
+}
+
+static inline int power_supply_set_supply_type(struct power_supply *psy, int type)
+{
+	/* Supply type setting not supported in 3.18 power supply API */
+	return 0;
+}
+
+static inline int power_supply_set_online(struct power_supply *psy, bool online)
+{
+	/* Online setting not supported in 3.18 power supply API */
+	return 0;
+}
+
+static inline int power_supply_set_current_limit(struct power_supply *psy, int limit)
+{
+	/* Current limit setting not supported in 3.18 power supply API */
+	return 0;
+}
+
+/* Weak stubs for slimport functions - slimport driver may not be compiled */
+bool __weak slimport_is_connected(void)
+{
+	return false;
+}
+
+uint32_t __weak slimport_get_chg_current(void)
+{
+	return 0;
+}
+
+/* Forward declarations for functions defined elsewhere */
+extern void dwc3_post_host_reset_core_init(struct dwc3 *dwc);
+
 #define VBUS_REG_CHECK_DELAY	(msecs_to_jiffies(1000))
 #define MAX_INVALID_CHRGR_RETRY 3
 static int max_chgr_retry_count = MAX_INVALID_CHRGR_RETRY;
@@ -676,14 +733,52 @@ void dwc3_otg_init_sm(struct dwc3_otg *dotg)
 	dev_dbg(phy->dev, "Initialize OTG inputs, osts: 0x%x\n", osts);
 
 	/*
-	 * VBUS initial state is reported after PMIC
-	 * driver initialization. Wait for it.
+	 * Hold an extra pm_runtime reference on the core device to prevent
+	 * the DWC3 from entering low power mode during the 5-second VBUS
+	 * init wait. Without this, dwc3_gadget_start() will call
+	 * pm_runtime_put() which drops the last reference on the core
+	 * device (set by dwc3_otg_init). Since the core has
+	 * pm_runtime_no_callbacks, the core transitions to RPM_SUSPENDED,
+	 * the parent (MSM wrapper) child_count drops to 0, and
+	 * dwc3_msm_suspend() executes — collapsing GDSC, gating clocks,
+	 * and powering down PHYs. This makes all DWC3 registers
+	 * inaccessible, causing an AXI bus hang on any subsequent MMIO
+	 * access (e.g., dwc3_otg_reset writing DWC3_OEVT).
 	 */
-	ret = wait_for_completion_timeout(&dotg->dwc3_xcvr_vbus_init, HZ * 5);
+	pm_runtime_get_noresume(phy->dev);
+
+	/*
+	 * VBUS initial state is reported after PMIC driver initialization.
+	 * Wait briefly for it. Use a short timeout (100ms) because the PMIC
+	 * VBUS/ID notification path is broken on this platform (SPMI failure),
+	 * and a long wait causes the USB host to time out on device descriptor
+	 * reads — the pullup is enabled during the wait (from UDC bind) but
+	 * the controller isn't in device mode yet.
+	 */
+	ret = wait_for_completion_timeout(&dotg->dwc3_xcvr_vbus_init,
+					  msecs_to_jiffies(100));
 	if (!ret) {
 		dev_err(phy->dev, "%s: completion timeout\n", __func__);
-		/* We can safely assume no cable connected */
+		dev_info(phy->dev,
+			"PMIC VBUS/ID notification not received, "
+			"forcing peripheral mode for USB gadget\n");
+		/*
+		 * PMIC notification never arrived. Force peripheral mode
+		 * so the USB gadget can work for halium-boot USB networking.
+		 * Keep the extra pm_runtime reference to prevent LPM while
+		 * the USB gadget peripheral is active.
+		 */
 		set_bit(ID, &dotg->inputs);
+		set_bit(B_SESS_VLD, &dotg->inputs);
+		if (dotg->charger)
+			dotg->charger->chg_type = DWC3_SDP_CHARGER;
+	} else {
+		/*
+		 * Normal completion: PMIC notification received.
+		 * Release the extra reference — the normal PMIC path
+		 * manages pm_runtime on its own.
+		 */
+		pm_runtime_put_noidle(phy->dev);
 	}
 
 	ext_xceiv = dotg->ext_xceiv;
@@ -1027,7 +1122,8 @@ int dwc3_otg_init(struct dwc3 *dwc)
 	dotg->otg.phy->dev = dwc->dev;
 	dotg->otg.phy->set_power = dwc3_otg_set_power;
 	dotg->otg.phy->set_suspend = dwc3_otg_set_suspend;
-	dotg->otg.phy->set_phy_autosuspend = dwc3_otg_set_autosuspend;
+	/* set_phy_autosuspend not available in 3.18 usb_phy struct */
+	/* dotg->otg.phy->set_phy_autosuspend = dwc3_otg_set_autosuspend; */
 
 	ret = usb_set_transceiver(dotg->otg.phy);
 	if (ret) {
