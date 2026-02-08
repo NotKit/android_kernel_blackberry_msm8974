@@ -67,17 +67,6 @@ struct ieee_ets {
 	__u8	reco_prio_tc[IEEE_8021QAZ_MAX_TCS];
 };
 
-/* This structure contains rate limit extension to the IEEE 802.1Qaz ETS
- * managed object.
- * Values are 64 bits long and specified in Kbps to enable usage over both
- * slow and very fast networks.
- *
- * @tc_maxrate: maximal tc tx bandwidth indexed by traffic class
- */
-struct ieee_maxrate {
-	__u64	tc_maxrate[IEEE_8021QAZ_MAX_TCS];
-};
-
 /* This structure contains the IEEE 802.1Qaz PFC managed object
  *
  * @pfc_cap: Indicates the number of traffic classes on the local device
@@ -148,8 +137,7 @@ struct cee_pfc {
  *
  * @selector: protocol identifier type
  * @protocol: protocol of type indicated
- * @priority: 3-bit unsigned integer indicating priority for IEEE
- *            8-bit 802.1p user priority bitmap for CEE
+ * @priority: 3-bit unsigned integer indicating priority
  *
  * ----
  *  Selector field values
@@ -333,7 +321,6 @@ enum ieee_attrs {
 	DCB_ATTR_IEEE_PEER_ETS,
 	DCB_ATTR_IEEE_PEER_PFC,
 	DCB_ATTR_IEEE_PEER_APP,
-	DCB_ATTR_IEEE_MAXRATE,
 	__DCB_ATTR_IEEE_MAX
 };
 #define DCB_ATTR_IEEE_MAX (__DCB_ATTR_IEEE_MAX - 1)

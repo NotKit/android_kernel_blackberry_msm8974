@@ -1,5 +1,5 @@
 /*
- * include/uapi/linux/tipc_config.h: Header for TIPC configuration interface
+ * include/linux/tipc_config.h: Include file for TIPC configuration interface
  *
  * Copyright (c) 2003-2006, Ericsson AB
  * Copyright (c) 2005-2007, 2010-2011, Wind River Systems
@@ -39,7 +39,6 @@
 
 #include <linux/types.h>
 #include <linux/string.h>
-#include <linux/tipc.h>
 #include <asm/byteorder.h>
 
 #ifndef __KERNEL__
@@ -90,8 +89,8 @@
 
 #define  TIPC_CMD_GET_REMOTE_MNG    0x4003    /* tx none, rx unsigned */
 #define  TIPC_CMD_GET_MAX_PORTS     0x4004    /* tx none, rx unsigned */
-#define  TIPC_CMD_GET_MAX_PUBL      0x4005    /* obsoleted */
-#define  TIPC_CMD_GET_MAX_SUBSCR    0x4006    /* obsoleted */
+#define  TIPC_CMD_GET_MAX_PUBL      0x4005    /* tx none, rx unsigned */
+#define  TIPC_CMD_GET_MAX_SUBSCR    0x4006    /* tx none, rx unsigned */
 #define  TIPC_CMD_GET_MAX_ZONES     0x4007    /* obsoleted */
 #define  TIPC_CMD_GET_MAX_CLUSTERS  0x4008    /* obsoleted */
 #define  TIPC_CMD_GET_MAX_NODES     0x4009    /* obsoleted */
@@ -103,8 +102,8 @@
 #define  TIPC_CMD_SET_LINK_TOL      0x4107    /* tx link_config, rx none */
 #define  TIPC_CMD_SET_LINK_PRI      0x4108    /* tx link_config, rx none */
 #define  TIPC_CMD_SET_LINK_WINDOW   0x4109    /* tx link_config, rx none */
-#define  TIPC_CMD_SET_LOG_SIZE      0x410A    /* obsoleted */
-#define  TIPC_CMD_DUMP_LOG          0x410B    /* obsoleted */
+#define  TIPC_CMD_SET_LOG_SIZE      0x410A    /* tx unsigned, rx none */
+#define  TIPC_CMD_DUMP_LOG          0x410B    /* tx none, rx ultra_string */
 #define  TIPC_CMD_RESET_LINK_STATS  0x410C    /* tx link_name, rx none */
 
 /*
@@ -116,8 +115,8 @@
 #define  TIPC_CMD_SET_NODE_ADDR     0x8001    /* tx net_addr, rx none */
 #define  TIPC_CMD_SET_REMOTE_MNG    0x8003    /* tx unsigned, rx none */
 #define  TIPC_CMD_SET_MAX_PORTS     0x8004    /* tx unsigned, rx none */
-#define  TIPC_CMD_SET_MAX_PUBL      0x8005    /* obsoleted */
-#define  TIPC_CMD_SET_MAX_SUBSCR    0x8006    /* obsoleted */
+#define  TIPC_CMD_SET_MAX_PUBL      0x8005    /* tx unsigned, rx none */
+#define  TIPC_CMD_SET_MAX_SUBSCR    0x8006    /* tx unsigned, rx none */
 #define  TIPC_CMD_SET_MAX_ZONES     0x8007    /* obsoleted */
 #define  TIPC_CMD_SET_MAX_CLUSTERS  0x8008    /* obsoleted */
 #define  TIPC_CMD_SET_MAX_NODES     0x8009    /* obsoleted */
@@ -156,6 +155,15 @@
 #define TIPC_TLV_PORT_REF	26	/* 32-bit port reference */
 
 /*
+ * Maximum sizes of TIPC bearer-related names (including terminating NUL)
+ */
+
+#define TIPC_MAX_MEDIA_NAME	16	/* format = media */
+#define TIPC_MAX_IF_NAME	16	/* format = interface */
+#define TIPC_MAX_BEARER_NAME	32	/* format = media:interface */
+#define TIPC_MAX_LINK_NAME	60	/* format = Z.C.N:interface-Z.C.N:interface */
+
+/*
  * Link priority limits (min, default, max, media default)
  */
 
@@ -182,7 +190,7 @@
 
 #define TIPC_MIN_LINK_WIN 16
 #define TIPC_DEF_LINK_WIN 50
-#define TIPC_MAX_LINK_WIN 8191
+#define TIPC_MAX_LINK_WIN 150
 
 
 struct tipc_node_info {
@@ -281,10 +289,8 @@ static inline int TLV_SET(void *tlv, __u16 type, void *data, __u16 len)
 	tlv_ptr = (struct tlv_desc *)tlv;
 	tlv_ptr->tlv_type = htons(type);
 	tlv_ptr->tlv_len  = htons(tlv_len);
-	if (len && data) {
-		memcpy(TLV_DATA(tlv_ptr), data, len);
-		memset(TLV_DATA(tlv_ptr) + len, 0, TLV_SPACE(len) - tlv_len);
-	}
+	if (len && data)
+		memcpy(TLV_DATA(tlv_ptr), data, tlv_len);
 	return TLV_SPACE(len);
 }
 
@@ -381,10 +387,8 @@ static inline int TCM_SET(void *msg, __u16 cmd, __u16 flags,
 	tcm_hdr->tcm_len   = htonl(msg_len);
 	tcm_hdr->tcm_type  = htons(cmd);
 	tcm_hdr->tcm_flags = htons(flags);
-	if (data_len && data) {
+	if (data_len && data)
 		memcpy(TCM_DATA(msg), data, data_len);
-		memset(TCM_DATA(msg) + data_len, 0, TCM_SPACE(data_len) - msg_len);
-	}
 	return TCM_SPACE(data_len);
 }
 
