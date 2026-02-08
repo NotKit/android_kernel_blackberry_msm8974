@@ -195,8 +195,40 @@ static void tty_buffer_free(struct tty_port *port, struct tty_buffer *b)
 
 	if (b->size > MIN_TTYB_SIZE)
 		kfree(b);
+<<<<<<< HEAD
+	else {
+		b->next = tty->buf.free;
+		tty->buf.free = b;
+	}
+}
+
+/**
+ *	__tty_buffer_flush		-	flush full tty buffers
+ *	@tty: tty to flush
+ *
+ *	flush all the buffers containing receive data. Caller must
+ *	hold the buffer lock and must have ensured no parallel flush to
+ *	ldisc is running.
+ *
+ *	Locking: Caller must hold tty->buf.lock
+ */
+
+static void __tty_buffer_flush(struct tty_struct *tty)
+{
+	struct tty_buffer *thead;
+
+	if (tty->buf.head == NULL)
+		return;
+	while ((thead = tty->buf.head->next) != NULL) {
+		tty_buffer_free(tty, tty->buf.head);
+		tty->buf.head = thead;
+	}
+	WARN_ON(tty->buf.head != tty->buf.tail);
+	tty->buf.head->read = tty->buf.head->commit;
+=======
 	else if (b->size > 0)
 		llist_add(&b->free, &buf->free);
+>>>>>>> android-3.18
 }
 
 /**
@@ -226,15 +258,19 @@ void tty_buffer_flush(struct tty_struct *tty)
 	atomic_dec(&buf->priority);
 	mutex_unlock(&buf->lock);
 }
-
 /**
- *	tty_buffer_request_room		-	grow tty buffer if needed
+ *	__tty_buffer_request_room		-	grow tty buffer if needed
  *	@tty: tty structure
  *	@size: size desired
  *	@flags: buffer flags if new buffer allocated (default = 0)
  *
  *	Make at least size bytes of linear space available for the tty
  *	buffer. If we fail return the size we managed to find.
+<<<<<<< HEAD
+ *      Locking: Caller must hold tty->buf.lock
+ */
+static int __tty_buffer_request_room(struct tty_struct *tty, size_t size)
+=======
  *
  *	Will change over to a new buffer if the current buffer is encoded as
  *	TTY_NORMAL (so has no flags buffer) and the new buffer requires
@@ -242,14 +278,24 @@ void tty_buffer_flush(struct tty_struct *tty)
  */
 static int __tty_buffer_request_room(struct tty_port *port, size_t size,
 				     int flags)
+>>>>>>> android-3.18
 {
 	struct tty_bufhead *buf = &port->buf;
 	struct tty_buffer *b, *n;
+<<<<<<< HEAD
+	int left;
+	/* OPTIMISATION: We could keep a per tty "zero" sized buffer to
+	   remove this conditional if its worth it. This would be invisible
+	   to the callers */
+	if ((b = tty->buf.tail) != NULL)
+		left = b->size - b->used;
+=======
 	int left, change;
 
 	b = buf->tail;
 	if (b->flags & TTYB_NORMAL)
 		left = 2 * b->size - b->used;
+>>>>>>> android-3.18
 	else
 		left = b->size - b->used;
 
@@ -271,12 +317,39 @@ static int __tty_buffer_request_room(struct tty_port *port, size_t size,
 		else
 			size = left;
 	}
+<<<<<<< HEAD
+
+	return size;
+}
+
+
+/**
+ *	tty_buffer_request_room		-	grow tty buffer if needed
+ *	@tty: tty structure
+ *	@size: size desired
+ *
+ *	Make at least size bytes of linear space available for the tty
+ *	buffer. If we fail return the size we managed to find.
+ *
+ *	Locking: Takes tty->buf.lock
+ */
+int tty_buffer_request_room(struct tty_struct *tty, size_t size)
+{
+	unsigned long flags;
+	int length;
+
+	spin_lock_irqsave(&tty->buf.lock, flags);
+	length = __tty_buffer_request_room(tty, size);
+	spin_unlock_irqrestore(&tty->buf.lock, flags);
+	return length;
+=======
 	return size;
 }
 
 int tty_buffer_request_room(struct tty_port *port, size_t size)
 {
 	return __tty_buffer_request_room(port, size, 0);
+>>>>>>> android-3.18
 }
 EXPORT_SYMBOL_GPL(tty_buffer_request_room);
 
@@ -297,6 +370,22 @@ int tty_insert_flip_string_fixed_flag(struct tty_port *port,
 	int copied = 0;
 	do {
 		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
+<<<<<<< HEAD
+		int space;
+		unsigned long flags;
+		struct tty_buffer *tb;
+
+		spin_lock_irqsave(&tty->buf.lock, flags);
+		space = __tty_buffer_request_room(tty, goal);
+		tb = tty->buf.tail;
+		/* If there is no space then tb may be NULL */
+		if (unlikely(space == 0)) {
+			spin_unlock_irqrestore(&tty->buf.lock, flags);
+			break;
+		}
+		memcpy(tb->char_buf_ptr + tb->used, chars, space);
+		memset(tb->flag_buf_ptr + tb->used, flag, space);
+=======
 		int flags = (flag == TTY_NORMAL) ? TTYB_NORMAL : 0;
 		int space = __tty_buffer_request_room(port, goal, flags);
 		struct tty_buffer *tb = port->buf.tail;
@@ -305,7 +394,9 @@ int tty_insert_flip_string_fixed_flag(struct tty_port *port,
 		memcpy(char_buf_ptr(tb, tb->used), chars, space);
 		if (~tb->flags & TTYB_NORMAL)
 			memset(flag_buf_ptr(tb, tb->used), flag, space);
+>>>>>>> android-3.18
 		tb->used += space;
+		spin_unlock_irqrestore(&tty->buf.lock, flags);
 		copied += space;
 		chars += space;
 		/* There is a small chance that we need to split the data over
@@ -333,13 +424,31 @@ int tty_insert_flip_string_flags(struct tty_port *port,
 	int copied = 0;
 	do {
 		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
+<<<<<<< HEAD
+		int space;
+		unsigned long __flags;
+		struct tty_buffer *tb;
+
+		spin_lock_irqsave(&tty->buf.lock, __flags);
+		space = __tty_buffer_request_room(tty, goal);
+		tb = tty->buf.tail;
+		/* If there is no space then tb may be NULL */
+		if (unlikely(space == 0)) {
+			spin_unlock_irqrestore(&tty->buf.lock, __flags);
+			break;
+		}
+		memcpy(tb->char_buf_ptr + tb->used, chars, space);
+		memcpy(tb->flag_buf_ptr + tb->used, flags, space);
+=======
 		int space = tty_buffer_request_room(port, goal);
 		struct tty_buffer *tb = port->buf.tail;
 		if (unlikely(space == 0))
 			break;
 		memcpy(char_buf_ptr(tb, tb->used), chars, space);
 		memcpy(flag_buf_ptr(tb, tb->used), flags, space);
+>>>>>>> android-3.18
 		tb->used += space;
+		spin_unlock_irqrestore(&tty->buf.lock, __flags);
 		copied += space;
 		chars += space;
 		flags += space;
@@ -410,14 +519,29 @@ EXPORT_SYMBOL(tty_schedule_flip);
 int tty_prepare_flip_string(struct tty_port *port, unsigned char **chars,
 		size_t size)
 {
+<<<<<<< HEAD
+	int space;
+	unsigned long flags;
+	struct tty_buffer *tb;
+
+	spin_lock_irqsave(&tty->buf.lock, flags);
+	space = __tty_buffer_request_room(tty, size);
+
+	tb = tty->buf.tail;
+	if (likely(space)) {
+		*chars = tb->char_buf_ptr + tb->used;
+		memset(tb->flag_buf_ptr + tb->used, TTY_NORMAL, space);
+=======
 	int space = __tty_buffer_request_room(port, size, TTYB_NORMAL);
 	if (likely(space)) {
 		struct tty_buffer *tb = port->buf.tail;
 		*chars = char_buf_ptr(tb, tb->used);
 		if (~tb->flags & TTYB_NORMAL)
 			memset(flag_buf_ptr(tb, tb->used), TTY_NORMAL, space);
+>>>>>>> android-3.18
 		tb->used += space;
 	}
+	spin_unlock_irqrestore(&tty->buf.lock, flags);
 	return space;
 }
 EXPORT_SYMBOL_GPL(tty_prepare_flip_string);
@@ -426,9 +550,29 @@ EXPORT_SYMBOL_GPL(tty_prepare_flip_string);
 static int
 receive_buf(struct tty_struct *tty, struct tty_buffer *head, int count)
 {
+<<<<<<< HEAD
+	int space;
+	unsigned long __flags;
+	struct tty_buffer *tb;
+
+	spin_lock_irqsave(&tty->buf.lock, __flags);
+	space = __tty_buffer_request_room(tty, size);
+
+	tb = tty->buf.tail;
+	if (likely(space)) {
+		*chars = tb->char_buf_ptr + tb->used;
+		*flags = tb->flag_buf_ptr + tb->used;
+		tb->used += space;
+	}
+	spin_unlock_irqrestore(&tty->buf.lock, __flags);
+	return space;
+}
+EXPORT_SYMBOL_GPL(tty_prepare_flip_string_flags);
+=======
 	struct tty_ldisc *disc = tty->ldisc;
 	unsigned char *p = char_buf_ptr(head, head->read);
 	char	      *f = NULL;
+>>>>>>> android-3.18
 
 	if (~head->flags & TTYB_NORMAL)
 		f = flag_buf_ptr(head, head->read);
@@ -474,6 +618,52 @@ static void flush_to_ldisc(struct work_struct *work)
 	if (disc == NULL)
 		return;
 
+<<<<<<< HEAD
+	spin_lock_irqsave(&tty->buf.lock, flags);
+
+	if (!test_and_set_bit(TTY_FLUSHING, &tty->flags)) {
+		struct tty_buffer *head;
+		while ((head = tty->buf.head) != NULL) {
+			int count;
+			char *char_buf;
+			unsigned char *flag_buf;
+
+			count = head->commit - head->read;
+			if (!count) {
+				if (head->next == NULL)
+					break;
+				tty->buf.head = head->next;
+				tty_buffer_free(tty, head);
+				continue;
+			}
+
+			if (!tty->receive_room)
+				break;
+			if (count > tty->receive_room)
+				count = tty->receive_room;
+			char_buf = head->char_buf_ptr + head->read;
+			flag_buf = head->flag_buf_ptr + head->read;
+			head->read += count;
+			spin_unlock_irqrestore(&tty->buf.lock, flags);
+			if (disc->ops->receive_buf)
+				disc->ops->receive_buf(tty, char_buf,
+							flag_buf, count);
+			spin_lock_irqsave(&tty->buf.lock, flags);
+			/* Ldisc or user is trying to flush the buffers.
+			   We may have a deferred request to flush the
+			   input buffer, if so pull the chain under the lock
+			   and empty the queue */
+			if (test_bit(TTY_FLUSHPENDING, &tty->flags)) {
+				__tty_buffer_flush(tty);
+				clear_bit(TTY_FLUSHPENDING, &tty->flags);
+				wake_up(&tty->read_wait);
+				break;
+			}
+		}
+		clear_bit(TTY_FLUSHING, &tty->flags);
+	}
+	spin_unlock_irqrestore(&tty->buf.lock, flags);
+=======
 	mutex_lock(&buf->lock);
 
 	while (1) {
@@ -506,6 +696,7 @@ static void flush_to_ldisc(struct work_struct *work)
 	}
 
 	mutex_unlock(&buf->lock);
+>>>>>>> android-3.18
 
 	tty_ldisc_deref(disc);
 }

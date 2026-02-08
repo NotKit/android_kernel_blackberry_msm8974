@@ -1126,7 +1126,12 @@ static inline ssize_t do_tty_write(
 		cond_resched();
 	}
 	if (written) {
+<<<<<<< HEAD
+		struct inode *inode = file->f_path.dentry->d_inode;
+		tty_update_time(&inode->i_mtime);
+=======
 		tty_update_time(&file_inode(file)->i_mtime);
+>>>>>>> android-3.18
 		ret = written;
 	}
 out:
@@ -1799,9 +1804,15 @@ int tty_release(struct inode *inode, struct file *filp)
 		if (once) {
 			once = 0;
 			printk(KERN_WARNING "%s: %s: read/write wait queue active!\n",
+<<<<<<< HEAD
+				__func__, tty_name(tty, buf));
+		}
+		tty_unlock();
+=======
 			       __func__, tty_name(tty, buf));
 		}
 		tty_unlock_pair(tty, o_tty);
+>>>>>>> android-3.18
 		mutex_unlock(&tty_mutex);
 		schedule_timeout_killable(timeout);
 		if (timeout < 120 * HZ)
@@ -2124,8 +2135,24 @@ retry_open:
 	if (!noctty &&
 	    current->signal->leader &&
 	    !current->signal->tty &&
-	    tty->session == NULL)
-		__proc_set_tty(current, tty);
+	    tty->session == NULL) {
+		/*
+		 * Don't let a process that only has write access to the tty
+		 * obtain the privileges associated with having a tty as
+		 * controlling terminal (being able to reopen it with full
+		 * access through /dev/tty, being able to perform pushback).
+		 * Many distributions set the group of all ttys to "tty" and
+		 * grant write-only access to all terminals for setgid tty
+		 * binaries, which should not imply full privileges on all ttys.
+		 *
+		 * This could theoretically break old code that performs open()
+		 * on a write-only file descriptor. In that case, it might be
+		 * necessary to also permit this if
+		 * inode_permission(inode, MAY_READ) == 0.
+		 */
+		if (filp->f_mode & FMODE_READ)
+			__proc_set_tty(current, tty);
+	}
 	spin_unlock_irq(&current->sighand->siglock);
 	tty_unlock(tty);
 	mutex_unlock(&tty_mutex);
@@ -2420,7 +2447,7 @@ static int fionbio(struct file *file, int __user *p)
  *		Takes ->siglock() when updating signal->tty
  */
 
-static int tiocsctty(struct tty_struct *tty, int arg)
+static int tiocsctty(struct tty_struct *tty, struct file *file, int arg)
 {
 	int ret = 0;
 	if (current->signal->leader && (task_session(current) == tty->session))
@@ -2453,6 +2480,13 @@ static int tiocsctty(struct tty_struct *tty, int arg)
 			goto unlock;
 		}
 	}
+
+	/* See the comment in tty_open(). */
+	if ((file->f_mode & FMODE_READ) == 0 && !capable(CAP_SYS_ADMIN)) {
+		ret = -EPERM;
+		goto unlock;
+	}
+
 	proc_set_tty(current, tty);
 unlock:
 	mutex_unlock(&tty_mutex);
@@ -2552,8 +2586,15 @@ static int tiocspgrp(struct tty_struct *tty, struct tty_struct *real_tty, pid_t 
 	if (session_of_pgrp(pgrp) != task_session(current))
 		goto out_unlock;
 	retval = 0;
+<<<<<<< HEAD
+	spin_lock_irqsave(&real_tty->ctrl_lock, flags);
 	put_pid(real_tty->pgrp);
 	real_tty->pgrp = get_pid(pgrp);
+	spin_unlock_irqrestore(&real_tty->ctrl_lock, flags);
+=======
+	put_pid(real_tty->pgrp);
+	real_tty->pgrp = get_pid(pgrp);
+>>>>>>> android-3.18
 out_unlock:
 	rcu_read_unlock();
 out_unlock_ctrl:
@@ -2743,8 +2784,11 @@ static int tty_tiocmset(struct tty_struct *tty, unsigned int cmd,
 		clear = ~val;
 		break;
 	}
-	set &= TIOCM_DTR|TIOCM_RTS|TIOCM_OUT1|TIOCM_OUT2|TIOCM_LOOP;
-	clear &= TIOCM_DTR|TIOCM_RTS|TIOCM_OUT1|TIOCM_OUT2|TIOCM_LOOP;
+
+	set &= TIOCM_DTR|TIOCM_RTS|TIOCM_OUT1|TIOCM_OUT2|TIOCM_LOOP|TIOCM_CD|
+		TIOCM_RI|TIOCM_DSR|TIOCM_CTS;
+	clear &= TIOCM_DTR|TIOCM_RTS|TIOCM_OUT1|TIOCM_OUT2|TIOCM_LOOP|TIOCM_CD|
+		TIOCM_RI|TIOCM_DSR|TIOCM_CTS;
 	return tty->ops->tiocmset(tty, set, clear);
 }
 
@@ -2847,7 +2891,7 @@ long tty_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		no_tty();
 		return 0;
 	case TIOCSCTTY:
-		return tiocsctty(tty, arg);
+		return tiocsctty(tty, file, arg);
 	case TIOCGPGRP:
 		return tiocgpgrp(tty, real_tty, p);
 	case TIOCSPGRP:
@@ -2990,7 +3034,10 @@ void __do_SAK(struct tty_struct *tty)
 	struct task_struct *g, *p;
 	struct pid *session;
 	int		i;
+<<<<<<< HEAD
+=======
 	unsigned long flags;
+>>>>>>> android-3.18
 
 	if (!tty)
 		return;

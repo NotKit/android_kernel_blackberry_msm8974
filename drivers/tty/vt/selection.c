@@ -375,7 +375,9 @@ int paste_selection(struct tty_struct *tty)
 	while (sel_buffer && sel_buffer_lth > pasted) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		if (test_bit(TTY_THROTTLED, &tty->flags)) {
+			mutex_unlock(&sel_lock);
 			schedule();
+			mutex_lock(&sel_lock);
 			continue;
 		}
 		count = sel_buffer_lth - pasted;

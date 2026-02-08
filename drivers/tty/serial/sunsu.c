@@ -1454,6 +1454,8 @@ static int su_probe(struct platform_device *op)
 
 		nr_inst++;
 
+		nr_inst++;
+
 		return 0;
 	}
 

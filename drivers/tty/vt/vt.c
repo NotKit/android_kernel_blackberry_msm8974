@@ -3209,6 +3209,20 @@ err:
 };
 
 
+<<<<<<< HEAD
+static int bind_con_driver(const struct consw *csw, int first, int last,
+			   int deflt)
+{
+	int ret;
+
+	console_lock();
+	ret = do_bind_con_driver(csw, first, last, deflt);
+	console_unlock();
+	return ret;
+}
+
+=======
+>>>>>>> android-3.18
 #ifdef CONFIG_VT_HW_CONSOLE_BINDING
 static int con_is_graphics(const struct consw *csw, int first, int last)
 {
@@ -3225,6 +3239,18 @@ static int con_is_graphics(const struct consw *csw, int first, int last)
 
 	return retval;
 }
+
+/* unlocked version of unbind_con_driver() */
+int do_unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+{
+	int retval;
+
+	console_lock();
+	retval = do_unbind_con_driver(csw, first, last, deflt);
+	console_unlock();
+	return retval;
+}
+EXPORT_SYMBOL(unbind_con_driver);
 
 /* unlocked version of unbind_con_driver() */
 int do_unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
@@ -3667,6 +3693,29 @@ err:
 	return retval;
 }
 
+<<<<<<< HEAD
+/**
+ * register_con_driver - register console driver to console layer
+ * @csw: console driver
+ * @first: the first console to take over, minimum value is 0
+ * @last: the last console to take over, maximum value is MAX_NR_CONSOLES -1
+ *
+ * DESCRIPTION: This function registers a console driver which can later
+ * bind to a range of consoles specified by @first and @last. It will
+ * also initialize the console driver by calling con_startup().
+ */
+int register_con_driver(const struct consw *csw, int first, int last)
+{
+	int retval;
+
+	console_lock();
+	retval = do_register_con_driver(csw, first, last);
+	console_unlock();
+	return retval;
+}
+EXPORT_SYMBOL(register_con_driver);
+=======
+>>>>>>> android-3.18
 
 /**
  * do_unregister_con_driver - unregister console driver from console layer
@@ -3681,7 +3730,22 @@ err:
  */
 int do_unregister_con_driver(const struct consw *csw)
 {
+<<<<<<< HEAD
+	int retval;
+
+	console_lock();
+	retval = do_unregister_con_driver(csw);
+	console_unlock();
+	return retval;
+}
+EXPORT_SYMBOL(unregister_con_driver);
+
+int do_unregister_con_driver(const struct consw *csw)
+{
+	int i, retval = -ENODEV;
+=======
 	int i;
+>>>>>>> android-3.18
 
 	/* cannot unregister a bound driver */
 	if (con_is_bound(csw))
@@ -3708,8 +3772,9 @@ int do_unregister_con_driver(const struct consw *csw)
 			return 0;
 		}
 	}
-
-	return -ENODEV;
+<<<<<<< HEAD
+err:
+	return retval;
 }
 EXPORT_SYMBOL_GPL(do_unregister_con_driver);
 
@@ -3718,13 +3783,53 @@ EXPORT_SYMBOL_GPL(do_unregister_con_driver);
  *	when a driver wants to take over some existing consoles
  *	and become default driver for newly opened ones.
  *
- *	do_take_over_console is basically a register followed by unbind
+ *	take_over_console is basically a register followed by unbind
  */
 int do_take_over_console(const struct consw *csw, int first, int last, int deflt)
 {
 	int err;
 
 	err = do_register_con_driver(csw, first, last);
+	/*
+	 * If we get an busy error we still want to bind the console driver
+	 * and return success, as we may have unbound the console driver
+	 * but not unregistered it.
+	 */
+	if (err == -EBUSY)
+		err = 0;
+	if (!err)
+		do_bind_con_driver(csw, first, last, deflt);
+
+	return err;
+}
+EXPORT_SYMBOL_GPL(do_take_over_console);
+=======
+
+	return -ENODEV;
+}
+EXPORT_SYMBOL_GPL(do_unregister_con_driver);
+>>>>>>> android-3.18
+
+/*
+ *	If we support more console drivers, this function is used
+ *	when a driver wants to take over some existing consoles
+ *	and become default driver for newly opened ones.
+ *
+<<<<<<< HEAD
+ *	take_over_console is basically a register followed by unbind
+=======
+ *	do_take_over_console is basically a register followed by unbind
+>>>>>>> android-3.18
+ */
+int do_take_over_console(const struct consw *csw, int first, int last, int deflt)
+{
+	int err;
+
+<<<<<<< HEAD
+	err = register_con_driver(csw, first, last);
+=======
+	err = do_register_con_driver(csw, first, last);
+>>>>>>> android-3.18
 	/*
 	 * If we get an busy error we still want to bind the console driver
 	 * and return success, as we may have unbound the console driver

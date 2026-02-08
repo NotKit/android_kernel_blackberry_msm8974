@@ -1519,6 +1519,17 @@ pci_omegapci_setup(struct serial_private *priv,
 static int
 pci_brcm_trumanage_setup(struct serial_private *priv,
 			 const struct pciserial_board *board,
+<<<<<<< HEAD
+			 struct uart_port *port, int idx)
+{
+	int ret = pci_default_setup(priv, board, port, idx);
+
+	port->type = PORT_BRCM_TRUMANAGE;
+	port->flags = (port->flags | UPF_FIXED_PORT | UPF_FIXED_TYPE);
+	return ret;
+}
+
+=======
 			 struct uart_8250_port *port, int idx)
 {
 	int ret = pci_default_setup(priv, board, port, idx);
@@ -1593,6 +1604,7 @@ static int pci_fintek_setup(struct serial_private *priv,
 	return 0;
 }
 
+>>>>>>> android-3.18
 static int skip_tx_en_setup(struct serial_private *priv,
 			const struct pciserial_board *board,
 			struct uart_8250_port *port, int idx)
@@ -1811,6 +1823,10 @@ pci_wch_ch38x_setup(struct serial_private *priv,
 #define PCIE_DEVICE_ID_NEO_2_OX_IBM	0x00F6
 #define PCI_DEVICE_ID_PLX_CRONYX_OMEGA	0xc001
 #define PCI_DEVICE_ID_INTEL_PATSBURG_KT 0x1d3d
+<<<<<<< HEAD
+#define PCI_DEVICE_ID_BROADCOM_TRUMANAGE 0x160a
+#define PCI_DEVICE_ID_INTEL_QRK_UART	0x0936
+=======
 #define PCI_VENDOR_ID_WCH		0x4348
 #define PCI_DEVICE_ID_WCH_CH352_2S	0x3253
 #define PCI_DEVICE_ID_WCH_CH353_4S	0x3453
@@ -1880,6 +1896,7 @@ pci_wch_ch38x_setup(struct serial_private *priv,
 #define PCI_DEVICE_ID_PERICOM_PI7C9X7952	0x7952
 #define PCI_DEVICE_ID_PERICOM_PI7C9X7954	0x7954
 #define PCI_DEVICE_ID_PERICOM_PI7C9X7958	0x7958
+>>>>>>> android-3.18
 
 /* Unknown vendors/cards - this should not be in linux/pci_ids.h */
 #define PCI_SUBDEVICE_ID_UNKNOWN_0x1584	0x1584
@@ -2220,7 +2237,11 @@ static struct pci_serial_quirk pci_serial_quirks[] __refdata = {
 		.subdevice	= PCI_SUBDEVICE_ID_KEYSPAN_SX2,
 		.init		= pci_plx9050_init,
 		.setup		= pci_default_setup,
+<<<<<<< HEAD
+		.exit		= __devexit_p(pci_plx9050_exit),
+=======
 		.exit		= pci_plx9050_exit,
+>>>>>>> android-3.18
 	},
 	{
 		.vendor		= PCI_VENDOR_ID_PLX,
@@ -2628,6 +2649,13 @@ static struct pci_serial_quirk pci_serial_quirks[] __refdata = {
 		.init		= pci_eg20t_init,
 		.setup		= pci_default_setup,
 	},
+	{
+		.vendor		= PCI_VENDOR_ID_INTEL,
+		.device		= PCI_DEVICE_ID_INTEL_QRK_UART,
+		.subvendor	= PCI_ANY_ID,
+		.subdevice	= PCI_ANY_ID,
+		.setup		= pci_default_setup,
+	},
 	/*
 	 * Cronyx Omega PCI (PLX-chip based)
 	 */
@@ -2795,6 +2823,17 @@ static struct pci_serial_quirk pci_serial_quirks[] __refdata = {
 		.subvendor	= PCI_ANY_ID,
 		.subdevice	= PCI_ANY_ID,
 		.setup		= pci_fintek_setup,
+	},
+
+	/*
+	 * Broadcom TruManage (NetXtreme)
+	 */
+	{
+		.vendor		= PCI_VENDOR_ID_BROADCOM,
+		.device		= PCI_DEVICE_ID_BROADCOM_TRUMANAGE,
+		.subvendor	= PCI_ANY_ID,
+		.subdevice	= PCI_ANY_ID,
+		.setup		= pci_brcm_trumanage_setup,
 	},
 
 	/*
@@ -2994,11 +3033,16 @@ enum pci_board_num_t {
 	pbn_ADDIDATA_PCIe_4_3906250,
 	pbn_ADDIDATA_PCIe_8_3906250,
 	pbn_ce4100_1_115200,
+<<<<<<< HEAD
+=======
 	pbn_byt,
+>>>>>>> android-3.18
 	pbn_qrk,
 	pbn_omegapci,
 	pbn_NETMOS9900_2s_115200,
 	pbn_brcm_trumanage,
+<<<<<<< HEAD
+=======
 	pbn_fintek_4,
 	pbn_fintek_8,
 	pbn_fintek_12,
@@ -3008,6 +3052,7 @@ enum pci_board_num_t {
 	pbn_pericom_PI7C9X7952,
 	pbn_pericom_PI7C9X7954,
 	pbn_pericom_PI7C9X7958,
+>>>>>>> android-3.18
 };
 
 /*
@@ -3798,6 +3843,8 @@ static struct pciserial_board pci_boards[] = {
 		.reg_shift	= 2,
 		.base_baud	= 115200,
 	},
+<<<<<<< HEAD
+=======
 	[pbn_fintek_4] = {
 		.num_ports	= 4,
 		.uart_offset	= 8,
@@ -3857,6 +3904,7 @@ static struct pciserial_board pci_boards[] = {
 		.base_baud      = 921600,
 		.uart_offset	= 0x8,
 	},
+>>>>>>> android-3.18
 };
 
 static const struct pci_device_id blacklist[] = {
@@ -5708,6 +5756,8 @@ static struct pci_device_id serial_pci_tbl[] = {
 		pbn_brcm_trumanage },
 
 	/*
+<<<<<<< HEAD
+=======
 	 * AgeStar as-prs2-009
 	 */
 	{	PCI_VENDOR_ID_AGESTAR, PCI_DEVICE_ID_AGESTAR_9375,
@@ -5794,6 +5844,7 @@ static struct pci_device_id serial_pci_tbl[] = {
 	{ PCI_DEVICE(0x1d0f, 0x8250), .driver_data = pbn_b0_1_115200 },
 
 	/*
+>>>>>>> android-3.18
 	 * These entries match devices with class COMMUNICATION_SERIAL,
 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
 	 */
