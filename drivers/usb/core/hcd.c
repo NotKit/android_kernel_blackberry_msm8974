@@ -1758,17 +1758,9 @@ void usb_hcd_giveback_urb(struct usb_hcd *hcd, struct urb *urb, int status)
 	struct giveback_urb_bh *bh;
 	bool running, high_prio_bh;
 
-<<<<<<< HEAD
-	unmap_urb_for_dma(hcd, urb);
-	usbmon_urb_complete(&hcd->self, urb, status);
-	if (hcd->driver->log_urb)
-		hcd->driver->log_urb(urb, "C", status);
-	usb_unanchor_urb(urb);
-=======
 	/* pass status to tasklet via unlinked */
 	if (likely(!urb->unlinked))
 		urb->unlinked = status;
->>>>>>> android-3.18
 
 	if (!hcd_giveback_urb_in_bh(hcd) && !is_root_hub(urb->dev)) {
 		__usb_hcd_giveback_urb(urb);

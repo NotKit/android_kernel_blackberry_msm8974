@@ -280,14 +280,10 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 	struct musb *musb = hw_ep->musb;
 	void __iomem *fifo = hw_ep->fifo;
 
-<<<<<<< HEAD
-	dev_dbg(musb->controller, "%cX ep%d fifo %pK count %d buf %pK\n",
-=======
 	if (unlikely(len == 0))
 		return;
 
 	dev_dbg(musb->controller, "%cX ep%d fifo %p count %d buf %p\n",
->>>>>>> android-3.18
 			'R', hw_ep->epnum, fifo, len, dst);
 
 	/* we can't assume unaligned writes work */
@@ -1548,11 +1544,7 @@ irqreturn_t musb_interrupt(struct musb *musb)
 
 	if (musb->int_usb)
 		retval |= musb_stage0_irq(musb, musb->int_usb,
-<<<<<<< HEAD
-				devctl, power);
-=======
 				devctl);
->>>>>>> android-3.18
 
 	if (musb->int_tx & 1) {
 		if (is_host_active(musb))
@@ -1566,20 +1558,10 @@ irqreturn_t musb_interrupt(struct musb *musb)
 	while (reg) {
 		if (reg & 1) {
 			retval = IRQ_HANDLED;
-<<<<<<< HEAD
-			if (devctl & MUSB_DEVCTL_HM) {
-				if (is_host_capable())
-					musb_host_tx(musb, ep_num);
-			} else {
-				if (is_peripheral_capable())
-					musb_g_tx(musb, ep_num);
-			}
-=======
 			if (is_host_active(musb))
 				musb_host_tx(musb, ep_num);
 			else
 				musb_g_tx(musb, ep_num);
->>>>>>> android-3.18
 		}
 		reg >>= 1;
 		ep_num++;
@@ -1590,20 +1572,10 @@ irqreturn_t musb_interrupt(struct musb *musb)
 	while (reg) {
 		if (reg & 1) {
 			retval = IRQ_HANDLED;
-<<<<<<< HEAD
-			if (devctl & MUSB_DEVCTL_HM) {
-				if (is_host_capable())
-					musb_host_rx(musb, ep_num);
-			} else {
-				if (is_peripheral_capable())
-					musb_g_rx(musb, ep_num);
-			}
-=======
 			if (is_host_active(musb))
 				musb_host_rx(musb, ep_num);
 			else
 				musb_g_rx(musb, ep_num);
->>>>>>> android-3.18
 		}
 
 		reg >>= 1;
@@ -2073,21 +2045,6 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
 
 	pm_runtime_put(musb->controller);
 
-<<<<<<< HEAD
-	dev_info(dev, "USB %s mode controller at %pK using %s, IRQ %d\n",
-			({char *s;
-			 switch (musb->board_mode) {
-			 case MUSB_HOST:		s = "Host"; break;
-			 case MUSB_PERIPHERAL:	s = "Peripheral"; break;
-			 default:		s = "OTG"; break;
-			 }; s; }),
-			ctrl,
-			(is_dma_capable() && musb->dma_controller)
-			? "DMA" : "PIO",
-			musb->nIrq);
-
-=======
->>>>>>> android-3.18
 	return 0;
 
 fail5:
@@ -2428,25 +2385,4 @@ static struct platform_driver musb_driver = {
 	.shutdown	= musb_shutdown,
 };
 
-<<<<<<< HEAD
-/*-------------------------------------------------------------------------*/
-
-static int __init musb_init(void)
-{
-	if (usb_disabled())
-		return 0;
-
-	pr_info("%s: version " MUSB_VERSION ", ?dma?, otg (peripheral+host)\n",
-		musb_driver_name);
-	return platform_driver_register(&musb_driver);
-}
-module_init(musb_init);
-
-static void __exit musb_cleanup(void)
-{
-	platform_driver_unregister(&musb_driver);
-}
-module_exit(musb_cleanup);
-=======
 module_platform_driver(musb_driver);
->>>>>>> android-3.18

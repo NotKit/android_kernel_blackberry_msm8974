@@ -114,11 +114,7 @@ struct cypress_private {
 	int baud_rate;			   /* stores current baud rate in
 					      integer form */
 	int isthrottled;		   /* if throttled, discard reads */
-<<<<<<< HEAD
-	char prev_status, diff_status;	   /* used for TIOCMIWAIT */
-=======
 	char prev_status;		   /* used for TIOCMIWAIT */
->>>>>>> android-3.18
 	/* we pass a pointer to this as the argument sent to
 	   cypress_set_termios old_termios */
 	struct ktermios tmp_termios; 	   /* stores the old termios settings */
@@ -872,60 +868,6 @@ static int cypress_tiocmset(struct tty_struct *tty,
 	return cypress_write(tty, port, NULL, 0);
 }
 
-<<<<<<< HEAD
-
-static int cypress_ioctl(struct tty_struct *tty,
-					unsigned int cmd, unsigned long arg)
-{
-	struct usb_serial_port *port = tty->driver_data;
-	struct cypress_private *priv = usb_get_serial_port_data(port);
-
-	dbg("%s - port %d, cmd 0x%.4x", __func__, port->number, cmd);
-
-	switch (cmd) {
-	/* This code comes from drivers/char/serial.c and ftdi_sio.c */
-	case TIOCMIWAIT:
-		for (;;) {
-			interruptible_sleep_on(&port->delta_msr_wait);
-			/* see if a signal did it */
-			if (signal_pending(current))
-				return -ERESTARTSYS;
-
-			if (port->serial->disconnected)
-				return -EIO;
-
-			{
-				char diff = priv->diff_status;
-				if (diff == 0)
-					return -EIO; /* no change => error */
-
-				/* consume all events */
-				priv->diff_status = 0;
-
-				/* return 0 if caller wanted to know about
-				   these bits */
-				if (((arg & TIOCM_RNG) && (diff & UART_RI)) ||
-				    ((arg & TIOCM_DSR) && (diff & UART_DSR)) ||
-				    ((arg & TIOCM_CD) && (diff & UART_CD)) ||
-				    ((arg & TIOCM_CTS) && (diff & UART_CTS)))
-					return 0;
-				/* otherwise caller can't care less about what
-				 * happened, and so we continue to wait for
-				 * more events.
-				 */
-			}
-		}
-		return 0;
-	default:
-		break;
-	}
-	dbg("%s - arg not supported - it was 0x%04x - check include/asm/ioctls.h", __func__, cmd);
-	return -ENOIOCTLCMD;
-} /* cypress_ioctl */
-
-
-=======
->>>>>>> android-3.18
 static void cypress_set_termios(struct tty_struct *tty,
 	struct usb_serial_port *port, struct ktermios *old_termios)
 {
@@ -1208,11 +1150,6 @@ static void cypress_read_int_callback(struct urb *urb)
 	spin_lock_irqsave(&priv->lock, flags);
 	/* check to see if status has changed */
 	if (priv->current_status != priv->prev_status) {
-<<<<<<< HEAD
-		priv->diff_status |= priv->current_status ^
-			priv->prev_status;
-		wake_up_interruptible(&port->delta_msr_wait);
-=======
 		u8 delta = priv->current_status ^ priv->prev_status;
 
 		if (delta & UART_MSR_MASK) {
@@ -1228,7 +1165,6 @@ static void cypress_read_int_callback(struct urb *urb)
 			wake_up_interruptible(&port->port.delta_msr_wait);
 		}
 
->>>>>>> android-3.18
 		priv->prev_status = priv->current_status;
 	}
 	spin_unlock_irqrestore(&priv->lock, flags);

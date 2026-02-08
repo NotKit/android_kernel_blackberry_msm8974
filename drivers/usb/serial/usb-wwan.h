@@ -50,11 +50,6 @@ struct usb_wwan_port_private {
 	struct urb *out_urbs[N_OUT_URB];
 	u8 *out_buffer[N_OUT_URB];
 	unsigned long out_busy;	/* Bit vector of URBs in use */
-<<<<<<< HEAD
-	int opened;
-	struct usb_anchor submitted;
-=======
->>>>>>> android-3.18
 	struct usb_anchor delayed;
 	struct list_head in_urb_list;
 	spinlock_t in_lock;

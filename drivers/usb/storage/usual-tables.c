@@ -79,10 +79,6 @@ MODULE_DEVICE_TABLE(usb, usb_storage_usb_ids);
 #undef COMPLIANT_DEV
 #undef USUAL_DEV
 #undef UNUSUAL_VENDOR_INTF
-<<<<<<< HEAD
-
-=======
->>>>>>> android-3.18
 
 /*
  * The table of devices to ignore

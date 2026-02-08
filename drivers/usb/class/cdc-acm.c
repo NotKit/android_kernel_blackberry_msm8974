@@ -236,38 +236,6 @@ static int acm_start_wb(struct acm *acm, struct acm_wb *wb)
 	return rc;
 }
 
-<<<<<<< HEAD
-static int acm_write_start(struct acm *acm, int wbn)
-{
-	unsigned long flags;
-	struct acm_wb *wb = &acm->wb[wbn];
-	int rc;
-
-	spin_lock_irqsave(&acm->write_lock, flags);
-	if (!acm->dev) {
-		wb->use = 0;
-		spin_unlock_irqrestore(&acm->write_lock, flags);
-		return -ENODEV;
-	}
-
-	dev_vdbg(&acm->data->dev, "%s - susp_count %d\n", __func__,
-							acm->susp_count);
-	usb_autopm_get_interface_async(acm->control);
-	if (acm->susp_count) {
-		usb_anchor_urb(wb->urb, &acm->delayed);
-		spin_unlock_irqrestore(&acm->write_lock, flags);
-		return 0;
-	}
-	usb_mark_last_busy(acm->dev);
-
-	rc = acm_start_wb(acm, wb);
-	spin_unlock_irqrestore(&acm->write_lock, flags);
-
-	return rc;
-
-}
-=======
->>>>>>> android-3.18
 /*
  * attributes exported through sysfs
  */
@@ -622,20 +590,8 @@ static int acm_port_activate(struct tty_port *port, struct tty_struct *tty)
 	acm->throttle_req = 0;
 	spin_unlock_irq(&acm->read_lock);
 
-<<<<<<< HEAD
-	/*
-	 * Unthrottle device in case the TTY was closed while throttled.
-	 */
-	spin_lock_irq(&acm->read_lock);
-	acm->throttled = 0;
-	acm->throttle_req = 0;
-	spin_unlock_irq(&acm->read_lock);
-
-	if (acm_submit_read_urbs(acm, GFP_KERNEL))
-=======
 	retval = acm_submit_read_urbs(acm, GFP_KERNEL);
 	if (retval)
->>>>>>> android-3.18
 		goto error_submit_read_urbs;
 
 	usb_autopm_put_interface(acm->control);
@@ -647,12 +603,6 @@ static int acm_port_activate(struct tty_port *port, struct tty_struct *tty)
 error_submit_read_urbs:
 	for (i = 0; i < acm->rx_buflimit; i++)
 		usb_kill_urb(acm->read_urbs[i]);
-<<<<<<< HEAD
-	acm->ctrlout = 0;
-	acm_set_control(acm, acm->ctrlout);
-error_set_control:
-=======
->>>>>>> android-3.18
 	usb_kill_urb(acm->ctrlurb);
 error_submit_urb:
 	usb_autopm_put_interface(acm->control);
@@ -685,30 +635,6 @@ static void acm_port_shutdown(struct tty_port *port)
 
 	dev_dbg(&acm->control->dev, "%s\n", __func__);
 
-<<<<<<< HEAD
-	mutex_lock(&acm->mutex);
-	if (!acm->disconnected) {
-		pm_err = usb_autopm_get_interface(acm->control);
-		acm_set_control(acm, acm->ctrlout = 0);
-
-		for (;;) {
-			urb = usb_get_from_anchor(&acm->delayed);
-			if (!urb)
-				break;
-			wb = urb->context;
-			wb->use = 0;
-			usb_autopm_put_interface_async(acm->control);
-		}
-
-		usb_kill_urb(acm->ctrlurb);
-		for (i = 0; i < ACM_NW; i++)
-			usb_kill_urb(acm->wb[i].urb);
-		for (i = 0; i < acm->rx_buflimit; i++)
-			usb_kill_urb(acm->read_urbs[i]);
-		acm->control->needs_remote_wakeup = 0;
-		if (!pm_err)
-			usb_autopm_put_interface(acm->control);
-=======
 	/*
 	 * Need to grab write_lock to prevent race with resume, but no need to
 	 * hold it due to the tty-port initialised flag.
@@ -727,7 +653,6 @@ static void acm_port_shutdown(struct tty_port *port)
 		wb = urb->context;
 		wb->use = 0;
 		usb_autopm_put_interface_async(acm->control);
->>>>>>> android-3.18
 	}
 
 	usb_kill_urb(acm->ctrlurb);
@@ -915,17 +840,10 @@ static int get_serial_info(struct acm *acm, struct serial_struct __user *info)
 	tmp.flags = ASYNC_LOW_LATENCY;
 	tmp.xmit_fifo_size = acm->writesize;
 	tmp.baud_base = le32_to_cpu(acm->line.dwDTERate);
-<<<<<<< HEAD
-	tmp.close_delay	= acm->port.close_delay / 10;
-	tmp.closing_wait = acm->port.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
-				ASYNC_CLOSING_WAIT_NONE :
-				acm->port.closing_wait / 10;
-=======
 	tmp.close_delay	= jiffies_to_msecs(acm->port.close_delay) / 10;
 	tmp.closing_wait = acm->port.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
 				ASYNC_CLOSING_WAIT_NONE :
 				jiffies_to_msecs(acm->port.closing_wait) / 10;
->>>>>>> android-3.18
 
 	if (copy_to_user(info, &tmp, sizeof(tmp)))
 		return -EFAULT;
@@ -938,20 +856,12 @@ static int set_serial_info(struct acm *acm,
 {
 	struct serial_struct new_serial;
 	unsigned int closing_wait, close_delay;
-<<<<<<< HEAD
-=======
 	unsigned int old_closing_wait, old_close_delay;
->>>>>>> android-3.18
 	int retval = 0;
 
 	if (copy_from_user(&new_serial, newinfo, sizeof(new_serial)))
 		return -EFAULT;
 
-<<<<<<< HEAD
-	close_delay = new_serial.close_delay * 10;
-	closing_wait = new_serial.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
-			ASYNC_CLOSING_WAIT_NONE : new_serial.closing_wait * 10;
-=======
 	close_delay = msecs_to_jiffies(new_serial.close_delay * 10);
 	closing_wait = new_serial.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
 			ASYNC_CLOSING_WAIT_NONE :
@@ -962,22 +872,13 @@ static int set_serial_info(struct acm *acm,
 	old_closing_wait = acm->port.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
 				ASYNC_CLOSING_WAIT_NONE :
 				jiffies_to_msecs(acm->port.closing_wait) / 10;
->>>>>>> android-3.18
 
 	mutex_lock(&acm->port.mutex);
 
 	if (!capable(CAP_SYS_ADMIN)) {
-<<<<<<< HEAD
-		if ((close_delay != acm->port.close_delay) ||
-		    (closing_wait != acm->port.closing_wait))
-			retval = -EPERM;
-		else
-			retval = -EOPNOTSUPP;
-=======
 		if ((new_serial.close_delay != old_close_delay) ||
 	            (new_serial.closing_wait != old_closing_wait))
 			retval = -EPERM;
->>>>>>> android-3.18
 	} else {
 		acm->port.close_delay  = close_delay;
 		acm->port.closing_wait = closing_wait;
@@ -987,8 +888,6 @@ static int set_serial_info(struct acm *acm,
 	return retval;
 }
 
-<<<<<<< HEAD
-=======
 static int wait_serial_change(struct acm *acm, unsigned long arg)
 {
 	int rv = 0;
@@ -1053,7 +952,6 @@ static int get_serial_usage(struct acm *acm,
 	return rv;
 }
 
->>>>>>> android-3.18
 static int acm_tty_ioctl(struct tty_struct *tty,
 					unsigned int cmd, unsigned long arg)
 {
@@ -1067,8 +965,6 @@ static int acm_tty_ioctl(struct tty_struct *tty,
 	case TIOCSSERIAL:
 		rv = set_serial_info(acm, (struct serial_struct __user *) arg);
 		break;
-<<<<<<< HEAD
-=======
 	case TIOCMIWAIT:
 		rv = usb_autopm_get_interface(acm->control);
 		if (rv < 0) {
@@ -1081,23 +977,11 @@ static int acm_tty_ioctl(struct tty_struct *tty,
 	case TIOCGICOUNT:
 		rv = get_serial_usage(acm, (struct serial_icounter_struct __user *) arg);
 		break;
->>>>>>> android-3.18
 	}
 
 	return rv;
 }
 
-<<<<<<< HEAD
-static const __u32 acm_tty_speed[] = {
-	0, 50, 75, 110, 134, 150, 200, 300, 600,
-	1200, 1800, 2400, 4800, 9600, 19200, 38400,
-	57600, 115200, 230400, 460800, 500000, 576000,
-	921600, 1000000, 1152000, 1500000, 2000000,
-	2500000, 3000000, 3500000, 4000000
-};
-
-=======
->>>>>>> android-3.18
 static void acm_tty_set_termios(struct tty_struct *tty,
 						struct ktermios *termios_old)
 {
@@ -1272,16 +1156,7 @@ static int acm_probe(struct usb_interface *intf,
 		}
 	}
 
-<<<<<<< HEAD
-	while (buflen > 0) {
-		if ((buflen < buffer[0]) || (buffer[0] < 3)) {
-			dev_err(&intf->dev, "invalid descriptor buffer length\n");
-			break;
-		}
-
-=======
 	while (buflen >= 3) { /* minimum length making sense */
->>>>>>> android-3.18
 		elength = buffer[0];
 		if (!elength) {
 			dev_err(&intf->dev, "skipping garbage byte\n");
@@ -1496,10 +1371,7 @@ made_compressed_probe:
 	tty_port_init(&acm->port);
 	acm->port.ops = &acm_port_ops;
 	init_usb_anchor(&acm->delayed);
-<<<<<<< HEAD
-=======
 	acm->quirks = quirks;
->>>>>>> android-3.18
 
 	buf = usb_alloc_coherent(usb_dev, ctrlsize, GFP_KERNEL, &acm->ctrl_dma);
 	if (!buf) {
@@ -1756,19 +1628,10 @@ static int acm_suspend(struct usb_interface *intf, pm_message_t message)
 	struct acm *acm = usb_get_intfdata(intf);
 	int cnt;
 
-<<<<<<< HEAD
-	spin_lock_irq(&acm->read_lock);
-	spin_lock(&acm->write_lock);
-	if (PMSG_IS_AUTO(message)) {
-		if (acm->transmitting) {
-			spin_unlock(&acm->write_lock);
-			spin_unlock_irq(&acm->read_lock);
-=======
 	spin_lock_irq(&acm->write_lock);
 	if (PMSG_IS_AUTO(message)) {
 		if (acm->transmitting) {
 			spin_unlock_irq(&acm->write_lock);
->>>>>>> android-3.18
 			return -EBUSY;
 		}
 	}
@@ -1789,12 +1652,7 @@ static int acm_resume(struct usb_interface *intf)
 	struct urb *urb;
 	int rv = 0;
 
-<<<<<<< HEAD
-	spin_lock_irq(&acm->read_lock);
-	spin_lock(&acm->write_lock);
-=======
 	spin_lock_irq(&acm->write_lock);
->>>>>>> android-3.18
 
 	if (--acm->susp_count)
 		goto out;
@@ -1820,12 +1678,7 @@ static int acm_resume(struct usb_interface *intf)
 		rv = acm_submit_read_urbs(acm, GFP_ATOMIC);
 	}
 out:
-<<<<<<< HEAD
-	spin_unlock(&acm->write_lock);
-	spin_unlock_irq(&acm->read_lock);
-=======
 	spin_unlock_irq(&acm->write_lock);
->>>>>>> android-3.18
 
 	return rv;
 }
@@ -1858,11 +1711,8 @@ static int acm_reset_resume(struct usb_interface *intf)
 
 static const struct usb_device_id acm_ids[] = {
 	/* quirky and broken devices */
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(0x0424, 0x274e), /* Microchip Technology, Inc. (formerly SMSC) */
 	  .driver_info = DISABLE_ECHO, }, /* DISABLE ECHO in termios flag */
->>>>>>> android-3.18
 	{ USB_DEVICE(0x17ef, 0x7000), /* Lenovo USB modem */
 	.driver_info = NO_UNION_NORMAL, },/* has no union descriptor */
 	{ USB_DEVICE(0x0870, 0x0001), /* Metricom GS Modem */
@@ -1922,9 +1772,6 @@ static const struct usb_device_id acm_ids[] = {
 	{ USB_DEVICE(0x0572, 0x1328), /* Shiro / Aztech USB MODEM UM-3100 */
 	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
 	},
-<<<<<<< HEAD
-	{ USB_DEVICE(0x2184, 0x001c) },	/* GW Instek AFG-2225 */
-=======
 	{ USB_DEVICE(0x0572, 0x1349), /* Hiro (Conexant) USB MODEM H50228 */
 	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
 	},
@@ -1932,7 +1779,6 @@ static const struct usb_device_id acm_ids[] = {
 	.driver_info = QUIRK_CONTROL_LINE_STATE, },
 	{ USB_DEVICE(0x2184, 0x001c) },	/* GW Instek AFG-2225 */
 	{ USB_DEVICE(0x2184, 0x0036) },	/* GW Instek AFG-125 */
->>>>>>> android-3.18
 	{ USB_DEVICE(0x22b8, 0x6425), /* Motorola MOTOMAGX phones */
 	},
 	/* Motorola H24 HSPA module: */

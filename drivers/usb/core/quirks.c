@@ -55,42 +55,15 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* Creative SB Audigy 2 NX */
 	{ USB_DEVICE(0x041e, 0x3020), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-=======
 	/* USB3503 */
 	{ USB_DEVICE(0x0424, 0x3503), .driver_info = USB_QUIRK_RESET_RESUME },
 
->>>>>>> android-3.18
 	/* Microsoft Wireless Laser Mouse 6000 Receiver */
 	{ USB_DEVICE(0x045e, 0x00e1), .driver_info = USB_QUIRK_RESET_RESUME },
 
 	/* Microsoft LifeCam-VX700 v2.0 */
 	{ USB_DEVICE(0x045e, 0x0770), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-	/* Logitech ConferenceCam CC3000e */
-	{ USB_DEVICE(0x046d, 0x0847), .driver_info = USB_QUIRK_DELAY_INIT },
-	{ USB_DEVICE(0x046d, 0x0848), .driver_info = USB_QUIRK_DELAY_INIT },
-
-	/* Logitech PTZ Pro Camera */
-	{ USB_DEVICE(0x046d, 0x0853), .driver_info = USB_QUIRK_DELAY_INIT },
-
-	/* Logitech Quickcam Fusion */
-	{ USB_DEVICE(0x046d, 0x08c1), .driver_info = USB_QUIRK_RESET_RESUME },
-
-	/* Logitech Quickcam Orbit MP */
-	{ USB_DEVICE(0x046d, 0x08c2), .driver_info = USB_QUIRK_RESET_RESUME },
-
-	/* Logitech Quickcam Pro for Notebook */
-	{ USB_DEVICE(0x046d, 0x08c3), .driver_info = USB_QUIRK_RESET_RESUME },
-
-	/* Logitech Quickcam Pro 5000 */
-	{ USB_DEVICE(0x046d, 0x08c5), .driver_info = USB_QUIRK_RESET_RESUME },
-
-	/* Logitech Quickcam OEM Dell Notebook */
-	{ USB_DEVICE(0x046d, 0x08c6), .driver_info = USB_QUIRK_RESET_RESUME },
-
-=======
 	/* Microsoft Surface Dock Ethernet (RTL8153 GigE) */
 	{ USB_DEVICE(0x045e, 0x07c6), .driver_info = USB_QUIRK_NO_LPM },
 
@@ -132,7 +105,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* Logitech Quickcam OEM Dell Notebook */
 	{ USB_DEVICE(0x046d, 0x08c6), .driver_info = USB_QUIRK_RESET_RESUME },
 
->>>>>>> android-3.18
 	/* Logitech Quickcam OEM Cisco VT Camera II */
 	{ USB_DEVICE(0x046d, 0x08c7), .driver_info = USB_QUIRK_RESET_RESUME },
 
@@ -166,14 +138,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	{ USB_DEVICE(0x04e8, 0x6601), .driver_info =
 			USB_QUIRK_CONFIG_INTF_STRINGS },
 
-<<<<<<< HEAD
-	{ USB_DEVICE(0x04f3, 0x009b), .driver_info =
-			USB_QUIRK_DEVICE_QUALIFIER },
-
-	{ USB_DEVICE(0x04f3, 0x016f), .driver_info =
-			USB_QUIRK_DEVICE_QUALIFIER },
-
-=======
 	/* Elan Touchscreen */
 	{ USB_DEVICE(0x04f3, 0x0089), .driver_info =
 			USB_QUIRK_DEVICE_QUALIFIER },
@@ -193,7 +157,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	{ USB_DEVICE(0x04f3, 0x21b8), .driver_info =
 			USB_QUIRK_DEVICE_QUALIFIER },
 
->>>>>>> android-3.18
 	/* Roland SC-8820 */
 	{ USB_DEVICE(0x0582, 0x0007), .driver_info = USB_QUIRK_RESET_RESUME },
 
@@ -203,12 +166,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* Alcor Micro Corp. Hub */
 	{ USB_DEVICE(0x058f, 0x9254), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-	/* MicroTouch Systems touchscreen */
-	{ USB_DEVICE(0x0596, 0x051e), .driver_info = USB_QUIRK_RESET_RESUME },
-
-=======
->>>>>>> android-3.18
 	/* appletouch */
 	{ USB_DEVICE(0x05ac, 0x021a), .driver_info = USB_QUIRK_RESET_RESUME },
 
@@ -238,11 +195,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* Guillemot Webcam Hercules Dualpix Exchange*/
 	{ USB_DEVICE(0x06f8, 0x3005), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-	/* Midiman M-Audio Keystation 88es */
-	{ USB_DEVICE(0x0763, 0x0192), .driver_info = USB_QUIRK_RESET_RESUME },
-
-=======
 	/* Guillemot Hercules DJ Console audio card (BZ 208357) */
 	{ USB_DEVICE(0x06f8, 0xb000), .driver_info =
 			USB_QUIRK_ENDPOINT_BLACKLIST },
@@ -254,7 +206,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	{ USB_DEVICE(0x0781, 0x5583), .driver_info = USB_QUIRK_NO_LPM },
 	{ USB_DEVICE(0x0781, 0x5591), .driver_info = USB_QUIRK_NO_LPM },
 
->>>>>>> android-3.18
 	/* M-Systems Flash Disk Pioneers */
 	{ USB_DEVICE(0x08ec, 0x1000), .driver_info = USB_QUIRK_RESET_RESUME },
 
@@ -285,8 +236,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* MAYA44USB sound device */
 	{ USB_DEVICE(0x0a92, 0x0091), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-=======
 	/* ASUS Base Station(T100) */
 	{ USB_DEVICE(0x0b05, 0x17e0), .driver_info =
 			USB_QUIRK_IGNORE_REMOTE_WAKEUP },
@@ -302,7 +251,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	{ USB_DEVICE(0x0c45, 0x7056), .driver_info =
 			USB_QUIRK_IGNORE_REMOTE_WAKEUP },
 
->>>>>>> android-3.18
 	/* Action Semiconductor flash disk */
 	{ USB_DEVICE(0x10d6, 0x2200), .driver_info =
 			USB_QUIRK_STRING_FETCH_255 },
@@ -314,12 +262,9 @@ static const struct usb_device_id usb_quirk_list[] = {
 	{ USB_DEVICE(0x1532, 0x0116), .driver_info =
 			USB_QUIRK_LINEAR_UFRAME_INTR_BINTERVAL },
 
-<<<<<<< HEAD
-=======
 	/* Lenovo ThinkPad USB-C Dock Gen2 Ethernet (RTL8153 GigE) */
 	{ USB_DEVICE(0x17ef, 0xa387), .driver_info = USB_QUIRK_NO_LPM },
 
->>>>>>> android-3.18
 	/* BUILDWIN Photo Frame */
 	{ USB_DEVICE(0x1908, 0x1315), .driver_info =
 			USB_QUIRK_HONOR_BNUMINTERFACES },
@@ -383,13 +328,8 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* INTEL VALUE SSD */
 	{ USB_DEVICE(0x8086, 0xf1a5), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-	/* Protocol and OTG Electrical Test Device */
-	{ USB_DEVICE(0x1a0a, 0x0200), .driver_info = USB_QUIRK_OTG_PET },
-=======
 	/* novation SoundControl XL */
 	{ USB_DEVICE(0x1235, 0x0061), .driver_info = USB_QUIRK_RESET_RESUME },
->>>>>>> android-3.18
 
 	{ }  /* terminating entry must be last */
 };
@@ -399,11 +339,6 @@ static const struct usb_device_id usb_interface_quirk_list[] = {
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x046d, USB_CLASS_VIDEO, 1, 0),
 	  .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-	{ }  /* terminating entry must be last */
-};
-
-=======
 	{ }  /* terminating entry must be last */
 };
 
@@ -457,24 +392,15 @@ bool usb_endpoint_is_blacklisted(struct usb_device *udev,
 	return false;
 }
 
->>>>>>> android-3.18
 static bool usb_match_any_interface(struct usb_device *udev,
 				    const struct usb_device_id *id)
 {
 	unsigned int i;
-<<<<<<< HEAD
 
 	for (i = 0; i < udev->descriptor.bNumConfigurations; ++i) {
 		struct usb_host_config *cfg = &udev->config[i];
 		unsigned int j;
 
-=======
-
-	for (i = 0; i < udev->descriptor.bNumConfigurations; ++i) {
-		struct usb_host_config *cfg = &udev->config[i];
-		unsigned int j;
-
->>>>>>> android-3.18
 		for (j = 0; j < cfg->desc.bNumInterfaces; ++j) {
 			struct usb_interface_cache *cache;
 			struct usb_host_interface *intf;
@@ -487,29 +413,6 @@ static bool usb_match_any_interface(struct usb_device *udev,
 			if (usb_match_one_id_intf(udev, intf, id))
 				return true;
 		}
-<<<<<<< HEAD
-	}
-
-	return false;
-}
-
-static u32 __usb_detect_quirks(struct usb_device *udev,
-			       const struct usb_device_id *id)
-{
-	u32 quirks = 0;
-
-	for (; id->match_flags; id++) {
-		if (!usb_match_device(udev, id))
-			continue;
-
-		if ((id->match_flags & USB_DEVICE_ID_MATCH_INT_INFO) &&
-		    !usb_match_any_interface(udev, id))
-			continue;
-
-		quirks |= (u32)(id->driver_info);
-	}
-
-=======
 	}
 
 	return false;
@@ -543,7 +446,6 @@ static u32 __usb_detect_quirks(struct usb_device *udev,
 		quirks |= (u32)(id->driver_info);
 	}
 
->>>>>>> android-3.18
 	return quirks;
 }
 
@@ -553,8 +455,6 @@ static u32 __usb_detect_quirks(struct usb_device *udev,
 void usb_detect_quirks(struct usb_device *udev)
 {
 	udev->quirks = __usb_detect_quirks(udev, usb_quirk_list);
-<<<<<<< HEAD
-=======
 
 	/*
 	 * Pixart-based mice would trigger remote wakeup issue on AMD
@@ -564,7 +464,6 @@ void usb_detect_quirks(struct usb_device *udev)
 		udev->quirks |= __usb_detect_quirks(udev,
 				usb_amd_resume_quirk_list);
 
->>>>>>> android-3.18
 	if (udev->quirks)
 		dev_dbg(&udev->dev, "USB quirks for this device: %x\n",
 			udev->quirks);
@@ -592,15 +491,3 @@ void usb_detect_interface_quirks(struct usb_device *udev)
 	udev->quirks |= quirks;
 }
 
-void usb_detect_interface_quirks(struct usb_device *udev)
-{
-	u32 quirks;
-
-	quirks = __usb_detect_quirks(udev, usb_interface_quirk_list);
-	if (quirks == 0)
-		return;
-
-	dev_dbg(&udev->dev, "USB interface quirks for this device: %x\n",
-		quirks);
-	udev->quirks |= quirks;
-}
