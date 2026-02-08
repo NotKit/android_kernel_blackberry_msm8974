@@ -3,13 +3,13 @@
  * Linux cfg80211 driver
  *
  * Copyright (C) 1999-2013, Broadcom Corporation
- * 
+ *
  *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
  * under the terms of the GNU General Public License version 2 (the "GPL"),
  * available at http://www.broadcom.com/licenses/GPLv2.php, with the
  * following added to such license:
- * 
+ *
  *      As a special exception, the copyright holders of this software give you
  * permission to link this software with independent modules, and to copy and
  * distribute the resulting executable under terms of your choice, provided that
@@ -17,7 +17,7 @@
  * the license of that module.  An independent module is a module which is not
  * derived from this software.  The special exception does not apply to any
  * modifications of the software.
- * 
+ *
  *      Notwithstanding the above, under no circumstances may you combine this
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
@@ -348,7 +348,7 @@ static s32 wl_notify_escan_complete(struct wl_priv *wl,
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 2, 0)) || 0
 static s32 wl_cfg80211_tdls_oper(struct wiphy *wiphy, struct net_device *dev,
 	u8 *peer, enum nl80211_tdls_operation oper);
-#endif 
+#endif
 #ifdef WL_SCHED_SCAN
 static int wl_cfg80211_sched_scan_stop(struct wiphy *wiphy, struct net_device *dev);
 #endif
@@ -1053,7 +1053,7 @@ wl_validate_wps_ie(char *wps_ie, s32 wps_ie_len, bool *pbc)
 		subel += subelt_len;
 	}
 }
-#endif 
+#endif
 
 static chanspec_t wl_cfg80211_get_shared_freq(struct wiphy *wiphy)
 {
@@ -1310,7 +1310,7 @@ wl_cfg80211_add_virtual_iface(struct wiphy *wiphy,
 					dhd->plat_enable((void *)dhd);
 #endif /* PROP_TXSTATUS_VSDB */
 				/* reinitialize completion to clear previous count */
-				INIT_COMPLETION(wl->iface_disable);
+				reinit_completion(&wl->iface_disable);
 			} else {
 				/* put back the rtnl_lock again */
 				if (rollback_lock)
@@ -5753,7 +5753,7 @@ static s32 wl_cfg80211_bcn_set_params(
 
 	return err;
 }
-#endif 
+#endif
 
 static s32
 wl_cfg80211_parse_ies(u8 *ptr, u32 len, struct parsed_ies *ies)
@@ -5981,7 +5981,7 @@ wl_cfg80211_set_ies(
 
 	return err;
 }
-#endif 
+#endif
 
 static s32 wl_cfg80211_hostapd_sec(
 	struct net_device *dev,
@@ -6467,7 +6467,7 @@ fail:
 	return err;
 
 }
-#endif 
+#endif
 
 #ifdef WL_SCHED_SCAN
 #define PNO_TIME		30
@@ -6625,7 +6625,7 @@ static struct cfg80211_ops wl_cfg80211_ops = {
 	.change_beacon = wl_cfg80211_change_beacon,
 	.start_ap = wl_cfg80211_start_ap,
 	.stop_ap = wl_cfg80211_stop_ap,
-#endif 
+#endif
 #ifdef WL_SCHED_SCAN
 	.sched_scan_start = wl_cfg80211_sched_scan_start,
 	.sched_scan_stop = wl_cfg80211_sched_scan_stop,
@@ -6637,7 +6637,7 @@ static struct cfg80211_ops wl_cfg80211_ops = {
 #endif /* WL_SUPPORT_BACKPORTED_KPATCHES || KERNEL_VERSION >= (3,2,0) */
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 2, 0)) || 0
 	.tdls_oper = wl_cfg80211_tdls_oper
-#endif 
+#endif
 };
 
 s32 wl_mode_to_nl80211_iftype(s32 mode)
@@ -6807,11 +6807,13 @@ static s32 wl_setup_wiphy(struct wireless_dev *wdev, struct device *sdiofunc_dev
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 2, 0)) || 0
 	wdev->wiphy->flags |= WIPHY_FLAG_SUPPORTS_TDLS;
 #endif
-#if defined(CONFIG_PM)
+#if defined(CONFIG_PM) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0))
 	wdev->wiphy->wowlan.flags = WIPHY_WOWLAN_ANY;
 #endif
 	WL_DBG(("Registering custom regulatory)\n"));
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0))
 	wdev->wiphy->flags |= WIPHY_FLAG_CUSTOM_REGULATORY;
+#endif
 	wiphy_apply_custom_regulatory(wdev->wiphy, &brcm_regdom);
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 13, 0)) || defined(WL_VENDOR_EXT_SUPPORT)
@@ -7086,7 +7088,7 @@ wl_notify_connect_status_ap(struct wl_priv *wl, struct net_device *ndev,
 	channel_info_t ci;
 #else
 	struct station_info sinfo;
-#endif 
+#endif
 
 	WL_DBG(("event %d status %d reason %d\n", event, ntoh32(e->status), reason));
 	/* if link down, bsscfg is disabled. */
@@ -7180,19 +7182,19 @@ wl_notify_connect_status_ap(struct wl_priv *wl, struct net_device *ndev,
 		cfg80211_rx_mgmt(ndev, freq, 0, mgmt_frame, len, GFP_ATOMIC);
 #else
 		cfg80211_rx_mgmt(ndev, freq, mgmt_frame, len, GFP_ATOMIC);
-#endif 
+#endif
 	} else if (event == WLC_E_DISASSOC_IND) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)) || 0
 		cfg80211_rx_mgmt(ndev, freq, 0, mgmt_frame, len, GFP_ATOMIC);
 #else
 		cfg80211_rx_mgmt(ndev, freq, mgmt_frame, len, GFP_ATOMIC);
-#endif 
+#endif
 	} else if ((event == WLC_E_DEAUTH_IND) || (event == WLC_E_DEAUTH)) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)) || 0
 		cfg80211_rx_mgmt(ndev, freq, 0, mgmt_frame, len, GFP_ATOMIC);
 #else
 		cfg80211_rx_mgmt(ndev, freq, mgmt_frame, len, GFP_ATOMIC);
-#endif 
+#endif
 	}
 
 exit:
@@ -7217,7 +7219,7 @@ exit:
 	} else if ((event == WLC_E_DEAUTH_IND) || (event == WLC_E_DEAUTH)) {
 		cfg80211_del_sta(ndev, e->addr.octet, GFP_ATOMIC);
 	}
-#endif 
+#endif
 	return err;
 }
 
@@ -7273,7 +7275,7 @@ wl_notify_connect_status_ibss(struct wl_priv *wl, struct net_device *ndev,
 			wl_get_assoc_ies(wl, ndev);
 			wl_update_prof(wl, ndev, NULL, (void *)&e->addr, WL_PROF_BSSID);
 			wl_update_bss_info(wl, ndev);
-			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, GFP_KERNEL);
+			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, NULL, GFP_KERNEL);
 		}
 		else {
 			/* New connection */
@@ -7282,7 +7284,7 @@ wl_notify_connect_status_ibss(struct wl_priv *wl, struct net_device *ndev,
 			wl_get_assoc_ies(wl, ndev);
 			wl_update_prof(wl, ndev, NULL, (void *)&e->addr, WL_PROF_BSSID);
 			wl_update_bss_info(wl, ndev);
-			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, GFP_KERNEL);
+			cfg80211_ibss_joined(ndev, (s8 *)&e->addr, NULL, GFP_KERNEL);
 			wl_set_drv_status(wl, CONNECTED, ndev);
 			active = true;
 			wl_update_prof(wl, ndev, NULL, (void *)&active, WL_PROF_ACT);
@@ -7692,7 +7694,7 @@ wl_bss_roaming_done(struct wl_priv *wl, struct net_device *ndev,
 	u8 *buf;
 	u16 channel;
 	u32 freq;
-#endif 
+#endif
 
 	wl_get_assoc_ies(wl, ndev);
 	wl_update_prof(wl, ndev, NULL, (void *)(e->addr.octet), WL_PROF_BSSID);
@@ -7722,7 +7724,7 @@ wl_bss_roaming_done(struct wl_priv *wl, struct net_device *ndev,
 	notify_channel = ieee80211_get_channel(wiphy, freq);
 done:
 	kfree(buf);
-#endif 
+#endif
 
 	printk("wl_bss_roaming_done succeeded to " MACDBG "\n",
 		MAC2STRDBG((u8*)(&e->addr)));
@@ -7793,7 +7795,7 @@ wl_bss_connect_done(struct wl_priv *wl, struct net_device *ndev,
 #endif /* ROAM_AP_ENV_DETECTION */
 			if (ndev != wl_to_prmry_ndev(wl)) {
 				/* reinitialize completion to clear previous count */
-				INIT_COMPLETION(wl->iface_disable);
+				reinit_completion(&wl->iface_disable);
 			}
 		}
 		cfg80211_connect_result(ndev,
@@ -8271,7 +8273,7 @@ wl_notify_rx_mgmt_frame(struct wl_priv *wl, bcm_struct_cfgdev *cfgdev,
 	cfg80211_rx_mgmt(cfgdev, freq, 0, mgmt_frame, mgmt_frame_len, GFP_ATOMIC);
 #else
 	cfg80211_rx_mgmt(cfgdev, freq, mgmt_frame, mgmt_frame_len, GFP_ATOMIC);
-#endif 
+#endif
 
 	WL_DBG(("mgmt_frame_len (%d) , e->datalen (%d), channel (%d), freq (%d)\n",
 		mgmt_frame_len, ntoh32(e->datalen), channel, freq));
@@ -8872,7 +8874,9 @@ wl_cfg80211_netdev_notifier_call(struct notifier_block * nb,
 	struct net_device *dev = ndev;
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct wl_priv *wl = wlcfg_drv_priv;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0))
 	int refcnt = 0;
+#endif
 
 	WL_DBG(("Enter \n"));
 	if (!wdev || !wl || dev == wl_to_prmry_ndev(wl))
@@ -8880,6 +8884,7 @@ wl_cfg80211_netdev_notifier_call(struct notifier_block * nb,
 	switch (state) {
 		case NETDEV_DOWN:
 		{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0))
 			int max_wait_timeout = 2;
 			int max_wait_count = 100;
 			unsigned long limit = jiffies + max_wait_timeout * HZ;
@@ -8908,6 +8913,7 @@ wl_cfg80211_netdev_notifier_call(struct notifier_block * nb,
 				set_current_state(TASK_RUNNING);
 				refcnt++;
 			}
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0) */
 			break;
 		}
 
@@ -9750,7 +9756,7 @@ s32 wl_cfg80211_attach(struct net_device *ndev, void *data)
 	err = wl_cfg80211_btcoex_init(wl);
 	if (err)
 		goto cfg80211_attach_out;
-#endif 
+#endif
 
 	wlcfg_drv_priv = wl;
 
@@ -9779,7 +9785,7 @@ void wl_cfg80211_detach(void *para)
 
 #if defined(COEX_DHCP)
 	wl_cfg80211_btcoex_deinit(wl);
-#endif 
+#endif
 
 	wl_setup_rfkill(wl, FALSE);
 #ifdef DEBUGFS_CFG80211
@@ -10961,7 +10967,7 @@ out:
 #endif /* WLTDLS */
 	return ret;
 }
-#endif 
+#endif
 
 s32 wl_cfg80211_set_wps_p2p_ie(struct net_device *net, char *buf, int len,
 	enum wl_management_type type)

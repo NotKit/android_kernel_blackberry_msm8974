@@ -3,13 +3,13 @@
  * Pave over some 2.2 versus 2.4 versus 2.6 kernel differences.
  *
  * Copyright (C) 1999-2013, Broadcom Corporation
- * 
+ *
  *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
  * under the terms of the GNU General Public License version 2 (the "GPL"),
  * available at http://www.broadcom.com/licenses/GPLv2.php, with the
  * following added to such license:
- * 
+ *
  *      As a special exception, the copyright holders of this software give you
  * permission to link this software with independent modules, and to copy and
  * distribute the resulting executable under terms of your choice, provided that
@@ -17,7 +17,7 @@
  * the license of that module.  An independent module is a module which is not
  * derived from this software.  The special exception does not apply to any
  * modifications of the software.
- * 
+ *
  *      Notwithstanding the above, under no circumstances may you combine this
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
@@ -709,5 +709,17 @@ not match our unaligned address for < 2.6.24
 #else
 #define SRANDOM32(entropy)	srandom32(entropy)
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0) */
+
+/* cfg80211 API compatibility for kernel >= 3.14 */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0))
+/* IEEE80211_CHAN_NO_IBSS and IEEE80211_CHAN_PASSIVE_SCAN were removed
+ * and replaced with IEEE80211_CHAN_NO_IR in kernel 3.14 */
+#ifndef IEEE80211_CHAN_NO_IBSS
+#define IEEE80211_CHAN_NO_IBSS		IEEE80211_CHAN_NO_IR
+#endif
+#ifndef IEEE80211_CHAN_PASSIVE_SCAN
+#define IEEE80211_CHAN_PASSIVE_SCAN	IEEE80211_CHAN_NO_IR
+#endif
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0) */
 
 #endif /* _linuxver_h_ */

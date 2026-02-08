@@ -711,13 +711,8 @@ static void rt2800usb_fill_rxdone(struct queue_entry *entry,
 	 */
 	if (unlikely(rx_pkt_len == 0 ||
 			rx_pkt_len > entry->queue->data_size)) {
-<<<<<<< HEAD
-		ERROR(entry->queue->rt2x00dev,
-			"Bad frame size %d, forcing to 0\n", rx_pkt_len);
-=======
 		rt2x00_err(entry->queue->rt2x00dev,
 			   "Bad frame size %d, forcing to 0\n", rx_pkt_len);
->>>>>>> android-3.18
 		return;
 	}
 
@@ -794,22 +789,6 @@ static int rt2800usb_read_eeprom(struct rt2x00_dev *rt2x00dev)
 	retval = rt2800usb_efuse_detect(rt2x00dev);
 	if (retval < 0)
 		return retval;
-<<<<<<< HEAD
-
-	/*
-	 * Enable rfkill polling by setting GPIO direction of the
-	 * rfkill switch GPIO pin correctly.
-	 */
-	rt2x00usb_register_read(rt2x00dev, GPIO_CTRL_CFG, &reg);
-	rt2x00_set_field32(&reg, GPIO_CTRL_CFG_GPIOD_BIT2, 1);
-	rt2x00usb_register_write(rt2x00dev, GPIO_CTRL_CFG, reg);
-
-	/*
-	 * Initialize hw specifications.
-	 */
-	retval = rt2800_probe_hw_mode(rt2x00dev);
-=======
->>>>>>> android-3.18
 	if (retval)
 		retval = rt2800_read_eeprom_efuse(rt2x00dev);
 	else
@@ -1043,10 +1022,7 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x0411, 0x016f) },
 	{ USB_DEVICE(0x0411, 0x01a2) },
 	{ USB_DEVICE(0x0411, 0x01ee) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(0x0411, 0x01a8) },
->>>>>>> android-3.18
 	/* Corega */
 	{ USB_DEVICE(0x07aa, 0x002f) },
 	{ USB_DEVICE(0x07aa, 0x003c) },
@@ -1065,11 +1041,7 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x07d1, 0x3c17) },
 	{ USB_DEVICE(0x2001, 0x3317) },
 	{ USB_DEVICE(0x2001, 0x3c1b) },
-<<<<<<< HEAD
-	{ USB_DEVICE(0x2001, 0x3c1e) },
-=======
 	{ USB_DEVICE(0x2001, 0x3c25) },
->>>>>>> android-3.18
 	/* Draytek */
 	{ USB_DEVICE(0x07fa, 0x7712) },
 	/* DVICO */
@@ -1204,10 +1176,7 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x177f, 0x0302) },
 	{ USB_DEVICE(0x177f, 0x0313) },
 	{ USB_DEVICE(0x177f, 0x0323) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(0x177f, 0x0324) },
->>>>>>> android-3.18
 	/* U-Media */
 	{ USB_DEVICE(0x157e, 0x300e) },
 	{ USB_DEVICE(0x157e, 0x3013) },
@@ -1328,13 +1297,10 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x2001, 0x3c19) },
 	{ USB_DEVICE(0x2001, 0x3c1c) },
 	{ USB_DEVICE(0x2001, 0x3c1d) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(0x2001, 0x3c1e) },
 	{ USB_DEVICE(0x2001, 0x3c20) },
 	{ USB_DEVICE(0x2001, 0x3c22) },
 	{ USB_DEVICE(0x2001, 0x3c23) },
->>>>>>> android-3.18
 	/* LG innotek */
 	{ USB_DEVICE(0x043e, 0x7a22) },
 	{ USB_DEVICE(0x043e, 0x7a42) },
@@ -1389,10 +1355,7 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x0b05, 0x1760) },
 	{ USB_DEVICE(0x0b05, 0x1761) },
 	{ USB_DEVICE(0x0b05, 0x1790) },
-<<<<<<< HEAD
-=======
 	{ USB_DEVICE(0x0b05, 0x17a7) },
->>>>>>> android-3.18
 	/* AzureWave */
 	{ USB_DEVICE(0x13d3, 0x3262) },
 	{ USB_DEVICE(0x13d3, 0x3284) },
@@ -1413,17 +1376,11 @@ static struct usb_device_id rt2800usb_device_table[] = {
 	{ USB_DEVICE(0x18c5, 0x0008) },
 	/* D-Link */
 	{ USB_DEVICE(0x07d1, 0x3c0b) },
-<<<<<<< HEAD
-	{ USB_DEVICE(0x07d1, 0x3c17) },
-	/* Encore */
-	{ USB_DEVICE(0x203d, 0x14a1) },
-=======
 	/* Encore */
 	{ USB_DEVICE(0x203d, 0x14a1) },
 	/* EnGenius */
 	{ USB_DEVICE(0x1740, 0x0600) },
 	{ USB_DEVICE(0x1740, 0x0602) },
->>>>>>> android-3.18
 	/* Gemtek */
 	{ USB_DEVICE(0x15a9, 0x0010) },
 	/* Gigabyte */
