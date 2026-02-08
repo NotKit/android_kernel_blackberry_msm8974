@@ -25,7 +25,7 @@ int dwc3_host_init(struct dwc3 *dwc)
 	struct platform_device	*xhci;
 	struct usb_xhci_pdata	pdata;
 	int			ret;
-	struct xhci_plat_data	pdata;
+
 
 	xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
 	if (!xhci) {
@@ -40,9 +40,6 @@ int dwc3_host_init(struct dwc3 *dwc)
 	xhci->dev.dma_parms	= dwc->dev->dma_parms;
 
 	dwc->xhci = xhci;
-	pdata.vendor = ((dwc->revision & DWC3_GSNPSID_MASK) >>
-			__ffs(DWC3_GSNPSID_MASK) & DWC3_GSNPSREV_MASK);
-	pdata.revision = dwc->revision & DWC3_GSNPSREV_MASK;
 
 	ret = platform_device_add_resources(xhci, dwc->xhci_resources,
 						DWC3_XHCI_RESOURCES_NUM);
