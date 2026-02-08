@@ -391,7 +391,7 @@ static struct arm_pmu l2x0_pmu = {
 	.free_pmu_irq	= arm_l2_pmu_generic_free_irq,
 };
 
-static int __devinit l2x0pmu_device_probe(struct platform_device *pdev)
+static int  l2x0pmu_device_probe(struct platform_device *pdev)
 {
 	u32 aux = readl_relaxed(l2x0_base + L2X0_AUX_CTRL);
 	u32 debug = readl_relaxed(l2x0_base + L2X0_DEBUG_CTRL);

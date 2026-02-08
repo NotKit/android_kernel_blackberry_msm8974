@@ -620,7 +620,7 @@ static struct gpio_regulator_platform_data msm_gpio_regulator_pdata[] = {
 };
 
 /* GPIO regulator */
-static struct platform_device qrd_vreg_gpio_ext_2p85v __devinitdata = {
+static struct platform_device qrd_vreg_gpio_ext_2p85v data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 35,
 	.dev	= {
@@ -629,7 +629,7 @@ static struct platform_device qrd_vreg_gpio_ext_2p85v __devinitdata = {
 	},
 };
 
-static struct platform_device qrd_vreg_gpio_ext_1p8v __devinitdata = {
+static struct platform_device qrd_vreg_gpio_ext_1p8v data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 40,
 	.dev	= {
@@ -638,7 +638,7 @@ static struct platform_device qrd_vreg_gpio_ext_1p8v __devinitdata = {
 	},
 };
 
-static struct platform_device qrd_vreg_gpio_ext_2p85v_sku3 __devinitdata = {
+static struct platform_device qrd_vreg_gpio_ext_2p85v_sku3 data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 35,
 	.dev	= {
@@ -647,7 +647,7 @@ static struct platform_device qrd_vreg_gpio_ext_2p85v_sku3 __devinitdata = {
 	},
 };
 
-static struct platform_device qrd_vreg_gpio_ext_1p8v_sku3 __devinitdata = {
+static struct platform_device qrd_vreg_gpio_ext_1p8v_sku3 data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 34,
 	.dev	= {
@@ -656,7 +656,7 @@ static struct platform_device qrd_vreg_gpio_ext_1p8v_sku3 __devinitdata = {
 	},
 };
 
-static struct platform_device qrd_vreg_gpio_ext_1p8v_sku3_1 __devinitdata = {
+static struct platform_device qrd_vreg_gpio_ext_1p8v_sku3_1 data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 58,
 	.dev	= {

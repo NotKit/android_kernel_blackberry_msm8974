@@ -33,7 +33,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/workqueue.h>
 #include <linux/mutex.h>
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
 #include <asm/arch_timer.h>
 #include <mach/gpio.h>
 #include <mach/mpm.h>
@@ -214,10 +214,9 @@ static inline unsigned int msm_mpm_get_irq_m2a(unsigned int pin)
 
 static inline uint16_t msm_mpm_get_irq_a2m(struct irq_data *d)
 {
-	struct hlist_node *elem;
 	struct mpm_irqs_a2m *node = NULL;
 
-	hlist_for_each_entry(node, elem, &irq_hash[hashfn(d->hwirq)], node) {
+	hlist_for_each_entry(node, &irq_hash[hashfn(d->hwirq)], node) {
 		if ((node->hwirq == d->hwirq)
 				&& (d->domain == node->domain)) {
 			/*
@@ -229,7 +228,7 @@ static inline uint16_t msm_mpm_get_irq_a2m(struct irq_data *d)
 			break;
 		}
 	}
-	return elem ? node->pin : 0;
+	return node ? node->pin : 0;
 }
 
 static int msm_mpm_enable_irq_exclusive(
@@ -559,7 +558,7 @@ void msm_mpm_exit_sleep(bool from_idle)
 				irq_to_desc(apps_irq) : NULL;
 
 			if (desc && !irqd_is_level_type(&desc->irq_data)) {
-				irq_set_pending(apps_irq);
+				/* irq_set_pending(apps_irq); Removed in 3.18 */
 				if (from_idle) {
 					raw_spin_lock(&desc->lock);
 					check_irq_resend(desc, apps_irq);
@@ -624,7 +623,7 @@ static void msm_mpm_work_fn(struct work_struct *work)
 	}
 }
 
-static int __devinit msm_mpm_dev_probe(struct platform_device *pdev)
+static int  msm_mpm_dev_probe(struct platform_device *pdev)
 {
 	struct resource *res = NULL;
 	int offset, ret;
@@ -648,11 +647,11 @@ static int __devinit msm_mpm_dev_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	dev->mpm_request_reg_base = devm_request_and_ioremap(&pdev->dev, res);
+	dev->mpm_request_reg_base = devm_ioremap_resource(&pdev->dev, res);
 
-	if (!dev->mpm_request_reg_base) {
+	if (IS_ERR(dev->mpm_request_reg_base)) {
 		pr_err("%s(): Unable to iomap\n", __func__);
-		return -EADDRNOTAVAIL;
+		return PTR_ERR(dev->mpm_request_reg_base);
 	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ipc");
@@ -723,12 +722,12 @@ static int __devinit msm_mpm_dev_probe(struct platform_device *pdev)
 
 static inline int mpm_irq_domain_linear_size(struct irq_domain *d)
 {
-	return d->revmap_data.linear.size;
+	return d->revmap_size;
 }
 
 static inline int mpm_irq_domain_legacy_size(struct irq_domain *d)
 {
-	return d->revmap_data.legacy.size;
+	return d->revmap_size;
 }
 
 void __init of_mpm_init(struct device_node *node)

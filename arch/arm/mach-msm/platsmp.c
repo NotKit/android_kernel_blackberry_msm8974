@@ -17,7 +17,8 @@
 #include <linux/io.h>
 #include <linux/regulator/krait-regulator.h>
 
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
+
 #include <asm/cacheflush.h>
 #include <asm/cputype.h>
 #include <asm/mach-types.h>
@@ -40,7 +41,7 @@
  * control for which core is the next to come out of the secondary
  * boot "holding pen".
  */
-volatile int pen_release = -1;
+
 
 /*
  * Write pen_release in a way that is guaranteed to be visible to all
@@ -62,11 +63,9 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
 	WARN_ON(msm_platform_secondary_init(cpu));
 
 	/*
-	 * if any interrupts are already enabled for the primary
-	 * core (e.g. timer irq), then they will not have been enabled
-	 * for us: do so
+	 * GIC secondary CPU initialization is now handled by
+	 * the GIC driver via CPU notifiers in kernel 3.18.
 	 */
-	gic_secondary_init(0);
 
 	/*
 	 * let the primary processor know we're out of the
@@ -233,7 +232,7 @@ static int __cpuinit release_from_pen(unsigned int cpu)
 	 * the boot monitor to read the system wide flags register,
 	 * and branch to the address found there.
 	 */
-	gic_raise_softirq(cpumask_of(cpu), 1);
+	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
 
 	timeout = jiffies + (1 * HZ);
 	while (time_before(jiffies, timeout)) {
@@ -325,7 +324,7 @@ static void __init msm_smp_init_cpus(void)
 	for (i = 0; i < ncores; i++)
 		set_cpu_possible(i, true);
 
-	set_smp_cross_call(gic_raise_softirq);
+	/* Cross-call function is now set by GIC driver in gic_init_bases() */
 }
 
 static void __init arm_smp_init_cpus(void)
@@ -343,7 +342,7 @@ static void __init arm_smp_init_cpus(void)
 	for (i = 0; i < ncores; i++)
 		set_cpu_possible(i, true);
 
-	set_smp_cross_call(gic_raise_softirq);
+	/* Cross-call function is now set by GIC driver in gic_init_bases() */
 }
 
 static int cold_boot_flags[] __initdata = {

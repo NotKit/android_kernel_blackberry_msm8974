@@ -410,7 +410,7 @@ static void init_watchdog_work(struct work_struct *work)
 			dev_err(wdog_dd->dev, "fail to allocate cpu data\n");
 			return;
 		}
-		*__this_cpu_ptr(wdog_dd->wdog_cpu_dd) = wdog_dd;
+		*this_cpu_ptr(wdog_dd->wdog_cpu_dd) = wdog_dd;
 		ret = request_percpu_irq(wdog_dd->bark_irq, wdog_ppi_bark,
 					"apps_wdog_bark",
 					wdog_dd->wdog_cpu_dd);
@@ -459,7 +459,7 @@ static struct of_device_id msm_wdog_match_table[] = {
 	{}
 };
 
-static void __devinit dump_pdata(struct msm_watchdog_data *pdata)
+static void  dump_pdata(struct msm_watchdog_data *pdata)
 {
 	dev_dbg(pdata->dev, "wdog bark_time %d", pdata->bark_time);
 	dev_dbg(pdata->dev, "wdog pet_time %d", pdata->pet_time);
@@ -468,7 +468,7 @@ static void __devinit dump_pdata(struct msm_watchdog_data *pdata)
 								pdata->base);
 }
 
-static int __devinit msm_wdog_dt_to_pdata(struct platform_device *pdev,
+static int  msm_wdog_dt_to_pdata(struct platform_device *pdev,
 					struct msm_watchdog_data *pdata)
 {
 	struct device_node *node = pdev->dev.of_node;
@@ -516,12 +516,12 @@ static int __devinit msm_wdog_dt_to_pdata(struct platform_device *pdev,
 								__func__);
 		return -ENXIO;
 	}
-	pdata->irq_ppi = irq_is_per_cpu(pdata->bark_irq);
+	pdata->irq_ppi = irqd_is_per_cpu(irq_get_irq_data(pdata->bark_irq));
 	dump_pdata(pdata);
 	return 0;
 }
 
-static int __devinit msm_watchdog_probe(struct platform_device *pdev)
+static int  msm_watchdog_probe(struct platform_device *pdev)
 {
 	int ret;
 	struct msm_watchdog_data *wdog_dd;
@@ -569,7 +569,7 @@ static struct platform_driver msm_watchdog_driver = {
 	},
 };
 
-static int __devinit init_watchdog(void)
+static int  init_watchdog(void)
 {
 	return platform_driver_register(&msm_watchdog_driver);
 }

@@ -48,14 +48,14 @@ void clean_and_invalidate_caches(unsigned long vstart,
 void clean_caches(unsigned long vstart,
 	unsigned long length, unsigned long pstart)
 {
-	dmac_clean_range((void *)vstart, (void *) (vstart + length));
+	dmac_flush_range((void *)vstart, (void *) (vstart + length));
 	outer_clean_range(pstart, pstart + length);
 }
 
 void invalidate_caches(unsigned long vstart,
 	unsigned long length, unsigned long pstart)
 {
-	dmac_inv_range((void *)vstart, (void *) (vstart + length));
+	dmac_flush_range((void *)vstart, (void *) (vstart + length));
 	outer_inv_range(pstart, pstart + length);
 }
 
@@ -150,4 +150,3 @@ mem_reserve:
 out:
 	return 0;
 }
-

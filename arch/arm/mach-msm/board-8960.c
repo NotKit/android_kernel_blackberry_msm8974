@@ -2406,7 +2406,7 @@ static struct platform_device battery_bcl_device = {
 };
 #endif
 
-static struct platform_device msm8960_device_ext_5v_vreg __devinitdata = {
+static struct platform_device msm8960_device_ext_5v_vreg data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= PM8921_MPP_PM_TO_SYS(7),
 	.dev	= {
@@ -2414,7 +2414,7 @@ static struct platform_device msm8960_device_ext_5v_vreg __devinitdata = {
 	},
 };
 
-static struct platform_device msm8960_device_ext_l2_vreg __devinitdata = {
+static struct platform_device msm8960_device_ext_l2_vreg data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 91,
 	.dev	= {
@@ -2422,7 +2422,7 @@ static struct platform_device msm8960_device_ext_l2_vreg __devinitdata = {
 	},
 };
 
-static struct platform_device msm8960_device_ext_3p3v_vreg __devinitdata = {
+static struct platform_device msm8960_device_ext_3p3v_vreg data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= PM8921_GPIO_PM_TO_SYS(17),
 	.dev	= {
@@ -2431,7 +2431,7 @@ static struct platform_device msm8960_device_ext_3p3v_vreg __devinitdata = {
 	},
 };
 
-static struct platform_device msm8960_device_ext_otg_sw_vreg __devinitdata = {
+static struct platform_device msm8960_device_ext_otg_sw_vreg data = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= PM8921_GPIO_PM_TO_SYS(42),
 	.dev	= {
@@ -2440,7 +2440,7 @@ static struct platform_device msm8960_device_ext_otg_sw_vreg __devinitdata = {
 	},
 };
 
-static struct platform_device msm8960_device_rpm_regulator __devinitdata = {
+static struct platform_device msm8960_device_rpm_regulator data = {
 	.name	= "rpm-regulator",
 	.id	= -1,
 	.dev	= {

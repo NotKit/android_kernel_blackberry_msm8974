@@ -26,7 +26,7 @@
 #include <linux/msm_thermal.h>
 #include <linux/ion.h>
 #include <asm/mach/map.h>
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
 #include <asm/mach/map.h>
 #include <asm/mach/arch.h>
 #include <mach/board.h>
@@ -78,19 +78,14 @@ static struct resource ram_console_resources[] = {
 		.flags = IORESOURCE_MEM,
 	},
 };
-static struct platform_device ram_console_device = {
-	.name           = "ram_console",
-	.id             = -1,
-	.num_resources  = ARRAY_SIZE(ram_console_resources),
-	.resource       = ram_console_resources,
-};
+
+void __init ram_console_early_init(unsigned long start, unsigned long size);
+
 void __init ram_console_debug_init(void)
 {
-	int err;
-	err = platform_device_register(&ram_console_device);
-	if (err)
-		pr_err("%s: ram console registration failed (%d)!\n", __func__, err);
+	ram_console_early_init(ram.start, ram.size);
 }
+console_initcall(ram_console_debug_init);
 #endif
 
 void __init msm_8974_reserve(void)
@@ -115,7 +110,9 @@ void __init msm8974_add_drivers(void)
 	msm_pm_sleep_status_init();
 	rpm_regulator_smd_driver_init();
 	msm_spm_device_init();
+#ifdef CONFIG_KRAIT_REGULATOR
 	krait_power_init();
+#endif
 	if (of_board_is_rumi())
 		msm_clock_init(&msm8974_rumi_clock_init_data);
 	else
@@ -123,7 +120,7 @@ void __init msm8974_add_drivers(void)
 	tsens_tm_init_driver();
 	msm_thermal_device_init();
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
-	ram_console_debug_init();
+	/* ram_console_debug_init() is called via console_initcall */
 #endif
 }
 
@@ -204,8 +201,8 @@ DT_MACHINE_START(MSM8974_DT, "Qualcomm MSM 8974 (Flattened Device Tree)")
 	.map_io = msm8974_map_io,
 	.init_irq = msm_dt_init_irq,
 	.init_machine = msm8974_init,
-	.handle_irq = gic_handle_irq,
-	.timer = &msm_dt_timer,
+
+	.init_time = msm_dt_timer_init,
 	.dt_compat = msm8974_dt_match,
 	.reserve = msm_8974_reserve,
 	.restart = msm_restart,

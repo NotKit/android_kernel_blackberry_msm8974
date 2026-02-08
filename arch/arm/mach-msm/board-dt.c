@@ -20,7 +20,8 @@
 #include <asm/mach/time.h>
 #include <asm/mach/map.h>
 #include <asm/hardware/cache-l2x0.h>
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
+#include <linux/irqchip.h>
 #include <mach/mpm.h>
 #include <mach/qpnp-int.h>
 #include <mach/msm_iomap.h>
@@ -32,17 +33,26 @@
 #define L2CC_PL310_CTRL_ID	1
 #define L2CC_PL310_ON		1
 
-static void __init msm_dt_timer_init(void)
+#include <linux/clocksource.h>
+
+/* MSM-specific irqchip drivers not registered via IRQCHIP_DECLARE */
+int msm_gpio_of_init(struct device_node *node, struct device_node *parent);
+int qpnpint_of_init(struct device_node *node, struct device_node *parent);
+int wcd9xxx_irq_of_init(struct device_node *node, struct device_node *parent);
+
+void __init msm_dt_timer_init(void)
 {
-	arch_timer_of_register();
+	clocksource_of_init();
 }
 
-struct sys_timer msm_dt_timer = {
-	.init = msm_dt_timer_init
-};
+/* MSM-specific irqchip drivers - GIC is handled via irqchip_init() */
+static int __init msm_dummy_gic_init(struct device_node *node, struct device_node *parent)
+{
+	return 0;
+}
 
-static struct of_device_id irq_match[] __initdata  = {
-	{ .compatible = "qcom,msm-qgic2", .data = gic_of_init, },
+static struct of_device_id msm_irq_match[] __initdata  = {
+	{ .compatible = "qcom,msm-qgic2", .data = msm_dummy_gic_init, },
 	{ .compatible = "qcom,msm-gpio", .data = msm_gpio_of_init, },
 	{ .compatible = "qcom,spmi-pmic-arb", .data = qpnpint_of_init, },
 	{ .compatible = "qcom,wcd9xxx-irq", .data = wcd9xxx_irq_of_init, },
@@ -58,7 +68,11 @@ void __init msm_dt_init_irq(void)
 {
 	struct device_node *node;
 
-	of_irq_init(irq_match);
+	/* Initialize GIC via IRQCHIP_DECLARE mechanism */
+	irqchip_init();
+	/* Initialize MSM-specific irqchip drivers */
+	of_irq_init(msm_irq_match);
+
 	node = of_find_matching_node(NULL, mpm_match);
 
 	WARN_ON(!node);
@@ -69,7 +83,10 @@ void __init msm_dt_init_irq(void)
 
 void __init msm_dt_init_irq_nompm(void)
 {
-	of_irq_init(irq_match);
+	/* Initialize GIC via IRQCHIP_DECLARE mechanism */
+	irqchip_init();
+	/* Initialize MSM-specific irqchip drivers */
+	of_irq_init(msm_irq_match);
 }
 
 void __init msm_dt_init_irq_l2x0(void)

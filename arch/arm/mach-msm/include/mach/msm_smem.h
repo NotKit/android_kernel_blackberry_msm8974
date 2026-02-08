@@ -225,27 +225,27 @@ static inline void *smem_find(unsigned id, unsigned size)
 {
 	return NULL;
 }
-void *smem_alloc2_to_proc(unsigned id, unsigned size_in, unsigned to_proc,
+static inline void *smem_alloc2_to_proc(unsigned id, unsigned size_in, unsigned to_proc,
 								unsigned flags)
 {
 	return NULL;
 }
-static void *smem_alloc_to_proc(unsigned id, unsigned size, unsigned to_proc,
+static inline void *smem_alloc_to_proc(unsigned id, unsigned size, unsigned to_proc,
 								unsigned flags)
 {
 	return NULL;
 }
-static void *smem_find_to_proc(unsigned id, unsigned size_in, unsigned to_proc,
+static inline void *smem_find_to_proc(unsigned id, unsigned size_in, unsigned to_proc,
 								unsigned flags)
 {
 	return NULL;
 }
-static void *smem_get_entry_to_proc(unsigned id, unsigned *size,
+static inline void *smem_get_entry_to_proc(unsigned id, unsigned *size,
 					unsigned to_proc, unsigned flags)
 {
 	return NULL;
 }
-void *smem_get_entry_no_rlock(unsigned id, unsigned *size_out)
+static inline void *smem_get_entry_no_rlock(unsigned id, unsigned *size_out)
 {
 	return NULL;
 }
@@ -253,7 +253,7 @@ static inline phys_addr_t smem_virt_to_phys(void *smem_address)
 {
 	return (phys_addr_t) NULL;
 }
-static int __init msm_smem_init(void)
+static inline int __init msm_smem_init(void)
 {
 	return 0;
 }

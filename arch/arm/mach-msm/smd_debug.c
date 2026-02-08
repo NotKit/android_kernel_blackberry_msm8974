@@ -367,7 +367,7 @@ static int debug_test_smsm(char *buf, int max)
 
 		/* de-assert SMSM_SMD_INIT to trigger state update */
 		UT_EQ_INT(smsm_cb_data.cb_count, 0);
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_SMDINIT, 0x0);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
@@ -378,7 +378,7 @@ static int debug_test_smsm(char *buf, int max)
 		UT_EQ_INT((int)smsm_cb_data.data, 0x1234);
 
 		/* re-assert SMSM_SMD_INIT to trigger state update */
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, 0x0, SMSM_SMDINIT);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
@@ -392,7 +392,7 @@ static int debug_test_smsm(char *buf, int max)
 		UT_EQ_INT(ret, 2);
 
 		/* make sure state change doesn't cause any more callbacks */
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_SMDINIT, 0x0);
 		smsm_change_state(SMSM_APPS_STATE, 0x0, SMSM_SMDINIT);
 		UT_EQ_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
@@ -414,24 +414,24 @@ static int debug_test_smsm(char *buf, int max)
 		UT_EQ_INT(ret, 1);
 
 		/* verify both callback bits work */
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		UT_EQ_INT(smsm_cb_data.cb_count, 0);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_SMDINIT, 0x0);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
 		UT_EQ_INT(smsm_cb_data.cb_count, 1);
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, 0x0, SMSM_SMDINIT);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
 		UT_EQ_INT(smsm_cb_data.cb_count, 2);
 
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_INIT, 0x0);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
 		UT_EQ_INT(smsm_cb_data.cb_count, 3);
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, 0x0, SMSM_INIT);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
@@ -441,19 +441,19 @@ static int debug_test_smsm(char *buf, int max)
 		ret = smsm_state_cb_deregister(SMSM_APPS_STATE, SMSM_SMDINIT,
 				smsm_state_cb, (void *)0x1234);
 		UT_EQ_INT(ret, 1);
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_SMDINIT, 0x0);
 		smsm_change_state(SMSM_APPS_STATE, 0x0, SMSM_SMDINIT);
 		UT_EQ_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
 		UT_EQ_INT(smsm_cb_data.cb_count, 4);
 
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_INIT, 0x0);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
 		UT_EQ_INT(smsm_cb_data.cb_count, 5);
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, 0x0, SMSM_INIT);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
@@ -465,7 +465,7 @@ static int debug_test_smsm(char *buf, int max)
 		UT_EQ_INT(ret, 2);
 
 		/* make sure state change doesn't cause any more callbacks */
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_INIT, 0x0);
 		smsm_change_state(SMSM_APPS_STATE, 0x0, SMSM_INIT);
 		UT_EQ_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
@@ -487,7 +487,7 @@ static int debug_test_smsm(char *buf, int max)
 		UT_EQ_INT(ret, 0);
 
 		/* verify both callbacks work */
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		UT_EQ_INT(smsm_cb_data.cb_count, 0);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_SMDINIT, 0x0);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
@@ -495,7 +495,7 @@ static int debug_test_smsm(char *buf, int max)
 		UT_EQ_INT(smsm_cb_data.cb_count, 1);
 		UT_EQ_INT((int)smsm_cb_data.data, 0x1234);
 
-		INIT_COMPLETION(smsm_cb_completion);
+		reinit_completion(&smsm_cb_completion);
 		smsm_change_state(SMSM_APPS_STATE, SMSM_INIT, 0x0);
 		UT_GT_INT((int)wait_for_completion_timeout(&smsm_cb_completion,
 					msecs_to_jiffies(20)), 0);
@@ -764,11 +764,7 @@ static void debug_create(const char *name, umode_t mode,
 	debugfs_create_file(name, mode, dent, fill, &debug_ops);
 }
 
-<<<<<<< HEAD
 static int __init smd_debugfs_init(void)
-=======
-int __init smd_debugfs_init(void)
->>>>>>> android-3.18
 {
 	struct dentry *dent;
 
@@ -794,7 +790,6 @@ int __init smd_debugfs_init(void)
 	return 0;
 }
 
-<<<<<<< HEAD
 static int __init smsm_debugfs_init(void)
 {
 	struct dentry *dent;
@@ -816,8 +811,6 @@ static int __init smsm_debugfs_init(void)
 
 late_initcall(smd_debugfs_init);
 late_initcall(smsm_debugfs_init);
-=======
->>>>>>> android-3.18
 #endif
 
 

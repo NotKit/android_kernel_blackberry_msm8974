@@ -439,7 +439,7 @@ static void riva_crash_shutdown(const struct subsys_desc *desc)
 		smsm_change_state(SMSM_APPS_STATE, SMSM_RESET, SMSM_RESET);
 }
 
-static int __devinit pil_riva_probe(struct platform_device *pdev)
+static int  pil_riva_probe(struct platform_device *pdev)
 {
 	struct riva_data *drv;
 	struct resource *res;
@@ -555,7 +555,7 @@ err_smsm:
 	return ret;
 }
 
-static int __devexit pil_riva_remove(struct platform_device *pdev)
+static int  pil_riva_remove(struct platform_device *pdev)
 {
 	struct riva_data *drv = platform_get_drvdata(pdev);
 
@@ -570,7 +570,7 @@ static int __devexit pil_riva_remove(struct platform_device *pdev)
 
 static struct platform_driver pil_riva_driver = {
 	.probe = pil_riva_probe,
-	.remove = __devexit_p(pil_riva_remove),
+	.remove = _p(pil_riva_remove),
 	.driver = {
 		.name = "pil_riva",
 		.owner = THIS_MODULE,

@@ -15,6 +15,7 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/of.h>
+#include <linux/of_address.h>
 #include <linux/spmi.h>
 #include <linux/delay.h>
 
@@ -81,10 +82,10 @@ static int read_byte(struct spmi_device *spmi, u16 addr, u8 *val)
 {
 	int rc;
 
-	rc = spmi_ext_register_readl(spmi->ctrl, spmi->sid, addr, val, 1);
+	rc = spmi_ext_register_readl(spmi, addr, val, 1);
 	if (rc) {
 		pr_err("SPMI read failed [%d,0x%04x] rc=%d\n",
-							spmi->sid, addr, rc);
+							spmi->usid, addr, rc);
 		return rc;
 	}
 	return 0;
@@ -96,18 +97,16 @@ static int write_secure_byte(struct spmi_device *spmi, u16 base,
 	int rc;
 	u8 sec_val = 0xA5;
 
-	rc = spmi_ext_register_writel(spmi->ctrl, spmi->sid,
-					base + REG_SEC_ACCESS, &sec_val, 1);
+	rc = spmi_ext_register_writel(spmi, base + REG_SEC_ACCESS, &sec_val, 1);
 	if (rc) {
 		pr_err("SPMI write failed [%d,0x%04x] val = 0x%02x rc=%d\n",
-				spmi->sid, base + REG_SEC_ACCESS, sec_val, rc);
+				spmi->usid, base + REG_SEC_ACCESS, sec_val, rc);
 		return rc;
 	}
-	rc = spmi_ext_register_writel(spmi->ctrl, spmi->sid,
-					base + addr, val, 1);
+	rc = spmi_ext_register_writel(spmi, base + addr, val, 1);
 	if (rc) {
 		pr_err("SPMI write failed [%d,0x%04x] val = 0x%02x rc=%d\n",
-						spmi->sid, addr, *val, rc);
+						spmi->usid, addr, *val, rc);
 		return rc;
 	}
 	return 0;
@@ -171,7 +170,7 @@ int krait_pmic_post_pfm_entry(void)
 	rc = write_secure_byte(the_chip->spmi,
 			the_chip->ps_base, REG_PWM_CL, &setpoint);
 	pr_debug("wrote 0x%02x->[%d 0x%04x] rc = %d\n", setpoint,
-			the_chip->spmi->sid,
+			the_chip->spmi->usid,
 			the_chip->ps_base + REG_PWM_CL, rc);
 	return rc;
 }
@@ -204,7 +203,7 @@ int krait_pmic_post_pwm_entry(void)
 	rc = write_secure_byte(the_chip->spmi,
 			the_chip->ps_base, REG_PWM_CL, &setpoint);
 	pr_debug("wrote 0x%02x->[%d 0x%04x] rc = %d\n", setpoint,
-			the_chip->spmi->sid,
+			the_chip->spmi->usid,
 			the_chip->ps_base + REG_PWM_CL, rc);
 	return rc;
 }
@@ -303,13 +302,13 @@ static int gang_configuration_check(struct krait_vreg_pmic_chip *chip)
 	return 0;
 }
 
-static int __devinit krait_vreg_pmic_probe(struct spmi_device *spmi)
+static int krait_vreg_pmic_probe(struct spmi_device *spmi)
 {
 	u8 type, subtype;
 	int rc;
 	struct krait_vreg_pmic_chip *chip;
-	struct spmi_resource *spmi_resource;
-	struct resource *resource;
+	struct device_node *node;
+	struct resource resource;
 
 	chip = devm_kzalloc(&spmi->dev, sizeof *chip, GFP_KERNEL);
 	if (chip == NULL) {
@@ -319,22 +318,15 @@ static int __devinit krait_vreg_pmic_probe(struct spmi_device *spmi)
 
 	chip->spmi = spmi;
 
-	spmi_for_each_container_dev(spmi_resource, spmi) {
-		if (!spmi_resource) {
-			pr_err("spmi resource absent\n");
-			return -ENXIO;
-		}
-
-		resource = spmi_get_resource(spmi, spmi_resource,
-							IORESOURCE_MEM, 0);
-		if (!(resource && resource->start)) {
+	for_each_available_child_of_node(spmi->dev.of_node, node) {
+		if (of_address_to_resource(node, 0, &resource)) {
 			pr_err("node %s IO resource absent!\n",
-					spmi->dev.of_node->full_name);
+					node->full_name);
 			return -ENXIO;
 		}
 
 		rc = read_byte(chip->spmi,
-				resource->start + REG_PERPH_TYPE,
+				resource.start + REG_PERPH_TYPE,
 				&type);
 		if (rc) {
 			pr_err("Peripheral type read failed rc=%d\n", rc);
@@ -342,7 +334,7 @@ static int __devinit krait_vreg_pmic_probe(struct spmi_device *spmi)
 		}
 
 		rc = read_byte(chip->spmi,
-				resource->start + REG_PERPH_SUBTYPE,
+				resource.start + REG_PERPH_SUBTYPE,
 				&subtype);
 		if (rc) {
 			pr_err("Peripheral subtype read failed rc=%d\n", rc);
@@ -350,11 +342,11 @@ static int __devinit krait_vreg_pmic_probe(struct spmi_device *spmi)
 		}
 
 		if (type == CTRL_TYPE_VAL && subtype == CTRL_SUBTYPE_VAL)
-			chip->ctrl_base = resource->start;
+			chip->ctrl_base = resource.start;
 		else if (type == PS_TYPE_VAL && subtype == PS_SUBTYPE_VAL)
-			chip->ps_base = resource->start;
+			chip->ps_base = resource.start;
 		else if (type == FREQ_TYPE_VAL && subtype == FREQ_SUBTYPE_VAL)
-			chip->freq_base = resource->start;
+			chip->freq_base = resource.start;
 	}
 
 	if (chip->ctrl_base == 0) {

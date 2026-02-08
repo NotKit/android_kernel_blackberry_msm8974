@@ -1197,7 +1197,7 @@ static void glb_init(void __iomem *apcs_gcc_base)
 		writel_relaxed(0x0008736E, apcs_gcc_base + PWR_GATE_CONFIG);
 }
 
-static int __devinit krait_power_probe(struct platform_device *pdev)
+static int  krait_power_probe(struct platform_device *pdev)
 {
 	struct krait_power_vreg *kvreg;
 	struct resource *res, *res_mdd;
@@ -1366,8 +1366,15 @@ static int __devinit krait_power_probe(struct platform_device *pdev)
 
 	per_cpu(krait_vregs, cpu_num) = kvreg;
 
-	kvreg->rdev = regulator_register(&kvreg->desc, &pdev->dev, init_data,
-					 kvreg, pdev->dev.of_node);
+	{
+		struct regulator_config config = {
+			.dev = &pdev->dev,
+			.init_data = init_data,
+			.driver_data = kvreg,
+			.of_node = pdev->dev.of_node,
+		};
+		kvreg->rdev = regulator_register(&kvreg->desc, &config);
+	}
 	if (IS_ERR(kvreg->rdev)) {
 		rc = PTR_ERR(kvreg->rdev);
 		pr_err("regulator_register failed, rc=%d.\n", rc);
@@ -1386,7 +1393,7 @@ out:
 	return rc;
 }
 
-static int __devexit krait_power_remove(struct platform_device *pdev)
+static int  krait_power_remove(struct platform_device *pdev)
 {
 	struct krait_power_vreg *kvreg = platform_get_drvdata(pdev);
 	struct pmic_gang_vreg *pvreg = kvreg->pvreg;
@@ -1407,7 +1414,7 @@ static struct of_device_id krait_power_match_table[] = {
 
 static struct platform_driver krait_power_driver = {
 	.probe	= krait_power_probe,
-	.remove	= __devexit_p(krait_power_remove),
+	.remove	= krait_power_remove,
 	.driver	= {
 		.name		= KRAIT_REGULATOR_DRIVER_NAME,
 		.of_match_table	= krait_power_match_table,
@@ -1440,7 +1447,7 @@ static struct syscore_ops boot_cpu_mdd_ops = {
 	.resume		= boot_cpu_mdd_on,
 };
 
-static int __devinit krait_pdn_phase_scaling_init(struct pmic_gang_vreg *pvreg,
+static int  krait_pdn_phase_scaling_init(struct pmic_gang_vreg *pvreg,
 				struct platform_device *pdev)
 {
 	struct resource *res;
@@ -1528,7 +1535,7 @@ static int __devinit krait_pdn_phase_scaling_init(struct pmic_gang_vreg *pvreg,
 	return 0;
 }
 
-static int __devinit krait_pdn_probe(struct platform_device *pdev)
+static int  krait_pdn_probe(struct platform_device *pdev)
 {
 	int rc;
 	bool use_phase_switching = false;
@@ -1605,7 +1612,7 @@ static int __devinit krait_pdn_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int __devexit krait_pdn_remove(struct platform_device *pdev)
+static int  krait_pdn_remove(struct platform_device *pdev)
 {
 	the_gang = NULL;
 	debugfs_remove_recursive(dent);
@@ -1614,7 +1621,7 @@ static int __devexit krait_pdn_remove(struct platform_device *pdev)
 
 static struct platform_driver krait_pdn_driver = {
 	.probe	= krait_pdn_probe,
-	.remove	= __devexit_p(krait_pdn_remove),
+	.remove	= krait_pdn_remove,
 	.driver	= {
 		.name		= KRAIT_PDN_DRIVER_NAME,
 		.of_match_table	= krait_pdn_match_table,

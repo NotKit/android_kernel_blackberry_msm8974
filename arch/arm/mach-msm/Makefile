@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 CFLAGS_scm.o :=$(call as-instr,.arch_extension sec,-DREQUIRES_SEC=1)
 
 obj-y += io.o dma.o memory.o
@@ -8,7 +7,7 @@ endif
 obj-y += clock.o clock-voter.o clock-dummy.o clock-generic.o
 obj-y += modem_notifier.o
 obj-$(CONFIG_USE_OF) += board-dt.o
-obj-$(CONFIG_DEBUG_FS) += nohlt.o clock-debug.o
+obj-$(CONFIG_DEBUG_FS) += clock-debug.o
 obj-$(CONFIG_KEXEC) += msm_kexec.o
 
 obj-$(CONFIG_MSM_PROC_COMM) += proc_comm.o
@@ -22,14 +21,12 @@ endif
 		obj-$(CONFIG_DEBUG_FS) += pmic_debugfs.o
 	endif
 endif
-=======
 obj-$(CONFIG_MSM_PROC_COMM) += clock.o
 
 obj-$(CONFIG_MSM_VIC) += irq-vic.o
 
 obj-$(CONFIG_ARCH_MSM7X00A) += irq.o
 obj-$(CONFIG_ARCH_QSD8X50) += sirc.o
->>>>>>> android-3.18
 
 obj-y += acpuclock.o
 obj-$(CONFIG_MSM_CORTEX_A7) += clock-a7.o
@@ -47,11 +44,10 @@ obj-$(CONFIG_ARCH_MSM7X27A) += perf_event_msm_pl310.o
 obj-$(CONFIG_ARCH_MSM9625) += perf_event_msm_pl310.o
 obj-$(CONFIG_ARCH_MSM8625) += perf_event_msm_pl310.o
 obj-$(CONFIG_ARCH_MSM9615) += perf_event_msm_pl310.o
-obj-$(CONFIG_ARCH_MSM_KRAIT) += perf_event_msm_krait_l2.o
+#obj-$(CONFIG_ARCH_MSM_KRAIT) += perf_event_msm_krait_l2.o
 obj-$(CONFIG_DEBUG_FS) += perf_debug.o
 endif
 
-<<<<<<< HEAD
 ifndef CONFIG_MSM_SMP
 obj-$(CONFIG_ARCH_MSM_SCORPION) += msm_fault_handlers.o
 endif
@@ -431,7 +427,6 @@ obj-$(CONFIG_WALL_CLK_SYSFS) += wallclk_sysfs.o
 obj-$(CONFIG_HAS_MACH_MEMUTILS) += memutils/
 obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 obj-$(CONFIG_PERFMAP) += perfmap.o
-=======
 obj-$(CONFIG_ARCH_MSM7X00A) += dma.o io.o
 obj-$(CONFIG_ARCH_MSM7X30) += dma.o io.o
 obj-$(CONFIG_ARCH_QSD8X50) += dma.o io.o
@@ -446,4 +441,3 @@ obj-$(CONFIG_ARCH_MSM7X30) += board-msm7x30.o devices-msm7x30.o
 obj-$(CONFIG_ARCH_QSD8X50) += board-qsd8x50.o devices-qsd8x50.o
 obj-$(CONFIG_MSM_GPIOMUX) += gpiomux.o
 obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
->>>>>>> android-3.18

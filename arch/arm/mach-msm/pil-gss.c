@@ -474,7 +474,7 @@ const struct file_operations gss_file_ops = {
 	.owner = THIS_MODULE,
 };
 
-static int __devinit pil_gss_probe(struct platform_device *pdev)
+static int  pil_gss_probe(struct platform_device *pdev)
 {
 	struct gss_data *drv;
 	struct resource *res;
@@ -591,7 +591,7 @@ err_subsys:
 	return ret;
 }
 
-static int __devexit pil_gss_remove(struct platform_device *pdev)
+static int  pil_gss_remove(struct platform_device *pdev)
 {
 	struct gss_data *drv = platform_get_drvdata(pdev);
 
@@ -606,7 +606,7 @@ static int __devexit pil_gss_remove(struct platform_device *pdev)
 
 static struct platform_driver pil_gss_driver = {
 	.probe = pil_gss_probe,
-	.remove = __devexit_p(pil_gss_remove),
+	.remove = _p(pil_gss_remove),
 	.driver = {
 		.name = "pil_gss",
 		.owner = THIS_MODULE,

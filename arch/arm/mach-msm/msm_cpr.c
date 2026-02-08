@@ -876,7 +876,7 @@ void msm_cpr_enable(void)
 }
 EXPORT_SYMBOL(msm_cpr_enable);
 
-static int __devinit msm_cpr_probe(struct platform_device *pdev)
+static int  msm_cpr_probe(struct platform_device *pdev)
 {
 	int res, irqn, irq_enabled;
 	struct msm_cpr *cpr;
@@ -1031,7 +1031,7 @@ out:
 	return res;
 }
 
-static int __devexit msm_cpr_remove(struct platform_device *pdev)
+static int  msm_cpr_remove(struct platform_device *pdev)
 {
 	struct msm_cpr *cpr = platform_get_drvdata(pdev);
 
@@ -1054,7 +1054,7 @@ static const struct dev_pm_ops msm_cpr_dev_pm_ops = {
 
 static struct platform_driver msm_cpr_driver = {
 	.probe = msm_cpr_probe,
-	.remove = __devexit_p(msm_cpr_remove),
+	.remove = _p(msm_cpr_remove),
 	.driver = {
 		.name = MODULE_NAME,
 		.owner = THIS_MODULE,

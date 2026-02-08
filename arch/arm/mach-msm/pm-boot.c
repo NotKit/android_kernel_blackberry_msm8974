@@ -22,7 +22,7 @@
 static void (*msm_pm_boot_before_pc)(unsigned int cpu, unsigned long entry);
 static void (*msm_pm_boot_after_pc)(unsigned int cpu);
 
-static int __devinit msm_pm_tz_boot_init(void)
+static int msm_pm_tz_boot_init(void)
 {
 	unsigned int flag = 0;
 	if (num_possible_cpus() == 1)
@@ -42,9 +42,8 @@ static void msm_pm_write_boot_vector(unsigned int cpu, unsigned long address)
 {
 	msm_pm_boot_vector[cpu] = address;
 
-	dmac_clean_range((void *)&msm_pm_boot_vector[cpu],
-			(void *)(&msm_pm_boot_vector[cpu] +
-				sizeof(msm_pm_boot_vector[cpu])));
+	__cpuc_flush_dcache_area(&msm_pm_boot_vector[cpu],
+			sizeof(msm_pm_boot_vector[cpu]));
 }
 
 static void msm_pm_config_tz_before_pc(unsigned int cpu,

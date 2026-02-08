@@ -115,7 +115,6 @@
 #define MSM_AD5_PHYS          0xAC000000
 #define MSM_AD5_SIZE          (SZ_1M*13)
 
-<<<<<<< HEAD
 #define MSM_VFE_PHYS          0xA0F00000
 #define MSM_VFE_SIZE          SZ_1M
 
@@ -134,6 +133,4 @@
 #define MSM_GCC_SIZE          SZ_4K
 #endif
 
-=======
->>>>>>> android-3.18
 #endif
