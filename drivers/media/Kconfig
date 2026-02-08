@@ -152,6 +152,8 @@ source "drivers/media/dvb-core/Kconfig"
 comment "Media drivers"
 source "drivers/media/rc/Kconfig"
 
+source "drivers/media/platform/Kconfig"
+
 #
 # V4L platform/mem2mem drivers
 #

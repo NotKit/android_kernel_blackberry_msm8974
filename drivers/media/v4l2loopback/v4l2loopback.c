@@ -40,7 +40,7 @@
 #include "v4l2loopback.h"
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 1)
-#define kstrtoul strict_strtoul
+/* kstrtoul is standard in 3.18 */
 #endif
 
 #if defined(timer_setup) && defined(from_timer)
