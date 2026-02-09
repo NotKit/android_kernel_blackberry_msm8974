@@ -1157,8 +1157,8 @@ fail:
 	return len;
 }
 
-static int msm_iommu_map_range(struct iommu_domain *domain, unsigned long va,
-			       struct scatterlist *sg, size_t len,
+static int msm_iommu_map_range(struct iommu_domain *domain, unsigned int va,
+			       struct scatterlist *sg, unsigned int len,
 			       int prot)
 {
 	int ret;
@@ -1181,8 +1181,8 @@ fail:
 }
 
 
-static int msm_iommu_unmap_range(struct iommu_domain *domain, unsigned long va,
-				 size_t len)
+static int msm_iommu_unmap_range(struct iommu_domain *domain, unsigned int va,
+				 unsigned int len)
 {
 	struct msm_iommu_priv *priv;
 	unsigned long flags;
@@ -1691,8 +1691,8 @@ static struct iommu_ops msm_iommu_ops = {
 	.detach_dev = msm_iommu_detach_dev,
 	.map = msm_iommu_map,
 	.unmap = msm_iommu_unmap,
-	/* .map_range = msm_iommu_map_range, */  /* Signature mismatch with 3.18 */
-	/* .unmap_range = msm_iommu_unmap_range, */  /* Signature mismatch with 3.18 */
+	.map_range = msm_iommu_map_range,
+	.unmap_range = msm_iommu_unmap_range,
 	/* .map_sg = msm_iommu_map_sg, */  /* Not in 3.18 iommu_ops */
 	.iova_to_phys = msm_iommu_iova_to_phys,
 	/* .domain_has_cap = msm_iommu_domain_has_cap, */  /* Not in 3.18 iommu_ops */
