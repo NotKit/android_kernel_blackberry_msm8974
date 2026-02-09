@@ -18,6 +18,7 @@
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
 #include <linux/interrupt.h>
+#include <linux/irq.h>
 #include <linux/workqueue.h>
 #include <linux/dma-buf.h>
 #include <linux/vmalloc.h>
@@ -4573,15 +4574,23 @@ int kgsl_device_platform_probe(struct kgsl_device *device)
 		goto error_pwrctrl_close;
 	}
 
+	/*
+	 * Use IRQ_NOAUTOEN to prevent the interrupt from being enabled in
+	 * the GIC during request_irq. Enabling it here can cause a spinlock
+	 * deadlock on irq_controller_lock when racing with GIC operations
+	 * on other CPUs. The IRQ will be enabled later when the GPU is
+	 * powered on.
+	 */
+	irq_set_status_flags(device->pwrctrl.interrupt_num, IRQ_NOAUTOEN);
 	status = devm_request_irq(device->dev, device->pwrctrl.interrupt_num,
-				  kgsl_irq_handler, IRQF_TRIGGER_HIGH,
+				  kgsl_irq_handler, 0,
 				  device->name, device);
 	if (status) {
 		KGSL_DRV_ERR(device, "request_irq(%d) failed: %d\n",
 			      device->pwrctrl.interrupt_num, status);
 		goto error_pwrctrl_close;
 	}
-	disable_irq(device->pwrctrl.interrupt_num);
+	/* IRQ is already disabled via IRQ_NOAUTOEN */
 
 	KGSL_DRV_INFO(device,
 		"dev_id %d regs phys 0x%08lx size 0x%08x\n",
