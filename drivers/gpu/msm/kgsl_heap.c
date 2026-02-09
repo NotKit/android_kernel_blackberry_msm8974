@@ -31,6 +31,7 @@
 #include <linux/security.h>
 #include <linux/compat.h>
 #include <asm/cacheflush.h>
+#include <linux/highmem.h>
 
 #include "kgsl.h"
 #include "kgsl_debugfs.h"
@@ -301,31 +302,38 @@ void kgsl_heap_free(struct page *page)
 	free_buffer_page(page, order);
 }
 
-static int kgsl_heap_shrink(struct shrinker *shrinker, struct shrink_control *sc)
+static unsigned long kgsl_heap_count(struct shrinker *shrinker,
+				struct shrink_control *sc)
+{
+	int i;
+	unsigned long nr_total = 0;
+
+	for (i = 0; i < num_orders; i++) {
+		struct kgsl_page_pool *pool = kgsl_heap.pools[i];
+		nr_total += kgsl_page_pool_shrink(pool, sc->gfp_mask, 0);
+	}
+
+	return nr_total;
+}
+
+static unsigned long kgsl_heap_scan(struct shrinker *shrinker,
+				struct shrink_control *sc)
 {
 	int nr_to_scan = sc->nr_to_scan;
-	int nr_total = 0;
+	unsigned long nr_total = 0;
 	int i, nr_freed;
-	int only_scan = 0;
-
-	if (!nr_to_scan)
-		only_scan = 1;
 
 	for (i = 0; i < num_orders; i++) {
 		struct kgsl_page_pool *pool = kgsl_heap.pools[i];
 
 		nr_freed = kgsl_page_pool_shrink(pool, sc->gfp_mask, nr_to_scan);
 		nr_total += nr_freed;
-
-		if (!only_scan) {
-			nr_to_scan -= nr_freed;
-			if (nr_to_scan <= 0)
-				break;
-		}
+		nr_to_scan -= nr_freed;
+		if (nr_to_scan <= 0)
+			break;
 	}
 
 	return nr_total;
-	return 0;
 }
 
 
@@ -345,7 +353,8 @@ int kgsl_heap_init(void)
 		kgsl_heap.pools[i] = pool;
 	}
 
-	kgsl_heap.shrinker.shrink = kgsl_heap_shrink;
+	kgsl_heap.shrinker.count_objects = kgsl_heap_count;
+	kgsl_heap.shrinker.scan_objects = kgsl_heap_scan;
 	kgsl_heap.shrinker.seeks = DEFAULT_SEEKS;
 	kgsl_heap.shrinker.batch = 0;
 	register_shrinker(&kgsl_heap.shrinker);

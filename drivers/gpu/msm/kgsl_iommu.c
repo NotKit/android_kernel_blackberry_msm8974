@@ -34,6 +34,12 @@
 #include "kgsl_trace.h"
 #include "kgsl_cffdump.h"
 
+/*
+ * Compat: iommu_get_pt_base_addr is implemented in MSM IOMMU drivers
+ * but not declared in the 3.18 iommu.h when CONFIG_IOMMU_API=y.
+ */
+extern phys_addr_t iommu_get_pt_base_addr(struct iommu_domain *domain);
+
 
 static struct kgsl_iommu_register_list kgsl_iommuv0_reg[KGSL_IOMMU_REG_MAX] = {
 	{ 0, 0 },			/* GLOBAL_BASE */

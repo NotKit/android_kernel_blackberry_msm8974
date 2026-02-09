@@ -1605,7 +1605,7 @@ adreno_ocmem_gmem_free(struct adreno_device *adreno_dev)
 }
 #endif
 
-static int __devinit
+static int
 adreno_probe(struct platform_device *pdev)
 {
 	struct kgsl_device *device;
@@ -1676,7 +1676,7 @@ error_return:
 	return status;
 }
 
-static int __devexit adreno_remove(struct platform_device *pdev)
+static int adreno_remove(struct platform_device *pdev)
 {
 	struct kgsl_device *device;
 	struct adreno_device *adreno_dev;
@@ -2779,7 +2779,7 @@ int adreno_idle(struct kgsl_device *device)
  */
 static int adreno_drain(struct kgsl_device *device)
 {
-	INIT_COMPLETION(device->cmdbatch_gate);
+	reinit_completion(&device->cmdbatch_gate);
 
 	return 0;
 }
@@ -3171,7 +3171,7 @@ static const struct kgsl_functable adreno_functable = {
 
 static struct platform_driver adreno_platform_driver = {
 	.probe = adreno_probe,
-	.remove = __devexit_p(adreno_remove),
+	.remove = adreno_remove,
 	.suspend = kgsl_suspend_driver,
 	.resume = kgsl_resume_driver,
 	.id_table = adreno_id_table,

@@ -17,6 +17,26 @@
 #include <linux/slab.h>
 #include <linux/kmemleak.h>
 #include <linux/highmem.h>
+#include <linux/mm.h>
+#include <linux/dma-direction.h>
+
+/*
+ * Compat: VM_RESERVED was removed in 3.7+, replaced by VM_DONTDUMP.
+ * dmac_clean_range/dmac_inv_range were replaced by dmac_map_area/dmac_unmap_area.
+ */
+#ifndef VM_RESERVED
+#define VM_RESERVED VM_DONTDUMP
+#endif
+
+static inline void dmac_clean_range(const void *start, const void *end)
+{
+	dmac_map_area(start, (size_t)(end - start), DMA_TO_DEVICE);
+}
+
+static inline void dmac_inv_range(const void *start, const void *end)
+{
+	dmac_unmap_area(start, (size_t)(end - start), DMA_FROM_DEVICE);
+}
 
 #include "kgsl.h"
 #include "kgsl_sharedmem.h"

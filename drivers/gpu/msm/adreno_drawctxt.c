@@ -31,21 +31,20 @@ static void wait_callback(struct kgsl_device *device,
 
 #define adreno_wait_event_interruptible_timeout(wq, condition, timeout, io)   \
 ({                                                                            \
-	long __ret = timeout;                                                 \
+	long __ret;                                                           \
 	if (io)                                                               \
-		__wait_io_event_interruptible_timeout(wq, condition, __ret);  \
+		__ret = wait_io_event_interruptible_timeout(wq, condition,    \
+							    timeout);         \
 	else                                                                  \
-		__wait_event_interruptible_timeout(wq, condition, __ret);     \
+		__ret = wait_event_interruptible_timeout(wq, condition,       \
+							 timeout);            \
 	__ret;                                                                \
 })
 
 #define adreno_wait_event_interruptible(wq, condition, io)                    \
 ({                                                                            \
 	long __ret;                                                           \
-	if (io)                                                               \
-		__wait_io_event_interruptible(wq, condition, __ret);          \
-	else                                                                  \
-		__wait_event_interruptible(wq, condition, __ret);             \
+	__ret = wait_event_interruptible(wq, condition);                      \
 	__ret;                                                                \
 })
 

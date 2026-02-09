@@ -15,6 +15,8 @@
 #include <linux/file.h>
 #include <linux/fs.h>
 #include <linux/list.h>
+#include <linux/idr.h>
+#include <linux/completion.h>
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
 #include <linux/interrupt.h>
@@ -33,6 +35,20 @@
 #include <linux/sort.h>
 #include <linux/security.h>
 #include <asm/cacheflush.h>
+
+/*
+ * Compat: pgprot_writethroughcache and pgprot_writebackcache were removed
+ * from arch/arm pgtable.h after 3.4. Re-define them using the underlying
+ * L_PTE constants which still exist.
+ */
+#ifndef pgprot_writethroughcache
+#define pgprot_writethroughcache(prot) \
+	__pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_WRITETHROUGH)
+#endif
+#ifndef pgprot_writebackcache
+#define pgprot_writebackcache(prot) \
+	__pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_WRITEBACK)
+#endif
 
 #include "kgsl.h"
 #include "kgsl_debugfs.h"
@@ -441,23 +457,17 @@ kgsl_mem_entry_attach_process(struct kgsl_mem_entry *entry,
 	if (!ret)
 		return -EBADF;
 
-	while (1) {
-		if (idr_pre_get(&process->mem_idr, GFP_KERNEL) == 0) {
-			ret = -ENOMEM;
-			goto err_put_proc_priv;
-		}
-
-		spin_lock(&process->mem_lock);
-		/* Allocate the ID but don't attach the pointer just yet */
-		ret = idr_get_new_above(&process->mem_idr, NULL, 1,
-					&entry->id);
-		spin_unlock(&process->mem_lock);
-
-		if (ret == 0)
-			break;
-		else if (ret != -EAGAIN)
-			goto err_put_proc_priv;
+	/* Preload idr allocations to avoid sleeping with lock held */
+	idr_preload(GFP_KERNEL);
+	spin_lock(&process->mem_lock);
+	ret = idr_alloc(&process->mem_idr, NULL, 1, 0, GFP_KERNEL);
+	spin_unlock(&process->mem_lock);
+	idr_preload_end();
+	if (ret < 0) {
+		ret = -ENOMEM;
+		goto err_put_proc_priv;
 	}
+	entry->id = ret;
 	entry->priv = process;
 	entry->dev_priv = dev_priv;
 
@@ -551,24 +561,18 @@ int kgsl_context_init(struct kgsl_device_private *dev_priv,
 	int ret = 0, id;
 	struct kgsl_device *device = dev_priv->device;
 
-	while (1) {
-		if (idr_pre_get(&device->context_idr, GFP_KERNEL) == 0) {
-			KGSL_DRV_INFO(device, "idr_pre_get: ENOMEM\n");
-			ret = -ENOMEM;
-			break;
-		}
+	idr_preload(GFP_KERNEL);
+	write_lock(&device->context_lock);
+	id = idr_alloc(&device->context_idr, context, 1, 0, GFP_NOWAIT);
+	write_unlock(&device->context_lock);
+	idr_preload_end();
 
-		write_lock(&device->context_lock);
-		ret = idr_get_new_above(&device->context_idr, context, 1, &id);
-		context->id = id;
-		write_unlock(&device->context_lock);
-
-		if (ret != -EAGAIN)
-			break;
-	}
-
-	if (ret)
+	if (id < 0) {
+		KGSL_DRV_INFO(device, "idr_alloc: ENOMEM\n");
+		ret = id;
 		goto fail;
+	}
+	context->id = id;
 
 	/* MAX - 1, there is one memdesc in memstore for device info */
 	if (id >= KGSL_MEMSTORE_MAX) {
@@ -766,7 +770,7 @@ static int kgsl_suspend_device(struct kgsl_device *device, pm_message_t state)
 			/* make sure power is on to stop the device */
 			kgsl_pwrctrl_enable(device);
 			/* Get the completion ready to be waited upon. */
-			INIT_COMPLETION(device->hwaccess_gate);
+			reinit_completion(&device->hwaccess_gate);
 			device->ftbl->suspend_context(device);
 			device->ftbl->stop(device);
 			pm_qos_update_request(&device->pwrctrl.pm_qos_req_dma,
@@ -774,7 +778,7 @@ static int kgsl_suspend_device(struct kgsl_device *device, pm_message_t state)
 			kgsl_pwrctrl_set_state(device, KGSL_STATE_SUSPEND);
 			break;
 		case KGSL_STATE_SLUMBER:
-			INIT_COMPLETION(device->hwaccess_gate);
+			reinit_completion(&device->hwaccess_gate);
 			kgsl_pwrctrl_set_state(device, KGSL_STATE_SUSPEND);
 			break;
 		default:
@@ -4688,7 +4692,7 @@ void kgsl_device_platform_remove(struct kgsl_device *device)
 }
 EXPORT_SYMBOL(kgsl_device_platform_remove);
 
-static int __devinit
+static int
 kgsl_ptdata_init(void)
 {
 	kgsl_driver.ptpool = kgsl_mmu_ptpool_init(kgsl_pagetable_count);
