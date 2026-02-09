@@ -1585,6 +1585,12 @@ static phys_addr_t msm_iommu_get_pt_base_addr(struct iommu_domain *domain)
 	return __pa(priv->pt.fl_table);
 }
 
+phys_addr_t iommu_get_pt_base_addr(struct iommu_domain *domain)
+{
+	return msm_iommu_get_pt_base_addr(domain);
+}
+EXPORT_SYMBOL(iommu_get_pt_base_addr);
+
 #define DUMP_REG_INIT(dump_reg, cb_reg, mbp, drt)		\
 	do {							\
 		dump_regs_tbl[dump_reg].reg_offset = cb_reg;	\
