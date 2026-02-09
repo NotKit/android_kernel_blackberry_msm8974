@@ -1279,6 +1279,24 @@ config MSM_NOPM
 	default y if !PM
 	bool
 
+config MSM_BUS_SCALING
+	bool "Bus scaling driver"
+	default n
+
+config MSM_BUS_RPM_MULTI_TIER_ENABLED
+	bool "RPM Multi-tiering Configuration"
+	depends on MSM_BUS_SCALING
+
+config MSM_BUSPM_DEV
+	tristate "MSM Bus Performance Monitor Kernel Module"
+	depends on MSM_BUS_SCALING
+	default n
+	help
+	  This kernel module is used to mmap() hardware registers for the
+	  performance monitors, counters, etc. The module can also be used to
+	  allocate physical memory which is used by bus performance hardware to
+	  dump performance data.
+
 config MSM_IPC_LOGGING
 	bool "MSM Debug Logging for IPC Drivers"
 	help

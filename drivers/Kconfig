@@ -190,4 +190,6 @@ source "drivers/switch/Kconfig"
 
 source "drivers/gpu/ion/Kconfig"
 
+source "drivers/gpu/msm/Kconfig"
+
 endmenu
