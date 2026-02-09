@@ -139,6 +139,7 @@ static int __init cma_fdt_scan(unsigned long node, const char *uname,
 	struct cma *cma = NULL;
 	unsigned long size_cells = OF_ROOT_NODE_SIZE_CELLS_DEFAULT;
 	unsigned long addr_cells = OF_ROOT_NODE_ADDR_CELLS_DEFAULT;
+	bool remove;
 
 	if (!of_get_flat_dt_prop(node, "linux,reserve-contiguous-region", NULL))
 		return 0;
@@ -159,6 +160,39 @@ static int __init cma_fdt_scan(unsigned long node, const char *uname,
 	size = dt_mem_next_cell(size_cells, &prop);
 
 	name = of_get_flat_dt_prop(node, "label", NULL);
+	remove = !!of_get_flat_dt_prop(node,
+			"linux,remove-completely", NULL);
+
+	/*
+	 * Regions with linux,remove-completely are for PIL firmware
+	 * (modem, WCNSS, etc.) and must be completely removed from the
+	 * memory map — matching the 3.4 kernel behaviour. Don't create
+	 * CMA areas for them; just reserve and remove from memblock.
+	 */
+	if (remove && base) {
+		if (!memblock_is_region_reserved(base, size) &&
+		    memblock_reserve(base, size) == 0) {
+			memblock_free(base, size);
+			memblock_remove(base, size);
+			pr_info("Removed legacy area %s at %pa, size %pa\n",
+				name ? name : "(unnamed)", &base, &size);
+		} else {
+			pr_err("Failed to remove area %s at %pa, size %pa\n",
+				name ? name : "(unnamed)", &base, &size);
+		}
+		/*
+		 * Still register a label map so PIL drivers can look it up,
+		 * but with a NULL cma (they access physical memory directly).
+		 */
+		if (cma_label_map_count < MAX_CMA_LABEL_MAPS && name) {
+			strlcpy(cma_label_maps[cma_label_map_count].label,
+				name,
+				sizeof(cma_label_maps[cma_label_map_count].label));
+			cma_label_maps[cma_label_map_count].cma = NULL;
+			cma_label_map_count++;
+		}
+		return 0;
+	}
 
 	if (dma_contiguous_reserve_area(size, base, 0, &cma, base != 0) == 0) {
 		if (cma_label_map_count < MAX_CMA_LABEL_MAPS && name) {
