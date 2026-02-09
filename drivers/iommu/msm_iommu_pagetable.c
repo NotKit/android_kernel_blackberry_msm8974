@@ -294,7 +294,13 @@ static phys_addr_t __get_phys_sg(void *cookie)
 	struct scatterlist *sg = cookie;
 	struct page *page = sg_page(sg);
 
-	BUG_ON(page == NULL);
+	/*
+	 * Some callers (e.g. kgsl memdesc_sg_phys) set up scatterlists with
+	 * only dma_address and no backing page for MMIO/physaddr mappings.
+	 * Fall back to sg_dma_address in that case.
+	 */
+	if (page == NULL)
+		return sg_dma_address(sg);
 
 	return sg_phys(sg);
 }
