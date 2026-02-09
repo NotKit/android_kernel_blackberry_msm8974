@@ -94,8 +94,7 @@ static int loading_timeout = 60;	/* In seconds */
 
 static inline long firmware_loading_timeout(void)
 {
-	return loading_timeout > 0 ? msecs_to_jiffies(loading_timeout * 1000) :
-	        MAX_SCHEDULE_TIMEOUT;
+	return loading_timeout > 0 ? loading_timeout * HZ : MAX_SCHEDULE_TIMEOUT;
 }
 
 /* firmware behavior options */
@@ -699,67 +698,6 @@ out:
 
 static DEVICE_ATTR(loading, 0644, firmware_loading_show, firmware_loading_store);
 
-static int __firmware_data_rw(struct firmware_priv *fw_priv, char *buffer,
-				loff_t *offset, size_t count, int read)
-{
-	u8 __iomem *fw_buf;
-	int retval = count;
-
-	if ((*offset + count) > fw_priv->dest_size) {
-		pr_debug("%s: Failed size check.\n", __func__);
-		retval = -EINVAL;
-		goto out;
-	}
-
-	fw_buf = ioremap(fw_priv->dest_addr + *offset, count);
-	if (!fw_buf) {
-		pr_debug("%s: Failed ioremap.\n", __func__);
-		retval = -ENOMEM;
-		goto out;
-	}
-
-	if (read)
-		memcpy(buffer, fw_buf, count);
-	else
-		memcpy(fw_buf, buffer, count);
-
-	*offset += count;
-	iounmap(fw_buf);
-
-out:
-	return retval;
-}
-
-static ssize_t firmware_direct_read(struct file *filp, struct kobject *kobj,
-				  struct bin_attribute *bin_attr,
-				  char *buffer, loff_t offset, size_t count)
-{
-	struct device *dev = to_dev(kobj);
-	struct firmware_priv *fw_priv = to_firmware_priv(dev);
-	struct firmware *fw;
-	ssize_t ret_count;
-
-	mutex_lock(&fw_lock);
-	fw = fw_priv->fw;
-
-	if (offset > fw->size) {
-		ret_count = 0;
-		goto out;
-	}
-	if (count > fw->size - offset)
-		count = fw->size - offset;
-
-	if (!fw || test_bit(FW_STATUS_DONE, &fw_priv->status)) {
-		ret_count = -ENODEV;
-		goto out;
-	}
-
-	ret_count = __firmware_data_rw(fw_priv, buffer, &offset, count, 1);
-out:
-	mutex_unlock(&fw_lock);
-	return ret_count;
-}
-
 static ssize_t firmware_data_read(struct file *filp, struct kobject *kobj,
 				  struct bin_attribute *bin_attr,
 				  char *buffer, loff_t offset, size_t count)
@@ -841,35 +779,6 @@ static int fw_realloc_buffer(struct firmware_priv *fw_priv, int min_size)
 		buf->nr_pages++;
 	}
 	return 0;
-}
-
-static ssize_t firmware_direct_write(struct file *filp, struct kobject *kobj,
-				   struct bin_attribute *bin_attr,
-				   char *buffer, loff_t offset, size_t count)
-{
-	struct device *dev = to_dev(kobj);
-	struct firmware_priv *fw_priv = to_firmware_priv(dev);
-	struct firmware *fw;
-	ssize_t retval;
-
-	if (!capable(CAP_SYS_RAWIO))
-		return -EPERM;
-
-	mutex_lock(&fw_lock);
-	fw = fw_priv->fw;
-	if (!fw || test_bit(FW_STATUS_DONE, &fw_priv->status)) {
-		retval = -ENODEV;
-		goto out;
-	}
-
-	retval = __firmware_data_rw(fw_priv, buffer, &offset, count, 0);
-	if (retval < 0)
-		goto out;
-
-	fw->size = max_t(size_t, offset, fw->size);
-out:
-	mutex_unlock(&fw_lock);
-	return retval;
 }
 
 /**
@@ -996,7 +905,7 @@ static int _request_firmware_load(struct firmware_priv *fw_priv,
 		goto err_put_dev;
 	}
 
-	retval = device_create_bin_file(f_dev, fw_attr_data);
+	retval = device_create_bin_file(f_dev, &firmware_attr_data);
 	if (retval) {
 		dev_err(f_dev, "%s: sysfs_create_bin_file failed\n", __func__);
 		goto err_del_dev;
@@ -1036,7 +945,7 @@ static int _request_firmware_load(struct firmware_priv *fw_priv,
 
 	device_remove_file(f_dev, &dev_attr_loading);
 err_del_bin_attr:
-	device_remove_bin_file(f_dev, fw_attr_data);
+	device_remove_bin_file(f_dev, &firmware_attr_data);
 err_del_dev:
 	device_del(f_dev);
 err_put_dev:
@@ -1284,7 +1193,7 @@ _request_firmware(const struct firmware **firmware_p, const char *name,
  **/
 int
 request_firmware(const struct firmware **firmware_p, const char *name,
-		 struct device *device)
+                 struct device *device)
 {
 	int ret;
 

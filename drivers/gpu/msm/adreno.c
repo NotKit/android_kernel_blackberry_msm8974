@@ -1724,19 +1724,22 @@ static int adreno_init(struct kgsl_device *device)
 	if (adreno_ringbuffer_read_pm4_ucode(device)) {
 		KGSL_DRV_ERR(device, "Reading pm4 microcode failed %s\n",
 			adreno_dev->pm4_fwfile);
-		BUG_ON(1);
+		ret = -ENOENT;
+		goto done;
 	}
 
 	if (adreno_ringbuffer_read_pfp_ucode(device)) {
 		KGSL_DRV_ERR(device, "Reading pfp microcode failed %s\n",
 			adreno_dev->pfp_fwfile);
-		BUG_ON(1);
+		ret = -ENOENT;
+		goto done;
 	}
 
 	if (adreno_dev->gpurev == ADRENO_REV_UNKNOWN) {
 		KGSL_DRV_ERR(device, "Unknown chip ID %x\n",
 			adreno_dev->chip_id);
-		BUG_ON(1);
+		ret = -ENODEV;
+		goto done;
 	}
 
 	kgsl_pwrctrl_set_state(device, KGSL_STATE_INIT);
