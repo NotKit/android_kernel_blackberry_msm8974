@@ -92,6 +92,22 @@ static void _update_cutoff(struct devfreq_msm_adreno_tz_data *priv,
 	}
 }
 
+/* Local helper: lookup frequency level from profile freq_table
+ * devfreq_get_freq_level in devfreq.c is static, so duplicate logic here
+ */
+static int devfreq_get_freq_level_local(struct devfreq *devfreq,
+					unsigned long freq)
+{
+	int lev;
+
+	for (lev = 0; lev < devfreq->profile->max_state; lev++)
+		if (freq == devfreq->profile->freq_table[lev])
+			return lev;
+
+	return -EINVAL;
+}
+
+
 static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 				u32 *flag)
 {
@@ -148,7 +164,7 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 		frame_flag = 0;
 	}
 
-	level = devfreq_get_freq_level(devfreq, stats.current_frequency);
+	level = devfreq_get_freq_level_local(devfreq, stats.current_frequency);
 
 	if (level < 0) {
 		pr_err(TAG "bad freq %ld\n", stats.current_frequency);
@@ -372,9 +388,20 @@ static int tz_handler(struct devfreq *devfreq, unsigned int event, void *data)
 	return result;
 }
 
+/*
+ * Wrapper to match the upstream 3.18 get_target_freq signature (2 args)
+ * while preserving the MSM 3-arg internal implementation.
+ */
+static int tz_get_target_freq_wrapper(struct devfreq *devfreq,
+					unsigned long *freq)
+{
+	u32 flag = 0;
+	return tz_get_target_freq(devfreq, freq, &flag);
+}
+
 static struct devfreq_governor msm_adreno_tz = {
 	.name = "msm-adreno-tz",
-	.get_target_freq = tz_get_target_freq,
+	.get_target_freq = tz_get_target_freq_wrapper,
 	.event_handler = tz_handler,
 };
 
