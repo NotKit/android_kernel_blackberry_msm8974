@@ -630,9 +630,7 @@ static void __init gic_pm_init(struct gic_chip_data *gic)
 static void gic_raise_softirq(const struct cpumask *mask, unsigned int irq)
 {
 	int cpu;
-	unsigned long flags, map = 0;
-
-	raw_spin_lock_irqsave(&irq_controller_lock, flags);
+	unsigned long map = 0;
 
 	/* Convert our logical CPU mask into a physical one. */
 	for_each_cpu(cpu, mask)
@@ -644,10 +642,21 @@ static void gic_raise_softirq(const struct cpumask *mask, unsigned int irq)
 	 */
 	dmb(ishst);
 
-	/* this always happens on GIC0 */
+	/*
+	 * Write to GICD_SGIR without taking irq_controller_lock.
+	 *
+	 * The GICD_SGIR register is write-only and does not require
+	 * distributor lock protection. Not taking the lock here avoids
+	 * a recursive deadlock when gic_raise_softirq is called from
+	 * contexts that already hold irq_controller_lock (e.g., the
+	 * gic_arch_extn.irq_unmask callback chain on MSM platforms
+	 * which calls complete() -> try_to_wake_up -> IPI, or
+	 * irq_work_queue -> arch_irq_work_raise -> IPI).
+	 *
+	 * This matches the MSM 3.4 kernel behavior which only took the
+	 * lock conditionally for MSM8625.
+	 */
 	writel_relaxed(map << 16 | irq, gic_data_dist_base(&gic_data[0]) + GIC_DIST_SOFTINT);
-
-	raw_spin_unlock_irqrestore(&irq_controller_lock, flags);
 }
 #endif
 
