@@ -13,6 +13,7 @@
 
 #include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/irq_work.h>
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/bitmap.h>
@@ -88,6 +89,17 @@ static bool xo_enabled;
 static struct workqueue_struct *msm_mpm_wq;
 static struct work_struct msm_mpm_work;
 static struct completion wake_wq;
+
+/* irq_work to defer complete() outside of spinlock context */
+static void mpm_complete_irq_work(struct irq_work *work);
+static struct irq_work mpm_complete_work = {
+	.func = mpm_complete_irq_work,
+};
+
+static void mpm_complete_irq_work(struct irq_work *work)
+{
+	complete(&wake_wq);
+}
 
 enum mpm_reg_offsets {
 	MSM_MPM_REG_WAKEUP,
@@ -274,8 +286,15 @@ static int msm_mpm_enable_irq_exclusive(
 		else
 			__clear_bit(d->hwirq, irq_apps);
 
-		if (!wakeset && (msm_mpm_initialized & MSM_MPM_DEVICE_PROBED))
-			complete(&wake_wq);
+		if (!wakeset && (msm_mpm_initialized & MSM_MPM_DEVICE_PROBED)) {
+			/*
+			 * Defer complete(&wake_wq) using irq_work to avoid
+			 * calling complete() inside nested spinlocks
+			 * (irq_controller_lock + msm_mpm_lock).
+			 * The irq_work will run after we exit IRQ context.
+			 */
+			irq_work_queue(&mpm_complete_work);
+		}
 	}
 
 	return 0;
