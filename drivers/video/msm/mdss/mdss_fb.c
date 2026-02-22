@@ -1155,13 +1155,23 @@ static int mdss_fb_blank_unblank(struct msm_fb_data_type *mfd)
 		return 0;
 	}
 
-	if (mfd->mdp.on_fnc) {
+	if (mfd->panel_info->cont_splash_enabled) {
+		pr_debug("Skipping panel on_fnc during continuous splash handoff\n");
+		/* 
+		 * Important: we must clear cont_splash_enabled so that subsequent
+		 * blanks/unblanks actually touch the hardware. Otherwise we'll
+		 * skip turning the panel back on if it gets turned off!
+		 */
+		mfd->panel_info->cont_splash_enabled = 0;
+	} else if (mfd->mdp.on_fnc) {
 		ret = mfd->mdp.on_fnc(mfd);
 		if (ret) {
 			mdss_fb_stop_disp_thread(mfd);
 			goto error;
 		}
+	}
 
+	if (mfd->mdp.on_fnc) {
 		mfd->panel_power_state = MDSS_PANEL_POWER_ON;
 		mfd->panel_info->panel_dead = false;
 		mutex_lock(&mfd->update.lock);
