@@ -4262,7 +4262,11 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	msm_host->mmc->caps2 |= msm_host->pdata->caps2;
 	msm_host->mmc->caps2 |= MMC_CAP2_BOOTPART_NOACC;
 	msm_host->mmc->caps2 |= MMC_CAP2_HS400_POST_TUNING;
-	msm_host->mmc->caps2 |= MMC_CAP2_CLK_SCALE;
+	/* MMC_CAP2_CLK_SCALE disabled: devfreq aggressively downclocks
+	 * eMMC to f_min (400KHz) causing severe I/O performance loss.
+	 * The 3.4 DT lacks qcom,devfreq,freq-table and the devfreq
+	 * simple_ondemand governor is not tuned for this platform.
+	 */
 	msm_host->mmc->caps2 |= MMC_CAP2_SANITIZE;
 	msm_host->mmc->caps2 |= MMC_CAP2_MAX_DISCARD_SIZE;
 	msm_host->mmc->caps2 |= MMC_CAP2_SLEEP_AWAKE;
