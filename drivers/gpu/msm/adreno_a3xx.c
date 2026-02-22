@@ -1842,6 +1842,15 @@ static void a3xx_start(struct adreno_device *adreno_dev)
 
 	kgsl_regwrite(device, A3XX_CP_DEBUG, A3XX_CP_DEBUG_DEFAULT);
 	memset(&adreno_dev->busy_data, 0, sizeof(adreno_dev->busy_data));
+
+	/*
+	 * Ensure all interrupts are masked and any pending status is cleared
+	 * before enable_irq is called. Otherwise a spurious interrupt
+	 * (e.g. from hang detect) could fire immediately and try to read GPU
+	 * registers from IRQ context, causing an AHB bus hang.
+	 */
+	kgsl_regwrite(device, A3XX_RBBM_INT_0_MASK, 0);
+	kgsl_regwrite(device, A3XX_RBBM_INT_CLEAR_CMD, 0xFFFFFFFF);
 }
 
 /**
