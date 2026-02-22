@@ -871,11 +871,12 @@ static void __program_context(struct msm_iommu_drvdata *iommu_drvdata,
 	mb();
 }
 
-#ifdef CONFIG_IOMMU_PGTABLES_L2
-#define INITIAL_REDIRECT_VAL 1
-#else
+/*
+ * L2 redirect is not stable on IOMMU v1 (used on MSM8974 and similar).
+ * Force redirect off to avoid GPU crashes from cacheable page table walks.
+ * See 3.4 kernel: "L2 redirect is not stable on IOMMU v1"
+ */
 #define INITIAL_REDIRECT_VAL 0
-#endif
 
 static int msm_iommu_domain_init(struct iommu_domain *domain)
 {
@@ -997,6 +998,7 @@ static int msm_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
 		}
 		program_iommu_bfb_settings(iommu_drvdata->base,
 					   iommu_drvdata->bfb_settings);
+		SET_MICRO_MMU_CTRL_RESERVED(iommu_drvdata->base, 0x3);
 		set_m2v = true;
 	}
 

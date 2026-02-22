@@ -316,6 +316,8 @@ static int __get_next_sg(void *old, void **new)
 {
 	struct scatterlist *sg = old;
 	*new = sg_next(sg);
+	if (*new == NULL)
+		return -EINVAL;
 	return 0;
 }
 
