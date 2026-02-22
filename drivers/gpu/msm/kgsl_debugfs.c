@@ -224,8 +224,12 @@ kgsl_process_init_debugfs(struct kgsl_process_private *private)
 
 	private->debug_root = debugfs_create_dir(name, proc_d_debugfs);
 
-	if (!private->debug_root)
-		return -EINVAL;
+	if (!private->debug_root) {
+		/* debugfs failure should not prevent GPU usage */
+		pr_warn("kgsl: debugfs_create_dir(%s) failed, continuing\n",
+			name);
+		return 0;
+	}
 
 	/*
 	 * debugfs_create_dir() and debugfs_create_file() both
