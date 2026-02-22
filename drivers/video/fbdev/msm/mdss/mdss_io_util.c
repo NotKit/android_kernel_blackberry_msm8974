@@ -226,10 +226,17 @@ int msm_dss_config_vreg_opt_mode(struct dss_vreg *in_vreg, int num_vreg,
 		rc = regulator_set_optimum_mode(in_vreg[i].vreg,
 			in_vreg[i].load[mode]);
 		if (rc < 0) {
-			DEV_ERR("%pS->%s: %s set opt mode failed. rc=%d\n",
-				__builtin_return_address(0), __func__,
-				in_vreg[i].vreg_name, rc);
-			goto error;
+			if (rc == -EPERM || rc == -EINVAL) {
+				DEV_DBG("%pS->%s: %s set opt mode unsupported rc=%d, continuing\n",
+					__builtin_return_address(0), __func__,
+					in_vreg[i].vreg_name, rc);
+				rc = 0;
+			} else {
+				DEV_ERR("%pS->%s: %s set opt mode failed. rc=%d\n",
+					__builtin_return_address(0), __func__,
+					in_vreg[i].vreg_name, rc);
+				goto error;
+			}
 		} else {
 			/*
 			 * regulator_set_optimum_mode can return non-zero
@@ -271,10 +278,17 @@ int msm_dss_enable_vreg(struct dss_vreg *in_vreg, int num_vreg, int enable, int 
 			rc = regulator_set_optimum_mode(in_vreg[i].vreg,
 				in_vreg[i].load[DSS_REG_MODE_ENABLE]);
 			if (rc < 0) {
-				DEV_ERR("%pS->%s: %s set opt m fail\n",
-					__builtin_return_address(0), __func__,
-					in_vreg[i].vreg_name);
-				goto vreg_set_opt_mode_fail;
+				if (rc == -EPERM || rc == -EINVAL) {
+					DEV_DBG("%pS->%s: %s set opt m unsupported rc=%d, continuing\n",
+						__builtin_return_address(0), __func__,
+						in_vreg[i].vreg_name, rc);
+					rc = 0;
+				} else {
+					DEV_ERR("%pS->%s: %s set opt m fail\n",
+						__builtin_return_address(0), __func__,
+						in_vreg[i].vreg_name);
+					goto vreg_set_opt_mode_fail;
+				}
 			}
 			rc = regulator_enable(in_vreg[i].vreg);
 			if (in_vreg[i].post_on_sleep && need_sleep)
