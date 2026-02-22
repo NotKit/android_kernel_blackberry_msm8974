@@ -1011,8 +1011,10 @@ kgsl_get_process_private(struct kgsl_device *device)
 
 	private = kgsl_process_private_new();
 
-	if (!private)
+	if (!private) {
+		pr_err("kgsl_get_process_private: process_private_new failed\n");
 		return NULL;
+	}
 
 	mutex_lock(&private->process_private_mutex);
 
@@ -1028,14 +1030,21 @@ kgsl_get_process_private(struct kgsl_device *device)
 		pt_name = task_tgid_nr(current);
 		private->pagetable =
 			kgsl_mmu_getpagetable(&device->mmu, pt_name);
-		if (private->pagetable == NULL)
+		if (private->pagetable == NULL) {
+			pr_err("kgsl_get_process_private: getpagetable failed for pid %ld\n",
+				pt_name);
 			goto error;
+		}
 	}
 
-	if (kgsl_process_init_sysfs(device, private))
+	if (kgsl_process_init_sysfs(device, private)) {
+		pr_err("kgsl_get_process_private: init_sysfs failed\n");
 		goto error;
-	if (kgsl_process_init_debugfs(private))
+	}
+	if (kgsl_process_init_debugfs(private)) {
+		pr_err("kgsl_get_process_private: init_debugfs failed\n");
 		goto error;
+	}
 
 	set_bit(KGSL_PROCESS_INIT, &private->priv);
 
@@ -1242,7 +1251,15 @@ err_stop:
 		kgsl_pwrctrl_enable(device);
 		device->ftbl->stop(device);
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_INIT);
-		atomic_dec(&device->active_cnt);
+		/*
+		 * If active_cnt is still > 0, we need to undo the
+		 * atomic_inc from kgsl_open_device. But if it already
+		 * reached 0 (via kgsl_active_count_put), don't decrement
+		 * again or we'll underflow.
+		 */
+		if (atomic_read(&device->active_cnt) > 0) {
+			atomic_dec(&device->active_cnt);
+		}
 	}
 err_freedevpriv:
 	kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
