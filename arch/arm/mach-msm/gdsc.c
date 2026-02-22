@@ -162,6 +162,14 @@ static int gdsc_probe(struct platform_device *pdev)
 	if (init_data == NULL)
 		return -ENOMEM;
 
+	/*
+	 * GDSC power domains must always be toggleable. Ensure
+	 * REGULATOR_CHANGE_STATUS is set even when the DT node lacks
+	 * standard regulator constraint properties (which would otherwise
+	 * leave valid_ops_mask at 0, blocking regulator_enable/disable).
+	 */
+	init_data->constraints.valid_ops_mask |= REGULATOR_CHANGE_STATUS;
+
 	if (of_get_property(pdev->dev.of_node, "parent-supply", NULL))
 		init_data->supply_regulator = "parent";
 
