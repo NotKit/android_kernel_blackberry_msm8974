@@ -37,6 +37,7 @@
 #include <linux/major.h>
 #include <linux/bootmem.h>
 #include <linux/memblock.h>
+#include <linux/mm.h>
 #include <linux/iopoll.h>
 #include <mach/board.h>
 #include <mach/clk.h>
@@ -1905,8 +1906,10 @@ void mdp3_release_splash_memory(struct msm_fb_data_type *mfd)
 		pr_debug("mdp3_release_splash_memory\n");
 		memblock_free(mdp3_res->splash_mem_addr,
 				mdp3_res->splash_mem_size);
-		free_bootmem_late(mdp3_res->splash_mem_addr,
-				mdp3_res->splash_mem_size);
+		free_reserved_area(__va(mdp3_res->splash_mem_addr),
+				__va(mdp3_res->splash_mem_addr +
+				mdp3_res->splash_mem_size),
+				-1, "mdss_splash");
 		mdp3_res->splash_mem_addr = 0;
 	}
 }
