@@ -1090,6 +1090,8 @@ static __ref int do_hotplug(void *data)
 			&hotplug_notify_complete) != 0)
 			;
 		reinit_completion(&hotplug_notify_complete);
+		if (!core_control_enabled)
+			break;
 		mask = 0;
 
 		mutex_lock(&core_control_mutex);
@@ -1974,6 +1976,11 @@ static ssize_t __ref store_cc_enabled(struct kobject *kobj,
 			pr_err("Hotplug task is not initialized\n");
 	} else {
 		pr_info("Core control disabled\n");
+		if (hotplug_task) {
+			complete(&hotplug_notify_complete);
+			kthread_stop(hotplug_task);
+			hotplug_task = NULL;
+		}
 		unregister_cpu_notifier(&msm_thermal_cpu_notifier);
 	}
 
