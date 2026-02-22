@@ -18,6 +18,7 @@
 #include <linux/kthread.h>
 #include <linux/memblock.h>
 #include <linux/bootmem.h>
+#include <linux/mm.h>
 #include <linux/iommu.h>
 #include <linux/fb.h>
 
@@ -241,10 +242,15 @@ int mdss_mdp_splash_cleanup(struct msm_fb_data_type *mfd,
 
 	if (mdp5_data->splash_mem_addr) {
 		/* Give back the reserved memory to the system */
+		pr_info("mdss_mdp_splash_cleanup: SKIPPING memblock_free of mdss_splash\n");
+		/*
 		memblock_free(mdp5_data->splash_mem_addr,
 					mdp5_data->splash_mem_size);
-		free_bootmem_late(mdp5_data->splash_mem_addr,
-				 mdp5_data->splash_mem_size);
+		free_reserved_area(__va(mdp5_data->splash_mem_addr),
+				__va(mdp5_data->splash_mem_addr +
+				mdp5_data->splash_mem_size),
+				-1, "mdss_splash");
+		*/
 	}
 
 	mdss_mdp_footswitch_ctrl_splash(0);
@@ -580,8 +586,10 @@ error:
 		pr_debug("mem reservation not reqd if cont splash disabled\n");
 		memblock_free(mdp5_mdata->splash_mem_addr,
 					mdp5_mdata->splash_mem_size);
-		free_bootmem_late(mdp5_mdata->splash_mem_addr,
-				 mdp5_mdata->splash_mem_size);
+		free_reserved_area(__va(mdp5_mdata->splash_mem_addr),
+				__va(mdp5_mdata->splash_mem_addr +
+				mdp5_mdata->splash_mem_size),
+				-1, "mdss_splash");
 	} else if (rc && mfd->panel_info->cont_splash_enabled) {
 		pr_err("no rsvd mem found in DT for splash screen\n");
 	} else {
