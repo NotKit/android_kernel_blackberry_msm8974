@@ -901,7 +901,7 @@ static struct of_device_id msm_ocmem_dt_match[] = {
 
 static struct platform_driver msm_ocmem_driver = {
 	.probe = msm_ocmem_probe,
-	.remove = _p(msm_ocmem_remove),
+	.remove = msm_ocmem_remove,
 	.driver = {
 		.name = "msm_ocmem",
 		.owner = THIS_MODULE,
