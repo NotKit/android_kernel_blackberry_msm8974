@@ -1318,7 +1318,12 @@ static int __init cpufreq_interactive_init(void)
 }
 
 #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE
-fs_initcall(cpufreq_interactive_init);
+/*
+ * When interactive is the default governor, it must be initialized before
+ * the cpufreq driver registers (subsys_initcall). Use core_initcall to
+ * ensure gov_lock, per-cpu timers, and speedchange_task are ready.
+ */
+core_initcall(cpufreq_interactive_init);
 #else
 module_init(cpufreq_interactive_init);
 #endif
