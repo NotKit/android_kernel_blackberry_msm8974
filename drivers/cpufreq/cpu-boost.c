@@ -98,7 +98,7 @@ static int boost_adjust_notify(struct notifier_block *nb, unsigned long val, voi
 		break;
 
 	case CPUFREQ_START:
-		set_cpus_allowed(s->thread, *cpumask_of(cpu));
+		set_cpus_allowed_ptr(s->thread, cpumask_of(cpu));
 		break;
 	}
 
@@ -374,7 +374,7 @@ static int cpu_boost_init(void)
 		INIT_DELAYED_WORK(&s->input_boost_rem, do_input_boost_rem);
 		s->thread = kthread_run(boost_mig_sync_thread, (void *)cpu,
 					"boost_sync/%d", cpu);
-		set_cpus_allowed(s->thread, *cpumask_of(cpu));
+		set_cpus_allowed_ptr(s->thread, cpumask_of(cpu));
 	}
 	cpufreq_register_notifier(&boost_adjust_nb, CPUFREQ_POLICY_NOTIFIER);
 	atomic_notifier_chain_register(&migration_notifier_head,
