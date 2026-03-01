@@ -51,18 +51,12 @@ static void wait_callback(struct kgsl_device *device,
 static int _check_context_timestamp(struct kgsl_device *device,
 		struct adreno_context *drawctxt, unsigned int timestamp)
 {
-	int ret = 0;
-
 	/* Bail if the drawctxt has been invalidated or destroyed */
 	if (kgsl_context_detached(&drawctxt->base) ||
 		drawctxt->state != ADRENO_CONTEXT_STATE_ACTIVE)
 		return 1;
 
-	kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
-	ret = kgsl_check_timestamp(device, &drawctxt->base, timestamp);
-	kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
-
-	return ret;
+	return kgsl_check_timestamp(device, &drawctxt->base, timestamp);
 }
 
 /**
